@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanLens Utrecht</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d1f;color:#eee;overflow:hidden}
+#map{position:fixed;inset:0;z-index:1}
+.nav{position:fixed;top:0;left:0;right:0;height:50px;z-index:1000;background:rgba(10,10,28,.97);border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;padding:0 14px}
+.logo{font-size:15px;font-weight:700;color:#fff}.logo em{color:#4fc3f7;font-style:normal}
+.badge{background:rgba(79,195,247,.15);border:1px solid rgba(79,195,247,.35);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:#4fc3f7}
+.modetabs{display:flex;gap:3px;background:rgba(255,255,255,.05);padding:3px;border-radius:8px;border:1px solid rgba(255,255,255,.08);margin-left:8px}
+.mt{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.35);transition:all .15s}
+.mt.on.env{background:linear-gradient(135deg,#1565c0,#00838f);color:#fff}
+.mt.on.nice{background:linear-gradient(135deg,#6a1b9a,#ad1457);color:#fff}
+.mt:hover:not(.on){background:rgba(255,255,255,.07);color:#ddd}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.live{display:flex;align-items:center;gap:5px;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);border-radius:20px;padding:3px 10px;font-size:11px;color:#81c784;font-weight:600}
+.livdot{width:6px;height:6px;border-radius:50%;background:#81c784;animation:lp 1.4s infinite}
+@keyframes lp{0%,100%{opacity:1}50%{opacity:.2}}
+.left{position:fixed;top:58px;left:8px;bottom:58px;width:255px;z-index:500;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+.left::-webkit-scrollbar{width:3px}.left::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px}
+.right{position:fixed;top:58px;right:8px;width:198px;z-index:500;display:flex;flex-direction:column;gap:6px}
+.card{background:rgba(10,10,28,.93);border-radius:11px;border:1px solid rgba(255,255,255,.08);padding:11px 13px}
+.ch{font-size:9px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.ch b{color:rgba(255,255,255,.55);font-size:10px;text-transform:none;letter-spacing:0;font-weight:500}
+.lr{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:all .15s;margin-bottom:4px}
+.lr:last-child{margin-bottom:0}.lr.on{border-color:rgba(79,195,247,.28);background:rgba(79,195,247,.04)}.lr:hover{background:rgba(255,255,255,.05)}
+.lsw{width:28px;height:8px;border-radius:4px;flex-shrink:0}
+.ln{font-size:11px;color:#ddd;flex:1;line-height:1.3}.ls{font-size:8px;color:rgba(255,255,255,.28);margin-top:1px}
+.sw{width:28px;height:16px;border-radius:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);position:relative;flex-shrink:0;transition:background .18s}
+.sw.on{background:#4fc3f7}.sw::after{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:#fff;top:2px;left:2px;transition:left .18s}.sw.on::after{left:14px}
+.rmt{display:flex;gap:4px;padding:0 9px 8px}
+.rmb{flex:1;padding:4px;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;text-align:center;border:1px solid;transition:all .15s}
+.rmb.co2{color:#fb8c00;border-color:#fb8c00;background:rgba(251,140,0,.1)}
+.rmb.noise{color:rgba(255,255,255,.35);border-color:rgba(255,255,255,.12);background:transparent}
+.rmb.noise.on{color:#e53935;border-color:#e53935;background:rgba(229,57,53,.1)}
+.rmb.co2.off{color:rgba(255,255,255,.35);border-color:rgba(255,255,255,.12);background:transparent}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:0}
+.met{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:8px 10px}
+.mv{font-size:19px;font-weight:700;font-family:monospace;line-height:1.1}.ml{font-size:8px;color:rgba(255,255,255,.3);margin-top:2px}
+.aqbar{display:flex;gap:2px;height:7px;margin:7px 0 3px;border-radius:4px;overflow:hidden}.aqseg{flex:1}
+.aqptr{position:relative;height:8px}.aqneedle{position:absolute;top:0;width:2px;height:8px;background:#fff;border-radius:1px;transform:translateX(-50%);transition:left .6s}
+.aqlabs{display:flex;justify-content:space-between;font-size:8px;color:rgba(255,255,255,.28)}
+.leg{display:flex;align-items:center;gap:7px;padding:2px 0}
+.legline{height:5px;border-radius:3px}.leglbl{font-size:10px;color:rgba(255,255,255,.55);flex:1}.legval{font-size:9px;color:rgba(255,255,255,.3)}
+.prow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)}.prow:last-child{border:none}
+.picon{font-size:15px;flex-shrink:0}.pname{font-size:11px;color:#ddd;font-weight:500}.pdesc{font-size:8px;color:rgba(255,255,255,.3);margin-top:1px}
+.psbar{width:60px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;flex-shrink:0}
+.psbar-fill{height:100%;border-radius:3px;transition:width .6s}
+.log{max-height:50px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}.log::-webkit-scrollbar{width:0}
+.lok{font-size:8px;color:#81c784}.ler{font-size:8px;color:#ef9a9a}.lwa{font-size:8px;color:#ffcc02}
+.btm{position:fixed;bottom:0;left:0;right:0;height:50px;z-index:500;background:rgba(10,10,28,.97);border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;overflow:hidden}
+.bi{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px;border-right:1px solid rgba(255,255,255,.06);height:100%;flex-shrink:0;white-space:nowrap}
+.bil{font-size:7px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1px}
+.biv{font-size:12px;font-weight:700}
+.lpop{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px}
+.lpopring{width:24px;height:24px;border-radius:50%;border:2px solid rgba(186,104,200,.2);border-top-color:#ba68c8;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.leaflet-popup-content-wrapper{background:rgba(10,10,30,.97)!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:12px!important;box-shadow:0 8px 32px rgba(0,0,0,.8)!important;overflow:hidden!important;padding:0!important;min-width:220px}
+.leaflet-popup-tip{background:rgba(10,10,30,.97)!important}
+.ph{padding:9px 13px 7px;border-bottom:1px solid rgba(255,255,255,.07)}.pt{font-size:13px;font-weight:700;color:#fff}.ps{font-size:9px;color:rgba(255,255,255,.3);margin-top:1px}
+.pb{padding:9px 13px}.pr{display:flex;justify-content:space-between;font-size:10px;padding:2px 0;color:rgba(255,255,255,.45)}.pv{color:#fff;font-weight:600}
+.ptag{display:inline-block;font-size:9px;padding:2px 7px;border-radius:4px;font-weight:600;margin-top:5px}
+.tag-r{background:rgba(239,83,80,.15);color:#ef5350;border:1px solid rgba(239,83,80,.25)}
+.tag-a{background:rgba(255,167,38,.15);color:#ffa726;border:1px solid rgba(255,167,38,.25)}
+.tag-g{background:rgba(102,187,106,.15);color:#66bb6a;border:1px solid rgba(102,187,106,.25)}
+.tag-b{background:rgba(79,195,247,.15);color:#4fc3f7;border:1px solid rgba(79,195,247,.25)}
+.npills{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0}
+.npill{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;border:1px solid}
+.nrec{display:flex;gap:8px;padding:5px 0;border-top:1px solid rgba(255,255,255,.06)}
+.nrec-icon{font-size:14px;flex-shrink:0;line-height:1.3}
+.nrec-type{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1px}
+.nrec-text{font-size:9px;color:rgba(255,255,255,.65);line-height:1.4}
+.loader{position:fixed;inset:0;background:#09091a;z-index:3000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;transition:opacity .4s}
+.lring{width:34px;height:34px;border-radius:50%;border:2px solid rgba(79,195,247,.2);border-top-color:#4fc3f7;animation:sp .8s linear infinite}
+.ltxt{font-size:11px;color:rgba(255,255,255,.35)}
+.lpw{width:150px;height:2px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.lbar{height:100%;background:#4fc3f7;width:0%;transition:width .4s}
+@media(max-width:700px){.left,.right{display:none}}
+</style>
+</head>
+<body>
+<div class="loader" id="loader">
+  <div class="lring"></div>
+  <div class="ltxt" id="ltxt">Initialisiere...</div>
+  <div class="lpw"><div class="lbar" id="lbar"></div></div>
+</div>
+
+<nav class="nav">
+  <div class="logo">Urban<em>Lens</em></div>
+  <div class="badge">Utrecht</div>
+  <div class="modetabs">
+    <div class="mt on env" id="mt-env" onclick="setMode('env')">Umwelt</div>
+    <div class="mt nice" id="mt-nice" onclick="setMode('nice')">NICE Score</div>
+  </div>
+  <div class="nav-r">
+    <div class="live"><div class="livdot"></div><span id="liveTxt">Live</span></div>
+  </div>
+</nav>
+<div id="map"></div>
+
+<div class="left">
+  <!-- ENV PANEL -->
+  <div id="penv">
+    <div class="card">
+      <div class="ch">Umwelt-Ebenen</div>
+      <div class="lr on" id="lr-roads" onclick="togL('roads',this)">
+        <div class="lsw" id="roads-swatch" style="background:linear-gradient(to right,#b71c1c,#fb8c00,#fdd835,#757575)"></div>
+        <div><div class="ln">Strassenemissionen CO2</div><div class="ls">OSM x COPERT EU</div></div>
+        <div class="sw on" id="sw-roads"></div>
+      </div>
+      <div class="rmt">
+        <div class="rmb co2" id="rmco2" onclick="setRoadMode('co2')">CO2 kg/Tag</div>
+        <div class="rmb noise" id="rmnoise" onclick="setRoadMode('noise')">Laerm dB(A)</div>
+      </div>
+      <div class="lr on" id="lr-cycling" onclick="togL('cycling',this)">
+        <div class="lsw" style="background:linear-gradient(to right,#1b5e20,#43a047,#ffa726)"></div>
+        <div><div class="ln">Radwege-Netz</div><div class="ls">Gruen=geschuetzt, Orange=markiert</div></div>
+        <div class="sw on" id="sw-cycling"></div>
+      </div>
+      <div class="lr on" id="lr-transit" onclick="togL('transit',this)">
+        <div class="lsw" style="background:linear-gradient(to right,#7e57c2,#0288d1)"></div>
+        <div><div class="ln">OEPNV-Haltestellen</div><div class="ls">Bus, Tram, Bahn</div></div>
+        <div class="sw on" id="sw-transit"></div>
+      </div>
+      <div class="lr on" id="lr-green" onclick="togL('green',this)">
+        <div class="lsw" style="background:#2e7d32"></div>
+        <div><div class="ln">Gruenflaechen &amp; Parks</div><div class="ls">OSM leisure/landuse</div></div>
+        <div class="sw on" id="sw-green"></div>
+      </div>
+      <div class="lr on" id="lr-gap" onclick="togL('gap',this)">
+        <div class="lsw" style="background:linear-gradient(to right,#b71c1c,#7b1fa2)"></div>
+        <div><div class="ln">Gruenflaechen-Defizit</div><div class="ls">Rot = kein Park in 500m Luftlinie</div></div>
+        <div class="sw on" id="sw-gap"></div>
+      </div>
+      <div class="lr on" id="lr-aq" onclick="togL('aq',this)">
+        <div class="lsw" style="background:linear-gradient(to right,#43a047,#fdd835,#e53935)"></div>
+        <div><div class="ln">Luftqualitaet PM2.5</div><div class="ls">Open-Meteo Air Quality</div></div>
+        <div class="sw on" id="sw-aq"></div>
+      </div>
+      <div class="lr on" id="lr-modis" onclick="togL('modis',this)">
+        <div class="lsw" style="background:linear-gradient(to right,#1a237e,#f9a825,#b71c1c)"></div>
+        <div><div class="ln">MODIS Oberflaechentemp.</div><div class="ls">NASA GIBS, taegl. Satellit</div></div>
+        <div class="sw on" id="sw-modis"></div>
+      </div>
+    </div>
+    <div class="card" id="co2-legend">
+      <div class="ch">CO2-Emissionen COPERT EU</div>
+      <div class="leg"><div class="legline" style="width:38px;background:#b71c1c"></div><span class="leglbl">Autobahn</span><span class="legval">6500 kg/km/d</span></div>
+      <div class="leg"><div class="legline" style="width:30px;background:#e53935"></div><span class="leglbl">Hauptstr.</span><span class="legval">2600 kg/km/d</span></div>
+      <div class="leg"><div class="legline" style="width:23px;background:#fb8c00"></div><span class="leglbl">Nebenstr.</span><span class="legval">475 kg/km/d</span></div>
+      <div class="leg"><div class="legline" style="width:17px;background:#fdd835"></div><span class="leglbl">Sammelstr.</span><span class="legval">47 kg/km/d</span></div>
+      <div class="leg"><div class="legline" style="width:12px;background:#757575"></div><span class="leglbl">Wohnstr.</span><span class="legval">12 kg/km/d</span></div>
+      <div style="margin-top:6px;font-size:8px;color:rgba(255,255,255,.2)" id="roadCount">Strassen: laedt...</div>
+    </div>
+    <div class="card" id="noise-legend" style="display:none">
+      <div class="ch">Laermbelastung dB(A)</div>
+      <div style="display:flex;height:9px;border-radius:4px;overflow:hidden;margin:5px 0 3px">
+        <div style="flex:1;background:#43a047"></div><div style="flex:1;background:#c6d600"></div>
+        <div style="flex:1;background:#fdd835"></div><div style="flex:1;background:#fb8c00"></div>
+        <div style="flex:1;background:#e53935"></div><div style="flex:1;background:#b71c1c"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:8px;color:rgba(255,255,255,.3)"><span>&lt;45</span><span>55</span><span>60</span><span>65</span><span>70</span><span>&gt;70</span></div>
+      <div style="font-size:9px;color:#e53935;margin-top:4px">EU-Grenzwert: 65 dB(A)</div>
+      <div style="font-size:8px;color:rgba(255,255,255,.25);margin-top:2px">Modellwert, kein Messwert</div>
+    </div>
+    <div class="card"><div class="ch">Status</div><div class="log" id="apiLog"></div></div>
+  </div>
+
+  <!-- NICE PANEL -->
+  <div id="pnice" style="display:none">
+    <div style="padding:10px 12px;background:linear-gradient(135deg,rgba(106,27,154,.2),rgba(173,20,87,.15));border:1px solid rgba(173,20,87,.3);border-radius:10px;margin-bottom:6px">
+      <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px">NICE Score — Klick-Analyse</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.6)">Klicke auf die Karte: 500m PPS-Analyse, Radar-Chart + 3 Empfehlungen</div>
+    </div>
+    <div class="card">
+      <div class="ch">5 Dimensionen <b id="nice-total"></b></div>
+      <div class="prow"><div class="picon">&#x1F6B2;</div><div style="flex:1"><div class="pname">Mobilitaet</div><div class="pdesc">Radwege, OEPNV, Querungen</div></div><div class="psbar"><div class="psbar-fill" id="pb-mobil" style="background:#4fc3f7;width:0%"></div></div></div>
+      <div class="prow"><div class="picon">&#x1F333;</div><div style="flex:1"><div class="pname">Gruen &amp; Klima</div><div class="pdesc">Baeume, Baenke, Luft, Hitze</div></div><div class="psbar"><div class="psbar-fill" id="pb-gruen" style="background:#66bb6a;width:0%"></div></div></div>
+      <div class="prow"><div class="picon">&#x1F3DB;</div><div style="flex:1"><div class="pname">Sozialraum</div><div class="pdesc">Spielplaetze, Bibliotheken, Maerkte</div></div><div class="psbar"><div class="psbar-fill" id="pb-sozial" style="background:#ffa726;width:0%"></div></div></div>
+      <div class="prow"><div class="picon">&#x1F3EA;</div><div style="flex:1"><div class="pname">Kommerz-Freiheit</div><div class="pdesc">Ketten vs. Unabhaengige</div></div><div class="psbar"><div class="psbar-fill" id="pb-kommerz" style="background:#f06292;width:0%"></div></div></div>
+      <div class="prow"><div class="picon">&#x26A1;</div><div style="flex:1"><div class="pname">Vitalitaet</div><div class="pdesc">POI-Mix, Kultur, Sport</div></div><div class="psbar"><div class="psbar-fill" id="pb-vital" style="background:#ba68c8;width:0%"></div></div></div>
+      <div id="nice-caps" style="font-size:9px;color:#ff8a65;margin-top:6px;display:none"></div>
+      <div id="nice-recs-side" style="margin-top:8px;display:none"></div>
+    </div>
+    <div class="card">
+      <div class="ch">NICE-Layer</div>
+      <div class="lr on" id="lr-poi" onclick="togL('poi',this)">
+        <div class="lsw" style="background:linear-gradient(to right,#1b5e20,#e53935)"></div>
+        <div><div class="ln">Kommerzialisierung</div><div class="ls">Gruen=unabh. Rot=Ketten (brand=*)</div></div>
+        <div class="sw on" id="sw-poi"></div>
+      </div>
+      <div class="lr on" id="lr-benches" onclick="togL('benches',this)">
+        <div class="lsw" style="background:linear-gradient(to right,#66bb6a,#8d6e63,#ef5350)"></div>
+        <div><div class="ln">Baenke (Zustand &amp; Zugang)</div><div class="ls">Gruen=gut, Orange=unbek., Rot=schlecht</div></div>
+        <div class="sw on" id="sw-benches"></div>
+      </div>
+    </div>
+    <div class="card"><div class="ch">NICE-Status</div><div class="log" id="niceLog"></div></div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right">
+  <div class="card">
+    <div class="ch">Wetter</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div style="font-size:34px;line-height:1" id="w-icon">&#x26C5;</div>
+      <div><div style="font-size:26px;font-weight:300;line-height:1"><span id="w-temp">--</span>&#xB0;</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:1px">Gefuehlt <span id="w-feel">--</span>&#xB0;</div></div>
+    </div>
+    <div class="mg">
+      <div class="met"><div class="mv" style="color:#4fc3f7" id="w-wind">--</div><div class="ml">Wind km/h</div></div>
+      <div class="met"><div class="mv" style="color:#4dd0e1" id="w-humid">--</div><div class="ml">Feuchte %</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch">Luftqualitaet</div>
+    <div class="mg" style="margin-bottom:7px">
+      <div class="met"><div class="mv" style="color:#ef5350" id="m-pm25">--</div><div class="ml">PM2.5 ug/m3</div></div>
+      <div class="met"><div class="mv" style="color:#ce93d8" id="m-no2">--</div><div class="ml">NO2 ug/m3</div></div>
+    </div>
+    <div class="aqbar"><div class="aqseg" style="background:#43a047"></div><div class="aqseg" style="background:#c6d600"></div><div class="aqseg" style="background:#fdd835"></div><div class="aqseg" style="background:#fb8c00"></div><div class="aqseg" style="background:#e53935"></div><div class="aqseg" style="background:#8e24aa"></div></div>
+    <div class="aqptr"><div class="aqneedle" id="aqn" style="left:15%"></div></div>
+    <div class="aqlabs"><span>Gut</span><span>Maessig</span><span>Erh.</span><span>Hoch</span><span>Sehr</span><span>Ext.</span></div>
+    <div style="text-align:center;margin-top:6px;font-size:12px;font-weight:700" id="aqtxt">--</div>
+  </div>
+</div>
+
+<div class="btm">
+  <div class="bi"><div class="bil">Stadt</div><div class="biv" style="color:#4fc3f7;font-size:11px">Utrecht</div></div>
+  <div class="bi"><div class="bil">Temp</div><div class="biv" style="color:#ffd54f" id="b-temp">--</div></div>
+  <div class="bi"><div class="bil">PM2.5</div><div class="biv" style="color:#ef5350" id="b-pm">--</div></div>
+  <div class="bi"><div class="bil">Strassen</div><div class="biv" style="color:#ffa726" id="b-roads">--</div></div>
+  <div class="bi" style="border:none;flex:1;align-items:flex-end;padding-right:14px">
+    <div class="bil" style="text-align:right">Quellen</div>
+    <div class="biv" style="font-size:8px;color:rgba(255,255,255,.2)">Open-Meteo, OSM+COPERT, NASA GIBS</div>
+  </div>
+</div>
+
+<script>
+// === CONFIG ====================================================
+var BB = [51.99, 4.98, 52.18, 5.25];
+var LAT = 52.0907, LNG = 5.1214, ZOOM = 13;
+var WW = [[52.069,5.07],[52.081,5.09],[52.092,5.12],[52.104,5.15]];
+
+var RT = {
+  motorway:    {v:50000,co2:130,db:74,w:7,c:'#b71c1c',lbl:'Autobahn'},
+  trunk:       {v:30000,co2:140,db:71,w:6,c:'#c62828',lbl:'Schnellstr.'},
+  primary:     {v:15000,co2:175,db:68,w:5,c:'#e53935',lbl:'Hauptstr.'},
+  secondary:   {v:7000, co2:185,db:63,w:4,c:'#fb8c00',lbl:'Nebenstr.'},
+  tertiary:    {v:2500, co2:190,db:57,w:3,c:'#fdd835',lbl:'Sammelstr.'},
+  residential: {v:300,  co2:200,db:50,w:2,c:'#757575',lbl:'Wohnstr.'},
+  living_street:{v:80,  co2:210,db:43,w:2,c:'#546e7a',lbl:'Spielstr.'},
+  unclassified:{v:500,  co2:195,db:52,w:2,c:'#607d8b',lbl:'Sonstige'}
+};
+
+var MIRRORS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter'
+];
+
+// === STATE ====================================================
+var map, modisLayer;
+var roadLG, greenLG, aqLG, cyclingLG, transitLG, poiLG, benchLG;
+var roadMode = 'co2', roadData = [];
+var W = {}, nicePopup = null, mode = 'env';
+var loaded = {};
+var layers = {roads:true,cycling:true,transit:true,green:true,gap:true,aq:true,modis:true,poi:true,benches:true};
+
+// === UTILS ====================================================
+function el(id){return document.getElementById(id);}
+function set(id,v){var e=el(id);if(e)e.textContent=v;}
+function fmt(v,d){return v!=null?(+v).toFixed(d!=null?d:1):'--';}
+function clamp(v,a,b){return Math.min(b,Math.max(a,v));}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function prog(p,t){var b=el('lbar');if(b)b.style.width=p+'%';set('ltxt',t);}
+function hideLoader(){var l=el('loader');if(l){l.style.opacity='0';setTimeout(function(){l.style.display='none';},400);}}
+function log(msg,t,tgt){
+  tgt=tgt||'apiLog';
+  var d=document.createElement('div');
+  d.className=t==='ok'?'lok':t==='err'?'ler':'lwa';
+  d.textContent=(t==='ok'?'OK ':t==='err'?'ERR ':'... ')+msg;
+  var l=el(tgt);if(!l)return;
+  l.appendChild(d);if(l.children.length>20)l.removeChild(l.firstChild);
+  l.scrollTop=l.scrollHeight;
+}
+
+// === OVERPASS ================================================
+async function ovp(q) {
+  for(var i=0;i<MIRRORS.length;i++){
+    try{
+      var ctrl=new AbortController();
+      var tid=setTimeout(function(){ctrl.abort();},25000);
+      var res=await fetch(MIRRORS[i],{
+        method:'POST',body:q,
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        signal:ctrl.signal
+      });
+      clearTimeout(tid);
+      if(res.status===429){log('Rate limit, warte 5s','w');await sleep(5000);throw new Error('429');}
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      return await res.json();
+    }catch(e){
+      log('Mirror '+(i+1)+': '+e.message,'w');
+      if(i===MIRRORS.length-1)throw e;
+      await sleep(1000);
+    }
+  }
+}
+
+// === MAP ======================================================
+function initMap(){
+  map=L.map('map',{zoomControl:false}).setView([LAT,LNG],ZOOM);
+  L.control.zoom({position:'topright'}).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+    subdomains:'abcd',maxZoom:19,attribution:'OSM/CARTO'
+  }).addTo(map);
+  roadLG    = L.layerGroup().addTo(map);
+  greenLG   = L.layerGroup().addTo(map);
+  aqLG      = L.layerGroup().addTo(map);
+  cyclingLG = L.layerGroup().addTo(map);
+  transitLG = L.layerGroup().addTo(map);
+  poiLG     = L.layerGroup().addTo(map);
+  benchLG   = L.layerGroup().addTo(map);
+  // Waterway
+  L.polyline(WW,{color:'#29b6f6',weight:5,opacity:.5}).addTo(map);
+  map.on('click',onMapClick);
+}
+
+// === ROADS ====================================================
+async function loadRoads(){
+  if(loaded.roads)return;
+  log('Strassen laden...');
+  set('b-roads','laedt');
+  var q='[out:json][timeout:18];(way["highway"~"^(motorway|trunk|primary|secondary|tertiary|residential|living_street|unclassified)$"]('+BB[0]+','+BB[1]+','+BB[2]+','+BB[3]+'););out geom 400;';
+  try{
+    var data=await ovp(q);
+    loaded.roads=true;
+    var cnt=0;
+    roadData=[];
+    (data.elements||[]).forEach(function(way){
+      if(!way.geometry||way.geometry.length<2)return;
+      var ht=way.tags&&way.tags.highway;
+      var cfg=RT[ht]||RT.unclassified;
+      var coords=way.geometry.map(function(p){return[p.lat,p.lon];});
+      var len=0;
+      for(var i=1;i<coords.length;i++){var dl=coords[i][0]-coords[i-1][0],dg=coords[i][1]-coords[i-1][1];len+=Math.sqrt(dl*dl+dg*dg)*111;}
+      var co2d=cfg.v*cfg.co2/1000*len;
+      var name=(way.tags&&way.tags.name)||cfg.lbl;
+      roadData.push({coords:coords,cfg:cfg,co2d:co2d,len:len,name:name});
+      cnt++;
+    });
+    renderRoads();
+    set('roadCount',cnt+' Segmente');
+    set('b-roads',cnt+'');
+    log('Strassen: '+cnt,'ok');
+  }catch(e){log('Strassen: '+e.message,'err');set('b-roads','Err');}
+}
+
+function dbColor(db){
+  return db>=70?'#b71c1c':db>=65?'#e53935':db>=60?'#fb8c00':db>=55?'#fdd835':db>=50?'#c6d600':'#43a047';
+}
+
+function renderRoads(){
+  roadLG.clearLayers();
+  if(!layers.roads)return;
+  roadData.forEach(function(f){
+    var isNoise=roadMode==='noise';
+    var col=isNoise?dbColor(f.cfg.db):f.cfg.c;
+    var line=L.polyline(f.coords,{color:col,weight:f.cfg.w,opacity:0.85});
+    if(isNoise){
+      var db=f.cfg.db;
+      var tc=db>=65?'tag-r':db>=55?'tag-a':'tag-g';
+      line.bindPopup('<div class="ph" style="border-left:4px solid '+col+'"><div class="pt">'+f.name+'</div><div class="ps">'+f.cfg.lbl+' - Laermmodell</div></div><div class="pb"><div class="pr"><span>Laermpegel</span><span class="pv">'+db+' dB(A)</span></div><div class="pr"><span>EU-Grenzwert</span><span class="pv">65 dB(A)</span></div><span class="ptag '+tc+'">'+(db>=65?'Grenzwert ueberschritten':db>=55?'Erhoeht':'OK')+'</span><div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:4px">Modellwert, kein Messwert</div></div>');
+    }else{
+      var tc2=f.co2d>3000?'tag-r':f.co2d>500?'tag-a':'tag-g';
+      line.bindPopup('<div class="ph" style="border-left:4px solid '+f.cfg.c+'"><div class="pt">'+f.name+'</div><div class="ps">'+f.cfg.lbl+' - COPERT EU</div></div><div class="pb"><div class="pr"><span>Fahrzeuge/Tag</span><span class="pv">'+f.cfg.v.toLocaleString('de-DE')+'</span></div><div class="pr"><span>CO2/Tag</span><span class="pv">'+f.co2d.toFixed(0)+' kg</span></div><div class="pr"><span>Laenge</span><span class="pv">'+f.len.toFixed(2)+' km</span></div><span class="ptag '+tc2+'">'+(f.co2d>3000?'Hohe Emission':f.co2d>500?'Mittlere Emission':'Geringe Emission')+'</span></div>');
+    }
+    roadLG.addLayer(line);
+  });
+}
+
+function setRoadMode(m){
+  roadMode=m;
+  var co2=el('rmco2'),noi=el('rmnoise');
+  if(co2){co2.className='rmb co2'+(m==='co2'?'':' off');}
+  if(noi){noi.className='rmb noise'+(m==='noise'?' on':'');}
+  el('co2-legend').style.display=m==='co2'?'':'none';
+  el('noise-legend').style.display=m==='noise'?'':'none';
+  var sw=el('roads-swatch');
+  if(sw)sw.style.background=m==='co2'?'linear-gradient(to right,#b71c1c,#fb8c00,#fdd835,#757575)':'linear-gradient(to right,#43a047,#fdd835,#fb8c00,#b71c1c)';
+  renderRoads();
+}
+
+// === GREEN + GAP ==============================================
+async function loadGreen(){
+  if(loaded.green)return;
+  log('Gruenflaechen...');
+  var q='[out:json][timeout:18];(way["leisure"~"^(park|garden|nature_reserve)$"]('+BB[0]+','+BB[1]+','+BB[2]+','+BB[3]+');way["landuse"~"^(forest|grass|meadow)$"]('+BB[0]+','+BB[1]+','+BB[2]+','+BB[3]+');relation["leisure"~"^(park|garden)$"]('+BB[0]+','+BB[1]+','+BB[2]+','+BB[3]+'););out geom 80;';
+  try{
+    var data=await ovp(q);
+    loaded.green=true;
+    var els=data.elements||[];
+    var gpts=[];
+    els.forEach(function(e){
+      var coords=null;
+      if(e.type==='way'&&e.geometry)coords=[e.geometry.map(function(p){return[p.lat,p.lon];})];
+      else if(e.type==='relation'&&e.members){var o=e.members.filter(function(m){return m.role==='outer'&&m.geometry;});if(o.length)coords=[o[0].geometry.map(function(p){return[p.lat,p.lon];})];}
+      if(!coords||!coords[0]||coords[0].length<3)return;
+      var ctr=coords[0].reduce(function(a,p){return[a[0]+p[0]/coords[0].length,a[1]+p[1]/coords[0].length];},[0,0]);
+      gpts.push(ctr);
+      if(layers.green){
+        var poly=L.polygon(coords,{fillColor:'#2e7d32',color:'#1b5e20',weight:2,fillOpacity:0.45,opacity:0.85});
+        poly.bindPopup('<div class="ph" style="border-left:4px solid #388e3c"><div class="pt">'+(e.tags&&e.tags.name||'Gruenflaeche')+'</div><div class="ps">OSM '+(e.tags&&(e.tags.leisure||e.tags.landuse)||'park')+'</div></div><div class="pb"><span class="ptag tag-g">Kuehlwirkung, Frischluft</span></div>');
+        greenLG.addLayer(poly);
+      }
+    });
+    if(layers.gap){
+      var hpts=[];
+      for(var i=0;i<24;i++)for(var j=0;j<28;j++){
+        var lat=BB[0]+(BB[2]-BB[0])*i/23, lng=BB[1]+(BB[3]-BB[1])*j/27;
+        var near=9999;
+        for(var k=0;k<gpts.length;k++){var d=Math.sqrt(Math.pow((gpts[k][0]-lat)*111000,2)+Math.pow((gpts[k][1]-lng)*73000,2));if(d<near)near=d;}
+        if(near>480)hpts.push([lat,lng,clamp((near-480)/700,0,1)*0.7+0.3]);
+      }
+      if(hpts.length)greenLG.addLayer(L.heatLayer(hpts,{radius:40,blur:32,max:1,gradient:{'0':'rgba(183,28,28,0)','0.4':'rgba(213,0,0,.4)','0.7':'rgba(183,28,28,.6)','1':'rgba(100,0,100,.75)'}}));
+    }
+    log('Gruen: '+els.length+' Flaechen','ok');
+  }catch(e){log('Gruen: '+e.message,'err');}
+}
+
+// === AQ =======================================================
+async function loadAQ(){
+  if(loaded.aq)return;
+  var pts=[[LAT,LNG],[LAT+0.06,LNG],[LAT-0.06,LNG],[LAT,LNG+0.08],[LAT,LNG-0.08],[LAT+0.05,LNG+0.06],[LAT-0.05,LNG-0.06]];
+  try{
+    var ps=pts.map(function(p){
+      return fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+p[0].toFixed(3)+'&longitude='+p[1].toFixed(3)+'&current=pm2_5,nitrogen_dioxide,european_aqi&timezone=auto')
+        .then(function(r){return r.json();}).then(function(d){return{lat:p[0],lng:p[1],pm25:d.current&&d.current.pm2_5,no2:d.current&&d.current.nitrogen_dioxide,aqi:d.current&&d.current.european_aqi};});
+    });
+    var rs=await Promise.all(ps);
+    loaded.aq=true;
+    rs.forEach(function(pt){
+      if(pt.pm25==null)return;
+      var pm=pt.pm25;
+      var col=pm<10?'#43a047':pm<20?'#c6d600':pm<35?'#fdd835':pm<50?'#fb8c00':'#e53935';
+      if(!layers.aq)return;
+      var m=L.circleMarker([pt.lat,pt.lng],{radius:11+Math.min(12,pm*.4),fillColor:col,color:'rgba(255,255,255,.25)',weight:2,fillOpacity:0.65});
+      m.bindPopup('<div class="ph" style="border-left:4px solid '+col+'"><div class="pt">Luftqualitaets-Messpunkt</div><div class="ps">Open-Meteo Air Quality</div></div><div class="pb"><div class="pr"><span>PM2.5</span><span class="pv">'+pm.toFixed(1)+' ug/m3</span></div><div class="pr"><span>WHO-Grenzwert</span><span class="pv">15 ug/m3</span></div><div class="pr"><span>NO2</span><span class="pv">'+(pt.no2?pt.no2.toFixed(1):'--')+' ug/m3</span></div><span class="ptag '+(pm<10?'tag-g':pm<25?'tag-a':'tag-r')+'">'+(pm<10?'Gut':pm<25?'Maessig':'Erhoehe')+'</span></div>');
+      aqLG.addLayer(m);
+    });
+    log('AQ: 7 Messpunkte','ok');
+  }catch(e){log('AQ: '+e.message,'err');}
+}
+
+// === MODIS ====================================================
+function loadMODIS(){
+  if(modisLayer){try{map.removeLayer(modisLayer);}catch(e){}}
+  if(!layers.modis)return;
+  var d=new Date();d.setDate(d.getDate()-2);
+  var date=d.toISOString().split('T')[0];
+  modisLayer=L.tileLayer('https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_Land_Surface_Temp_Day/default/'+date+'/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
+    {minZoom:1,maxNativeZoom:7,maxZoom:19,opacity:0.65,attribution:'NASA GIBS'}).addTo(map);
+  log('MODIS: '+date,'ok');
+}
+
+// === CYCLING ==================================================
+async function loadCycling(){
+  if(loaded.cycling)return;
+  log('Radwege...');
+  var q='[out:json][timeout:18];(way["highway"="cycleway"]('+BB[0]+','+BB[1]+','+BB[2]+','+BB[3]+');way["cycleway"~"^(lane|track)$"]('+BB[0]+','+BB[1]+','+BB[2]+','+BB[3]+'););out geom 400;';
+  try{
+    var data=await ovp(q);
+    loaded.cycling=true;
+    (data.elements||[]).forEach(function(w){
+      if(!w.geometry||w.geometry.length<2)return;
+      var t=w.tags||{};
+      var prot=t.highway==='cycleway'||t.cycleway==='track'||t.cycleway==='lane';
+      var col=prot?'#43a047':'#ffa726';
+      var coords=w.geometry.map(function(p){return[p.lat,p.lon];});
+      var line=L.polyline(coords,{color:col,weight:prot?3:2,opacity:0.88});
+      line.bindPopup('<div class="ph" style="border-left:4px solid '+col+'"><div class="pt">'+(t.name||'Radweg')+'</div><div class="ps">'+(prot?'Geschuetzte Radspur':'Markierte Radspur')+'</div></div><div class="pb"><span class="ptag '+(prot?'tag-g':'tag-a')+'">'+(prot?'Physisch getrennt':'Markiert auf Fahrbahn')+'</span></div>');
+      if(layers.cycling)cyclingLG.addLayer(line);
+    });
+    log('Radwege: '+(data.elements||[]).length,'ok');
+  }catch(e){log('Radwege: '+e.message,'err');}
+}
+
+// === TRANSIT ==================================================
+async function loadTransit(){
+  if(loaded.transit)return;
+  log('OEPNV...');
+  var q='[out:json][timeout:15];(node["highway"="bus_stop"]('+BB[0]+','+BB[1]+','+BB[2]+','+BB[3]+');node["railway"~"^(tram_stop|subway_entrance)$"]('+BB[0]+','+BB[1]+','+BB[2]+','+BB[3]+'););out 300;';
+  try{
+    var data=await ovp(q);
+    loaded.transit=true;
+    (data.elements||[]).forEach(function(e){
+      var t=e.tags||{};
+      var isTram=t.railway==='tram_stop',isSub=t.railway==='subway_entrance';
+      var col=isSub?'#7e57c2':isTram?'#26c6da':'#0288d1';
+      var m=L.circleMarker([e.lat,e.lon],{radius:isSub?7:isTram?6:5,fillColor:col,color:'rgba(255,255,255,.3)',weight:1.5,fillOpacity:0.85});
+      m.bindPopup('<div class="ph" style="border-left:4px solid '+col+'"><div class="pt">'+(isSub?'U-Bahn':isTram?'Tram':'Bus')+': '+(t.name||'Haltestelle')+'</div></div><div class="pb"><span class="ptag tag-b">OEPNV-Anbindung</span></div>');
+      if(layers.transit)transitLG.addLayer(m);
+    });
+    log('OEPNV: '+(data.elements||[]).length,'ok');
+  }catch(e){log('OEPNV: '+e.message,'err');}
+}
+
+// === POI ======================================================
+async function loadPOI(){
+  if(loaded.poi)return;
+  log('POI Kommerzialisierung...','w','niceLog');
+  var q='[out:json][timeout:15];node["amenity"~"^(cafe|restaurant|bar|pub|fast_food)$"]('+BB[0]+','+BB[1]+','+BB[2]+','+BB[3]+');out tags 500;';
+  try{
+    var data=await ovp(q);
+    loaded.poi=true;
+    var bp=[],fp=[];
+    (data.elements||[]).forEach(function(e){
+      var t=e.tags||{};
+      if(t.brand||t['brand:wikidata'])bp.push([e.lat,e.lon,1]);
+      else fp.push([e.lat,e.lon,1]);
+    });
+    if(bp.length)poiLG.addLayer(L.heatLayer(bp,{radius:22,blur:16,max:8,gradient:{'0':'rgba(183,28,28,0)','0.4':'rgba(229,57,53,.5)','1':'rgba(183,28,28,.78)'}}));
+    if(fp.length)poiLG.addLayer(L.heatLayer(fp,{radius:22,blur:16,max:8,gradient:{'0':'rgba(27,94,32,0)','0.4':'rgba(67,160,71,.5)','1':'rgba(27,94,32,.78)'}}));
+    log('POI: '+bp.length+' Ketten, '+fp.length+' unabh.','ok','niceLog');
+  }catch(e){log('POI: '+e.message,'err','niceLog');}
+}
+
+// === BENCHES ==================================================
+async function loadBenches(){
+  if(loaded.benches)return;
+  log('Baenke...','w','niceLog');
+  var q='[out:json][timeout:15];node["amenity"="bench"]('+BB[0]+','+BB[1]+','+BB[2]+','+BB[3]+');out tags 400;';
+  try{
+    var data=await ovp(q);
+    loaded.benches=true;
+    (data.elements||[]).forEach(function(e){
+      var t=e.tags||{};
+      var cond=t.condition||t['bench:condition']||'';
+      var consump=t.access==='customers';
+      var col=consump?'#757575':(cond==='good'||cond==='excellent')?'#66bb6a':(cond==='bad'||cond==='poor')?'#ef5350':'#8d6e63';
+      var lbl=consump?'Konsumzwang':(cond==='good'||cond==='excellent')?'Gut':(cond==='bad'||cond==='poor')?'Schlecht':'Unbekannt';
+      var m=L.circleMarker([e.lat,e.lon],{radius:5,fillColor:col,color:'rgba(255,255,255,.3)',weight:1.5,fillOpacity:0.85});
+      m.bindPopup('<div class="ph" style="border-left:4px solid '+col+'"><div class="pt">Sitzbank</div><div class="ps">amenity=bench'+(consump?' - Konsumzwang':'')+'</div></div><div class="pb"><div class="pr"><span>Zustand</span><span class="pv">'+lbl+'</span></div>'+(t.material?'<div class="pr"><span>Material</span><span class="pv">'+t.material+'</span></div>':'')+'<span class="ptag '+(consump?'tag-r':(cond==='good'||cond==='excellent')?'tag-g':(cond==='bad'||cond==='poor')?'tag-r':'tag-a')+'">'+lbl+'</span></div>');
+      if(layers.benches)benchLG.addLayer(m);
+    });
+    log('Baenke: '+(data.elements||[]).length,'ok','niceLog');
+  }catch(e){log('Baenke: '+e.message,'err','niceLog');}
+}
+
+// === WEATHER ==================================================
+async function fetchWeather(){
+  try{
+    var r1=fetch('https://api.open-meteo.com/v1/forecast?latitude='+LAT+'&longitude='+LNG+'&current=temperature_2m,relative_humidity_2m,wind_speed_10m,apparent_temperature,weather_code&timezone=auto');
+    var r2=fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+LAT+'&longitude='+LNG+'&current=pm2_5,nitrogen_dioxide,european_aqi&timezone=auto');
+    var rr=await Promise.all([r1,r2]);
+    var w=await rr[0].json(),aq=await rr[1].json();
+    W={temp:w.current&&w.current.temperature_2m,feel:w.current&&w.current.apparent_temperature,humid:w.current&&w.current.relative_humidity_2m,wind:w.current&&w.current.wind_speed_10m,code:w.current&&w.current.weather_code,pm25:aq.current&&aq.current.pm2_5,no2:aq.current&&aq.current.nitrogen_dioxide,aqi:aq.current&&aq.current.european_aqi};
+    var WI={0:'&#9728;',1:'&#127780;',2:'&#9925;',3:'&#9729;',51:'&#127746;',61:'&#127327;',71:'&#10052;',80:'&#127746;',95:'&#9928;'};
+    el('w-icon').innerHTML=WI[W.code]||'&#9925;';
+    set('w-temp',W.temp!=null?Math.round(W.temp)+'':'--');
+    set('w-feel',W.feel!=null?Math.round(W.feel)+'':'--');
+    set('w-wind',W.wind!=null?Math.round(W.wind)+'':'--');
+    set('w-humid',(W.humid||0)+'%');
+    set('m-pm25',fmt(W.pm25,1));
+    set('m-no2',fmt(W.no2,1));
+    set('b-temp',W.temp!=null?Math.round(W.temp)+'C':'--');
+    set('b-pm',fmt(W.pm25,1));
+    var n=el('aqn');if(n&&W.aqi!=null)n.style.left=clamp((W.aqi/150)*100,3,97)+'%';
+    var cats=[{v:20,l:'Gut',c:'#43a047'},{v:40,l:'Maessig',c:'#c6d600'},{v:60,l:'Erhoehe',c:'#fdd835'},{v:80,l:'Hoch',c:'#fb8c00'},{v:999,l:'Sehr hoch',c:'#e53935'}];
+    var cat=cats[cats.length-1];for(var i=0;i<cats.length;i++){if(W.aqi<=cats[i].v){cat=cats[i];break;}}
+    var at=el('aqtxt');if(at){at.textContent=cat.l;at.style.color=cat.c;}
+    set('liveTxt','Live '+new Date().toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'}));
+    log('Wetter OK','ok');
+  }catch(e){log('Wetter: '+e.message,'err');}
+}
+
+// === NICE SCORE ===============================================
+function onMapClick(e){
+  if(mode!=='nice')return;
+  if(nicePopup)map.closePopup(nicePopup);
+  nicePopup=L.popup({maxWidth:300}).setLatLng(e.latlng)
+    .setContent('<div class="lpop"><div class="lpopring"></div><div style="font-size:10px;color:rgba(255,255,255,.4)">Analysiere 500m...</div></div>')
+    .openOn(map);
+  runNICE(e.latlng.lat,e.latlng.lng);
+}
+
+async function runNICE(lat,lng){
+  log('NICE: '+lat.toFixed(4)+','+lng.toFixed(4),'w','niceLog');
+  var r=500;
+  var q='[out:json][timeout:20][maxsize:8000000];('
+    +'node["highway"~"^(bus_stop|tram_stop)$"](around:'+r+','+lat+','+lng+');'
+    +'node["railway"~"^(subway_entrance|tram_stop)$"](around:'+r+','+lat+','+lng+');'
+    +'node["highway"="crossing"](around:'+r+','+lat+','+lng+');'
+    +'way["highway"="cycleway"](around:'+r+','+lat+','+lng+');'
+    +'way["cycleway"~"^(lane|track)$"](around:'+r+','+lat+','+lng+');'
+    +'way["highway"~"^(primary|trunk|motorway)$"](around:60,'+lat+','+lng+');'
+    +'node["natural"="tree"](around:'+r+','+lat+','+lng+');'
+    +'node["amenity"="bench"](around:'+r+','+lat+','+lng+');'
+    +'node["amenity"="drinking_water"](around:'+r+','+lat+','+lng+');'
+    +'way["leisure"~"^(park|garden)$"](around:'+r+','+lat+','+lng+');'
+    +'node["leisure"~"^(playground|pitch)$"](around:'+r+','+lat+','+lng+');'
+    +'node["amenity"~"^(library|community_centre|social_centre)$"](around:'+r+','+lat+','+lng+');'
+    +'node["amenity"="marketplace"](around:'+r+','+lat+','+lng+');'
+    +'node["amenity"~"^(cafe|bar|pub|restaurant|fast_food)$"](around:'+r+','+lat+','+lng+');'
+    +'node["shop"](around:'+r+','+lat+','+lng+');'
+    +'node["advertising"](around:'+r+','+lat+','+lng+');'
+    +'node["amenity"~"^(cinema|theatre|arts_centre)$"](around:'+r+','+lat+','+lng+');'
+    +'node["leisure"~"^(sports_centre|fitness_centre|swimming_pool)$"](around:'+r+','+lat+','+lng+');'
+    +');out tags 600;';
+  try{
+    var data=await ovp(q);
+    var els=data.elements||[];
+    var sc=score(els);
+    showPopup(sc,lat,lng,els.length);
+    updateSidebar(sc);
+    showRecs(sc);
+    log('NICE: '+sc.total+'/100 ('+els.length+' features)','ok','niceLog');
+  }catch(e){
+    log('NICE: '+e.message,'err','niceLog');
+    if(nicePopup)nicePopup.setContent('<div class="lpop"><div style="color:#ef5350;font-size:11px">'+e.message+'</div></div>');
+  }
+}
+
+function score(els){
+  var c={transit:0,cyc_prot:0,cyc_mark:0,cross:0,bigroad:0,trees:0,bench_pub:0,bench_bad:0,bench_con:0,water:0,park:0,play:0,lib:0,comm:0,mkt:0,food:0,shop:0,branded:0,ads:0,culture:0,sports:0,total_c:0};
+  var uniq=new Set(),types=new Set();
+  els.forEach(function(e){
+    var t=e.tags||{};
+    var hw=t.highway,am=t.amenity,sh=t.shop,le=t.leisure,na=t.natural,rail=t.railway,cy=t.cycleway;
+    var brand=!!(t.brand||t['brand:wikidata']);
+    if(hw==='bus_stop'||hw==='tram_stop')c.transit++;
+    if(rail==='subway_entrance'||rail==='tram_stop')c.transit++;
+    if(hw==='crossing')c.cross++;
+    if(hw==='cycleway')c.cyc_prot++;
+    if(cy==='track'||cy==='lane')c.cyc_mark++;
+    if(hw==='primary'||hw==='trunk'||hw==='motorway')c.bigroad++;
+    if(na==='tree')c.trees++;
+    if(am==='bench'){var cd=t.condition||t['bench:condition']||'';if(t.access==='customers')c.bench_con++;else if(cd==='bad'||cd==='poor')c.bench_bad++;else c.bench_pub++;}
+    if(am==='drinking_water')c.water++;
+    if(le==='park'||le==='garden')c.park++;
+    if(le==='playground'||le==='pitch')c.play++;
+    if(am==='library')c.lib++;
+    if(am==='community_centre'||am==='social_centre')c.comm++;
+    if(am==='marketplace')c.mkt++;
+    if(am==='cafe'||am==='bar'||am==='pub'||am==='restaurant'||am==='fast_food'){c.food++;c.total_c++;}
+    if(sh){c.shop++;c.total_c++;}
+    if(t.advertising)c.ads++;
+    if(brand)c.branded++;else if(t.name&&(am||sh))uniq.add(t.name);
+    if(am==='cinema'||am==='theatre'||am==='arts_centre')c.culture++;
+    if(le==='sports_centre'||le==='fitness_centre'||le==='swimming_pool')c.sports++;
+    if(am)types.add(am);if(sh)types.add('shop');
+  });
+  var bp=c.total_c>0?Math.round(c.branded/c.total_c*100):0;
+  var cyc=c.cyc_prot+c.cyc_mark;
+  var mobil=clamp(Math.round(38+Math.min(22,c.transit*7)+Math.min(16,c.cyc_prot*6)+Math.min(10,c.cyc_mark*3)+Math.min(8,c.cross*3)-(cyc===0?15:0)-(c.bigroad>0?8:0)),0,95);
+  var gruen=clamp(Math.round(32+Math.min(18,c.trees*1.2)+Math.min(10,c.bench_pub*3.5)-Math.min(5,c.bench_bad*2)+Math.min(6,c.water*6)+Math.min(12,c.park*6)+(W.pm25!=null?W.pm25<10?6:W.pm25>35?-16:W.pm25>25?-8:0:0)+(W.temp!=null?W.temp>32?-12:W.temp>28?-5:0:0)-(c.trees===0?8:0)),0,80);
+  var sozial=clamp(Math.round(30+Math.min(22,c.play*11)+Math.min(18,c.lib*18)+Math.min(14,c.comm*14)+Math.min(12,c.mkt*12)+Math.min(8,c.bench_pub*2)),0,90);
+  var kommerz=clamp(Math.round(46-Math.min(26,bp*0.38)-Math.min(12,c.ads*4)+Math.min(22,uniq.size*2.5)),0,88);
+  if(bp>70)kommerz=Math.min(kommerz,40);
+  var vital=clamp(Math.round(35+Math.min(18,c.food*2)+Math.min(12,c.culture*12)+Math.min(10,c.sports*10)+Math.min(14,types.size*0.8)),0,90);
+  var raw=Math.round((mobil+gruen+sozial+kommerz+vital)/5);
+  var caps=[],total=raw;
+  if(cyc===0&&c.transit===0){total=Math.min(total,55);caps.push('Kein Rad+OEPNV: max 55');}
+  if(bp>70){total=Math.min(total,68);caps.push('Ketten '+bp+'%: max 68');}
+  if(W.pm25!=null&&W.pm25>35){total=Math.min(total,60);caps.push('PM2.5 krit.: max 60');}
+  var rank=total>=72?'Top 15%':total>=60?'Ueberdurchschnittlich':total>=44?'Durchschnittlich':'Unterdurchschnittlich';
+  return{mobil,gruen,sozial,kommerz,vital,total,raw,caps,rank,c,bp,uniq:uniq.size,types:types.size,cyc};
+}
+
+function radarSVG(sc){
+  var vals=[sc.mobil,sc.gruen,sc.sozial,sc.kommerz,sc.vital];
+  var lbls=['Mob.','Gruen','Soz.','Komm.','Vital.'];
+  var cols=['#4fc3f7','#66bb6a','#ffa726','#f06292','#ba68c8'];
+  var cx=100,cy=103,r=68,n=5;
+  function pt(i,lv){var a=(i/n)*Math.PI*2-Math.PI/2;return[cx+lv*r*Math.cos(a),cy+lv*r*Math.sin(a)];}
+  var s='<svg width="200" height="206" viewBox="0 0 200 206" style="display:block;margin:0 auto;overflow:visible">';
+  [.25,.5,.75,1].forEach(function(lv,gi){var pp=Array.from({length:n},function(_,i){var p=pt(i,lv);return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ');s+='<polygon points="'+pp+'" fill="none" stroke="rgba(255,255,255,'+[.04,.06,.08,.11][gi]+')" stroke-width="1"/>';});
+  for(var i=0;i<n;i++){var ep=pt(i,1),lp=pt(i,1.28);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+ep[0].toFixed(1)+'" y2="'+ep[1].toFixed(1)+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';s+='<text x="'+lp[0].toFixed(0)+'" y="'+lp[1].toFixed(0)+'" text-anchor="middle" dominant-baseline="middle" fill="'+cols[i]+'" font-size="9" font-weight="700">'+lbls[i]+'</text>';}
+  var fp=vals.map(function(v,i){var p=pt(i,v/100);return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ');
+  s+='<polygon points="'+fp+'" fill="rgba(79,195,247,.1)" stroke="rgba(79,195,247,.65)" stroke-width="2" stroke-linejoin="round"/>';
+  vals.forEach(function(v,i){var p=pt(i,v/100),lp2=pt(i,(v/100)*.65);s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="4" fill="'+cols[i]+'" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/>';s+='<text x="'+lp2[0].toFixed(0)+'" y="'+lp2[1].toFixed(0)+'" text-anchor="middle" dominant-baseline="middle" fill="'+cols[i]+'" font-size="8" font-weight="700">'+v+'</text>';});
+  return s+'</svg>';
+}
+
+function showPopup(sc,lat,lng,n){
+  var col=sc.total>=70?'#66bb6a':sc.total>=50?'#ffa726':sc.total>=35?'#ff8a65':'#ef5350';
+  var gr=sc.total>=70?'Hervorragend':sc.total>=50?'Gut':sc.total>=35?'Ausreichend':'Handlungsbedarf';
+  var capsH=sc.caps.length?'<div style="font-size:9px;color:#ff8a65;padding:5px 0;border-top:1px solid rgba(255,255,255,.07);margin-top:4px">'+sc.caps.join(' / ')+'</div>':'';
+  var brandH=sc.c.total_c>0?'<div style="font-size:8px;color:rgba(255,255,255,.35);margin-top:5px">Kettenanteil: '+sc.bp+'%<div style="height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-top:2px"><div style="height:100%;width:'+sc.bp+'%;background:linear-gradient(to right,#43a047,#e53935);border-radius:2px"></div></div></div>':'';
+  var html='<div class="ph" style="border-left:4px solid '+col+'"><div class="pt">NICE Score: '+sc.total+'/100</div><div class="ps">'+gr+' &middot; '+sc.rank+' &middot; '+n+' Features &middot; 500m</div></div><div style="padding:10px 13px">'
+    +radarSVG(sc)
+    +'<div class="npills"><span class="npill" style="background:rgba(79,195,247,.12);color:#4fc3f7;border-color:rgba(79,195,247,.25)">Mob. '+sc.mobil+'</span><span class="npill" style="background:rgba(102,187,106,.12);color:#66bb6a;border-color:rgba(102,187,106,.25)">Gruen '+sc.gruen+'</span><span class="npill" style="background:rgba(255,167,38,.12);color:#ffa726;border-color:rgba(255,167,38,.25)">Soz. '+sc.sozial+'</span><span class="npill" style="background:rgba(240,98,146,.12);color:#f06292;border-color:rgba(240,98,146,.25)">Komm. '+sc.kommerz+'</span><span class="npill" style="background:rgba(186,104,200,.12);color:#ba68c8;border-color:rgba(186,104,200,.25)">Vital. '+sc.vital+'</span></div>'
+    +brandH+capsH
+    +'<div id="nrecs" style="font-size:9px;color:rgba(255,255,255,.3);margin-top:6px">Empfehlungen...</div>'
+    +'<div style="font-size:8px;color:rgba(255,255,255,.2);margin-top:7px;border-top:1px solid rgba(255,255,255,.06);padding-top:5px">OEPNV:'+sc.c.transit+' Radwege:'+sc.cyc+' Baeume:'+sc.c.trees+' Baenke:'+sc.c.bench_pub+'oeffentl./'+sc.c.bench_con+'Konsumzwang<br>Hinweis: 500m Luftlinie, kein echter Gehweg</div>'
+    +'</div>';
+  if(nicePopup)nicePopup.setContent(html);
+}
+
+function updateSidebar(sc){
+  var col=sc.total>=70?'#66bb6a':sc.total>=50?'#ffa726':sc.total>=35?'#ff8a65':'#ef5350';
+  var nt=el('nice-total');if(nt){nt.textContent=sc.total+'/100';nt.style.color=col;}
+  var bars={mobil:'#4fc3f7',gruen:'#66bb6a',sozial:'#ffa726',kommerz:'#f06292',vital:'#ba68c8'};
+  Object.keys(bars).forEach(function(k){var b=el('pb-'+k);if(b){b.style.width=sc[k]+'%';b.style.background=bars[k];}});
+  var nc=el('nice-caps');if(nc){nc.style.display=sc.caps.length?'block':'none';nc.textContent=sc.caps.join(' / ');}
+}
+
+function showRecs(sc){
+  var c=sc.c;
+  var sorted=[{k:'mobil',v:sc.mobil},{k:'gruen',v:sc.gruen},{k:'sozial',v:sc.sozial},{k:'kommerz',v:sc.kommerz},{k:'vital',v:sc.vital}].sort(function(a,b){return a.v-b.v;});
+  var gap=sorted[0];
+  var recs=[];
+  if(gap.k==='mobil'&&sc.cyc===0)recs.push({i:'&#x1F6B2;',t:'Gap',c:'#4fc3f7',m:'Kein Radweg im 500m Radius. Geschuetzte Radspuren: Mobilitaet '+sc.mobil+' auf ~'+(sc.mobil+16)+'.'});
+  else if(gap.k==='gruen')recs.push({i:'&#x1F333;',t:'Gap',c:'#66bb6a',m:'Nur '+c.trees+' Baeume. '+(c.park===0?'Kein Park in Reichweite. ':'')+'Strassenbaeume: -2C/10 Baeume.'});
+  else if(gap.k==='sozial')recs.push({i:'&#x1F3DB;',t:'Gap',c:'#ffa726',m:'Sozialraum: '+sc.sozial+'/90. '+(c.play<1?'Spielplatz fehlt. ':'')+(c.lib<1?'Bibliothek fehlt. ':'')+c.bench_pub+' oeffentliche Baenke.'});
+  else if(gap.k==='kommerz')recs.push({i:'&#x1F3EA;',t:'Gap',c:'#f06292',m:'Kettenanteil '+sc.bp+'%'+(sc.bp>70?' - Hard Cap aktiv.':'.')});
+  else recs.push({i:'&#x26A1;',t:'Gap',c:'#ba68c8',m:'Vitalitaet: '+sc.vital+'/90. Nur '+sc.types+' POI-Typen.'});
+  if(c.bench_pub<3)recs.push({i:'&#x1FA91;',t:'Quick Win',c:'#ffa726',m:c.bench_pub+' oeffentl. Baenke ('+c.bench_con+' Konsumzwang zaehlen nicht). 4 neue Baenke: Sozialraum +8. ~3000-8000 EUR.'});
+  else if(c.water===0)recs.push({i:'&#x1F4A7;',t:'Quick Win',c:'#4fc3f7',m:'Kein Trinkbrunnen. ~3000 EUR, Gruen +4.'});
+  else if(c.bench_bad>0)recs.push({i:'&#x1F527;',t:'Quick Win',c:'#ffa726',m:c.bench_bad+' Baenke in schlechtem Zustand. Instandsetzung: schnell und guenstig.'});
+  else recs.push({i:'&#x1F331;',t:'Quick Win',c:'#66bb6a',m:'Schnellste Verbesserung: '+sorted[1].k+' ('+sorted[1].v+'). Temporaere Moeblierung.'});
+  if(W.pm25!=null&&W.pm25>25)recs.push({i:'&#x1F637;',t:'Warnung',c:'#ef5350',m:'PM2.5 '+W.pm25.toFixed(1)+' ug/m3 - WHO 15ug ueberschritten.'});
+  else if(c.bigroad>0)recs.push({i:'&#x1F697;',t:'Warnung',c:'#ef5350',m:'Hauptstrasse angrenzend: Laerm und NOx erhoehe, Barrierewirkung.'});
+  else recs.push({i:'&#x2705;',t:'Info',c:'#66bb6a',m:'Keine kritischen Signale. Fokus: '+sorted[0].k+' ('+sorted[0].v+').'});
+  var html=recs.map(function(r){return'<div class="nrec"><div class="nrec-icon">'+r.i+'</div><div><div class="nrec-type" style="color:'+r.c+'">'+r.t+'</div><div class="nrec-text">'+r.m+'</div></div></div>';}).join('');
+  var nr=el('nrecs');if(nr)nr.innerHTML=html;
+  var sr=el('nice-recs-side');
+  if(sr){sr.style.display='block';sr.innerHTML='<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Empfehlungen</div>'+recs.map(function(r){return'<div style="display:flex;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:9px"><span>'+r.i+'</span><div><span style="color:'+r.c+';font-weight:600">'+r.t+'</span> <span style="color:rgba(255,255,255,.45)">'+r.m.slice(0,60)+'...</span></div></div>';}).join('');}
+}
+
+// === TOGGLE ===================================================
+function togL(name,row){
+  layers[name]=!layers[name];
+  var sw=el('sw-'+name);if(sw)sw.classList.toggle('on',layers[name]);
+  if(row)row.classList.toggle('on',layers[name]);
+  if(name==='roads'){renderRoads();}
+  if(name==='green'||name==='gap'){greenLG.clearLayers();loaded.green=false;loadGreen();}
+  if(name==='aq'){if(layers.aq){aqLG.clearLayers();loaded.aq=false;loadAQ();}else aqLG.clearLayers();}
+  if(name==='modis'){loadMODIS();}
+  if(name==='cycling'){if(layers.cycling){loaded.cycling=false;loadCycling();}else cyclingLG.clearLayers();}
+  if(name==='transit'){if(layers.transit){loaded.transit=false;loadTransit();}else transitLG.clearLayers();}
+  if(name==='poi'){if(layers.poi){loaded.poi=false;loadPOI();}else poiLG.clearLayers();}
+  if(name==='benches'){if(layers.benches){loaded.benches=false;loadBenches();}else benchLG.clearLayers();}
+}
+
+function setMode(m){
+  mode=m;
+  el('mt-env').classList.toggle('on',m==='env');
+  el('mt-nice').classList.toggle('on',m==='nice');
+  el('penv').style.display=m==='env'?'':'none';
+  el('pnice').style.display=m==='nice'?'':'none';
+  map.getContainer().style.cursor=m==='nice'?'crosshair':'';
+  if(m==='nice'){
+    if(!loaded.poi)setTimeout(function(){loadPOI();},400);
+    if(!loaded.benches)setTimeout(function(){loadBenches();},1200);
+  }
+}
+
+// === INIT =====================================================
+window.addEventListener('load',async function(){
+  prog(10,'Karte...');
+  initMap();
+  prog(25,'Wetter...');
+  await fetchWeather();
+  prog(40,'Strassen...');
+  try{await loadRoads();}catch(e){log('Strassen: '+e.message,'err');}
+  prog(58,'Gruenflaechen...');
+  await sleep(600);
+  try{await loadGreen();}catch(e){log('Gruen: '+e.message,'err');}
+  prog(72,'Luftqualitaet...');
+  try{await loadAQ();}catch(e){log('AQ: '+e.message,'err');}
+  prog(82,'OEPNV...');
+  await sleep(600);
+  try{await loadTransit();}catch(e){log('OEPNV: '+e.message,'err');}
+  prog(90,'Radwege...');
+  await sleep(600);
+  try{await loadCycling();}catch(e){log('Radwege: '+e.message,'err');}
+  prog(97,'Satelliten...');
+  loadMODIS();
+  prog(100,'Bereit!');
+  hideLoader();
+  setInterval(function(){fetchWeather();},5*60*1000);
+});
+</script>
+</body>
+</html>
