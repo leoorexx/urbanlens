@@ -631,6 +631,8 @@ function fmt(n){return n>=1e6?(n/1e6).toFixed(1)+'M€':(n/1000).toFixed(0)+'k�
 // ══════════════════════════════════════════════════════════════
 function initMap(){
   map=L.map('map',{zoomControl:false,preferCanvas:false}).setView([50.1109,8.6821],12);
+  // Canvas renderer für schnelle Gebäude-Polygone (viel schneller als SVG)
+  window.canvasRenderer = L.canvas({padding:0.5});
   // Create dedicated pane for choropleth — sits BELOW tile layers at z200
   map.createPane('choropleth');
   map.getPane('choropleth').style.zIndex=200;
@@ -861,6 +863,7 @@ function renderFloodExposure(geojson){
     low:     {fillColor:'#bfdbfe',color:'#93c5fd',fillOpacity:.3, weight:0.5,label:'⚪ 250–500m — Geringes Risiko'},
   };
   const layer=L.geoJSON(geojson,{
+    renderer:window.canvasRenderer,
     style:f=>{const r=f.properties.flood_risk||'low';return STYLE[r]||STYLE.low;},
     onEachFeature:(f,l)=>{
       const r=f.properties.flood_risk||'low';const st=STYLE[r];
@@ -901,6 +904,7 @@ function renderHeatExposure(geojson){
     return{fillColor:'#a7f3d0',color:'#34d399',fillOpacity:.4,weight:0.3};                   // grün = kühl
   }
   const layer=L.geoJSON(geojson,{
+    renderer:window.canvasRenderer,
     style:f=>heatColor(f.properties.lst_delta||2),
     onEachFeature:(f,l)=>{
       const d=f.properties.lst_delta||'?';
