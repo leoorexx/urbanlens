@@ -284,6 +284,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lstatus" id="st-community"></span>
   </div>
 
+  <div class="lp-section">⚡ Composite-Insights (2 Layer kombiniert)</div>
+
+  <div class="lrow" onclick="toggleLayer('schools_heat')">
+    <button class="ltoggle" id="tog-schools_heat"></button>
+    <span class="lname">🏫🌡️ Schulen in Hitzezone</span>
+    <span class="lstatus" id="st-schools_heat"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('noise_residential')">
+    <button class="ltoggle" id="tog-noise_residential"></button>
+    <span class="lname">🔊🏠 Lärm × Wohngebäude</span>
+    <span class="lstatus" id="st-noise_residential"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('green_deficit')">
+    <button class="ltoggle" id="tog-green_deficit"></button>
+    <span class="lname">🌳❌ Grün-Defizit Gebäude</span>
+    <span class="lstatus" id="st-green_deficit"></span>
+  </div>
+
   <div class="llegend">
     <b style="color:var(--text)">🚲 Radwege — Überblick:</b>
     <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#dc2626;height:5px"></div>🔴 Hauptstraße ohne Radweg</div>
@@ -796,18 +814,30 @@ function loadLayer(id,statusEl){
     case 'health':   return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['hospital','clinic','doctors','pharmacy']));
     case 'transit':  return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['bus_stop','tram_stop','station','halt']));
     case 'community':return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['community_centre','social_centre','place_of_worship','social_facility','library','sports_centre']));
+    // ── COMPOSITE LAYER ──────────────────────────────────────
+    case 'schools_heat':
+      loadLocal(`pois_${city}.geojson`,id,statusEl,pois=>{
+        loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,heat=>{
+          renderSchoolsInHeat(pois,heat,id,statusEl);
+        });
+      });
+      return;
+    case 'noise_residential':
+      loadLocal(`noise_roads_${city}.geojson`,id,statusEl,noise=>{
+        loadLocal(`buildings_${city}.geojson`,id,statusEl,buildings=>{
+          renderNoiseResidential(noise,buildings,id,statusEl);
+        });
+      });
+      return;
+    case 'green_deficit':
+      loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,heat=>{
+        renderGreenDeficit(heat,id,statusEl);
+      });
+      return;
     default: statusEl.textContent='⚠ Unbekannt';
   }
 }
-    case 'bike':     return loadLocal(`bike_${city}.geojson`,id,statusEl,renderBikeLayer);
-    case 'parks':    return loadLocal(`green_${city}.geojson`,id,statusEl,renderGreenLayer);
-    case 'schools':  return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['school','kindergarten','university']));
-    case 'health':   return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['hospital','clinic','doctors','pharmacy']));
-    case 'transit':  return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['bus_stop','tram_stop','station','halt']));
-    case 'community':return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['community_centre','social_centre','place_of_worship','social_facility','library','sports_centre']));
-    default: statusEl.textContent='⚠ Unbekannt';
-  }
-}
+
 
 function loadLayerLive(id, statusEl){
   // Live-Fallback mit simplen Overpass-Queries
@@ -1081,6 +1111,176 @@ function renderBikeLayer(roadsGeojson, bikeGeojson){
   // Status updaten
   const stEl=document.getElementById('st-bike');
   if(stEl){const n=(bikeGeojson?.features?.length||0)+(roadsGeojson?.features?.length||0);stEl.textContent=`✓ ${n}`;}
+}
+
+// ══════════════════════════════════════════════════════════════
+// COMPOSITE RENDER FUNCTIONS
+// ══════════════════════════════════════════════════════════════
+
+// 🏫🌡️ SCHULEN IN HITZEZONE — Schulen × Hitzeinsel
+// Zeigt jede Schule mit Hitzestatus: rot = in Hitzezone, grün = kühl
+function renderSchoolsInHeat(poisGj, heatGj, id, statusEl){
+  if(!activeLayers[id])return;
+
+  // Schnelle Distanzfunktion (Grad, reicht für ~100m Genauigkeit)
+  function dist2(lon1,lat1,lon2,lat2){
+    const dlat=lat2-lat1, dlon=lon2-lon1;
+    return dlat*dlat+dlon*dlon;
+  }
+  function centroid(coords){
+    if(coords&&typeof coords[0][0]==='object')coords=coords[0];
+    return[coords.reduce((s,c)=>s+c[0],0)/coords.length,
+           coords.reduce((s,c)=>s+c[1],0)/coords.length];
+  }
+
+  // Heiße Gebäude als Punkte (nur extreme + high)
+  const hotPoints=[];
+  heatGj.features.forEach(f=>{
+    const cls=f.properties.heat_class;
+    if(cls!=='extreme'&&cls!=='high')return;
+    try{
+      const[lon,lat]=centroid(f.geometry.coordinates);
+      hotPoints.push({lon,lat,lst:f.properties.lst_delta,cls});
+    }catch(e){}
+  });
+
+  const group=L.layerGroup();
+  let inHeat=0, notInHeat=0;
+
+  poisGj.features.forEach(f=>{
+    const a=f.properties.amenity||'';
+    if(!['school','kindergarten','university'].includes(a))return;
+    if(f.geometry?.type!=='Point')return;
+    const[lon,lat]=f.geometry.coordinates;
+
+    // Nächstes heißes Gebäude suchen (~150m Radius = 0.0014 Grad)
+    const threshold=0.0014*0.0014;
+    let nearest=null, minD=Infinity;
+    hotPoints.forEach(hp=>{
+      const d=dist2(lon,lat,hp.lon,hp.lat);
+      if(d<threshold&&d<minD){minD=d;nearest=hp;}
+    });
+
+    const inHeatZone=nearest!==null;
+    if(inHeatZone)inHeat++;else notInHeat++;
+
+    const typeLabel={school:'🏫 Schule',kindergarten:'🧒 Kita',university:'🎓 Uni'}[a];
+
+    if(inHeatZone){
+      // Pulsierender roter Ring + Marker
+      const ring=L.circleMarker([lat,lon],{
+        radius:14,fillColor:'transparent',color:'#dc2626',weight:2.5,opacity:.7,dashArray:'4 3'
+      });
+      const marker=L.circleMarker([lat,lon],{
+        radius:8,fillColor:'#dc2626',color:'#fff',weight:2,fillOpacity:.95
+      });
+      const tip=`<b>🔴 ${typeLabel} in Hitzezone!</b><br>${f.properties.name||'Unbekannt'}<br>`+
+        `<b>LST +${nearest.lst}°C</b> — ${nearest.cls==='extreme'?'Extrem heiß':'Heiß'}<br>`+
+        `<small>⚠ Kinder besonders vulnerabel bei >35°C.<br>`+
+        `Maßnahme: Beschattung, Trinkbrunnen, Begrünung.<br>`+
+        `EU Hitzeschutzplan 2022 · Maßnahme A02: Fassadenbegrünung</small>`;
+      ring.bindTooltip(tip,{sticky:true,maxWidth:260});
+      marker.bindTooltip(tip,{sticky:true,maxWidth:260});
+      ring.addTo(group);marker.addTo(group);
+    } else {
+      // Grüner Marker — kein direktes Risiko
+      const marker=L.circleMarker([lat,lon],{
+        radius:7,fillColor:'#16a34a',color:'#fff',weight:1.5,fillOpacity:.85
+      });
+      marker.bindTooltip(
+        `<b>🟢 ${typeLabel} — keine Hitzezone</b><br>${f.properties.name||'Unbekannt'}<br>`+
+        `<small>Kein heißes Gebäude in 150m Radius gefunden.</small>`,
+        {sticky:true,maxWidth:220}
+      );
+      marker.addTo(group);
+    }
+  });
+
+  group.addTo(map);layerObjs[id]=group;
+  statusEl.textContent=`✓ ${inHeat}🔴 ${notInHeat}🟢`;
+}
+
+// 🔊🏠 LÄRM × WOHNGEBÄUDE — Wohngebäude nahe lauter Straßen
+function renderNoiseResidential(noiseGj, buildingsGj, id, statusEl){
+  if(!activeLayers[id])return;
+
+  // Straßen-Linie als Punkte (jede 5. Koordinate)
+  const noisePts=[];
+  const WEIGHTS={motorway:5,motorway_link:5,trunk:4,trunk_link:4,primary:3,primary_link:3,secondary:2,rail:4,tram:2};
+  noiseGj.features.forEach(f=>{
+    const hw=f.properties.highway||f.properties.railway||'';
+    const w=WEIGHTS[hw]||1;
+    const coords=f.geometry?.type==='LineString'?f.geometry.coordinates:[];
+    coords.filter((_,i)=>i%5===0).forEach(c=>noisePts.push({lon:c[0],lat:c[1],w}));
+  });
+
+  function dist2(lo1,la1,lo2,la2){const d=lo2-lo1,e=la2-la1;return d*d+e*e;}
+  function centroid(coords){
+    if(coords&&typeof coords[0][0]==='object')coords=coords[0];
+    return[coords.reduce((s,c)=>s+c[0],0)/coords.length,coords.reduce((s,c)=>s+c[1],0)/coords.length];
+  }
+
+  const group=L.layerGroup();let cnt=0;
+  const THR=0.001*0.001; // ~100m
+
+  buildingsGj.features.forEach(f=>{
+    const bt=f.properties.building||'';
+    if(!['apartments','residential','house','yes','flat','terrace','detached'].includes(bt))return;
+    try{
+      const[lon,lat]=centroid(f.geometry.coordinates);
+      let maxW=0;
+      noisePts.forEach(np=>{
+        if(dist2(lon,lat,np.lon,np.lat)<THR&&np.w>maxW)maxW=np.w;
+      });
+      if(maxW===0)return;
+      const db={5:'>70 dB',4:'>65 dB',3:'>60 dB',2:'~58 dB'}[maxW]||'>55 dB';
+      const col={5:'#7c3aed',4:'#9333ea',3:'#a855f7',2:'#c084fc'}[maxW]||'#ddd6fe';
+      L.geoJSON({type:'Feature',properties:f.properties,geometry:f.geometry},{
+        renderer:window.canvasRenderer,
+        style:()=>({fillColor:col,color:col,fillOpacity:.65,weight:0.3})
+      }).bindTooltip(
+        `<b>🔊 Wohngebäude über EU-Grenzwert</b><br>Lärmbelastung: <b>${db} Lden</b><br>`+
+        `<small>EU-Grenzwert: ≤65 dB(A) Lden · ≤55 dB(A) Lnight<br>`+
+        `EU Noise Dir. 2002/49/EG<br>Maßnahme B01: Tempo 30 · Flüsterasphalt</small>`,
+        {sticky:true,maxWidth:240}
+      ).addTo(group);
+      cnt++;
+    }catch(e){}
+  });
+
+  group.addTo(map);layerObjs[id]=group;
+  statusEl.textContent=`✓ ${cnt} Gebäude`;
+}
+
+// 🌳❌ GRÜN-DEFIZIT — Wohngebäude weit von Grünflächen
+function renderGreenDeficit(heatGj, id, statusEl){
+  if(!activeLayers[id])return;
+  const group=L.layerGroup();let cnt=0;
+
+  heatGj.features.forEach(f=>{
+    const bt=f.properties.building||'';
+    if(!['apartments','residential','house','yes','flat','terrace'].includes(bt))return;
+    const gd=f.properties.green_dist_m;
+    if(gd==null||gd<200)return; // hat Grün in der Nähe
+
+    const col=gd>400?'#7f1d1d':gd>300?'#b91c1c':'#dc2626';
+    const label=gd>400?'🔴 Sehr weit >400m':gd>300?'🟠 Weit >300m':'🟡 Mittel 200–300m';
+
+    L.geoJSON({type:'Feature',properties:f.properties,geometry:f.geometry},{
+      renderer:window.canvasRenderer,
+      style:()=>({fillColor:col,color:col,fillOpacity:.55,weight:0.3})
+    }).bindTooltip(
+      `<b>${label} vom nächsten Park</b><br>Abstand Grünfläche: <b>${gd}m</b><br>`+
+      `<small>WHO-Empfehlung: Grünfläche in ≤300m für alle Bewohner.<br>`+
+      `EU Renaturierungs-VO 2024: 30% Stadtgrün bis 2030.<br>`+
+      `Maßnahme A01: Straßenbaum · A05: Urbaner Wald</small>`,
+      {sticky:true,maxWidth:250}
+    ).addTo(group);
+    cnt++;
+  });
+
+  group.addTo(map);layerObjs[id]=group;
+  statusEl.textContent=`✓ ${cnt} Gebäude`;
 }
 
 // 🌳 PARKS mit NDVI-Abstufung
