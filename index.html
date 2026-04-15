@@ -285,28 +285,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <div class="llegend">
-    <b style="color:var(--text)">🌡️ Hitzeinsel (LST-Delta):</b>
+    <b style="color:var(--text)">💧 Hochwasser Extrem:</b>
+    <div style="margin-top:4px;font-size:9px;color:var(--muted)">Breite Schattierung = Überschwemmungszone · Kern = Gewässer</div>
+    <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#1e3a8a;height:6px"></div>Fluss (HQextrem kritisch)</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#3b82f6;height:4px;opacity:.5"></div>Überschwemmungsbereich</div>
+
+    <b style="color:var(--text);margin-top:8px;display:block">🚲 Radwege:</b>
+    <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#16a34a;height:5px"></div>Getrennter Radweg (sicher)</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#d97706;height:4px"></div>Radfahrstreifen (mittel)</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#ea580c;height:3px;border-top:2px dashed #ea580c;background:none"></div>Angebotsstreifen (schwach)</div>
+
+    <b style="color:var(--text);margin-top:8px;display:block">🌡️ Hitzeinsel (LST-Delta):</b>
     <div style="display:flex;gap:2px;margin-top:4px;border-radius:4px;overflow:hidden;height:10px">
-      <div style="flex:1;background:#a7f3d0"></div>
-      <div style="flex:1;background:#fde68a"></div>
-      <div style="flex:1;background:#fbbf24"></div>
-      <div style="flex:1;background:#f97316"></div>
-      <div style="flex:1;background:#dc2626"></div>
-      <div style="flex:1;background:#7f1d1d"></div>
+      <div style="flex:1;background:#a7f3d0"></div><div style="flex:1;background:#fde68a"></div>
+      <div style="flex:1;background:#fbbf24"></div><div style="flex:1;background:#f97316"></div>
+      <div style="flex:1;background:#dc2626"></div><div style="flex:1;background:#7f1d1d"></div>
     </div>
     <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:2px">
       <span>Kühl</span><span>+2°C</span><span>+3°C</span><span>+4°C</span><span>Extrem</span>
-    </div>
-    <b style="color:var(--text);margin-top:6px;display:block">🚲 Radwege:</b>
-    <div class="llegrow"><div class="llegcolor" style="background:#15803d"></div>Getrennte Führung (sicher)</div>
-    <div class="llegrow"><div class="llegcolor" style="background:#ca8a04"></div>Schutzstreifen (mittel)</div>
-    <div class="llegrow"><div class="llegcolor" style="background:#d97706;border-top:2px dashed #d97706;background:none;height:0"></div>Angebotsstreifen (Handlungsbedarf)</div>
-    <b style="color:var(--text);margin-top:6px;display:block">💧 Hochwasser:</b>
-    <div class="llegrow"><div class="llegcolor" style="background:#1e3a8a"></div>Gebäude &lt;30m (kritisch)</div>
-    <div class="llegrow"><div class="llegcolor" style="background:#3b82f6"></div>30–100m (hoch)</div>
-    <div class="llegrow"><div class="llegcolor" style="background:#bfdbfe"></div>100–250m (mittel)</div>
-    <div style="margin-top:8px;font-size:9px;color:var(--muted);padding:6px 8px;background:rgba(37,99,235,0.06);border-radius:6px;border:1px solid rgba(37,99,235,0.15)">
-      💡 <b>Einmalig downloaden:</b><br><code>python generate_layers.py</code><br>→ Gebäude-Level Daten für Frankfurt & Utrecht
     </div>
   </div>
 </div>
@@ -874,17 +870,53 @@ function renderFloodExposure(geojson){
   layerObjs[id]=layer;
 }
 
-// 🌊 Gewässer-Layer (Fallback + floodex)
+// 🌊 Gewässer-Layer — breite Schattierung als Überschwemmungszone
 function renderWaterwaysLayer(geojson){
-  const id=activeLayers['flood']&&!activeLayers['floodex']?'flood':'floodex';
+  const id=activeLayers['floodex']?'floodex':'flood';
   if(!activeLayers[id])return;
-  const S={river:{color:'#1e3a8a',weight:6,opacity:.85,label:'🔵 Fluss — HQ100 hoch'},canal:{color:'#1d4ed8',weight:4,opacity:.8,label:'🔵 Kanal — HQ100 mittel'},stream:{color:'#3b82f6',weight:2.5,opacity:.75,label:'💧 Bach — erhöhtes Risiko'},drain:{color:'#93c5fd',weight:1.5,opacity:.65,dashArray:'5 3',label:'💧 Entwässerung'},wetland:{fillColor:'#bfdbfe',color:'#3b82f6',fillOpacity:.4,weight:1,label:'💜 Feuchtgebiet'},water:{fillColor:'#bfdbfe',color:'#93c5fd',fillOpacity:.35,weight:1,label:'💧 Gewässer'}};
-  const layer=L.geoJSON(geojson,{
-    style:f=>{const t=f.properties.waterway||f.properties.natural||'stream';return S[t]||S.stream;},
-    onEachFeature:(f,l)=>{const t=f.properties.waterway||f.properties.natural||'stream';const st=S[t]||S.stream;l.bindTooltip(`<b>${st.label}</b><br>${f.properties.name||'Gewässer'}<br><small>EU Floods Dir. 2007/60/EG</small>`,{sticky:true});}
-  }).addTo(map);
-  layerObjs[id]=layer;
+
+  // Gewässer selbst + breiter Puffer-Effekt durch mehrere Schichten
+  const group=L.layerGroup();
+
+  // Äußere Schattierung — simuliert Überschwemmungszone
+  const outer=L.geoJSON(geojson,{
+    style:f=>{
+      const t=f.properties.waterway||f.properties.natural||'stream';
+      const w=t==='river'?40:t==='canal'?20:t==='stream'?10:6;
+      return{color:'#3b82f6',weight:w,opacity:.12,lineCap:'round',lineJoin:'round'};
+    }
+  });
+
+  // Mittlere Zone
+  const mid=L.geoJSON(geojson,{
+    style:f=>{
+      const t=f.properties.waterway||f.properties.natural||'stream';
+      const w=t==='river'?20:t==='canal'?10:t==='stream'?6:3;
+      return{color:'#1d4ed8',weight:w,opacity:.2,lineCap:'round'};
+    }
+  });
+
+  // Kern — das eigentliche Gewässer
+  const core=L.geoJSON(geojson,{
+    style:f=>{
+      const t=f.properties.waterway||f.properties.natural||'stream';
+      if(t==='river')return{fillColor:'#1e3a8a',color:'#1e3a8a',fillOpacity:.6,weight:4,opacity:.9};
+      if(t==='canal')return{fillColor:'#1d4ed8',color:'#1d4ed8',fillOpacity:.5,weight:3,opacity:.85};
+      if(t==='water'||t==='wetland')return{fillColor:'#bfdbfe',color:'#3b82f6',fillOpacity:.5,weight:1,opacity:.7};
+      return{color:'#3b82f6',weight:2,opacity:.8};
+    },
+    onEachFeature:(f,l)=>{
+      const t=f.properties.waterway||f.properties.natural||'stream';
+      const labels={river:'🔴 Fluss — HQextrem kritisch, Überschwemmungsbereich 30–100m',canal:'🟠 Kanal — HQextrem hoch',stream:'🟡 Bach — erhöhtes Risiko',water:'💧 Gewässerfläche',wetland:'💜 Feuchtgebiet — Retentionsraum'};
+      l.bindTooltip(`<b>${labels[t]||'Gewässer'}</b><br>${f.properties.name||''}<br><small>Schattierung = geschätzte Überschwemmungszone bei HQextrem<br>EU Floods Dir. 2007/60/EG</small>`,{sticky:true,maxWidth:240});
+    }
+  });
+
+  outer.addTo(group); mid.addTo(group); core.addTo(group);
+  group.addTo(map);
+  layerObjs[id]=group;
 }
+
 
 // 🌡️ HITZEINSEL — Gebäude-Level wie 90green Bild 1
 function renderHeatExposure(geojson){
@@ -946,17 +978,54 @@ function renderNoiseLayer(geojson){
   layerObjs[id]=layer;
 }
 
-// 🚲 RADWEGE mit Qualitätsstufen
+// 🚲 RADWEGE — klar und deutlich mit Casing-Effekt
 function renderBikeLayer(geojson){
   const id='bike';if(!activeLayers[id])return;
-  const S={cycleway:{color:'#15803d',weight:4,opacity:.9},lane:{color:'#ca8a04',weight:3,opacity:.85},track:{color:'#ca8a04',weight:3,opacity:.85},shared_lane:{color:'#d97706',weight:2,opacity:.8,dashArray:'5 3'}};
-  const LBL={cycleway:'✅ Getrennter Radweg — sicher',lane:'🟡 Radfahrstreifen — mittel',track:'🟡 Radweg (Seitenraum) — mittel',shared_lane:'🟠 Angebotsstreifen — Handlungsbedarf'};
-  const layer=L.geoJSON(geojson,{
-    style:f=>{const hw=f.properties.highway||'';const cy=f.properties.cycleway||f.properties['cycleway:right']||'';return hw==='cycleway'?S.cycleway:S[cy]||S.shared_lane;},
-    onEachFeature:(f,l)=>{const hw=f.properties.highway||'';const cy=f.properties.cycleway||f.properties['cycleway:right']||'';const t=hw==='cycleway'?'cycleway':cy||'shared_lane';
-      l.bindTooltip(`<b>🚲 ${LBL[t]||t}</b><br>${f.properties.name||''}<br><small>Score C (Mobilität) · Maßnahme B04: Radschnellweg</small>`,{sticky:true});}
-  }).addTo(map);
-  layerObjs[id]=layer;
+  const group=L.layerGroup();
+
+  // Casing (weißer Rand) für bessere Sichtbarkeit
+  const casing=L.geoJSON(geojson,{
+    style:f=>{
+      const hw=f.properties.highway||'';
+      const cy=f.properties.cycleway||f.properties['cycleway:right']||'';
+      const w=hw==='cycleway'?8:cy==='lane'||cy==='track'?6:4;
+      return{color:'#fff',weight:w+2,opacity:.8,lineCap:'round'};
+    }
+  });
+
+  // Farbige Linie darüber
+  const lines=L.geoJSON(geojson,{
+    style:f=>{
+      const hw=f.properties.highway||'';
+      const cy=f.properties.cycleway||f.properties['cycleway:right']||'';
+      if(hw==='cycleway')return{color:'#16a34a',weight:6,opacity:1,lineCap:'round'};
+      if(cy==='lane'||cy==='track')return{color:'#d97706',weight:5,opacity:1,lineCap:'round'};
+      if(cy==='shared_lane')return{color:'#ea580c',weight:4,opacity:.9,lineCap:'round',dashArray:'8 5'};
+      return{color:'#dc2626',weight:4,opacity:.9,lineCap:'round',dashArray:'4 6'};
+    },
+    onEachFeature:(f,l)=>{
+      const hw=f.properties.highway||'';
+      const cy=f.properties.cycleway||f.properties['cycleway:right']||'';
+      const labels={
+        cycleway:   '🟢 Getrennter Radweg — sicherste Führung',
+        lane:       '🟡 Radfahrstreifen — markiert auf Fahrbahn',
+        track:      '🟡 Radweg im Seitenraum — mittlere Sicherheit',
+        shared_lane:'🟠 Angebotsstreifen — Piktogramm, wenig Schutz',
+      };
+      const t=hw==='cycleway'?'cycleway':cy||'shared_lane';
+      const name=f.properties.name||f.properties['name:de']||hw||cy||'';
+      l.bindTooltip(
+        `<b>${labels[t]||'Radinfrastruktur'}</b>${name?'<br>'+name:''}<br>`+
+        `<small>Score C (Mobilität) · Benchmark: ADFC Klimaradtest<br>`+
+        `Maßnahme B04: Radschnellweg · B01: Schutzstreifen</small>`,
+        {sticky:true,maxWidth:240}
+      );
+    }
+  });
+
+  casing.addTo(group); lines.addTo(group);
+  group.addTo(map);
+  layerObjs[id]=group;
 }
 
 // 🌳 PARKS mit NDVI-Abstufung
