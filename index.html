@@ -1117,21 +1117,18 @@ function renderBikeLayer(roadsGeojson, bikeGeojson){
 // COMPOSITE RENDER FUNCTIONS
 // ══════════════════════════════════════════════════════════════
 
+// ── Globale Geo-Hilfsfunktionen ───────────────────────────────
+function dist2(lo1,la1,lo2,la2){const d=lo2-lo1,e=la2-la1;return d*d+e*e;}
+function geoCentroid(coords){
+  if(coords&&coords[0]&&typeof coords[0][0]==='object')coords=coords[0];
+  return[coords.reduce((s,c)=>s+c[0],0)/coords.length,
+         coords.reduce((s,c)=>s+c[1],0)/coords.length];
+}
+
 // 🏫🌡️ SCHULEN IN HITZEZONE — Schulen × Hitzeinsel
 // Zeigt jede Schule mit Hitzestatus: rot = in Hitzezone, grün = kühl
 function renderSchoolsInHeat(poisGj, heatGj, id, statusEl){
   if(!activeLayers[id])return;
-
-  // Schnelle Distanzfunktion (Grad, reicht für ~100m Genauigkeit)
-  function dist2(lon1,lat1,lon2,lat2){
-    const dlat=lat2-lat1, dlon=lon2-lon1;
-    return dlat*dlat+dlon*dlon;
-  }
-  function centroid(coords){
-    if(coords&&typeof coords[0][0]==='object')coords=coords[0];
-    return[coords.reduce((s,c)=>s+c[0],0)/coords.length,
-           coords.reduce((s,c)=>s+c[1],0)/coords.length];
-  }
 
   // Heiße Gebäude als Punkte (nur extreme + high)
   const hotPoints=[];
@@ -1139,7 +1136,7 @@ function renderSchoolsInHeat(poisGj, heatGj, id, statusEl){
     const cls=f.properties.heat_class;
     if(cls!=='extreme'&&cls!=='high')return;
     try{
-      const[lon,lat]=centroid(f.geometry.coordinates);
+      const[lon,lat]=geoCentroid(f.geometry.coordinates);
       hotPoints.push({lon,lat,lst:f.properties.lst_delta,cls});
     }catch(e){}
   });
@@ -1214,11 +1211,7 @@ function renderNoiseResidential(noiseGj, buildingsGj, id, statusEl){
     coords.filter((_,i)=>i%5===0).forEach(c=>noisePts.push({lon:c[0],lat:c[1],w}));
   });
 
-  function dist2(lo1,la1,lo2,la2){const d=lo2-lo1,e=la2-la1;return d*d+e*e;}
-  function centroid(coords){
-    if(coords&&typeof coords[0][0]==='object')coords=coords[0];
-    return[coords.reduce((s,c)=>s+c[0],0)/coords.length,coords.reduce((s,c)=>s+c[1],0)/coords.length];
-  }
+  // (dist2 und geoCentroid sind globale Hilfsfunktionen)
 
   const group=L.layerGroup();let cnt=0;
   const THR=0.001*0.001; // ~100m
@@ -1227,7 +1220,7 @@ function renderNoiseResidential(noiseGj, buildingsGj, id, statusEl){
     const bt=f.properties.building||'';
     if(!['apartments','residential','house','yes','flat','terrace','detached'].includes(bt))return;
     try{
-      const[lon,lat]=centroid(f.geometry.coordinates);
+      const[lon,lat]=geoCentroid(f.geometry.coordinates);
       let maxW=0;
       noisePts.forEach(np=>{
         if(dist2(lon,lat,np.lon,np.lat)<THR&&np.w>maxW)maxW=np.w;
