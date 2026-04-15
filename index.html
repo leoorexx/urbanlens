@@ -302,6 +302,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lstatus" id="st-green_deficit"></span>
   </div>
 
+  <div class="lp-section">🤝 Soziale Qualität (PPS-Framework)</div>
+
+  <div class="lrow" onclick="toggleLayer('social')">
+    <button class="ltoggle" id="tog-social"></button>
+    <span class="lname">🪑 Sociability (Bänke, Café, Spiel)</span>
+    <span class="lstatus" id="st-social"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('retail')">
+    <button class="ltoggle" id="tog-retail"></button>
+    <span class="lname">🏪 Nahversorgung & Einzelhandel</span>
+    <span class="lstatus" id="st-retail"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('footways')">
+    <button class="ltoggle" id="tog-footways"></button>
+    <span class="lname">🚶 Fußwegenetz</span>
+    <span class="lstatus" id="st-footways"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('sport')">
+    <button class="ltoggle" id="tog-sport"></button>
+    <span class="lname">⚽ Sport & Freizeit</span>
+    <span class="lstatus" id="st-sport"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('parking')">
+    <button class="ltoggle" id="tog-parking"></button>
+    <span class="lname">🚗 Parkplätze (MIV-Dominanz)</span>
+    <span class="lstatus" id="st-parking"></span>
+  </div>
+
   <div class="llegend">
     <b style="color:var(--text)">🚲 Radwege — Überblick:</b>
     <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#dc2626;height:5px"></div>🔴 Hauptstraße ohne Radweg</div>
@@ -834,6 +862,12 @@ function loadLayer(id,statusEl){
         renderGreenDeficit(heat,id,statusEl);
       });
       return;
+    // ── SOZIALE LAYER ─────────────────────────────────────────
+    case 'social':   return loadLocal(`social_${city}.geojson`,id,statusEl,renderSocialLayer);
+    case 'retail':   return loadLocal(`retail_${city}.geojson`,id,statusEl,renderRetailLayer);
+    case 'footways': return loadLocal(`footways_${city}.geojson`,id,statusEl,renderFootwaysLayer);
+    case 'sport':    return loadLocal(`sport_${city}.geojson`,id,statusEl,renderSportLayer);
+    case 'parking':  return loadLocal(`parking_${city}.geojson`,id,statusEl,renderParkingLayer);
     default: statusEl.textContent='⚠ Unbekannt';
   }
 }
@@ -1276,7 +1310,148 @@ function renderGreenDeficit(heatGj, id, statusEl){
   statusEl.textContent=`✓ ${cnt} Gebäude`;
 }
 
-// 🌳 PARKS mit NDVI-Abstufung
+// ══════════════════════════════════════════════════════════════
+// SOZIALE LAYER — PPS Framework
+// ══════════════════════════════════════════════════════════════
+
+// 🪑 SOCIABILITY — Bänke, Gastronomie, Spielplätze, Brunnen
+function renderSocialLayer(geojson){
+  const id='social';if(!activeLayers[id])return;
+  const CFG={
+    bench:       {color:'#16a34a',size:5,label:'🪑 Bank — Aufenthaltsqualität'},
+    restaurant:  {color:'#d97706',size:6,label:'🍽️ Restaurant — Abendleben'},
+    cafe:        {color:'#b45309',size:6,label:'☕ Café — Treffpunkt'},
+    bar:         {color:'#92400e',size:5,label:'🍺 Bar/Pub — Evening Use'},
+    pub:         {color:'#92400e',size:5,label:'🍺 Pub — Abendleben'},
+    playground:  {color:'#7c3aed',size:7,label:'🛝 Spielplatz — Kinder & Familie'},
+    picnic_table:{color:'#15803d',size:5,label:'🧺 Picknick-Tisch'},
+    fountain:    {color:'#0284c7',size:6,label:'⛲ Brunnen — Aufenthaltsort'},
+    waste_basket:{color:'#6b7280',size:4,label:'🗑️ Mülleimer — Sauberkeit'},
+  };
+  const group=L.layerGroup();let cnt=0;
+  geojson.features.forEach(f=>{
+    if(f.geometry?.type!=='Point')return;
+    const a=f.properties.amenity||f.properties.leisure||'';
+    const cfg=CFG[a];if(!cfg)return;
+    const[lon,lat]=f.geometry.coordinates;
+    const m=L.circleMarker([lat,lon],{radius:cfg.size,fillColor:cfg.color,color:'#fff',weight:1.5,fillOpacity:.9});
+    m.bindTooltip(`<b>${cfg.label}</b><br>${f.properties.name||''}<br><small>Score D1 (Sociability) · PPS-Indikator: Aufenthaltsqualität</small>`,{sticky:true,maxWidth:220});
+    group.addLayer(m);cnt++;
+  });
+  group.addTo(map);layerObjs[id]=group;
+  const st=document.getElementById('st-'+id);if(st)st.textContent=`✓ ${cnt}`;
+}
+
+// 🏪 NAHVERSORGUNG — Lokal vs. Ketten, 10-Min-Stadt Score
+function renderRetailLayer(geojson){
+  const id='retail';if(!activeLayers[id])return;
+  const CHAINS=['rewe','edeka','aldi','lidl','penny','netto','kaufland','dm','rossmann','saturn','mediamarkt','h&m','zara'];
+  const CFG={
+    supermarket:    {color:'#15803d',size:8,label:'🛒 Supermarkt'},
+    bakery:         {color:'#d97706',size:7,label:'🥖 Bäckerei'},
+    butcher:        {color:'#dc2626',size:6,label:'🥩 Metzgerei'},
+    greengrocer:    {color:'#16a34a',size:6,label:'🥦 Gemüsehändler'},
+    convenience:    {color:'#ca8a04',size:5,label:'🏪 Kiosk/Convenience'},
+    clothes:        {color:'#7c3aed',size:5,label:'👕 Bekleidung'},
+    hairdresser:    {color:'#0284c7',size:5,label:'💈 Friseur'},
+    marketplace:    {color:'#b45309',size:9,label:'🏪 Markt/Wochenmarkt'},
+    department_store:{color:'#4f46e5',size:8,label:'🏬 Kaufhaus (Kette)'},
+    mall:           {color:'#4f46e5',size:9,label:'🏬 Einkaufszentrum'},
+  };
+  const group=L.layerGroup();let local=0,chain=0;
+  geojson.features.forEach(f=>{
+    if(f.geometry?.type!=='Point')return;
+    const s=f.properties.shop||'convenience';
+    const name=(f.properties.name||'').toLowerCase();
+    const isChain=CHAINS.some(c=>name.includes(c));
+    const cfg=CFG[s]||{color:'#6b7280',size:5,label:'🏪 Geschäft'};
+    const[lon,lat]=f.geometry.coordinates;
+    const color=isChain?'#6b7280':cfg.color;
+    if(isChain)chain++;else local++;
+    const m=L.circleMarker([lat,lon],{radius:cfg.size,fillColor:color,color:'#fff',weight:1.5,fillOpacity:.9});
+    m.bindTooltip(
+      `<b>${cfg.label}${isChain?' (Kette)':' (Lokal)'}</b><br>${f.properties.name||'Unbekannt'}<br>`+
+      `<small>${isChain?'⚠ Kette — weniger lokale Wertschöpfung':'✅ Lokal — stärkt Nachbarschaftswirtschaft'}<br>`+
+      `Score D2 (Uses & Activities) · 10-Min-Stadt Indikator</small>`,
+      {sticky:true,maxWidth:240}
+    );
+    group.addLayer(m);
+  });
+  group.addTo(map);layerObjs[id]=group;
+  const st=document.getElementById('st-'+id);if(st)st.textContent=`✓ ${local}🟢 ${chain}⚪`;
+}
+
+// 🚶 FUßWEGENETZ — Qualität des Fußverkehrs
+function renderFootwaysLayer(geojson){
+  const id='footways';if(!activeLayers[id])return;
+  const S={
+    footway:    {color:'#16a34a',weight:2,opacity:.8,label:'🚶 Gehweg'},
+    pedestrian: {color:'#15803d',weight:3,opacity:.9,label:'🚶 Fußgängerzone'},
+    path:       {color:'#ca8a04',weight:1.5,opacity:.7,label:'🥾 Pfad'},
+    steps:      {color:'#6b7280',weight:2,opacity:.7,label:'🪜 Treppe'},
+  };
+  const group=L.layerGroup();
+  // Casing
+  L.geoJSON(geojson,{style:f=>({color:'#fff',weight:4,opacity:.6,lineCap:'round'})}).addTo(group);
+  // Farbige Linie
+  L.geoJSON(geojson,{
+    style:f=>{const t=f.properties.highway||'footway';return S[t]||S.footway;},
+    onEachFeature:(f,l)=>{
+      const t=f.properties.highway||'footway';const st=S[t]||S.footway;
+      l.bindTooltip(`<b>${st.label}</b><br>${f.properties.name||''}<br><small>Score D3 (Access & Linkages) · Fußverkehrsqualität</small>`,{sticky:true});
+    }
+  }).addTo(group);
+  group.addTo(map);layerObjs[id]=group;
+  const n=geojson.features?.length||0;
+  const st=document.getElementById('st-'+id);if(st)st.textContent=`✓ ${n}`;
+}
+
+// ⚽ SPORT & FREIZEIT
+function renderSportLayer(geojson){
+  const id='sport';if(!activeLayers[id])return;
+  const CFG={
+    sports_centre:{color:'#16a34a',size:8,label:'🏟️ Sportzentrum'},
+    pitch:        {color:'#22c55e',size:7,label:'⚽ Sportplatz'},
+    fitness_centre:{color:'#15803d',size:7,label:'💪 Fitnessstudio'},
+    swimming_pool:{color:'#0284c7',size:7,label:'🏊 Schwimmbad'},
+  };
+  const group=L.layerGroup();let cnt=0;
+  geojson.features.forEach(f=>{
+    if(f.geometry?.type!=='Point')return;
+    const t=f.properties.leisure||'sports_centre';
+    const cfg=CFG[t]||{color:'#16a34a',size:6,label:'⚽ Sport'};
+    const[lon,lat]=f.geometry.coordinates;
+    const m=L.circleMarker([lat,lon],{radius:cfg.size,fillColor:cfg.color,color:'#fff',weight:1.5,fillOpacity:.9});
+    m.bindTooltip(`<b>${cfg.label}</b><br>${f.properties.name||'Sportanlage'}<br><small>Score D1 (Sociability) · Freizeitinfrastruktur</small>`,{sticky:true});
+    group.addLayer(m);cnt++;
+  });
+  group.addTo(map);layerObjs[id]=group;
+  const st=document.getElementById('st-'+id);if(st)st.textContent=`✓ ${cnt}`;
+}
+
+// 🚗 PARKPLÄTZE — MIV-Dominanz im öffentlichen Raum
+function renderParkingLayer(geojson){
+  const id='parking';if(!activeLayers[id])return;
+  const layer=L.geoJSON(geojson,{
+    renderer:window.canvasRenderer,
+    style:()=>({fillColor:'#dc2626',color:'#b91c1c',fillOpacity:.35,weight:0.5}),
+    onEachFeature:(f,l)=>{
+      const cap=f.properties.capacity;
+      l.bindTooltip(
+        `<b>🚗 Parkplatz — MIV-Fläche</b>${cap?`<br>Kapazität: ${cap} Stellplätze`:''}<br>`+
+        `<small>Jeder Parkplatz = verlorener öffentlicher Raum.<br>`+
+        `1 Parkplatz = ~12m² Fläche für 1,5 PKW-Stunden/Tag.<br>`+
+        `Score D3 (Access) · Maßnahme: Parkraummanagement</small>`,
+        {sticky:true,maxWidth:240}
+      );
+    }
+  }).addTo(map);
+  layerObjs[id]=layer;
+  const n=geojson.features?.length||0;
+  const st=document.getElementById('st-'+id);if(st)st.textContent=`✓ ${n}`;
+}
+
+
 function renderGreenLayer(geojson){
   const id='parks';if(!activeLayers[id])return;
   const S={forest:{fillColor:'#14532d',color:'#14532d',fillOpacity:.5,weight:0.5,label:'🌲 Wald — NDVI sehr hoch, Kühlwirkung stark'},park:{fillColor:'#15803d',color:'#166534',fillOpacity:.42,weight:0.5,label:'🌳 Park — NDVI hoch, Kühlwirkung gut'},garden:{fillColor:'#16a34a',color:'#15803d',fillOpacity:.35,weight:0.5,label:'🌿 Garten — NDVI mittel'},grass:{fillColor:'#4ade80',color:'#22c55e',fillOpacity:.3,weight:0.5,label:'🌱 Rasen — NDVI niedrig'},meadow:{fillColor:'#86efac',color:'#4ade80',fillOpacity:.28,weight:0.5,label:'🌾 Wiese — NDVI mittel'},recreation_ground:{fillColor:'#a7f3d0',color:'#6ee7b7',fillOpacity:.28,weight:0.5,label:'⛳ Freizeitfläche'}};
