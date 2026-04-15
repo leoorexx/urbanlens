@@ -285,15 +285,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <div class="llegend">
-    <b style="color:var(--text)">💧 Hochwasser Extrem:</b>
-    <div style="margin-top:4px;font-size:9px;color:var(--muted)">Breite Schattierung = Überschwemmungszone · Kern = Gewässer</div>
-    <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#1e3a8a;height:6px"></div>Fluss (HQextrem kritisch)</div>
-    <div class="llegrow"><div class="llegcolor" style="background:#3b82f6;height:4px;opacity:.5"></div>Überschwemmungsbereich</div>
+    <b style="color:var(--text)">🚲 Radwege — Überblick:</b>
+    <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#dc2626;height:5px"></div>🔴 Hauptstraße ohne Radweg</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#16a34a;height:5px"></div>🟢 Getrennter Radweg</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#eab308;height:4px"></div>🟡 Schutzstreifen</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#f97316;height:3px"></div>🟠 Angebotsstreifen</div>
 
-    <b style="color:var(--text);margin-top:8px;display:block">🚲 Radwege:</b>
-    <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#16a34a;height:5px"></div>Getrennter Radweg (sicher)</div>
-    <div class="llegrow"><div class="llegcolor" style="background:#d97706;height:4px"></div>Radfahrstreifen (mittel)</div>
-    <div class="llegrow"><div class="llegcolor" style="background:#ea580c;height:3px;border-top:2px dashed #ea580c;background:none"></div>Angebotsstreifen (schwach)</div>
+    <b style="color:var(--text);margin-top:8px;display:block">🌊 Hochwasser Extrem:</b>
+    <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#1e3a8a;height:5px"></div>Fluss (Kern)</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#60a5fa;height:4px;opacity:.7"></div>Nahzone ≤30m</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#bfdbfe;height:4px;opacity:.5"></div>Risikozone ≤300m</div>
 
     <b style="color:var(--text);margin-top:8px;display:block">🌡️ Hitzeinsel (LST-Delta):</b>
     <div style="display:flex;gap:2px;margin-top:4px;border-radius:4px;overflow:hidden;height:10px">
@@ -777,12 +778,27 @@ function loadLocal(filename, id, statusEl, onData){
 
 function loadLayer(id,statusEl){
   const c=CITY_CFG[city];
-  // Versuche immer zuerst lokale Datei
   switch(id){
     case 'flood':    return loadLocal(`flood_exposure_${city}.geojson`,id,statusEl,renderFloodExposure);
-    case 'floodex':  return loadLocal(`waterways_${city}.geojson`,id,statusEl,renderWaterwaysLayer);
+    case 'floodex':  return loadLocal(`waterways_${city}.geojson`,id,statusEl,renderFloodZones);
     case 'heat':     return loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,renderHeatExposure);
     case 'noise':    return loadLocal(`noise_roads_${city}.geojson`,id,statusEl,renderNoiseLayer);
+    // Radwege: lade BEIDE Dateien — Straßen (rot) + Radwege (grün/gelb) übereinander
+    case 'bike':
+      loadLocal(`noise_roads_${city}.geojson`,id,statusEl,roads=>{
+        loadLocal(`bike_${city}.geojson`,id,statusEl,bike=>{
+          renderBikeLayer(roads, bike);
+        });
+      });
+      return;
+    case 'parks':    return loadLocal(`green_${city}.geojson`,id,statusEl,renderGreenLayer);
+    case 'schools':  return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['school','kindergarten','university']));
+    case 'health':   return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['hospital','clinic','doctors','pharmacy']));
+    case 'transit':  return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['bus_stop','tram_stop','station','halt']));
+    case 'community':return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['community_centre','social_centre','place_of_worship','social_facility','library','sports_centre']));
+    default: statusEl.textContent='⚠ Unbekannt';
+  }
+}
     case 'bike':     return loadLocal(`bike_${city}.geojson`,id,statusEl,renderBikeLayer);
     case 'parks':    return loadLocal(`green_${city}.geojson`,id,statusEl,renderGreenLayer);
     case 'schools':  return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['school','kindergarten','university']));
@@ -870,49 +886,62 @@ function renderFloodExposure(geojson){
   layerObjs[id]=layer;
 }
 
-// 🌊 Gewässer-Layer — breite Schattierung als Überschwemmungszone
-function renderWaterwaysLayer(geojson){
-  const id=activeLayers['floodex']?'floodex':'flood';
+// 🌊 HOCHWASSER EXTREM — Gewässer + breite Landzone als Überschwemmungsgebiet
+function renderFloodZones(geojson){
+  const id='floodex';
   if(!activeLayers[id])return;
-
-  // Gewässer selbst + breiter Puffer-Effekt durch mehrere Schichten
   const group=L.layerGroup();
 
-  // Äußere Schattierung — simuliert Überschwemmungszone
-  const outer=L.geoJSON(geojson,{
+  // SCHICHT 1: Äußerste Risikozone — sehr breite, sehr transparente Fläche
+  // Simuliert: Land das bei HQextrem überflutet wird (~300m vom Fluss)
+  L.geoJSON(geojson,{
+    filter:f=>f.properties.waterway==='river'||f.properties.waterway==='canal',
     style:f=>{
-      const t=f.properties.waterway||f.properties.natural||'stream';
-      const w=t==='river'?40:t==='canal'?20:t==='stream'?10:6;
-      return{color:'#3b82f6',weight:w,opacity:.12,lineCap:'round',lineJoin:'round'};
+      const t=f.properties.waterway;
+      return{color:'#bfdbfe',weight:t==='river'?180:80,opacity:.18,lineCap:'round',lineJoin:'round'};
     }
-  });
+  }).addTo(group);
 
-  // Mittlere Zone
-  const mid=L.geoJSON(geojson,{
+  // SCHICHT 2: Mittlere Risikozone (~100m vom Fluss)
+  L.geoJSON(geojson,{
+    filter:f=>f.properties.waterway==='river'||f.properties.waterway==='canal'||f.properties.waterway==='stream',
     style:f=>{
-      const t=f.properties.waterway||f.properties.natural||'stream';
-      const w=t==='river'?20:t==='canal'?10:t==='stream'?6:3;
-      return{color:'#1d4ed8',weight:w,opacity:.2,lineCap:'round'};
+      const t=f.properties.waterway;
+      return{color:'#93c5fd',weight:t==='river'?80:t==='canal'?40:20,opacity:.28,lineCap:'round',lineJoin:'round'};
     }
-  });
+  }).addTo(group);
 
-  // Kern — das eigentliche Gewässer
-  const core=L.geoJSON(geojson,{
+  // SCHICHT 3: Nahzone — direkt am Gewässer (~30m)
+  L.geoJSON(geojson,{
+    filter:f=>f.properties.waterway==='river'||f.properties.waterway==='canal'||f.properties.waterway==='stream',
+    style:f=>{
+      const t=f.properties.waterway;
+      return{color:'#3b82f6',weight:t==='river'?30:t==='canal'?16:8,opacity:.45,lineCap:'round',lineJoin:'round'};
+    }
+  }).addTo(group);
+
+  // SCHICHT 4: Der Fluss selbst — solide Linie
+  L.geoJSON(geojson,{
     style:f=>{
       const t=f.properties.waterway||f.properties.natural||'stream';
-      if(t==='river')return{fillColor:'#1e3a8a',color:'#1e3a8a',fillOpacity:.6,weight:4,opacity:.9};
-      if(t==='canal')return{fillColor:'#1d4ed8',color:'#1d4ed8',fillOpacity:.5,weight:3,opacity:.85};
-      if(t==='water'||t==='wetland')return{fillColor:'#bfdbfe',color:'#3b82f6',fillOpacity:.5,weight:1,opacity:.7};
-      return{color:'#3b82f6',weight:2,opacity:.8};
+      if(t==='river')  return{fillColor:'#1e3a8a',color:'#1e3a8a',fillOpacity:.8,weight:5,opacity:1};
+      if(t==='canal')  return{fillColor:'#1d4ed8',color:'#1d4ed8',fillOpacity:.7,weight:3,opacity:.9};
+      if(t==='water'||t==='wetland') return{fillColor:'#bfdbfe',color:'#3b82f6',fillOpacity:.6,weight:1.5,opacity:.8};
+      return{color:'#60a5fa',weight:2,opacity:.75};
     },
     onEachFeature:(f,l)=>{
       const t=f.properties.waterway||f.properties.natural||'stream';
-      const labels={river:'🔴 Fluss — HQextrem kritisch, Überschwemmungsbereich 30–100m',canal:'🟠 Kanal — HQextrem hoch',stream:'🟡 Bach — erhöhtes Risiko',water:'💧 Gewässerfläche',wetland:'💜 Feuchtgebiet — Retentionsraum'};
-      l.bindTooltip(`<b>${labels[t]||'Gewässer'}</b><br>${f.properties.name||''}<br><small>Schattierung = geschätzte Überschwemmungszone bei HQextrem<br>EU Floods Dir. 2007/60/EG</small>`,{sticky:true,maxWidth:240});
+      const risk={river:'🔴 Sehr hohes Risiko — breite Überschwemmungszone',canal:'🟠 Hohes Risiko — Kanalüberlauf',stream:'🟡 Erhöhtes Risiko — Bachüberschwemmung'};
+      l.bindTooltip(
+        `<b>${risk[t]||'Gewässer'}</b><br>${f.properties.name||''}<br>`+
+        `<small>Schattierung zeigt geschätzte Überschwemmungszone bei HQextrem.<br>`+
+        `Je näher am Gewässer, desto höher das Risiko.<br>`+
+        `Rechtsgrundlage: EU Floods Dir. 2007/60/EG</small>`,
+        {sticky:true,maxWidth:240}
+      );
     }
-  });
+  }).addTo(group);
 
-  outer.addTo(group); mid.addTo(group); core.addTo(group);
   group.addTo(map);
   layerObjs[id]=group;
 }
@@ -978,54 +1007,80 @@ function renderNoiseLayer(geojson){
   layerObjs[id]=layer;
 }
 
-// 🚲 RADWEGE — klar und deutlich mit Casing-Effekt
-function renderBikeLayer(geojson){
-  const id='bike';if(!activeLayers[id])return;
+// 🚲 RADWEGE — Hauptstraßen ROT (kein Radweg), Infrastruktur drüber GRÜN/GELB
+function renderBikeLayer(roadsGeojson, bikeGeojson){
+  const id='bike';
+  if(!activeLayers[id])return;
   const group=L.layerGroup();
 
-  // Casing (weißer Rand) für bessere Sichtbarkeit
-  const casing=L.geoJSON(geojson,{
-    style:f=>{
-      const hw=f.properties.highway||'';
-      const cy=f.properties.cycleway||f.properties['cycleway:right']||'';
-      const w=hw==='cycleway'?8:cy==='lane'||cy==='track'?6:4;
-      return{color:'#fff',weight:w+2,opacity:.8,lineCap:'round'};
-    }
-  });
+  // SCHICHT 1: Hauptstraßen ohne Radweg = ROT
+  // Nur primary + secondary — das sind die gefährlichen Lücken
+  if(roadsGeojson){
+    // Weißer Casing
+    L.geoJSON(roadsGeojson,{
+      filter:f=>{const h=f.properties.highway||'';return h==='primary'||h==='primary_link'||h==='secondary';},
+      style:f=>{const h=f.properties.highway;return{color:'#fff',weight:h==='secondary'?8:10,opacity:.7,lineCap:'round'};},
+    }).addTo(group);
+    // Rote Linie
+    L.geoJSON(roadsGeojson,{
+      filter:f=>{const h=f.properties.highway||'';return h==='primary'||h==='primary_link'||h==='secondary';},
+      style:f=>{const h=f.properties.highway;return{color:h==='secondary'?'#ef4444':'#dc2626',weight:h==='secondary'?5:7,opacity:.85,lineCap:'round'};},
+      onEachFeature:(f,l)=>{
+        const h=f.properties.highway;
+        l.bindTooltip(
+          `<b>🔴 Kein Radweg — ${f.properties.name||h}</b><br>`+
+          `<small>${h==='primary'?'Bundesstraße':'Hauptstraße'} ohne Radinfrastruktur.<br>`+
+          `Radfahren im Mischverkehr — Handlungsbedarf!<br>`+
+          `→ Maßnahme B04: Schutzstreifen · B01: Radschnellweg</small>`,
+          {sticky:true,maxWidth:240}
+        );
+      }
+    }).addTo(group);
+  }
 
-  // Farbige Linie darüber
-  const lines=L.geoJSON(geojson,{
-    style:f=>{
-      const hw=f.properties.highway||'';
-      const cy=f.properties.cycleway||f.properties['cycleway:right']||'';
-      if(hw==='cycleway')return{color:'#16a34a',weight:6,opacity:1,lineCap:'round'};
-      if(cy==='lane'||cy==='track')return{color:'#d97706',weight:5,opacity:1,lineCap:'round'};
-      if(cy==='shared_lane')return{color:'#ea580c',weight:4,opacity:.9,lineCap:'round',dashArray:'8 5'};
-      return{color:'#dc2626',weight:4,opacity:.9,lineCap:'round',dashArray:'4 6'};
-    },
-    onEachFeature:(f,l)=>{
-      const hw=f.properties.highway||'';
-      const cy=f.properties.cycleway||f.properties['cycleway:right']||'';
-      const labels={
-        cycleway:   '🟢 Getrennter Radweg — sicherste Führung',
-        lane:       '🟡 Radfahrstreifen — markiert auf Fahrbahn',
-        track:      '🟡 Radweg im Seitenraum — mittlere Sicherheit',
-        shared_lane:'🟠 Angebotsstreifen — Piktogramm, wenig Schutz',
-      };
-      const t=hw==='cycleway'?'cycleway':cy||'shared_lane';
-      const name=f.properties.name||f.properties['name:de']||hw||cy||'';
-      l.bindTooltip(
-        `<b>${labels[t]||'Radinfrastruktur'}</b>${name?'<br>'+name:''}<br>`+
-        `<small>Score C (Mobilität) · Benchmark: ADFC Klimaradtest<br>`+
-        `Maßnahme B04: Radschnellweg · B01: Schutzstreifen</small>`,
-        {sticky:true,maxWidth:240}
-      );
-    }
-  });
+  // SCHICHT 2: Echte Radwege drüber — GRÜN (getrennt) / GELB (Schutzstreifen)
+  if(bikeGeojson){
+    // Weißer Casing für Radwege
+    L.geoJSON(bikeGeojson,{
+      style:f=>{
+        const hw=f.properties.highway||'';const cy=f.properties.cycleway||f.properties['cycleway:right']||'';
+        const w=hw==='cycleway'?10:cy==='lane'||cy==='track'?8:6;
+        return{color:'#fff',weight:w,opacity:.9,lineCap:'round'};
+      }
+    }).addTo(group);
+    // Farbige Radweg-Linie
+    L.geoJSON(bikeGeojson,{
+      style:f=>{
+        const hw=f.properties.highway||'';const cy=f.properties.cycleway||f.properties['cycleway:right']||'';
+        if(hw==='cycleway')    return{color:'#16a34a',weight:6,opacity:1,lineCap:'round'};       // Dunkelgrün = sicher
+        if(cy==='track')       return{color:'#22c55e',weight:5,opacity:.95,lineCap:'round'};      // Grün = gut
+        if(cy==='lane')        return{color:'#eab308',weight:5,opacity:.95,lineCap:'round'};      // Gelb = Schutzstreifen
+        if(cy==='shared_lane') return{color:'#f97316',weight:4,opacity:.9,lineCap:'round',dashArray:'8 5'}; // Orange = schwach
+        return{color:'#eab308',weight:4,opacity:.85,lineCap:'round'};
+      },
+      onEachFeature:(f,l)=>{
+        const hw=f.properties.highway||'';const cy=f.properties.cycleway||f.properties['cycleway:right']||'';
+        const labels={
+          cycleway:   '🟢 Getrennter Radweg — sicherste Führung',
+          track:      '🟢 Radweg im Seitenraum — sicher',
+          lane:       '🟡 Schutzstreifen auf Fahrbahn — mittel',
+          shared_lane:'🟠 Angebotsstreifen / Piktogramm — wenig Schutz',
+        };
+        const t=hw==='cycleway'?'cycleway':cy||'lane';
+        l.bindTooltip(
+          `<b>${labels[t]}</b><br>${f.properties.name||''}<br>`+
+          `<small>Score C (Mobilität) · ADFC Klimaradtest Benchmark</small>`,
+          {sticky:true,maxWidth:240}
+        );
+      }
+    }).addTo(group);
+  }
 
-  casing.addTo(group); lines.addTo(group);
   group.addTo(map);
   layerObjs[id]=group;
+  // Status updaten
+  const stEl=document.getElementById('st-bike');
+  if(stEl){const n=(bikeGeojson?.features?.length||0)+(roadsGeojson?.features?.length||0);stEl.textContent=`✓ ${n}`;}
 }
 
 // 🌳 PARKS mit NDVI-Abstufung
