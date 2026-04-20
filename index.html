@@ -230,17 +230,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <div class="lrow" onclick="toggleLayer('flood')">
     <button class="ltoggle" id="tog-flood"></button>
-    <span class="lname">💧 Hochwasser HQ100</span>
+    <span class="lname">💧 Hochwasser HQ100 — Gebäude</span>
     <span class="lstatus" id="st-flood"></span>
-  </div>
-  <div class="lrow" onclick="toggleLayer('floodex')">
-    <button class="ltoggle" id="tog-floodex"></button>
-    <span class="lname">🌊 Hochwasser Extrem</span>
-    <span class="lstatus" id="st-floodex"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('heat')">
     <button class="ltoggle" id="tog-heat"></button>
-    <span class="lname">🌡️ Hitzeinsel / Hot Spots</span>
+    <span class="lname">🌡️ Hitzeinsel — Gebäude-Level</span>
     <span class="lstatus" id="st-heat"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('noise')">
@@ -1455,11 +1450,25 @@ function renderParkingLayer(geojson){
 
 function renderGreenLayer(geojson){
   const id='parks';if(!activeLayers[id])return;
-  const S={forest:{fillColor:'#14532d',color:'#14532d',fillOpacity:.5,weight:0.5,label:'🌲 Wald — NDVI sehr hoch, Kühlwirkung stark'},park:{fillColor:'#15803d',color:'#166534',fillOpacity:.42,weight:0.5,label:'🌳 Park — NDVI hoch, Kühlwirkung gut'},garden:{fillColor:'#16a34a',color:'#15803d',fillOpacity:.35,weight:0.5,label:'🌿 Garten — NDVI mittel'},grass:{fillColor:'#4ade80',color:'#22c55e',fillOpacity:.3,weight:0.5,label:'🌱 Rasen — NDVI niedrig'},meadow:{fillColor:'#86efac',color:'#4ade80',fillOpacity:.28,weight:0.5,label:'🌾 Wiese — NDVI mittel'},recreation_ground:{fillColor:'#a7f3d0',color:'#6ee7b7',fillOpacity:.28,weight:0.5,label:'⛳ Freizeitfläche'}};
+  const S={
+    forest:           {fillColor:'#14532d',color:'#14532d',fillOpacity:.5,weight:0.5,label:'🌲 Wald — NDVI sehr hoch'},
+    park:             {fillColor:'#15803d',color:'#166534',fillOpacity:.42,weight:0.5,label:'🌳 Park'},
+    garden:           {fillColor:'#16a34a',color:'#15803d',fillOpacity:.38,weight:0.5,label:'🌿 Garten / Anlage'},
+    grass:            {fillColor:'#4ade80',color:'#22c55e',fillOpacity:.3,weight:0.5,label:'🌱 Rasen'},
+    meadow:           {fillColor:'#86efac',color:'#4ade80',fillOpacity:.28,weight:0.5,label:'🌾 Wiese'},
+    recreation_ground:{fillColor:'#a7f3d0',color:'#6ee7b7',fillOpacity:.28,weight:0.5,label:'⛳ Freizeitfläche'},
+    cemetery:         {fillColor:'#9ca3af',color:'#6b7280',fillOpacity:.4,weight:0.5,label:'⛪ Friedhof'},
+    grave_yard:       {fillColor:'#9ca3af',color:'#6b7280',fillOpacity:.4,weight:0.5,label:'⛪ Friedhof'},
+    nature_reserve:   {fillColor:'#065f46',color:'#064e3b',fillOpacity:.45,weight:0.5,label:'🏞️ Naturschutzgebiet'},
+    allotments:       {fillColor:'#84cc16',color:'#65a30d',fillOpacity:.3,weight:0.5,label:'🥕 Kleingärten'},
+  };
   const layer=L.geoJSON(geojson,{
-    style:f=>{const t=f.properties.landuse||f.properties.leisure||f.properties.natural||'park';return S[t]||S.park;},
-    onEachFeature:(f,l)=>{const t=f.properties.landuse||f.properties.leisure||'park';const st=S[t]||S.park;
-      l.bindTooltip(`<b>${st.label}</b><br>${f.properties.name||t}<br><small>Score G (Ökosystem) · Copernicus NDVI Sentinel-2</small>`,{sticky:true});}
+    style:f=>{const t=f.properties.landuse||f.properties.leisure||f.properties.amenity||'park';return S[t]||S.park;},
+    onEachFeature:(f,l)=>{
+      const t=f.properties.landuse||f.properties.leisure||f.properties.amenity||'park';
+      const st=S[t]||S.park;
+      l.bindTooltip(`<b>${st.label}</b><br>${f.properties.name||t}<br><small>Score G (Ökosystem) · Copernicus NDVI Sentinel-2</small>`,{sticky:true});
+    }
   }).addTo(map);
   layerObjs[id]=layer;
 }
