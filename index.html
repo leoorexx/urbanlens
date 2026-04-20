@@ -150,7 +150,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .rt-noise{background:rgba(124,77,255,0.12);color:#6d28d9;border:1px solid rgba(124,77,255,0.25)}
 .rt-air{background:rgba(234,88,12,0.12);color:#c2410c;border:1px solid rgba(234,88,12,0.25)}
 
-/* STATS */
+/* BÜRGERBRILLE */
+.bbrille-btn{background:var(--surface2);border:1.5px solid var(--border2);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;transition:all .15s}
+.bbrille-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.bbrille-btn.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,0.2)}
+.brille-popup{position:fixed;top:70px;left:50%;transform:translateX(-50%);width:340px;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);z-index:800;padding:16px;pointer-events:all}
+.bp-close{position:absolute;top:10px;right:12px;cursor:pointer;color:var(--muted);font-size:14px;line-height:1}
+.bp-close:hover{color:var(--text)}
+.bp-head{margin-bottom:12px}
+.bp-title{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em}
+.bp-addr{font-size:13px;font-weight:700;margin-top:2px;color:var(--text)}
+.bp-score-row{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.bp-circle{position:relative;width:64px;height:64px;flex-shrink:0}
+.bp-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;font-weight:900;line-height:1}
+.bp-num small{font-size:9px;color:var(--muted);font-weight:400}
+.bp-grade-col{flex:1}
+.bp-bars{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.bp-bar{display:flex;align-items:center;gap:8px;font-size:10px}
+.bp-bar-label{width:140px;flex-shrink:0;color:var(--text2);font-weight:500}
+.bp-bar-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.bp-bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+.bp-bar-val{width:28px;text-align:right;font-weight:700;font-size:10px;color:var(--muted)}
+.bp-tip{background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.15);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--text2);line-height:1.5}
+.bp-tip b{color:var(--accent)}
+/* Cursor wenn Bürgerbrille aktiv */
+.map-brille-active{cursor:crosshair!important}
 .stats{position:fixed;bottom:0;left:0;right:0;height:48px;z-index:500;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;overflow-x:auto;overflow-y:hidden}
 .stats::-webkit-scrollbar{display:none}
 .stat{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;border-right:1px solid var(--border);height:100%;flex-shrink:0;cursor:pointer;transition:background .12s;white-space:nowrap}
@@ -186,12 +210,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="ct" id="ct-utr" onclick="switchCity('utr')">🌷 Utrecht</div>
   </div>
   <div class="nsep"></div>
-  <div class="ninfo">NICE Score — <b>117 Indikatoren</b> · 10 Karten-Layer · Open Source</div>
+  <div class="ninfo">NICE Score — <b>117 Indikatoren</b> · Open Source</div>
   <div class="nav-r">
+    <button class="bbrille-btn" id="bbrilleBtn" onclick="toggleBuergerbrille()">
+      👁 Bürgerbrille
+    </button>
     <div class="epill">📅 EUI Deadline 15. Juni 2026</div>
     <div class="lpill"><div class="dot"></div>Open Data Live</div>
   </div>
 </nav>
+
+<!-- Bürgerbrille Score Popup -->
+<div id="brillePopup" class="brille-popup" style="display:none">
+  <div class="bp-close" onclick="closeBrillePopup()">✕</div>
+  <div class="bp-head">
+    <div class="bp-title">👁 Street-Score</div>
+    <div class="bp-addr" id="bpAddr">Berechne…</div>
+  </div>
+  <div class="bp-score-row">
+    <div class="bp-circle">
+      <svg viewBox="0 0 64 64" width="64" height="64">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="var(--border)" stroke-width="6"/>
+        <circle id="bpArc" cx="32" cy="32" r="27" fill="none" stroke="#16a34a" stroke-width="6"
+          stroke-dasharray="0 170" stroke-linecap="round" transform="rotate(-90 32 32)"
+          style="transition:stroke-dasharray .6s,stroke .4s"/>
+      </svg>
+      <div class="bp-num"><span id="bpScore">—</span><small>/100</small></div>
+    </div>
+    <div class="bp-grade-col">
+      <div class="gpill" id="bpGrade" style="font-size:12px;padding:4px 12px"></div>
+      <div id="bpProblem" style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5"></div>
+    </div>
+  </div>
+  <div class="bp-bars" id="bpBars"></div>
+  <div class="bp-tip" id="bpTip"></div>
+</div>
 
 <div id="map"></div>
 
@@ -1842,6 +1895,209 @@ function renderStats(){
     <div class="stat"><div class="stl">EUI Call 4</div><div class="stv" style="color:#d97706">15. Jun '26</div><div class="sts">60 Mio€ ERDF</div></div>
     <div class="stat"><div class="stl">Maßnahmen</div><div class="stv">15</div><div class="sts">mit ROI-Belegen</div></div>
     <div class="stat"><div class="stl">Förderprogramme</div><div class="stv">25</div><div class="sts">EU/Bund/Land/KfW</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// BÜRGERBRILLE — Street Score per Klick
+// ══════════════════════════════════════════════════════════════
+let brilleActive = false;
+let brilleClickHandler = null;
+
+function toggleBuergerbrille(){
+  brilleActive = !brilleActive;
+  const btn = document.getElementById('bbrilleBtn');
+  btn.classList.toggle('on', brilleActive);
+  btn.textContent = brilleActive ? '👁 Bürgerbrille AN' : '👁 Bürgerbrille';
+  const mapEl = document.getElementById('map');
+  mapEl.classList.toggle('map-brille-active', brilleActive);
+
+  if(brilleActive){
+    brilleClickHandler = (e) => computeStreetScore(e.latlng);
+    map.on('click', brilleClickHandler);
+    document.getElementById('brillePopup').style.display='block';
+    document.getElementById('bpAddr').textContent='Klick auf die Karte…';
+    document.getElementById('bpScore').textContent='—';
+  } else {
+    if(brilleClickHandler) map.off('click', brilleClickHandler);
+    closeBrillePopup();
+  }
+}
+
+function closeBrillePopup(){
+  document.getElementById('brillePopup').style.display='none';
+  brilleActive=false;
+  document.getElementById('bbrilleBtn').classList.remove('on');
+  document.getElementById('bbrilleBtn').textContent='👁 Bürgerbrille';
+  document.getElementById('map').classList.remove('map-brille-active');
+  if(brilleClickHandler) map.off('click', brilleClickHandler);
+}
+
+function computeStreetScore(latlng){
+  const lat=latlng.lat, lon=latlng.lng;
+  document.getElementById('bpAddr').textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)} — berechne…`;
+
+  // Hilfsfunktion: Punkte in Radius finden
+  function inRadius(layer, radiusDeg){
+    const feats=[];
+    if(!layer) return feats;
+    layer.eachLayer && layer.eachLayer(l=>{
+      // LayerGroup
+      if(l.eachLayer) l.eachLayer(sub=>{
+        const ll=sub.getLatLng?.();
+        if(ll && Math.abs(ll.lat-lat)<radiusDeg && Math.abs(ll.lng-lon)<radiusDeg) feats.push(sub);
+      });
+      const ll=l.getLatLng?.();
+      if(ll && Math.abs(ll.lat-lat)<radiusDeg && Math.abs(ll.lng-lon)<radiusDeg) feats.push(l);
+    });
+    return feats;
+  }
+
+  function nearestWayQuality(layerObj, radiusDeg){
+    // Für Linien-Layer (Radwege, Fußwege): nächste Linie finden
+    let best=null;
+    if(!layerObj) return best;
+    const walk=(lg)=>{
+      if(lg.eachLayer) lg.eachLayer(walk);
+      else {
+        const feat=lg.feature;
+        if(!feat) return;
+        const coords=feat.geometry?.coordinates;
+        if(!coords) return;
+        const pts=feat.geometry.type==='LineString'?coords:[];
+        for(const [plon,plat] of pts){
+          if(Math.abs(plat-lat)<radiusDeg && Math.abs(plon-lon)<radiusDeg){
+            const q=feat.properties?._quality||feat.properties?.highway||'';
+            if(!best) best=q;
+          }
+        }
+      }
+    };
+    walk(layerObj);
+    return best;
+  }
+
+  // Radius: 0.002 Grad ≈ 200m
+  const R=0.002;
+
+  // 1. BÄUME (max 20 Punkte)
+  const trees=inRadius(layerObjs['trees'], R);
+  const treeScore=Math.min(20, trees.length*2);
+
+  // 2. BÄNKE (max 15 Punkte)
+  const benches=inRadius(layerObjs['benches'], R);
+  let benchScore=0;
+  benches.forEach(b=>{
+    const q=b.feature?.properties?._quality||'ok';
+    if(q==='excellent') benchScore+=5;
+    else if(q==='good') benchScore+=4;
+    else if(q==='ok'||q==='basic') benchScore+=3;
+    // commercial = 0 Punkte
+  });
+  benchScore=Math.min(15, benchScore);
+
+  // 3. FUßWEGE (max 20 Punkte)
+  const fwq=nearestWayQuality(layerObjs['footways_quality'], R);
+  const footScore=fwq==='excellent'?20:fwq==='good'?14:fwq==='ok'?8:fwq==='poor'?3:0;
+
+  // 4. GRÜNFLÄCHE in 300m (max 15 Punkte)
+  const greenR=0.003;
+  const parks=inRadius(layerObjs['parks'], greenR);
+  const greenScore=parks.length>0?15:0;
+
+  // 5. LOKALE GESCHÄFTE (max 10 Punkte)
+  const retail=inRadius(layerObjs['retail'], R);
+  let retailScore=0;
+  retail.forEach(r=>{const n=(r.feature?.properties?.name||'').toLowerCase();
+    const chains=['rewe','edeka','aldi','lidl','penny','dm','rossmann','mcdonald','burger king','starbucks','subway'];
+    retailScore+=chains.some(c=>n.includes(c))?0.5:2;
+  });
+  retailScore=Math.min(10, retailScore);
+
+  // 6. RADWEG-QUALITÄT (max 10 Punkte)
+  const bikeq=nearestWayQuality(layerObjs['bike'], R);
+  const bikeScore=bikeq==='cycleway'?10:bikeq==='lane'||bikeq==='track'?6:bikeq==='shared_lane'?3:0;
+
+  // 7. LÄRM-PENALTY (max -15 Punkte)
+  const noise=nearestWayQuality(layerObjs['noise'], R*1.5);
+  const noisePenalty=noise==='motorway'||noise==='trunk'?-15:noise==='primary'?-8:noise==='secondary'?-4:noise==='rail'?-10:0;
+
+  // 8. HITZE-PENALTY (max -10 Punkte)
+  const heatFeats=inRadius(layerObjs['heat'], R);
+  let heatPenalty=0;
+  heatFeats.forEach(h=>{
+    const cls=h.feature?.properties?.heat_class||'';
+    if(cls==='extreme') heatPenalty=Math.min(heatPenalty-10, heatPenalty);
+    else if(cls==='high') heatPenalty=Math.min(heatPenalty-5, heatPenalty);
+  });
+
+  const total=Math.max(0, Math.min(100,
+    treeScore+benchScore+footScore+greenScore+retailScore+bikeScore+noisePenalty+heatPenalty
+  ));
+
+  // Anzeige
+  const col=total>=65?'#16a34a':total>=45?'#ca8a04':total>=30?'#ea580c':'#dc2626';
+  const grade=total>=75?{g:'A',l:'Sehr gut'}:total>=62?{g:'B',l:'Gut'}:total>=50?{g:'C',l:'Mittel'}:total>=38?{g:'D',l:'Kritisch'}:{g:'F',l:'Dringend'};
+
+  document.getElementById('bpAddr').textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+  document.getElementById('bpScore').textContent=total;
+  document.getElementById('bpScore').style.color=col;
+
+  const arc=document.getElementById('bpArc');
+  const circ=2*Math.PI*27;
+  arc.setAttribute('stroke',col);
+  arc.setAttribute('stroke-dasharray',`${(total/100)*circ} ${circ}`);
+
+  const gp=document.getElementById('bpGrade');
+  gp.style.background=`${col}20`;gp.style.color=col;
+  gp.textContent=`Note ${grade.g} — ${grade.l}`;
+
+  // Bars
+  const bars=[
+    {label:'🌳 Bäume',     val:treeScore,   max:20, col:'#16a34a'},
+    {label:'🪑 Bänke',     val:benchScore,  max:15, col:'#15803d'},
+    {label:'🚶 Fußweg',    val:footScore,   max:20, col:'#0284c7'},
+    {label:'🌿 Grünfläche',val:greenScore,  max:15, col:'#22c55e'},
+    {label:'🏪 Lokal',     val:retailScore, max:10, col:'#d97706'},
+    {label:'🚲 Radweg',    val:bikeScore,   max:10, col:'#ca8a04'},
+    {label:'🔊 Lärm',      val:noisePenalty,max:0,  col:'#7c3aed', penalty:true},
+    {label:'🌡️ Hitze',     val:heatPenalty, max:0,  col:'#dc2626', penalty:true},
+  ];
+
+  document.getElementById('bpBars').innerHTML=bars.map(b=>{
+    const pct=b.penalty?Math.min(100,Math.abs(b.val)/15*100):b.max>0?Math.min(100,b.val/b.max*100):0;
+    const show=b.penalty?b.val:b.val;
+    return`<div class="bp-bar">
+      <div class="bp-bar-label">${b.label}</div>
+      <div class="bp-bar-track"><div class="bp-bar-fill" style="width:${pct}%;background:${b.col}"></div></div>
+      <div class="bp-bar-val" style="color:${b.col}">${show>0?'+':''}${show}</div>
+    </div>`;
+  }).join('');
+
+  // Hauptproblem + Tipp
+  const problems=[];
+  if(treeScore<5) problems.push('Kaum Bäume');
+  if(benchScore<3) problems.push('Keine öffentlichen Bänke');
+  if(footScore<8) problems.push('Schlechter Fußweg');
+  if(greenScore===0) problems.push('Kein Park in 300m');
+  if(noisePenalty<-5) problems.push('Hohe Lärmbelastung');
+  if(heatPenalty<-5) problems.push('Hitzeinsel');
+
+  const tips={
+    'Kaum Bäume':'Maßnahme A01: Straßenbaum-Programm (75% Förderung)',
+    'Keine öffentlichen Bänke':'Maßnahme: Sitzinfrastruktur (Quick Win, ~500€/Bank)',
+    'Schlechter Fußweg':'Maßnahme: Gehwegqualität (DAS 70% Förderung)',
+    'Kein Park in 300m':'Maßnahme A03: Schwammstadt / A05: Urbaner Wald',
+    'Hohe Lärmbelastung':'Maßnahme B01: Tempo 30 · Flüsterasphalt',
+    'Hitzeinsel':'Maßnahme A02: Fassadenbegrünung · A04: Gründach',
+  };
+
+  const mainProblem=problems[0]||'Guter Standort';
+  document.getElementById('bpProblem').innerHTML=
+    problems.length?`⚠ Hauptproblem: <b>${problems.join(', ')}</b>`:'✅ Guter Standort';
+
+  document.getElementById('bpTip').innerHTML=problems.length?
+    `💡 <b>Empfehlung:</b> ${tips[mainProblem]||'Weitere Analyse empfohlen'}`:
+    `✅ Dieser Standort erfüllt die meisten Qualitätskriterien.`;
 }
 
 initMap();
