@@ -300,20 +300,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <div class="lp-section">🤝 Soziale Qualität (PPS-Framework)</div>
 
-  <div class="lrow" onclick="toggleLayer('social')">
-    <button class="ltoggle" id="tog-social"></button>
-    <span class="lname">🪑 Sociability (Bänke, Café, Spiel)</span>
-    <span class="lstatus" id="st-social"></span>
+  <div class="lrow" onclick="toggleLayer('trees')">
+    <button class="ltoggle" id="tog-trees"></button>
+    <span class="lname">🌳 Straßenbäume & Alleen</span>
+    <span class="lstatus" id="st-trees"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('benches')">
+    <button class="ltoggle" id="tog-benches"></button>
+    <span class="lname">🪑 Bänke — Qualitätsstufen</span>
+    <span class="lstatus" id="st-benches"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('footways_quality')">
+    <button class="ltoggle" id="tog-footways_quality"></button>
+    <span class="lname">🚶 Fußwege — Qualitätsstufen</span>
+    <span class="lstatus" id="st-footways_quality"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('retail')">
     <button class="ltoggle" id="tog-retail"></button>
-    <span class="lname">🏪 Nahversorgung & Einzelhandel</span>
+    <span class="lname">🏪 Lokal vs. Kette</span>
     <span class="lstatus" id="st-retail"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('footways')">
-    <button class="ltoggle" id="tog-footways"></button>
-    <span class="lname">🚶 Fußwegenetz</span>
-    <span class="lstatus" id="st-footways"></span>
+  <div class="lrow" onclick="toggleLayer('social')">
+    <button class="ltoggle" id="tog-social"></button>
+    <span class="lname">🎭 Sociability (Café, Spiel, Brunnen)</span>
+    <span class="lstatus" id="st-social"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('sport')">
     <button class="ltoggle" id="tog-sport"></button>
@@ -327,16 +337,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <div class="llegend">
-    <b style="color:var(--text)">🚲 Radwege — Überblick:</b>
+    <b style="color:var(--text)">🚲 Radwege:</b>
     <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#dc2626;height:5px"></div>🔴 Hauptstraße ohne Radweg</div>
     <div class="llegrow"><div class="llegcolor" style="background:#16a34a;height:5px"></div>🟢 Getrennter Radweg</div>
     <div class="llegrow"><div class="llegcolor" style="background:#eab308;height:4px"></div>🟡 Schutzstreifen</div>
-    <div class="llegrow"><div class="llegcolor" style="background:#f97316;height:3px"></div>🟠 Angebotsstreifen</div>
 
-    <b style="color:var(--text);margin-top:8px;display:block">🌊 Hochwasser Extrem:</b>
-    <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#1e3a8a;height:5px"></div>Fluss (Kern)</div>
-    <div class="llegrow"><div class="llegcolor" style="background:#60a5fa;height:4px;opacity:.7"></div>Nahzone ≤30m</div>
-    <div class="llegrow"><div class="llegcolor" style="background:#bfdbfe;height:4px;opacity:.5"></div>Risikozone ≤300m</div>
+    <b style="color:var(--text);margin-top:8px;display:block">🪑 Bänke:</b>
+    <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#15803d;height:8px;border-radius:50%;width:8px"></div>Überdacht + barrierefrei</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#16a34a;height:7px;border-radius:50%;width:7px"></div>Öffentlich + Rückenlehne</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#ca8a04;height:6px;border-radius:50%;width:6px"></div>Einfach vorhanden</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#dc2626;height:6px;border-radius:50%;width:6px"></div>Nur für Kunden</div>
+
+    <b style="color:var(--text);margin-top:8px;display:block">🚶 Fußwege:</b>
+    <div class="llegrow" style="margin-top:4px"><div class="llegcolor" style="background:#15803d;height:4px"></div>Sehr gut (barrierefrei, beleuchtet)</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#ca8a04;height:3px"></div>Gut (befestigt)</div>
+    <div class="llegrow"><div class="llegcolor" style="background:#dc2626;height:3px"></div>Schlecht (unbefestigt/eng)</div>
 
     <b style="color:var(--text);margin-top:8px;display:block">🌡️ Hitzeinsel (LST-Delta):</b>
     <div style="display:flex;gap:2px;margin-top:4px;border-radius:4px;overflow:hidden;height:10px">
@@ -859,11 +874,14 @@ function loadLayer(id,statusEl){
       });
       return;
     // ── SOZIALE LAYER ─────────────────────────────────────────
-    case 'social':   return loadLocal(`social_${city}.geojson`,id,statusEl,renderSocialLayer);
-    case 'retail':   return loadLocal(`retail_${city}.geojson`,id,statusEl,renderRetailLayer);
-    case 'footways': return loadLocal(`footways_${city}.geojson`,id,statusEl,renderFootwaysLayer);
-    case 'sport':    return loadLocal(`sport_${city}.geojson`,id,statusEl,renderSportLayer);
-    case 'parking':  return loadLocal(`parking_${city}.geojson`,id,statusEl,renderParkingLayer);
+    case 'trees':           return loadLocal(`trees_${city}.geojson`,id,statusEl,renderTreesLayer);
+    case 'benches':         return loadLocal(`benches_${city}.geojson`,id,statusEl,renderBenchesLayer);
+    case 'footways_quality':return loadLocal(`footways_quality_${city}.geojson`,id,statusEl,renderFootwaysQuality);
+    case 'social':          return loadLocal(`social_${city}.geojson`,id,statusEl,renderSocialLayer);
+    case 'retail':          return loadLocal(`retail_${city}.geojson`,id,statusEl,renderRetailLayer);
+    case 'footways':        return loadLocal(`footways_${city}.geojson`,id,statusEl,renderFootwaysLayer);
+    case 'sport':           return loadLocal(`sport_${city}.geojson`,id,statusEl,renderSportLayer);
+    case 'parking':         return loadLocal(`parking_${city}.geojson`,id,statusEl,renderParkingLayer);
     default: statusEl.textContent='⚠ Unbekannt';
   }
 }
@@ -1306,9 +1324,120 @@ function renderGreenDeficit(heatGj, id, statusEl){
   statusEl.textContent=`✓ ${cnt} Gebäude`;
 }
 
-// ══════════════════════════════════════════════════════════════
-// SOZIALE LAYER — PPS Framework
-// ══════════════════════════════════════════════════════════════
+// 🌳 BÄUME — Einzelbäume + Alleen mit Größenabstufung
+function renderTreesLayer(geojson){
+  const id='trees';if(!activeLayers[id])return;
+  const group=L.layerGroup();let cnt=0;
+  geojson.features.forEach(f=>{
+    const t=f.properties.natural||'';
+    if(f.geometry?.type==='Point'){
+      // Einzelbaum
+      const[lon,lat]=f.geometry.coordinates;
+      const species=f.properties.species||f.properties['species:de']||f.properties.taxon||'';
+      const height=parseFloat(f.properties.height)||0;
+      const radius=height>15?9:height>8?7:5;
+      const color=height>15?'#14532d':height>8?'#15803d':'#16a34a';
+      const m=L.circleMarker([lat,lon],{radius,fillColor:color,color:'#fff',weight:1,fillOpacity:.85});
+      m.bindTooltip(
+        `<b>🌳 Straßenbaum</b>${species?'<br>'+species:''}<br>`+
+        `${height?'Höhe: '+height+'m<br>':''}` +
+        `<small>Kühlwirkung: ~${height>15?'stark':height>8?'mittel':'gering'}<br>`+
+        `Score G (Ökosystem) · Maßnahme A01: Straßenbaum-Programm</small>`,
+        {sticky:true,maxWidth:220}
+      );
+      group.addLayer(m);cnt++;
+    } else if(f.geometry?.type==='LineString'){
+      // Allee
+      const casing=L.geoJSON(f,{style:()=>({color:'#fff',weight:6,opacity:.7,lineCap:'round'})});
+      const line=L.geoJSON(f,{
+        style:()=>({color:'#14532d',weight:4,opacity:.9,lineCap:'round'}),
+        onEachFeature:(_,l)=>l.bindTooltip(
+          `<b>🌲 Allee — ${f.properties.name||'Baumreihe'}</b><br>`+
+          `<small>Mehrere Bäume in Reihe · Kühlwirkung stark<br>Score G (Ökosystem)</small>`,
+          {sticky:true}
+        )
+      });
+      casing.addTo(group);line.addTo(group);cnt++;
+    }
+  });
+  group.addTo(map);layerObjs[id]=group;
+  const st=document.getElementById('st-'+id);if(st)st.textContent=`✓ ${cnt}`;
+}
+
+// 🪑 BÄNKE — mit Qualitätsstufen
+function renderBenchesLayer(geojson){
+  const id='benches';if(!activeLayers[id])return;
+  const QUALITY={
+    excellent: {color:'#15803d',size:8, label:'🟢 Excellent — überdacht + barrierefrei'},
+    good:      {color:'#16a34a',size:7, label:'🟢 Gut — öffentlich zugänglich'},
+    ok:        {color:'#ca8a04',size:6, label:'🟡 Vorhanden — einfache Bank'},
+    basic:     {color:'#ea580c',size:5, label:'🟠 Einfach — ohne Rückenlehne'},
+    commercial:{color:'#dc2626',size:6, label:'🔴 Nur für Kunden — nicht öffentlich'},
+  };
+  const group=L.layerGroup();
+  let counts={excellent:0,good:0,ok:0,basic:0,commercial:0};
+  geojson.features.forEach(f=>{
+    if(f.geometry?.type!=='Point')return;
+    const[lon,lat]=f.geometry.coordinates;
+    const q=f.properties._quality||'ok';
+    const cfg=QUALITY[q]||QUALITY.ok;
+    counts[q]=(counts[q]||0)+1;
+    const covered=f.properties.covered==='yes'?'☂️ Überdacht · ':'';
+    const wc=f.properties.wheelchair==='yes'?'♿ Barrierefrei · ':'';
+    const backrest=f.properties.backrest==='yes'?'↩ Mit Rückenlehne · ':'';
+    const m=L.circleMarker([lat,lon],{radius:cfg.size,fillColor:cfg.color,color:'#fff',weight:1.5,fillOpacity:.9});
+    m.bindTooltip(
+      `<b>${cfg.label}</b><br>${covered}${wc}${backrest}<br>`+
+      `<small>Score D1 (Sociability) · Aufenthaltsqualität<br>`+
+      `${q==='commercial'?'⚠ Nicht öffentlich — nur für zahlende Gäste':'✅ Kostenlos nutzbar'}</small>`,
+      {sticky:true,maxWidth:240}
+    );
+    group.addLayer(m);
+  });
+  group.addTo(map);layerObjs[id]=group;
+  const st=document.getElementById('st-'+id);
+  if(st)st.textContent=`✓ ${counts.excellent||0}🟢 ${counts.commercial||0}🔴`;
+}
+
+// 🚶 FUßWEGE QUALITÄT — mit Abstufungen
+function renderFootwaysQuality(geojson){
+  const id='footways_quality';if(!activeLayers[id])return;
+  const QUALITY={
+    excellent:{color:'#15803d',weight:5,label:'🟢 Sehr gut — barrierefrei, beleuchtet, breit'},
+    good:     {color:'#ca8a04',weight:4,label:'🟡 Gut — befestigt, nutzbar'},
+    ok:       {color:'#ea580c',weight:3,label:'🟠 Mittel — eingeschränkte Qualität'},
+    poor:     {color:'#dc2626',weight:2,dashArray:'6 4',label:'🔴 Schlecht — unbefestigt/eng/Barriere'},
+  };
+  const group=L.layerGroup();let cnt=0;
+  // Casing
+  L.geoJSON(geojson,{style:f=>{
+    const q=f.properties._quality||'ok';
+    return{color:'#fff',weight:(QUALITY[q]?.weight||3)+2,opacity:.7,lineCap:'round'};
+  }}).addTo(group);
+  // Farbige Linie
+  L.geoJSON(geojson,{
+    style:f=>{const q=f.properties._quality||'ok';return{...QUALITY[q],lineCap:'round',opacity:.9};},
+    onEachFeature:(f,l)=>{
+      const q=f.properties._quality||'ok';const cfg=QUALITY[q];
+      const surface=f.properties.surface||'unbekannt';
+      const width=f.properties.width||'?';
+      const wc=f.properties.wheelchair==='yes'?'♿ Barrierefrei · ':'';
+      const lit=f.properties.lit==='yes'?'💡 Beleuchtet · ':'';
+      l.bindTooltip(
+        `<b>${cfg.label}</b><br>${f.properties.name||f.properties.highway||'Fußweg'}<br>`+
+        `${wc}${lit}Belag: ${surface} · Breite: ${width}m<br>`+
+        `<small>Score D3 (Access & Linkages) · Fußverkehrsqualität<br>`+
+        `${q==='poor'?'→ Maßnahme: Gehwegverbreiterung, Befestigung':''}</small>`,
+        {sticky:true,maxWidth:250}
+      );
+      cnt++;
+    }
+  }).addTo(group);
+  group.addTo(map);layerObjs[id]=group;
+  const st=document.getElementById('st-'+id);if(st)st.textContent=`✓ ${geojson.features?.length||0}`;
+}
+
+
 
 // 🪑 SOCIABILITY — Bänke, Gastronomie, Spielplätze, Brunnen
 function renderSocialLayer(geojson){
