@@ -193,6 +193,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .leaflet-tooltip-top::before{border-top-color:rgba(255,253,248,0.97)}
 .leaflet-control-zoom{border:1px solid var(--border2)!important;box-shadow:var(--sh)!important}
 .leaflet-control-zoom a{background:var(--surface)!important;color:var(--text)!important;border-bottom:1px solid var(--border)!important}
+/* WIND & RUNWAY INDICATOR */
+.wind-pill{position:fixed;top:62px;right:16px;z-index:700;background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;box-shadow:var(--sh);cursor:pointer}
+.wind-arrow{font-size:16px;transition:transform .5s}
+.wind-rwy{font-size:9px;color:var(--muted);font-weight:500}
+.wind-popup{position:fixed;top:96px;right:16px;z-index:700;width:240px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl);padding:14px;display:none}
+.wind-popup.open{display:block}
+.wind-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
+.wind-label{color:var(--muted)}
+.wind-val{font-weight:700;color:var(--text)}
+.wind-rwy-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;margin-top:6px}
+.wind-note{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -244,6 +255,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div class="bp-bars" id="bpBars"></div>
   <div class="bp-tip" id="bpTip"></div>
+</div>
+
+<!-- WIND & RUNWAY -->
+<div class="wind-pill" id="windPill" onclick="toggleWindPopup()">
+  <span class="wind-arrow" id="windArrow">🌬️</span>
+  <span id="windSpeed">…</span>
+  <span class="wind-rwy" id="windRwy">RWY?</span>
+</div>
+<div class="wind-popup" id="windPopup">
+  <div style="font-size:11px;font-weight:800;margin-bottom:8px;color:var(--accent)">🌬️ Live Wind — Frankfurt Flughafen</div>
+  <div class="wind-row"><span class="wind-label">Windrichtung</span><span class="wind-val" id="wpDir">—</span></div>
+  <div class="wind-row"><span class="wind-label">Windstärke</span><span class="wind-val" id="wpSpeed">—</span></div>
+  <div class="wind-row"><span class="wind-label">Böen</span><span class="wind-val" id="wpGusts">—</span></div>
+  <div class="wind-row"><span class="wind-label">Aktive Runway</span><span class="wind-val" id="wpRwy">—</span></div>
+  <div id="wpBadge"></div>
+  <div class="wind-note" id="wpNote"></div>
+  <div style="font-size:9px;color:var(--muted);margin-top:8px">Quelle: Open-Meteo · aktualisiert alle 15 Min</div>
 </div>
 
 <div id="map"></div>
@@ -2175,6 +2203,128 @@ function computeStreetScore(latlng){
     `💡 <b>Empfehlung:</b> ${tips[mainProblem]||'Weitere Analyse empfohlen'}`:
     `✅ Dieser Standort erfüllt die meisten Qualitätskriterien.`;
 }
+
+// ══════════════════════════════════════════════════════════════
+// LIVE WIND & DYNAMISCHE FLUGLÄRM-ZONEN
+// ══════════════════════════════════════════════════════════════
+let currentWind = null;
+
+function toggleWindPopup(){
+  document.getElementById('windPopup').classList.toggle('open');
+}
+
+function degToCompass(d){
+  const dirs=['N','NNO','NO','ONO','O','OSO','SO','SSO','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(d/22.5)%16];
+}
+
+// Frankfurt Flughafen: Runway 07/25 (Hauptrichtung)
+// 07 = Landung Richtung Ost (Wind aus West) → Lärm im WESTEN
+// 25 = Landung Richtung West (Wind aus Ost) → Lärm im OSTEN (Sachsenhausen!)
+// Landebahn Nord (18/36): Wind aus Nord → Lärm im Norden
+function getActiveRunway(windDeg){
+  // Hauptbetrieb: Runway 07/25
+  if(windDeg>=45&&windDeg<=225){
+    // Wind aus Ost/Süd → Landung nach Westen (RWY 25)
+    return{rwy:'25L/25C/25R',dir:'West',larmOst:true,
+      note:'Wind aus '+degToCompass(windDeg)+' → Anflug von Osten → Sachsenhausen, Niederrad, Offenbach stark betroffen'};
+  } else if((windDeg>=315||windDeg<45)||((windDeg>=225&&windDeg<315))){
+    // Wind aus West/Nord → Landung nach Osten (RWY 07)
+    return{rwy:'07L/07C/07R',dir:'Ost',larmOst:false,
+      note:'Wind aus '+degToCompass(windDeg)+' → Anflug von Westen → Kelsterbach, Rüsselsheim, Mörfelden betroffen'};
+  }
+  return{rwy:'variabel',dir:'—',larmOst:false,note:'Gemischter Betrieb'};
+}
+
+// Fluglärm-Zonen dynamisch anpassen je nach aktiver Runway
+const FLIGHT_ZONES = {
+  // Lärm im OSTEN (RWY 25 — Wind aus Ost) — Sachsenhausen, Niederrad betroffen!
+  east: {
+    zone1:{color:'#7f1d1d',coords:[[8.60,50.05],[8.65,50.05],[8.70,50.06],[8.75,50.07],[8.79,50.08],[8.81,50.09],[8.80,50.11],[8.77,50.11],[8.72,50.10],[8.67,50.09],[8.62,50.07],[8.59,50.06],[8.59,50.05],[8.60,50.05]]},
+    zone2:{color:'#b91c1c',coords:[[8.57,50.03],[8.63,50.03],[8.69,50.04],[8.75,50.05],[8.81,50.07],[8.86,50.09],[8.88,50.11],[8.87,50.13],[8.83,50.14],[8.78,50.13],[8.72,50.12],[8.66,50.10],[8.60,50.08],[8.57,50.06],[8.56,50.04],[8.57,50.03]]},
+    zone3:{color:'#ea580c',coords:[[8.55,50.01],[8.62,50.01],[8.69,50.02],[8.76,50.04],[8.83,50.06],[8.89,50.09],[8.92,50.12],[8.91,50.15],[8.87,50.16],[8.81,50.16],[8.74,50.14],[8.67,50.12],[8.61,50.10],[8.56,50.07],[8.54,50.04],[8.55,50.01]]},
+  },
+  // Lärm im WESTEN (RWY 07 — Wind aus West) — Kelsterbach, Rüsselsheim betroffen
+  west: {
+    zone1:{color:'#7f1d1d',coords:[[8.57,50.02],[8.52,50.03],[8.47,50.04],[8.43,50.06],[8.41,50.07],[8.41,50.09],[8.43,50.10],[8.47,50.10],[8.52,50.08],[8.57,50.06],[8.59,50.05],[8.59,50.03],[8.57,50.02]]},
+    zone2:{color:'#b91c1c',coords:[[8.59,50.01],[8.54,50.01],[8.48,50.02],[8.42,50.04],[8.37,50.06],[8.35,50.08],[8.35,50.10],[8.37,50.12],[8.42,50.12],[8.48,50.11],[8.54,50.09],[8.59,50.07],[8.61,50.05],[8.61,50.03],[8.59,50.01]]},
+    zone3:{color:'#ea580c',coords:[[8.59,49.99],[8.53,49.99],[8.46,50.00],[8.39,50.02],[8.33,50.05],[8.30,50.08],[8.30,50.11],[8.33,50.13],[8.39,50.14],[8.46,50.13],[8.53,50.11],[8.59,50.09],[8.62,50.06],[8.63,50.03],[8.59,49.99]]},
+  }
+};
+
+function updateFlightNoiseZones(larmOst){
+  if(!activeLayers['flight_noise']) return;
+  // Bestehenden Layer entfernen und neu zeichnen
+  if(layerObjs['flight_noise']){
+    map.removeLayer(layerObjs['flight_noise']);
+    delete layerObjs['flight_noise'];
+  }
+  const zones = larmOst ? FLIGHT_ZONES.east : FLIGHT_ZONES.west;
+  const rwyLabel = larmOst ? 'RWY 25 (Anflug West)' : 'RWY 07 (Anflug Ost)';
+  const group = L.layerGroup();
+  [
+    {key:'zone3',label:'Zone 3 — 55–60 dB(A)',note:'Nachtschutz',op:.1,dash:'3 5'},
+    {key:'zone2',label:'Zone 2 — 60–65 dB(A)',note:'Schallschutzpflicht',op:.18,dash:'4 4'},
+    {key:'zone1',label:'Zone 1 — >65 dB(A)',note:'Wohnungsbauverbot',op:.3,dash:'4 3'},
+  ].forEach(z=>{
+    const zd=zones[z.key];
+    L.geoJSON({type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[zd.coords]}},{
+      style:()=>({fillColor:zd.color,color:zd.color,fillOpacity:z.op,weight:1,opacity:.6,dashArray:z.dash}),
+      onEachFeature:(_,l)=>l.bindTooltip(
+        `<b>✈️ ${z.label}</b><br>${z.note}<br><small>Aktiv bei ${rwyLabel}<br>Wind: ${currentWind?degToCompass(currentWind.dir)+' '+Math.round(currentWind.spd)+' km/h':'?'}</small>`,
+        {sticky:true,maxWidth:250})
+    }).addTo(group);
+  });
+  group.addTo(map);
+  layerObjs['flight_noise']=group;
+}
+
+async function loadLiveWind(){
+  try{
+    // Open-Meteo — Frankfurt Flughafen (50.033°N, 8.571°E), kein API-Key nötig
+    const url='https://api.open-meteo.com/v1/forecast?latitude=50.033&longitude=8.571&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kmh&timezone=Europe%2FBerlin';
+    const r=await fetch(url);
+    const d=await r.json();
+    const c=d.current;
+    const spd=Math.round(c.wind_speed_10m);
+    const dir=c.wind_direction_10m;
+    const gusts=Math.round(c.wind_gusts_10m||0);
+    currentWind={spd,dir,gusts};
+
+    const rwy=getActiveRunway(dir);
+    const compass=degToCompass(dir);
+
+    // Pfeil rotieren
+    document.getElementById('windArrow').style.transform=`rotate(${dir}deg)`;
+    document.getElementById('windArrow').textContent='↑';
+    document.getElementById('windSpeed').textContent=`${spd} km/h`;
+    document.getElementById('windRwy').textContent=`RWY ${rwy.rwy}`;
+
+    // Popup
+    document.getElementById('wpDir').textContent=`${compass} (${dir}°)`;
+    document.getElementById('wpSpeed').textContent=`${spd} km/h`;
+    document.getElementById('wpGusts').textContent=gusts?`${gusts} km/h`:'—';
+    document.getElementById('wpRwy').textContent=rwy.rwy;
+
+    const col=rwy.larmOst?'#dc2626':'#2563eb';
+    const label=rwy.larmOst?'⚠️ Ostkorridor aktiv':'✅ Westkorridor aktiv';
+    document.getElementById('wpBadge').innerHTML=`<span class="wind-rwy-badge" style="background:${col}20;color:${col}">${label}</span>`;
+    document.getElementById('wpNote').textContent=rwy.note;
+
+    // Fluglärm-Zonen dynamisch anpassen
+    updateFlightNoiseZones(rwy.larmOst);
+
+  }catch(e){
+    console.warn('Wind-API nicht erreichbar:',e);
+    document.getElementById('windSpeed').textContent='offline';
+  }
+}
+
+// Wind laden und alle 15 Minuten aktualisieren
+setTimeout(()=>{
+  loadLiveWind();
+  setInterval(loadLiveWind, 15*60*1000);
+}, 2000);
 
 initMap();
 
