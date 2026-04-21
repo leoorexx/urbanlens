@@ -1221,22 +1221,25 @@ function renderBikeLayer(roadsGeojson, bikeGeojson){
   if(stEl){const n=(bikeGeojson?.features?.length||0)+(roadsGeojson?.features?.length||0);stEl.textContent=`✓ ${n}`;}
 }
 
-// ✈️ FLUGLÄRM — Zonen als Polygone
+// ✈️ FLUGLÄRM — Zonen als weiche Flächen
 function renderFlightNoise(geojson){
   const id='flight_noise';if(!activeLayers[id])return;
-  const OPACITY={zone1_65db:.55,zone2_60db:.4,zone3_55db:.28};
+  const STYLE={
+    zone1_65db:{fillOpacity:.3,weight:1,dashArray:'4 3'},
+    zone2_60db:{fillOpacity:.18,weight:1,dashArray:'4 4'},
+    zone3_55db:{fillOpacity:.1,weight:0.5,dashArray:'3 5'},
+  };
   const layer=L.geoJSON(geojson,{
     style:f=>{
       const col=f.properties.color||'#dc2626';
-      const op=OPACITY[f.properties.zone]||.3;
-      return{fillColor:col,color:col,fillOpacity:op,weight:1.5,opacity:.8};
+      const s=STYLE[f.properties.zone]||STYLE.zone3_55db;
+      return{fillColor:col,color:col,...s,opacity:.6};
     },
     onEachFeature:(f,l)=>{
       l.bindTooltip(
         `<b>${f.properties.label}</b><br>${f.properties.note}<br>`+
-        `<small>Quelle: Fluglärmkommission Frankfurt / FRAPORT AG<br>`+
-        `Rechtsgrundlage: Fluglärmgesetz (FluLärmG) 2007<br>`+
-        `Maßnahme: Schallschutzfenster, Nachtflugverbot</small>`,
+        `<small>Quelle: Fluglärmkommission Frankfurt / Fraport AG<br>`+
+        `Rechtsgrundlage: FluLärmG 2007 · Verordnung Hessen 2011</small>`,
         {sticky:true,maxWidth:260}
       );
     }
