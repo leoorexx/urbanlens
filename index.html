@@ -296,6 +296,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lname">🔊 Lärmbelastung Straße</span>
     <span class="lstatus" id="st-noise"></span>
   </div>
+  <div class="lrow" onclick="toggleLayer('flight_noise')">
+    <button class="ltoggle" id="tog-flight_noise"></button>
+    <span class="lname">✈️ Fluglärm-Zonen FRA</span>
+    <span class="lstatus" id="st-flight_noise"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('co2')">
+    <button class="ltoggle" id="tog-co2"></button>
+    <span class="lname">💨 CO₂-Intensität Gebäude</span>
+    <span class="lstatus" id="st-co2"></span>
+  </div>
 
   <div class="lp-section">🚲 Mobilität (OSM Overpass)</div>
 
@@ -888,6 +898,8 @@ function loadLayer(id,statusEl){
     case 'floodex':  return loadLocal(`waterways_${city}.geojson`,id,statusEl,renderFloodZones);
     case 'heat':     return loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,renderHeatExposure);
     case 'noise':    return loadLocal(`noise_roads_${city}.geojson`,id,statusEl,renderNoiseLayer);
+    case 'flight_noise': return loadLocal(`flight_noise_${city}.geojson`,id,statusEl,renderFlightNoise);
+    case 'co2':      return loadLocal(`co2_buildings_${city}.geojson`,id,statusEl,renderCO2Layer);
     // Radwege: lade BEIDE Dateien — Straßen (rot) + Radwege (grün/gelb) übereinander
     case 'bike':
       loadLocal(`noise_roads_${city}.geojson`,id,statusEl,roads=>{
@@ -1209,9 +1221,70 @@ function renderBikeLayer(roadsGeojson, bikeGeojson){
   if(stEl){const n=(bikeGeojson?.features?.length||0)+(roadsGeojson?.features?.length||0);stEl.textContent=`✓ ${n}`;}
 }
 
-// ══════════════════════════════════════════════════════════════
-// COMPOSITE RENDER FUNCTIONS
-// ══════════════════════════════════════════════════════════════
+// ✈️ FLUGLÄRM — Zonen als Polygone
+function renderFlightNoise(geojson){
+  const id='flight_noise';if(!activeLayers[id])return;
+  const OPACITY={zone1_65db:.55,zone2_60db:.4,zone3_55db:.28};
+  const layer=L.geoJSON(geojson,{
+    style:f=>{
+      const col=f.properties.color||'#dc2626';
+      const op=OPACITY[f.properties.zone]||.3;
+      return{fillColor:col,color:col,fillOpacity:op,weight:1.5,opacity:.8};
+    },
+    onEachFeature:(f,l)=>{
+      l.bindTooltip(
+        `<b>${f.properties.label}</b><br>${f.properties.note}<br>`+
+        `<small>Quelle: Fluglärmkommission Frankfurt / FRAPORT AG<br>`+
+        `Rechtsgrundlage: Fluglärmgesetz (FluLärmG) 2007<br>`+
+        `Maßnahme: Schallschutzfenster, Nachtflugverbot</small>`,
+        {sticky:true,maxWidth:260}
+      );
+    }
+  }).addTo(map);
+  layerObjs[id]=layer;
+  const st=document.getElementById('st-'+id);if(st)st.textContent=`✓ 3 Zonen`;
+}
+
+// 💨 CO₂-INTENSITÄT — Gebäude nach Baualter
+function renderCO2Layer(geojson){
+  const id='co2';if(!activeLayers[id])return;
+  function co2Color(co2){
+    if(co2>=150)return{fillColor:'#7f1d1d',color:'#7f1d1d',fillOpacity:.75,weight:0.3}; // dunkelrot — Altbau vor 1919
+    if(co2>=120)return{fillColor:'#b91c1c',color:'#b91c1c',fillOpacity:.7, weight:0.3};
+    if(co2>=90) return{fillColor:'#dc2626',color:'#dc2626',fillOpacity:.65,weight:0.3};
+    if(co2>=60) return{fillColor:'#f97316',color:'#f97316',fillOpacity:.55,weight:0.3};
+    if(co2>=40) return{fillColor:'#fbbf24',color:'#f59e0b',fillOpacity:.5, weight:0.3};
+    return{fillColor:'#a7f3d0',color:'#34d399',fillOpacity:.45,weight:0.3};              // grün — Neubau
+  }
+  const AGE_LABEL={
+    pre1919:'vor 1919',  '1919_1948':'1919–1948','1949_1957':'1949–1957',
+    '1958_1968':'1958–1968','1969_1978':'1969–1978','1979_1983':'1979–1983',
+    '1984_1994':'1984–1994','1995_2001':'1995–2001','2002_2009':'2002–2009',
+    '2010_2015':'2010–2015','post2015':'nach 2015','unknown':'unbekannt',
+  };
+  const layer=L.geoJSON(geojson,{
+    renderer:window.canvasRenderer,
+    style:f=>co2Color(f.properties.co2_kg_m2||120),
+    onEachFeature:(f,l)=>{
+      const co2=f.properties.co2_kg_m2||'?';
+      const cls=f.properties.co2_class||'?';
+      const age=AGE_LABEL[f.properties.age_class]||'unbekannt';
+      const label={very_high:'🔴 Sehr hoch — Dringender Sanierungsbedarf',high:'🟠 Hoch — Sanierung empfohlen',medium:'🟡 Mittel — Optimierungspotenzial',low:'🟢 Niedrig — Energieeffizient'}[cls]||cls;
+      l.bindTooltip(
+        `<b>${label}</b><br>CO₂: <b>${co2} kg/m²/Jahr</b><br>`+
+        `Baujahr: ${age} · Typ: ${f.properties.building||'?'}<br>`+
+        `<small>Schätzung nach IWU-Gebäudetypologie 2023<br>`+
+        `Maßnahme: BEG Sanierung (35%) · KfW EH40 (0,6% p.a.)<br>`+
+        `CO₂-Kostensatz: 300€/t (UBA MK 4.0, 2026)</small>`,
+        {sticky:true,maxWidth:260}
+      );
+    }
+  }).addTo(map);
+  layerObjs[id]=layer;
+  const st=document.getElementById('st-'+id);if(st)st.textContent=`✓ ${geojson.features?.length||0}`;
+}
+
+
 
 // ── Globale Geo-Hilfsfunktionen ───────────────────────────────
 function dist2(lo1,la1,lo2,la2){const d=lo2-lo1,e=la2-la1;return d*d+e*e;}
