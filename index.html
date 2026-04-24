@@ -223,6 +223,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="nsep"></div>
   <div class="ninfo">NICE Score — <b>117 Indikatoren</b> · Open Source</div>
   <div class="nav-r">
+    <button class="bbrille-btn" id="choroBtn" onclick="toggleChoropleth()" style="margin-right:6px">
+      🗺️ Viertel
+    </button>
     <button class="bbrille-btn" id="bbrilleBtn" onclick="toggleBuergerbrille()">
       👁 Bürgerbrille
     </button>
@@ -776,7 +779,9 @@ function initMap(){
   // Create dedicated pane for choropleth — sits BELOW tile layers at z200
   map.createPane('choropleth');
   map.getPane('choropleth').style.zIndex=200;
-  map.getPane('choropleth').style.pointerEvents='none'; // clicks pass through to map
+  map.getPane('choropleth').style.pointerEvents='none';
+  // Standardmäßig ausgeblendet
+  map.getPane('choropleth').style.display='none';
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     {attribution:'© OpenStreetMap © CARTO',maxZoom:19,pane:'tilePane'}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
@@ -841,9 +846,9 @@ function renderMap(){
   const cfg=CITY_CFG[city];
   const allS=Object.values(cfg.data).map(nice);
 
-  // Instantly hide/show the whole choropleth pane based on active layer count
+  // Choropleth-Sichtbarkeit: nur ausblenden wenn Layer aktiv, aber nicht automatisch einblenden
   const pane=map.getPane('choropleth');
-  if(pane) pane.style.display = activeCount>0 ? 'none' : '';
+  if(pane && activeCount>0) pane.style.display='none';
 
   geoLayer=L.geoJSON({type:'FeatureCollection',features:geoFeatures},{
     pane:'choropleth',
@@ -896,7 +901,9 @@ function toggleLayer(id){
   }
   // Toggle choropleth pane visibility instantly — no redraw needed
   const pane=map.getPane('choropleth');
-  if(pane) pane.style.display = activeCount>0 ? 'none' : '';
+  // Layer aktiv → Choropleth ausblenden; alle weg → nur ausblenden wenn choroplethVisible=false
+  const pane=map.getPane('choropleth');
+  if(pane) pane.style.display = (activeCount>0||!choroplethVisible) ? 'none' : '';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2055,7 +2062,18 @@ function renderStats(){
 // ══════════════════════════════════════════════════════════════
 // BÜRGERBRILLE — Street Score per Klick
 // ══════════════════════════════════════════════════════════════
-let brilleActive = false;
+let choroplethVisible = false;
+
+function toggleChoropleth(){
+  choroplethVisible = !choroplethVisible;
+  const pane = map.getPane('choropleth');
+  if(pane) pane.style.display = (activeCount>0||!choroplethVisible) ? 'none' : '';
+  const btn = document.getElementById('choroBtn');
+  if(btn){
+    btn.classList.toggle('on', choroplethVisible);
+    btn.textContent = choroplethVisible ? '🗺️ Viertel AN' : '🗺️ Viertel';
+  }
+}
 let brilleClickHandler = null;
 
 function toggleBuergerbrille(){
@@ -2063,15 +2081,17 @@ function toggleBuergerbrille(){
   const btn = document.getElementById('bbrilleBtn');
   btn.classList.toggle('on', brilleActive);
   btn.textContent = brilleActive ? '👁 Bürgerbrille AN' : '👁 Bürgerbrille';
-  const mapEl = document.getElementById('map');
-  mapEl.classList.toggle('map-brille-active', brilleActive);
+  document.getElementById('map').classList.toggle('map-brille-active', brilleActive);
 
   if(brilleActive){
+    // Sofort vorladen wenn Bürgerbrille aktiviert wird
+    preloadCriticalData();
     brilleClickHandler = (e) => computeStreetScore(e.latlng);
     map.on('click', brilleClickHandler);
     document.getElementById('brillePopup').style.display='block';
     document.getElementById('bpAddr').textContent='Klick auf die Karte…';
     document.getElementById('bpScore').textContent='—';
+    document.getElementById('bpBars').innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px 0">Daten werden geladen… bitte einen Moment warten.</div>';
   } else {
     if(brilleClickHandler) map.off('click', brilleClickHandler);
     closeBrillePopup();
@@ -2099,9 +2119,18 @@ function computeStreetScore(latlng){
     if(!gj?.features) return [];
     return gj.features.filter(f=>{
       try{
-        if(f.geometry?.type==='Point'){
+        const type=f.geometry?.type;
+        if(type==='Point'){
           const[flon,flat]=f.geometry.coordinates;
           return Math.abs(flat-lat)<radiusDeg && Math.abs(flon-lon)<radiusDeg;
+        } else if(type==='Polygon'||type==='MultiPolygon'){
+          // Centroid berechnen
+          let coords=f.geometry.coordinates;
+          if(type==='MultiPolygon') coords=coords[0];
+          const ring=coords[0];
+          const clon=ring.reduce((s,c)=>s+c[0],0)/ring.length;
+          const clat=ring.reduce((s,c)=>s+c[1],0)/ring.length;
+          return Math.abs(clat-lat)<radiusDeg && Math.abs(clon-lon)<radiusDeg;
         }
         return false;
       }catch(e){return false;}
