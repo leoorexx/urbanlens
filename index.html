@@ -481,14 +481,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="tabs">
     <div class="tab on" onclick="showTab(0)">Übersicht</div>
     <div class="tab" onclick="showTab(1)">Dimensionen</div>
-    <div class="tab" onclick="showTab(2)">Maßnahmen</div>
-    <div class="tab" onclick="showTab(3)">Förderung</div>
+    <div class="tab" onclick="showTab(2)">Soll-Zustand</div>
+    <div class="tab" onclick="showTab(3)">Maßnahmen</div>
+    <div class="tab" onclick="showTab(4)">Förderung</div>
   </div>
   <div class="dbody">
     <div class="tp on" id="tp0"></div>
     <div class="tp" id="tp1"></div>
     <div class="tp" id="tp2"></div>
     <div class="tp" id="tp3"></div>
+    <div class="tp" id="tp4"></div>
   </div>
 </div>
 
@@ -1863,14 +1865,21 @@ function renderList(filter=''){
     const col=qColor(s,allS);
     const isDouble=s<45&&d.wb<50;
     const risks=[d.hw?'💧':'',d.heat?'🌡️':'',d.noise>70?'🔊':''].filter(Boolean).join('');
-    // Use data-name attribute + event delegation instead of inline onclick with city string
+    // Soll-Ist Balken — Fortschritt zum Zielwert (100)
+    const pct=Math.min(100,s);
+    const sollPct=65; // Ziel: Note B oder besser
+    const gapCol=s<40?'#dc2626':s<55?'#ea580c':s<65?'#ca8a04':'#16a34a';
     return`<div class="sti${selected===n?' active':''}" data-area="${n}">
       <div class="stq" style="background:${col}18;color:${col};border-color:${col}">${s}</div>
       <div class="stinfo">
         <div class="stname">${n}</div>
         <div class="stmeta">${(d.pop/1000).toFixed(0)}k EW · ${d.wb}% Wahlbet.${risks?' · '+risks:''}</div>
+        <div style="margin-top:3px;height:3px;background:var(--border);border-radius:2px;position:relative;overflow:visible">
+          <div style="height:100%;width:${pct}%;background:${gapCol};border-radius:2px;transition:width .4s"></div>
+          <div style="position:absolute;top:-2px;left:${sollPct}%;width:1.5px;height:7px;background:rgba(255,255,255,0.4);border-radius:1px"></div>
+        </div>
       </div>
-      <div class="stflag">${isDouble?'⚠️':s<40?'🔴':''}</div>
+      <div class="stflag">${isDouble?'⚠️':s<40?'🔴':s>=65?'🟢':''}</div>
     </div>`;
   }).join('');
 }
@@ -1957,8 +1966,39 @@ function openDrawer(name,d){
       <div class="dsrc">Quelle: <b>${dim.src.split(',')[0]}</b></div>
     </div>`).join('');
 
-  // TAB 2 — Maßnahmen
+  // TAB 2 — Soll-Zustand
+  const SOLL_TARGETS = [
+    {dim:'A', name:'Klimagerechtigkeit', soll:65, unit:'Punkte', benchmark:'EU Renaturierungs-VO 2024: 30% Stadtgrün', law:'30% Grünfläche bis 2030'},
+    {dim:'B', name:'Gesundheitslast',    soll:65, unit:'Punkte', benchmark:'WHO Luftqualitätsrichtlinien 2021', law:'PM2.5 ≤5 µg/m³'},
+    {dim:'C', name:'Mobilität',          soll:70, unit:'Punkte', benchmark:'EU Cycling Strategy: 50% aller Wege modal', law:'StrVO §45 Radinfrastruktur'},
+    {dim:'D', name:'Bildungsstart',      soll:65, unit:'Punkte', benchmark:'KMK Bildungsstandards', law:'UN CRC Art. 28'},
+    {dim:'E', name:'Wohn-Krise',         soll:60, unit:'Punkte', benchmark:'EU Urban Agenda Wohnraum', law:'30% Sozialwohnungen (UN Habitat)'},
+    {dim:'F', name:'Demokratie',         soll:65, unit:'Punkte', benchmark:'Wahlbeteiligung >70%', law:'EU Demokratie-Aktionsplan 2020'},
+    {dim:'G', name:'Ökosystem',          soll:70, unit:'Punkte', benchmark:'Copernicus NDVI-Zielwert', law:'EU Biodiversitätsstrategie 2030'},
+    {dim:'H', name:'Resilienz',          soll:65, unit:'Punkte', benchmark:'EU Klimaanpassungsstrategie 2021', law:'Sendai Framework 2015–2030'},
+  ];
   document.getElementById('tp2').innerHTML=`
+    <div class="ibox">Jede Dimension hat einen <b>normativen Zielwert</b> basierend auf EU-Recht, WHO-Empfehlungen und internationalen Benchmarks. Die Lücke zeigt den Handlungsbedarf.</div>
+    ${SOLL_TARGETS.map(t=>{
+      const ist=d[t.dim]||0;
+      const lücke=Math.max(0,t.soll-ist);
+      const pct=Math.min(100,ist/t.soll*100);
+      const col=ist>=t.soll?'#16a34a':ist>=t.soll*0.8?'#ca8a04':ist>=t.soll*0.6?'#ea580c':'#dc2626';
+      return`<div style="margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <div style="font-size:11px;font-weight:700;color:var(--text)">${t.dim} · ${t.name}</div>
+          <div style="font-size:11px;color:${col};font-weight:700">${ist} / ${t.soll} ${ist>=t.soll?'✓':'(-'+lücke+')'}</div>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:3px;position:relative;margin-bottom:5px">
+          <div style="height:100%;width:${pct}%;background:${col};border-radius:3px;transition:width .5s"></div>
+          <div style="position:absolute;top:-3px;left:100%;transform:translateX(-2px);width:2px;height:12px;background:rgba(255,255,255,0.3);border-radius:1px"></div>
+        </div>
+        <div style="font-size:9px;color:var(--muted)">${t.benchmark} · <i>${t.law}</i></div>
+      </div>`;
+    }).join('')}`;
+
+  // TAB 3 — Maßnahmen
+  document.getElementById('tp3').innerHTML=`
     <div class="ibox">Empfehlungen basieren auf den <b>schwächsten Dimensionen</b>. Alle Kosten und ROI sind methodisch belegt — per ℹ️ aufklappbar.</div>
     ${relM.map(m=>`
     <div class="mcard">
@@ -1985,9 +2025,9 @@ function openDrawer(name,d){
       </div>
     </div>`).join('')}`;
 
-  // TAB 3 — Förderung
+  // TAB 4 — Förderung
   const relF=relM.flatMap(m=>m.foerder||[]).filter((f,i,a)=>a.findIndex(x=>x.prog===f.prog)===i).slice(0,6);
-  document.getElementById('tp3').innerHTML=`
+  document.getElementById('tp4').innerHTML=`
     <div class="dlbox">
       <div class="dlt">🚨 EUI Call 4 — Deadline: 15. Juni 2026</div>
       <div class="dls">60 Mio€ ERDF · ~30 Projekte · Max. 5 Mio€ · 80% Förderquote.<br>
@@ -2060,8 +2100,67 @@ function renderStats(){
 }
 
 // ══════════════════════════════════════════════════════════════
-// BÜRGERBRILLE — Street Score per Klick
+// NORMATIVE BENCHMARKS — Soll-Zustand nach WHO, EU, ADFC etc.
 // ══════════════════════════════════════════════════════════════
+const BENCHMARKS = {
+  trees: {
+    soll: 10,         // Bäume in 200m Radius
+    unit: 'Bäume',
+    source: 'WHO Urban Green Spaces 2016',
+    law: 'EU Renaturierungs-VO 2024/1991: 30% Stadtgrün bis 2030',
+    tip: 'Straßenbaum-Programm (75% BBSR)',
+  },
+  benches: {
+    soll: 5,          // Öffentliche Bänke in 200m
+    unit: 'öff. Bänke',
+    source: 'PPS Project for Public Spaces',
+    law: 'UN SDG 11.7: Zugang zu öff. Grün- und Freiflächen',
+    tip: 'Sitzinfrastruktur-Programm (~500€/Bank, Quick Win)',
+  },
+  footway: {
+    soll: 20,         // Score-Punkte
+    unit: 'Punkte',
+    source: 'DIN 18040 · FGSV Empfehlungen',
+    law: 'Barrierefreiheit: BGG §4 · UN BRK Art. 9',
+    tip: 'Gehwegqualität DAS 70% Förderung',
+  },
+  green: {
+    soll: 15,         // Score-Punkte
+    unit: 'Punkte',
+    source: 'WHO: max. 300m zur nächsten Grünfläche',
+    law: 'EU Renaturierungs-VO 2024: 30% Stadtgrün bis 2030',
+    tip: 'Schwammstadt / Urbaner Wald (80% ERDF)',
+  },
+  retail: {
+    soll: 8,          // Score-Punkte
+    unit: 'Punkte',
+    source: '15-Minuten-Stadt Konzept (C. Moreno, Paris)',
+    law: 'EU Urban Agenda: Inclusive Growth',
+    tip: 'Förderung lokaler Gewerbetreibender',
+  },
+  bike: {
+    soll: 10,         // Score-Punkte
+    unit: 'Punkte',
+    source: 'ADFC Klimaradtest · EU Cycling Strategy 2030',
+    law: 'StrVO §45: Radverkehrsinfrastruktur',
+    tip: 'Radschnellweg 75% NVP-Förderung',
+  },
+  noise: {
+    soll: 0,          // Penalty soll 0 sein
+    unit: 'dB-Penalty',
+    source: 'EU Umgebungslärmrichtlinie 2002/49/EG',
+    law: 'EU-Grenzwert: ≤65 dB(A) Lden · ≤55 dB(A) Lnight',
+    tip: 'Tempo 30 · Flüsterasphalt · Lärmschutzwand',
+  },
+  heat: {
+    soll: 0,          // Penalty soll 0 sein
+    unit: '°C-Penalty',
+    source: 'Copernicus Climate Change Service',
+    law: 'EU Hitzeschutzplan 2022 · WHO Heatwave Guidelines',
+    tip: 'Fassadenbegrünung A02 · Gründach A04 (80% ERDF)',
+  },
+};
+
 let choroplethVisible = false;
 
 function toggleChoropleth(){
@@ -2261,23 +2360,40 @@ function computeStreetScore(latlng){
   gp.textContent=`Note ${grade.g} — ${grade.l}`;
 
   const bars=[
-    {label:'🌳 Bäume',      val:treeScore,   max:20, col:'#16a34a'},
-    {label:'🪑 Bänke',      val:benchScore,  max:15, col:'#15803d'},
-    {label:'🚶 Fußweg',     val:footScore,   max:20, col:'#0284c7'},
-    {label:'🌿 Grünfläche', val:greenScore,  max:15, col:'#22c55e'},
-    {label:'🏪 Lokal',      val:retailScore, max:10, col:'#d97706'},
-    {label:'🚲 Radweg',     val:bikeScore,   max:10, col:'#ca8a04'},
-    {label:'🔊 Lärm',       val:noisePenalty,max:0,  col:'#7c3aed',penalty:true},
-    {label:'🌡️ Hitze',      val:heatPenalty, max:0,  col:'#dc2626',penalty:true},
+    {key:'trees',   label:'🌳 Bäume',      ist:treeScore,   max:20, col:'#16a34a', istVal:trees.length,     sollVal:BENCHMARKS.trees.soll,   unit:'Bäume',    penalty:false},
+    {key:'benches', label:'🪑 Bänke',       ist:benchScore,  max:15, col:'#15803d', istVal:benches.filter(b=>b.properties?._quality!=='commercial').length, sollVal:BENCHMARKS.benches.soll, unit:'öff.', penalty:false},
+    {key:'footway', label:'🚶 Fußweg',      ist:footScore,   max:20, col:'#0284c7', istVal:footScore,        sollVal:20,                       unit:'Pkt',      penalty:false},
+    {key:'green',   label:'🌿 Grünfläche',  ist:greenScore,  max:15, col:'#22c55e', istVal:parks.length,     sollVal:1,                        unit:'Parks',    penalty:false},
+    {key:'retail',  label:'🏪 Lokal',       ist:retailScore, max:10, col:'#d97706', istVal:retailScore,      sollVal:8,                        unit:'Pkt',      penalty:false},
+    {key:'bike',    label:'🚲 Radweg',      ist:bikeScore,   max:10, col:'#ca8a04', istVal:bikeScore,        sollVal:10,                       unit:'Pkt',      penalty:false},
+    {key:'noise',   label:'🔊 Lärm',        ist:noisePenalty,max:0,  col:'#7c3aed', penalty:true},
+    {key:'heat',    label:'🌡️ Hitze',       ist:heatPenalty, max:0,  col:'#dc2626', penalty:true},
   ];
 
   document.getElementById('bpBars').innerHTML=bars.map(b=>{
-    const pct=b.penalty?Math.min(100,Math.abs(b.val)/15*100):b.max>0?Math.min(100,b.val/b.max*100):0;
+    if(b.penalty){
+      const pct=Math.min(100,Math.abs(b.ist)/15*100);
+      const bm=BENCHMARKS[b.key];
+      return`<div class="bp-bar">
+        <div class="bp-bar-label">${b.label}</div>
+        <div class="bp-bar-track"><div class="bp-bar-fill" style="width:${pct}%;background:${b.col}"></div></div>
+        <div class="bp-bar-val" style="color:${b.col}">${b.ist}</div>
+      </div>
+      <div style="font-size:8px;color:var(--muted);margin:-2px 0 4px 140px">Soll: 0 · ${bm.source.split('·')[0].trim()}</div>`;
+    }
+    const istPct=Math.min(100,b.ist/b.max*100);
+    const sollPct=Math.min(100,(b.sollVal/b.max)*100*(b.max/Math.max(b.max,b.sollVal)));
+    const ok=b.ist>=b.max*(b.sollVal/Math.max(b.max,b.sollVal+1));
+    const bm=BENCHMARKS[b.key];
     return`<div class="bp-bar">
       <div class="bp-bar-label">${b.label}</div>
-      <div class="bp-bar-track"><div class="bp-bar-fill" style="width:${pct}%;background:${b.col}"></div></div>
-      <div class="bp-bar-val" style="color:${b.col}">${b.val>0?'+':''}${b.val}</div>
-    </div>`;
+      <div class="bp-bar-track" style="position:relative">
+        <div class="bp-bar-fill" style="width:${istPct}%;background:${ok?b.col:'#ea580c'}"></div>
+        <div style="position:absolute;top:0;left:${Math.min(95,sollPct)}%;width:2px;height:100%;background:rgba(255,255,255,0.5)"></div>
+      </div>
+      <div class="bp-bar-val" style="color:${ok?b.col:'#ea580c'}">${ok?'✓':b.ist}</div>
+    </div>
+    <div style="font-size:8px;color:var(--muted);margin:-2px 0 4px 140px">Ist: ${b.istVal} ${b.unit} · Soll: ${b.sollVal} ${b.unit} · ${bm.source.split('·')[0].trim()}</div>`;
   }).join('');
 
   const problems=[];
