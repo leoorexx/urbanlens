@@ -827,14 +827,17 @@ function loadCity(c){
         return known.some(k=>n===k||n.includes(k)||k.includes(n));
       });
       if(!geoFeatures.length) geoFeatures=data.features.slice(0,50);
-      renderMap();renderList();renderStats();
+      try{renderMap();}catch(e){}
+      try{renderList();}catch(e){}
+      try{renderStats();}catch(e){}
       map.setView(cfg.center,cfg.zoom);
       hideLoader();
     })
     .catch(()=>{
       clearTimeout(timeout);clearTimeout(safetyTimer);
       geoFeatures=[];
-      renderList();renderStats();
+      try{renderList();}catch(e){}
+      try{renderStats();}catch(e){}
       map.setView(cfg.center,cfg.zoom);
       hideLoader();
     });
