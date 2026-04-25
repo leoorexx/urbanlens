@@ -183,7 +183,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .stv{font-size:13px;font-weight:800}.sts{font-size:8px;color:var(--muted);margin-top:1px}
 
 /* LOADER */
-.loader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.loader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 .lloogo{font-size:28px;font-weight:900;color:var(--text);letter-spacing:-1px}.lloogo span{color:var(--accent)}
 .lring{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 .ltxt{font-size:13px;color:var(--muted)}
@@ -208,7 +208,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 
-<div class="loader" id="loader" style="display:none">
+<div class="loader" id="loader">
   <div class="lloogo">Urban<span>Lens</span></div>
   <div class="lring"></div>
   <div class="ltxt" id="loaderTxt">Geodaten werden geladen…</div>
@@ -223,9 +223,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="nsep"></div>
   <div class="ninfo">NICE Score — <b>117 Indikatoren</b> · Open Source</div>
   <div class="nav-r">
-    <button class="bbrille-btn" id="choroBtn" onclick="toggleChoropleth()" style="margin-right:6px">
-      🗺️ Viertel
-    </button>
     <button class="bbrille-btn" id="bbrilleBtn" onclick="toggleBuergerbrille()">
       👁 Bürgerbrille
     </button>
@@ -779,9 +776,7 @@ function initMap(){
   // Create dedicated pane for choropleth — sits BELOW tile layers at z200
   map.createPane('choropleth');
   map.getPane('choropleth').style.zIndex=200;
-  map.getPane('choropleth').style.pointerEvents='none';
-  // Standardmäßig ausgeblendet
-  map.getPane('choropleth').style.display='none';
+  map.getPane('choropleth').style.pointerEvents='none'; // clicks pass through to map
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     {attribution:'© OpenStreetMap © CARTO',maxZoom:19,pane:'tilePane'}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
@@ -804,40 +799,23 @@ function switchCity(c){
 
 function loadCity(c){
   const cfg=CITY_CFG[c];
-
-  // Timeout nach 8 Sekunden — danach Fallback
-  const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(), 8000);
-
-  fetch(cfg.geojson, {signal:controller.signal})
-    .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();})
+  fetch(cfg.geojson)
+    .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()})
     .then(data=>{
-      clearTimeout(timeout);
       const known=Object.keys(cfg.data);
       geoFeatures=data.features.filter(f=>{
         const n=f.properties[cfg.nameProp]||'';
         return known.some(k=>n===k||n.includes(k)||k.includes(n));
       });
-      if(!geoFeatures.length) geoFeatures=data.features.slice(0,50);
+      if(!geoFeatures.length)geoFeatures=data.features.slice(0,50);
       renderMap();renderList();renderStats();
       map.setView(cfg.center,cfg.zoom);
       document.getElementById('loader').style.display='none';
     })
     .catch(()=>{
-      clearTimeout(timeout);
-      // Fallback: Stadtteile als einfache Kreise aus NICE Score Daten anzeigen
-      geoFeatures=[];
-      renderList();renderStats();
-      map.setView(cfg.center,cfg.zoom);
+      geoFeatures=[];renderList();renderStats();
+      map.setView(CITY_CFG[c].center,CITY_CFG[c].zoom);
       document.getElementById('loader').style.display='none';
-      // Hinweis anzeigen
-      if(c==='utr'){
-        const info=document.createElement('div');
-        info.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:11px;color:var(--text);z-index:900;box-shadow:var(--shl)';
-        info.textContent='⚠️ Utrecht-Karte: GeoJSON-Server nicht erreichbar. Layer-Daten sind verfügbar.';
-        document.body.appendChild(info);
-        setTimeout(()=>info.remove(), 5000);
-      }
     });
 }
 
@@ -846,9 +824,9 @@ function renderMap(){
   const cfg=CITY_CFG[city];
   const allS=Object.values(cfg.data).map(nice);
 
-  // Choropleth-Sichtbarkeit: nur ausblenden wenn Layer aktiv, aber nicht automatisch einblenden
+  // Instantly hide/show the whole choropleth pane based on active layer count
   const pane=map.getPane('choropleth');
-  if(pane && activeCount>0) pane.style.display='none';
+  if(pane) pane.style.display = activeCount>0 ? 'none' : '';
 
   geoLayer=L.geoJSON({type:'FeatureCollection',features:geoFeatures},{
     pane:'choropleth',
@@ -901,9 +879,7 @@ function toggleLayer(id){
   }
   // Toggle choropleth pane visibility instantly — no redraw needed
   const pane=map.getPane('choropleth');
-  // Layer aktiv → Choropleth ausblenden; alle weg → nur ausblenden wenn choroplethVisible=false
-  const pane=map.getPane('choropleth');
-  if(pane) pane.style.display = (activeCount>0||!choroplethVisible) ? 'none' : '';
+  if(pane) pane.style.display = activeCount>0 ? 'none' : '';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -927,55 +903,21 @@ function opNext(){
     .finally(()=>setTimeout(opNext,800));
 }
 
-// Globaler Daten-Cache — alle geladenen GeoJSON werden hier gespeichert
-// Bürgerbrille kann dann unabhängig von aktiven Layern darauf zugreifen
-const dataCache = {};
-
 function loadLocal(filename, id, statusEl, onData){
-  // Cache-Hit
-  if(dataCache[filename]){
-    if(!activeLayers[id])return;
-    statusEl.textContent=`✓ ${dataCache[filename].features?.length||0}`;
-    onData(dataCache[filename]);
-    return;
-  }
+  // Versucht lokale Datei aus data/layers/ — erzeugt mit generate_layers.py
   fetch(`data/layers/${filename}`)
     .then(r=>{if(!r.ok)throw Error('not found');return r.json();})
     .then(geojson=>{
-      dataCache[filename]=geojson; // Im Cache speichern
       if(!activeLayers[id])return;
-      statusEl.textContent=`✓ ${geojson.features?.length||0}`;
+      statusEl.textContent=`✓ ${geojson.features?.length||0} (lokal)`;
       onData(geojson);
     })
     .catch(()=>{
+      // Fallback: Live von Overpass
       statusEl.innerHTML='<span class="loading-dot"></span> live...';
       loadLayerLive(id, statusEl);
     });
 }
-
-// Daten im Hintergrund vorladen (für Bürgerbrille)
-function preloadCriticalData(){
-  const files=[
-    `heat_exposure_${city}.geojson`,
-    `noise_roads_${city}.geojson`,
-    `green_${city}.geojson`,
-    `trees_${city}.geojson`,
-    `benches_${city}.geojson`,
-    `footways_quality_${city}.geojson`,
-    `retail_${city}.geojson`,
-    `flood_exposure_${city}.geojson`,
-    `bike_${city}.geojson`,
-  ];
-  files.forEach(f=>{
-    if(!dataCache[f]){
-      fetch(`data/layers/${f}`)
-        .then(r=>r.ok?r.json():null)
-        .then(d=>{if(d)dataCache[f]=d;})
-        .catch(()=>{});
-    }
-  });
-}
-
 
 function loadLayer(id,statusEl){
   const c=CITY_CFG[city];
@@ -2062,18 +2004,7 @@ function renderStats(){
 // ══════════════════════════════════════════════════════════════
 // BÜRGERBRILLE — Street Score per Klick
 // ══════════════════════════════════════════════════════════════
-let choroplethVisible = false;
-
-function toggleChoropleth(){
-  choroplethVisible = !choroplethVisible;
-  const pane = map.getPane('choropleth');
-  if(pane) pane.style.display = (activeCount>0||!choroplethVisible) ? 'none' : '';
-  const btn = document.getElementById('choroBtn');
-  if(btn){
-    btn.classList.toggle('on', choroplethVisible);
-    btn.textContent = choroplethVisible ? '🗺️ Viertel AN' : '🗺️ Viertel';
-  }
-}
+let brilleActive = false;
 let brilleClickHandler = null;
 
 function toggleBuergerbrille(){
@@ -2081,17 +2012,15 @@ function toggleBuergerbrille(){
   const btn = document.getElementById('bbrilleBtn');
   btn.classList.toggle('on', brilleActive);
   btn.textContent = brilleActive ? '👁 Bürgerbrille AN' : '👁 Bürgerbrille';
-  document.getElementById('map').classList.toggle('map-brille-active', brilleActive);
+  const mapEl = document.getElementById('map');
+  mapEl.classList.toggle('map-brille-active', brilleActive);
 
   if(brilleActive){
-    // Sofort vorladen wenn Bürgerbrille aktiviert wird
-    preloadCriticalData();
     brilleClickHandler = (e) => computeStreetScore(e.latlng);
     map.on('click', brilleClickHandler);
     document.getElementById('brillePopup').style.display='block';
     document.getElementById('bpAddr').textContent='Klick auf die Karte…';
     document.getElementById('bpScore').textContent='—';
-    document.getElementById('bpBars').innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px 0">Daten werden geladen… bitte einen Moment warten.</div>';
   } else {
     if(brilleClickHandler) map.off('click', brilleClickHandler);
     closeBrillePopup();
@@ -2111,141 +2040,107 @@ function computeStreetScore(latlng){
   const lat=latlng.lat, lon=latlng.lng;
   document.getElementById('bpAddr').textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)} — berechne…`;
 
-  const R=0.002; // ~200m in Grad
-
-  // Direkt aus Cache lesen — kein aktiver Layer nötig
-  function getFeaturesInRadius(filename, radiusDeg){
-    const gj=dataCache[filename];
-    if(!gj?.features) return [];
-    return gj.features.filter(f=>{
-      try{
-        const type=f.geometry?.type;
-        if(type==='Point'){
-          const[flon,flat]=f.geometry.coordinates;
-          return Math.abs(flat-lat)<radiusDeg && Math.abs(flon-lon)<radiusDeg;
-        } else if(type==='Polygon'||type==='MultiPolygon'){
-          // Centroid berechnen
-          let coords=f.geometry.coordinates;
-          if(type==='MultiPolygon') coords=coords[0];
-          const ring=coords[0];
-          const clon=ring.reduce((s,c)=>s+c[0],0)/ring.length;
-          const clat=ring.reduce((s,c)=>s+c[1],0)/ring.length;
-          return Math.abs(clat-lat)<radiusDeg && Math.abs(clon-lon)<radiusDeg;
-        }
-        return false;
-      }catch(e){return false;}
+  // Hilfsfunktion: Punkte in Radius finden
+  function inRadius(layer, radiusDeg){
+    const feats=[];
+    if(!layer) return feats;
+    layer.eachLayer && layer.eachLayer(l=>{
+      // LayerGroup
+      if(l.eachLayer) l.eachLayer(sub=>{
+        const ll=sub.getLatLng?.();
+        if(ll && Math.abs(ll.lat-lat)<radiusDeg && Math.abs(ll.lng-lon)<radiusDeg) feats.push(sub);
+      });
+      const ll=l.getLatLng?.();
+      if(ll && Math.abs(ll.lat-lat)<radiusDeg && Math.abs(ll.lng-lon)<radiusDeg) feats.push(l);
     });
+    return feats;
   }
 
-  function getNearestLineQuality(filename, prop, radiusDeg){
-    const gj=dataCache[filename];
-    if(!gj?.features) return null;
+  function nearestWayQuality(layerObj, radiusDeg){
+    // Für Linien-Layer (Radwege, Fußwege): nächste Linie finden
     let best=null;
-    for(const f of gj.features){
-      try{
-        const coords=f.geometry?.coordinates||[];
-        const pts=f.geometry?.type==='LineString'?coords:[];
-        for(const[plon,plat] of pts){
+    if(!layerObj) return best;
+    const walk=(lg)=>{
+      if(lg.eachLayer) lg.eachLayer(walk);
+      else {
+        const feat=lg.feature;
+        if(!feat) return;
+        const coords=feat.geometry?.coordinates;
+        if(!coords) return;
+        const pts=feat.geometry.type==='LineString'?coords:[];
+        for(const [plon,plat] of pts){
           if(Math.abs(plat-lat)<radiusDeg && Math.abs(plon-lon)<radiusDeg){
-            best=f.properties?.[prop]||f.properties?.highway||null;
-            break;
+            const q=feat.properties?._quality||feat.properties?.highway||'';
+            if(!best) best=q;
           }
         }
-        if(best) break;
-      }catch(e){}
-    }
+      }
+    };
+    walk(layerObj);
     return best;
   }
 
+  // Radius: 0.002 Grad ≈ 200m
+  const R=0.002;
+
   // 1. BÄUME (max 20 Punkte)
-  const trees=getFeaturesInRadius(`trees_${city}.geojson`, R);
+  const trees=inRadius(layerObjs['trees'], R);
   const treeScore=Math.min(20, trees.length*2);
 
   // 2. BÄNKE (max 15 Punkte)
-  const benches=getFeaturesInRadius(`benches_${city}.geojson`, R);
+  const benches=inRadius(layerObjs['benches'], R);
   let benchScore=0;
   benches.forEach(b=>{
-    const q=b.properties?._quality||'ok';
+    const q=b.feature?.properties?._quality||'ok';
     if(q==='excellent') benchScore+=5;
     else if(q==='good') benchScore+=4;
     else if(q==='ok'||q==='basic') benchScore+=3;
+    // commercial = 0 Punkte
   });
-  benchScore=Math.min(15,benchScore);
+  benchScore=Math.min(15, benchScore);
 
   // 3. FUßWEGE (max 20 Punkte)
-  const fwq=getNearestLineQuality(`footways_quality_${city}.geojson`,'_quality',R);
+  const fwq=nearestWayQuality(layerObjs['footways_quality'], R);
   const footScore=fwq==='excellent'?20:fwq==='good'?14:fwq==='ok'?8:fwq==='poor'?3:0;
 
   // 4. GRÜNFLÄCHE in 300m (max 15 Punkte)
-  const parks=getFeaturesInRadius(`green_${city}.geojson`, 0.003);
+  const greenR=0.003;
+  const parks=inRadius(layerObjs['parks'], greenR);
   const greenScore=parks.length>0?15:0;
 
   // 5. LOKALE GESCHÄFTE (max 10 Punkte)
-  const retail=getFeaturesInRadius(`retail_${city}.geojson`, R);
-  const chains=['rewe','edeka','aldi','lidl','penny','dm','rossmann','mcdonald','burger king','starbucks','subway','netto','kaufland'];
+  const retail=inRadius(layerObjs['retail'], R);
   let retailScore=0;
-  retail.forEach(r=>{
-    const n=(r.properties?.name||'').toLowerCase();
+  retail.forEach(r=>{const n=(r.feature?.properties?.name||'').toLowerCase();
+    const chains=['rewe','edeka','aldi','lidl','penny','dm','rossmann','mcdonald','burger king','starbucks','subway'];
     retailScore+=chains.some(c=>n.includes(c))?0.5:2;
   });
-  retailScore=Math.min(10,retailScore);
+  retailScore=Math.min(10, retailScore);
 
   // 6. RADWEG-QUALITÄT (max 10 Punkte)
-  const bikeGj=dataCache[`bike_${city}.geojson`];
-  let bikeScore=0;
-  if(bikeGj?.features){
-    for(const f of bikeGj.features){
-      try{
-        const coords=f.geometry?.coordinates||[];
-        for(const[plon,plat] of coords){
-          if(Math.abs(plat-lat)<R && Math.abs(plon-lon)<R){
-            const hw=f.properties?.highway||'';
-            const cy=f.properties?.cycleway||f.properties?.['cycleway:right']||'';
-            bikeScore=hw==='cycleway'?10:cy==='track'?8:cy==='lane'?6:cy==='shared_lane'?3:0;
-            break;
-          }
-        }
-        if(bikeScore) break;
-      }catch(e){}
-    }
-  }
+  const bikeq=nearestWayQuality(layerObjs['bike'], R);
+  const bikeScore=bikeq==='cycleway'?10:bikeq==='lane'||bikeq==='track'?6:bikeq==='shared_lane'?3:0;
 
   // 7. LÄRM-PENALTY (max -15 Punkte)
-  const noiseGj=dataCache[`noise_roads_${city}.geojson`];
-  let noisePenalty=0;
-  if(noiseGj?.features){
-    for(const f of noiseGj.features){
-      try{
-        const coords=f.geometry?.coordinates||[];
-        for(const[plon,plat] of coords){
-          if(Math.abs(plat-lat)<R*1.5 && Math.abs(plon-lon)<R*1.5){
-            const hw=f.properties?.highway||f.properties?.railway||'';
-            const p=hw==='motorway'||hw==='trunk'?-15:hw==='primary'?-8:hw==='secondary'?-4:hw==='rail'?-10:0;
-            if(p<noisePenalty) noisePenalty=p;
-            break;
-          }
-        }
-        if(noisePenalty<=-15) break;
-      }catch(e){}
-    }
-  }
+  const noise=nearestWayQuality(layerObjs['noise'], R*1.5);
+  const noisePenalty=noise==='motorway'||noise==='trunk'?-15:noise==='primary'?-8:noise==='secondary'?-4:noise==='rail'?-10:0;
 
   // 8. HITZE-PENALTY (max -10 Punkte)
-  const heatFeats=getFeaturesInRadius(`heat_exposure_${city}.geojson`, R);
+  const heatFeats=inRadius(layerObjs['heat'], R);
   let heatPenalty=0;
   heatFeats.forEach(h=>{
-    const cls=h.properties?.heat_class||'';
-    if(cls==='extreme'&&heatPenalty>-10) heatPenalty=-10;
-    else if(cls==='high'&&heatPenalty>-5) heatPenalty=-5;
+    const cls=h.feature?.properties?.heat_class||'';
+    if(cls==='extreme') heatPenalty=Math.min(heatPenalty-10, heatPenalty);
+    else if(cls==='high') heatPenalty=Math.min(heatPenalty-5, heatPenalty);
   });
 
-  const total=Math.max(0,Math.min(100,
+  const total=Math.max(0, Math.min(100,
     treeScore+benchScore+footScore+greenScore+retailScore+bikeScore+noisePenalty+heatPenalty
   ));
 
   // Anzeige
   const col=total>=65?'#16a34a':total>=45?'#ca8a04':total>=30?'#ea580c':'#dc2626';
-  const grade=total>=75?{g:'A',l:'Sehr gut'}:total>=62?{g:'B',l:'Gut'}:total>=50?{g:'C',l:'Mittel'}:total>=38?{g:'D',l:'Kritisch'}:{g:'F',l:'Dringend handeln'};
+  const grade=total>=75?{g:'A',l:'Sehr gut'}:total>=62?{g:'B',l:'Gut'}:total>=50?{g:'C',l:'Mittel'}:total>=38?{g:'D',l:'Kritisch'}:{g:'F',l:'Dringend'};
 
   document.getElementById('bpAddr').textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)}`;
   document.getElementById('bpScore').textContent=total;
@@ -2260,26 +2155,29 @@ function computeStreetScore(latlng){
   gp.style.background=`${col}20`;gp.style.color=col;
   gp.textContent=`Note ${grade.g} — ${grade.l}`;
 
+  // Bars
   const bars=[
-    {label:'🌳 Bäume',      val:treeScore,   max:20, col:'#16a34a'},
-    {label:'🪑 Bänke',      val:benchScore,  max:15, col:'#15803d'},
-    {label:'🚶 Fußweg',     val:footScore,   max:20, col:'#0284c7'},
-    {label:'🌿 Grünfläche', val:greenScore,  max:15, col:'#22c55e'},
-    {label:'🏪 Lokal',      val:retailScore, max:10, col:'#d97706'},
-    {label:'🚲 Radweg',     val:bikeScore,   max:10, col:'#ca8a04'},
-    {label:'🔊 Lärm',       val:noisePenalty,max:0,  col:'#7c3aed',penalty:true},
-    {label:'🌡️ Hitze',      val:heatPenalty, max:0,  col:'#dc2626',penalty:true},
+    {label:'🌳 Bäume',     val:treeScore,   max:20, col:'#16a34a'},
+    {label:'🪑 Bänke',     val:benchScore,  max:15, col:'#15803d'},
+    {label:'🚶 Fußweg',    val:footScore,   max:20, col:'#0284c7'},
+    {label:'🌿 Grünfläche',val:greenScore,  max:15, col:'#22c55e'},
+    {label:'🏪 Lokal',     val:retailScore, max:10, col:'#d97706'},
+    {label:'🚲 Radweg',    val:bikeScore,   max:10, col:'#ca8a04'},
+    {label:'🔊 Lärm',      val:noisePenalty,max:0,  col:'#7c3aed', penalty:true},
+    {label:'🌡️ Hitze',     val:heatPenalty, max:0,  col:'#dc2626', penalty:true},
   ];
 
   document.getElementById('bpBars').innerHTML=bars.map(b=>{
     const pct=b.penalty?Math.min(100,Math.abs(b.val)/15*100):b.max>0?Math.min(100,b.val/b.max*100):0;
+    const show=b.penalty?b.val:b.val;
     return`<div class="bp-bar">
       <div class="bp-bar-label">${b.label}</div>
       <div class="bp-bar-track"><div class="bp-bar-fill" style="width:${pct}%;background:${b.col}"></div></div>
-      <div class="bp-bar-val" style="color:${b.col}">${b.val>0?'+':''}${b.val}</div>
+      <div class="bp-bar-val" style="color:${b.col}">${show>0?'+':''}${show}</div>
     </div>`;
   }).join('');
 
+  // Hauptproblem + Tipp
   const problems=[];
   if(treeScore<5) problems.push('Kaum Bäume');
   if(benchScore<3) problems.push('Keine öffentlichen Bänke');
@@ -2289,27 +2187,21 @@ function computeStreetScore(latlng){
   if(heatPenalty<-5) problems.push('Hitzeinsel');
 
   const tips={
-    'Kaum Bäume':'Maßnahme A01: Straßenbaum-Programm (75% BBSR)',
-    'Keine öffentlichen Bänke':'Sitzinfrastruktur: ~500€/Bank (Quick Win)',
-    'Schlechter Fußweg':'Maßnahme: Gehwegqualität (DAS 70%)',
+    'Kaum Bäume':'Maßnahme A01: Straßenbaum-Programm (75% Förderung)',
+    'Keine öffentlichen Bänke':'Maßnahme: Sitzinfrastruktur (Quick Win, ~500€/Bank)',
+    'Schlechter Fußweg':'Maßnahme: Gehwegqualität (DAS 70% Förderung)',
     'Kein Park in 300m':'Maßnahme A03: Schwammstadt / A05: Urbaner Wald',
     'Hohe Lärmbelastung':'Maßnahme B01: Tempo 30 · Flüsterasphalt',
     'Hitzeinsel':'Maßnahme A02: Fassadenbegrünung · A04: Gründach',
   };
 
-  const mainProblem=problems[0]||null;
+  const mainProblem=problems[0]||'Guter Standort';
   document.getElementById('bpProblem').innerHTML=
-    problems.length?`⚠ ${problems.join(' · ')}`:
-    total>=65?'✅ Guter Standort — oberhalb Durchschnitt':'Mehrere Faktoren verbesserbar';
-  document.getElementById('bpTip').innerHTML=mainProblem?
-    `💡 <b>Empfehlung:</b> ${tips[mainProblem]}`:
-    `✅ Dieser Standort erfüllt die meisten Qualitätskriterien.`;
+    problems.length?`⚠ Hauptproblem: <b>${problems.join(', ')}</b>`:'✅ Guter Standort';
 
-  // Daten-Vollständigkeit anzeigen
-  const loaded=[trees,benches,heatFeats].filter(a=>a.length>0).length;
-  if(loaded===0){
-    document.getElementById('bpProblem').innerHTML='⏳ Daten werden geladen — bitte 10 Sek warten und nochmal klicken';
-  }
+  document.getElementById('bpTip').innerHTML=problems.length?
+    `💡 <b>Empfehlung:</b> ${tips[mainProblem]||'Weitere Analyse empfohlen'}`:
+    `✅ Dieser Standort erfüllt die meisten Qualitätskriterien.`;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2433,9 +2325,6 @@ setTimeout(()=>{
   loadLiveWind();
   setInterval(loadLiveWind, 15*60*1000);
 }, 2000);
-
-// Kritische Daten im Hintergrund vorladen (nach 3 Sek — nicht blockieren)
-setTimeout(preloadCriticalData, 3000);
 
 initMap();
 
