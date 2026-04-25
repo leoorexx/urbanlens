@@ -893,9 +893,7 @@ function toggleLayer(id){
     activeCount++;document.getElementById('layerCount').textContent=activeCount;
     loadLayer(id,st);
   }
-  // Toggle choropleth pane visibility instantly — no redraw needed
-  const pane=map.getPane('choropleth');
-  // Layer aktiv → Choropleth ausblenden; alle weg → nur ausblenden wenn choroplethVisible=false
+  // Choropleth sichtbarkeit updaten
   const pane=map.getPane('choropleth');
   if(pane) pane.style.display = (activeCount>0||!choroplethVisible) ? 'none' : '';
 }
