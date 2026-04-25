@@ -968,13 +968,16 @@ function preloadCriticalData(){
     `flood_exposure_${city}.geojson`,
     `bike_${city}.geojson`,
   ];
-  files.forEach(f=>{
-    if(!dataCache[f]){
-      fetch(`data/layers/${f}`)
-        .then(r=>r.ok?r.json():null)
-        .then(d=>{if(d)dataCache[f]=d;})
-        .catch(()=>{});
-    }
+  // Gestaffelt laden — 1 Datei pro Sekunde, nicht alles auf einmal
+  files.forEach((f, i)=>{
+    setTimeout(()=>{
+      if(!dataCache[f]){
+        fetch(`data/layers/${f}`)
+          .then(r=>r.ok?r.json():null)
+          .then(d=>{if(d)dataCache[f]=d;})
+          .catch(()=>{});
+      }
+    }, i * 1000);
   });
 }
 
@@ -2549,9 +2552,6 @@ setTimeout(()=>{
   loadLiveWind();
   setInterval(loadLiveWind, 15*60*1000);
 }, 2000);
-
-// Kritische Daten im Hintergrund vorladen (nach 3 Sek — nicht blockieren)
-setTimeout(preloadCriticalData, 3000);
 
 initMap();
 
