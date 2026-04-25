@@ -2191,16 +2191,20 @@ function toggleBuergerbrille(){
   document.getElementById('map').classList.toggle('map-brille-active', brilleActive);
 
   if(brilleActive){
-    // Sofort vorladen wenn Bürgerbrille aktiviert wird
     preloadCriticalData();
-    brilleClickHandler = (e) => computeStreetScore(e.latlng);
-    map.on('click', brilleClickHandler);
+    // Bürgerbrille popup sofort anzeigen
     document.getElementById('brillePopup').style.display='block';
-    document.getElementById('bpAddr').textContent='Klick auf die Karte…';
+    document.getElementById('bpAddr').textContent='👆 Klick auf die Karte…';
     document.getElementById('bpScore').textContent='—';
-    document.getElementById('bpBars').innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px 0">Daten werden geladen… bitte einen Moment warten.</div>';
+    document.getElementById('bpBars').innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px 0">Daten werden geladen…</div>';
+    // Click-Handler mit höchster Priorität
+    brilleClickHandler = (e)=>{
+      L.DomEvent.stopPropagation(e);
+      computeStreetScore(e.latlng);
+    };
+    map.on('click', brilleClickHandler);
   } else {
-    if(brilleClickHandler) map.off('click', brilleClickHandler);
+    if(brilleClickHandler){ map.off('click', brilleClickHandler); brilleClickHandler=null; }
     closeBrillePopup();
   }
 }
@@ -2220,10 +2224,8 @@ function computeStreetScore(latlng){
 
   const loaded=Object.keys(dataCache).filter(k=>k.includes(city)).length;
   if(loaded===0){
-    document.getElementById('bpAddr').textContent='⏳ Noch am Laden — bitte 5 Sek warten…';
-    document.getElementById('bpBars').innerHTML='';
-    // Nochmal versuchen in 3 Sekunden
-    setTimeout(()=>{ if(brilleActive) computeStreetScore(latlng); }, 3000);
+    document.getElementById('bpAddr').textContent='⏳ Daten laden… bitte 10 Sek warten und nochmal klicken';
+    setTimeout(()=>{ if(brilleActive) computeStreetScore(latlng); }, 4000);
     return;
   }
 
