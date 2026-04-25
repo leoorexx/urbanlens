@@ -208,7 +208,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 
-<div class="loader" id="loader">
+<div class="loader" id="loader" style="display:none">
   <div class="lloogo">Urban<span>Lens</span></div>
   <div class="lring"></div>
   <div class="ltxt" id="loaderTxt">Geodaten werden geladen…</div>
@@ -223,6 +223,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="nsep"></div>
   <div class="ninfo">NICE Score — <b>117 Indikatoren</b> · Open Source</div>
   <div class="nav-r">
+    <button class="bbrille-btn" id="choroBtn" onclick="toggleChoropleth()" style="margin-right:6px">
+      🗺️ Viertel
+    </button>
     <button class="bbrille-btn" id="bbrilleBtn" onclick="toggleBuergerbrille()">
       👁 Bürgerbrille
     </button>
@@ -318,6 +321,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="ltoggle" id="tog-heat"></button>
     <span class="lname">🌡️ Hitzeinsel — Gebäude-Level</span>
     <span class="lstatus" id="st-heat"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('lst_grid')">
+    <button class="ltoggle" id="tog-lst_grid"></button>
+    <span class="lname">🌡️ LST Hitzekarte — Flächendeckend</span>
+    <span class="lstatus" id="st-lst_grid"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('noise')">
     <button class="ltoggle" id="tog-noise"></button>
@@ -478,14 +486,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="tabs">
     <div class="tab on" onclick="showTab(0)">Übersicht</div>
     <div class="tab" onclick="showTab(1)">Dimensionen</div>
-    <div class="tab" onclick="showTab(2)">Maßnahmen</div>
-    <div class="tab" onclick="showTab(3)">Förderung</div>
+    <div class="tab" onclick="showTab(2)">Soll-Zustand</div>
+    <div class="tab" onclick="showTab(3)">Maßnahmen</div>
+    <div class="tab" onclick="showTab(4)">Förderung</div>
   </div>
   <div class="dbody">
     <div class="tp on" id="tp0"></div>
     <div class="tp" id="tp1"></div>
     <div class="tp" id="tp2"></div>
     <div class="tp" id="tp3"></div>
+    <div class="tp" id="tp4"></div>
   </div>
 </div>
 
@@ -776,7 +786,9 @@ function initMap(){
   // Create dedicated pane for choropleth — sits BELOW tile layers at z200
   map.createPane('choropleth');
   map.getPane('choropleth').style.zIndex=200;
-  map.getPane('choropleth').style.pointerEvents='none'; // clicks pass through to map
+  map.getPane('choropleth').style.pointerEvents='none';
+  // Standardmäßig ausgeblendet
+  map.getPane('choropleth').style.display='none';
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     {attribution:'© OpenStreetMap © CARTO',maxZoom:19,pane:'tilePane'}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
@@ -788,7 +800,6 @@ function switchCity(c){
   document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
   document.getElementById('ct-'+c).classList.add('on');
   document.getElementById('loaderTxt').textContent=c==='ffm'?'Frankfurter Stadtteile…':'Utrechtse Wijken…';
-  document.getElementById('loader').style.display='flex';
   // Clear all active layers
   Object.keys(layerObjs).forEach(k=>{if(layerObjs[k])map.removeLayer(layerObjs[k]);delete layerObjs[k];});
   Object.keys(activeLayers).forEach(k=>delete activeLayers[k]);
@@ -799,23 +810,28 @@ function switchCity(c){
 
 function loadCity(c){
   const cfg=CITY_CFG[c];
-  fetch(cfg.geojson)
-    .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()})
+  const controller=new AbortController();
+  setTimeout(()=>controller.abort(), 5000);
+
+  fetch(cfg.geojson, {signal:controller.signal})
+    .then(r=>{if(!r.ok)throw Error();return r.json();})
     .then(data=>{
       const known=Object.keys(cfg.data);
       geoFeatures=data.features.filter(f=>{
         const n=f.properties[cfg.nameProp]||'';
         return known.some(k=>n===k||n.includes(k)||k.includes(n));
       });
-      if(!geoFeatures.length)geoFeatures=data.features.slice(0,50);
-      renderMap();renderList();renderStats();
+      if(!geoFeatures.length) geoFeatures=data.features.slice(0,50);
+      try{renderMap();}catch(e){}
+      try{renderList();}catch(e){}
+      try{renderStats();}catch(e){}
       map.setView(cfg.center,cfg.zoom);
-      document.getElementById('loader').style.display='none';
     })
     .catch(()=>{
-      geoFeatures=[];renderList();renderStats();
-      map.setView(CITY_CFG[c].center,CITY_CFG[c].zoom);
-      document.getElementById('loader').style.display='none';
+      geoFeatures=[];
+      try{renderList();}catch(e){}
+      try{renderStats();}catch(e){}
+      map.setView(cfg.center,cfg.zoom);
     });
 }
 
@@ -824,9 +840,9 @@ function renderMap(){
   const cfg=CITY_CFG[city];
   const allS=Object.values(cfg.data).map(nice);
 
-  // Instantly hide/show the whole choropleth pane based on active layer count
+  // Choropleth-Sichtbarkeit: nur ausblenden wenn Layer aktiv, aber nicht automatisch einblenden
   const pane=map.getPane('choropleth');
-  if(pane) pane.style.display = activeCount>0 ? 'none' : '';
+  if(pane && activeCount>0) pane.style.display='none';
 
   geoLayer=L.geoJSON({type:'FeatureCollection',features:geoFeatures},{
     pane:'choropleth',
@@ -877,9 +893,9 @@ function toggleLayer(id){
     activeCount++;document.getElementById('layerCount').textContent=activeCount;
     loadLayer(id,st);
   }
-  // Toggle choropleth pane visibility instantly — no redraw needed
+  // Choropleth sichtbarkeit updaten
   const pane=map.getPane('choropleth');
-  if(pane) pane.style.display = activeCount>0 ? 'none' : '';
+  if(pane) pane.style.display = (activeCount>0||!choroplethVisible) ? 'none' : '';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -903,21 +919,68 @@ function opNext(){
     .finally(()=>setTimeout(opNext,800));
 }
 
+// Globaler Daten-Cache — alle geladenen GeoJSON werden hier gespeichert
+// Bürgerbrille kann dann unabhängig von aktiven Layern darauf zugreifen
+const dataCache = {};
+
 function loadLocal(filename, id, statusEl, onData){
-  // Versucht lokale Datei aus data/layers/ — erzeugt mit generate_layers.py
+  // Cache-Hit
+  if(dataCache[filename]){
+    if(!activeLayers[id])return;
+    statusEl.textContent=`✓ ${dataCache[filename].features?.length||0}`;
+    onData(dataCache[filename]);
+    return;
+  }
   fetch(`data/layers/${filename}`)
     .then(r=>{if(!r.ok)throw Error('not found');return r.json();})
     .then(geojson=>{
+      dataCache[filename]=geojson; // Im Cache speichern
       if(!activeLayers[id])return;
-      statusEl.textContent=`✓ ${geojson.features?.length||0} (lokal)`;
+      statusEl.textContent=`✓ ${geojson.features?.length||0}`;
       onData(geojson);
     })
     .catch(()=>{
-      // Fallback: Live von Overpass
       statusEl.innerHTML='<span class="loading-dot"></span> live...';
       loadLayerLive(id, statusEl);
     });
 }
+
+// Daten im Hintergrund vorladen (für Bürgerbrille)
+function preloadCriticalData(){
+  const files=[
+    `heat_exposure_${city}.geojson`,
+    `noise_roads_${city}.geojson`,
+    `green_${city}.geojson`,
+    `trees_${city}.geojson`,
+    `benches_${city}.geojson`,
+    `footways_quality_${city}.geojson`,
+    `retail_${city}.geojson`,
+    `flood_exposure_${city}.geojson`,
+    `bike_${city}.geojson`,
+  ];
+  // Parallel laden — alle gleichzeitig aber non-blocking
+  let loaded=0;
+  const addrEl=document.getElementById('bpAddr');
+  files.forEach(f=>{
+    if(!dataCache[f]){
+      fetch(`data/layers/${f}`)
+        .then(r=>r.ok?r.json():null)
+        .then(d=>{
+          if(d){ dataCache[f]=d; loaded++; }
+          if(addrEl&&brilleActive){
+            const remaining=files.length-Object.keys(dataCache).filter(k=>files.includes(k)).length;
+            if(remaining>0){
+              addrEl.textContent=`Lade Daten… ${loaded}/${files.length} bereit`;
+            } else {
+              addrEl.textContent='✅ Bereit — klick auf die Karte!';
+            }
+          }
+        })
+        .catch(()=>{loaded++;});
+    } else { loaded++; }
+  });
+}
+
 
 function loadLayer(id,statusEl){
   const c=CITY_CFG[city];
@@ -925,6 +988,7 @@ function loadLayer(id,statusEl){
     case 'flood':    return loadLocal(`flood_exposure_${city}.geojson`,id,statusEl,renderFloodExposure);
     case 'floodex':  return loadLocal(`waterways_${city}.geojson`,id,statusEl,renderFloodZones);
     case 'heat':     return loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,renderHeatExposure);
+    case 'lst_grid': return renderLSTGrid(id,statusEl);
     case 'noise':    return loadLocal(`noise_roads_${city}.geojson`,id,statusEl,renderNoiseLayer);
     case 'flight_noise': return loadLocal(`flight_noise_${city}.geojson`,id,statusEl,renderFlightNoise);
     case 'co2':      return loadLocal(`co2_buildings_${city}.geojson`,id,statusEl,renderCO2Layer);
@@ -1112,6 +1176,70 @@ function renderFloodZones(geojson){
   layerObjs[id]=group;
 }
 
+
+
+// 🌡️ LST HITZEKARTE — Flächendeckendes Raster via Open-Meteo
+async function renderLSTGrid(id, statusEl){
+  if(!activeLayers[id])return;
+  statusEl.innerHTML='<span class="loading-dot"></span> Lade…';
+
+  const CITY_BOUNDS={ffm:{s:50.05,w:8.55,n:50.22,e:8.82},utr:{s:52.04,w:5.05,n:52.14,e:5.20}};
+  const bounds=CITY_BOUNDS[city];
+  const STEP=0.008; // ~600m Raster
+
+  const points=[];
+  for(let lat=bounds.s;lat<bounds.n;lat+=STEP)
+    for(let lon=bounds.w;lon<bounds.e;lon+=STEP)
+      points.push({lat:+(lat+STEP/2).toFixed(4),lon:+(lon+STEP/2).toFixed(4),gridLat:lat,gridLon:lon});
+
+  statusEl.textContent=`⏳ ${points.length} Zellen…`;
+
+  function lstColor(t){
+    if(t>=45)return'#7f1d1d';if(t>=40)return'#b91c1c';if(t>=35)return'#dc2626';
+    if(t>=32)return'#f97316';if(t>=29)return'#fbbf24';if(t>=26)return'#fde68a';
+    if(t>=23)return'#a7f3d0';if(t>=20)return'#34d399';if(t>=17)return'#059669';
+    return'#065f46';
+  }
+  function lstLabel(t){
+    if(t>=40)return`🔴 Extremhitze ${t}°C`;if(t>=35)return`🔴 Sehr heiß ${t}°C`;
+    if(t>=30)return`🟠 Heiß ${t}°C`;if(t>=25)return`🟡 Warm ${t}°C`;
+    if(t>=20)return`🟢 Angenehm ${t}°C`;return`🔵 Kühl ${t}°C`;
+  }
+
+  const group=L.layerGroup();
+  const BATCH=8;
+  let loaded=0;
+
+  for(let i=0;i<points.length;i+=BATCH){
+    if(!activeLayers[id])return;
+    const batch=points.slice(i,i+BATCH);
+    const lats=batch.map(p=>p.lat).join(',');
+    const lons=batch.map(p=>p.lon).join(',');
+    try{
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=soil_temperature_0cm,temperature_2m&timezone=Europe/Berlin&forecast_days=1`);
+      const data=await r.json();
+      const results=Array.isArray(data)?data:[data];
+      results.forEach((d,j)=>{
+        const p=batch[j];if(!p)return;
+        const lst=d.current?.soil_temperature_0cm??d.current?.temperature_2m??20;
+        L.rectangle([[p.gridLat,p.gridLon],[p.gridLat+STEP,p.gridLon+STEP]],
+          {fillColor:lstColor(lst),color:'transparent',fillOpacity:0.55,weight:0})
+        .bindTooltip(
+          `<b>${lstLabel(lst)}</b><br>Oberfläche: <b>${lst}°C</b> · Luft: ${d.current?.temperature_2m??'?'}°C<br>`+
+          `<small>Open-Meteo · Sentinel-3 LST · Copernicus CCS</small>`,
+          {sticky:true,maxWidth:240})
+        .addTo(group);
+      });
+      loaded+=batch.length;
+      if(activeLayers[id])statusEl.textContent=`⏳ ${loaded}/${points.length}`;
+    }catch(e){loaded+=batch.length;}
+    await new Promise(r=>setTimeout(r,120));
+  }
+  if(!activeLayers[id])return;
+  group.addTo(map);
+  layerObjs[id]=group;
+  statusEl.textContent=`✓ ${points.length} Zellen`;
+}
 
 // 🌡️ HITZEINSEL — Gebäude-Level wie 90green Bild 1
 function renderHeatExposure(geojson){
@@ -1805,14 +1933,21 @@ function renderList(filter=''){
     const col=qColor(s,allS);
     const isDouble=s<45&&d.wb<50;
     const risks=[d.hw?'💧':'',d.heat?'🌡️':'',d.noise>70?'🔊':''].filter(Boolean).join('');
-    // Use data-name attribute + event delegation instead of inline onclick with city string
+    // Soll-Ist Balken — Fortschritt zum Zielwert (100)
+    const pct=Math.min(100,s);
+    const sollPct=65; // Ziel: Note B oder besser
+    const gapCol=s<40?'#dc2626':s<55?'#ea580c':s<65?'#ca8a04':'#16a34a';
     return`<div class="sti${selected===n?' active':''}" data-area="${n}">
       <div class="stq" style="background:${col}18;color:${col};border-color:${col}">${s}</div>
       <div class="stinfo">
         <div class="stname">${n}</div>
         <div class="stmeta">${(d.pop/1000).toFixed(0)}k EW · ${d.wb}% Wahlbet.${risks?' · '+risks:''}</div>
+        <div style="margin-top:3px;height:3px;background:var(--border);border-radius:2px;position:relative;overflow:visible">
+          <div style="height:100%;width:${pct}%;background:${gapCol};border-radius:2px;transition:width .4s"></div>
+          <div style="position:absolute;top:-2px;left:${sollPct}%;width:1.5px;height:7px;background:rgba(255,255,255,0.4);border-radius:1px"></div>
+        </div>
       </div>
-      <div class="stflag">${isDouble?'⚠️':s<40?'🔴':''}</div>
+      <div class="stflag">${isDouble?'⚠️':s<40?'🔴':s>=65?'🟢':''}</div>
     </div>`;
   }).join('');
 }
@@ -1899,8 +2034,39 @@ function openDrawer(name,d){
       <div class="dsrc">Quelle: <b>${dim.src.split(',')[0]}</b></div>
     </div>`).join('');
 
-  // TAB 2 — Maßnahmen
+  // TAB 2 — Soll-Zustand
+  const SOLL_TARGETS = [
+    {dim:'A', name:'Klimagerechtigkeit', soll:65, unit:'Punkte', benchmark:'EU Renaturierungs-VO 2024: 30% Stadtgrün', law:'30% Grünfläche bis 2030'},
+    {dim:'B', name:'Gesundheitslast',    soll:65, unit:'Punkte', benchmark:'WHO Luftqualitätsrichtlinien 2021', law:'PM2.5 ≤5 µg/m³'},
+    {dim:'C', name:'Mobilität',          soll:70, unit:'Punkte', benchmark:'EU Cycling Strategy: 50% aller Wege modal', law:'StrVO §45 Radinfrastruktur'},
+    {dim:'D', name:'Bildungsstart',      soll:65, unit:'Punkte', benchmark:'KMK Bildungsstandards', law:'UN CRC Art. 28'},
+    {dim:'E', name:'Wohn-Krise',         soll:60, unit:'Punkte', benchmark:'EU Urban Agenda Wohnraum', law:'30% Sozialwohnungen (UN Habitat)'},
+    {dim:'F', name:'Demokratie',         soll:65, unit:'Punkte', benchmark:'Wahlbeteiligung >70%', law:'EU Demokratie-Aktionsplan 2020'},
+    {dim:'G', name:'Ökosystem',          soll:70, unit:'Punkte', benchmark:'Copernicus NDVI-Zielwert', law:'EU Biodiversitätsstrategie 2030'},
+    {dim:'H', name:'Resilienz',          soll:65, unit:'Punkte', benchmark:'EU Klimaanpassungsstrategie 2021', law:'Sendai Framework 2015–2030'},
+  ];
   document.getElementById('tp2').innerHTML=`
+    <div class="ibox">Jede Dimension hat einen <b>normativen Zielwert</b> basierend auf EU-Recht, WHO-Empfehlungen und internationalen Benchmarks. Die Lücke zeigt den Handlungsbedarf.</div>
+    ${SOLL_TARGETS.map(t=>{
+      const ist=d[t.dim]||0;
+      const lücke=Math.max(0,t.soll-ist);
+      const pct=Math.min(100,ist/t.soll*100);
+      const col=ist>=t.soll?'#16a34a':ist>=t.soll*0.8?'#ca8a04':ist>=t.soll*0.6?'#ea580c':'#dc2626';
+      return`<div style="margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <div style="font-size:11px;font-weight:700;color:var(--text)">${t.dim} · ${t.name}</div>
+          <div style="font-size:11px;color:${col};font-weight:700">${ist} / ${t.soll} ${ist>=t.soll?'✓':'(-'+lücke+')'}</div>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:3px;position:relative;margin-bottom:5px">
+          <div style="height:100%;width:${pct}%;background:${col};border-radius:3px;transition:width .5s"></div>
+          <div style="position:absolute;top:-3px;left:100%;transform:translateX(-2px);width:2px;height:12px;background:rgba(255,255,255,0.3);border-radius:1px"></div>
+        </div>
+        <div style="font-size:9px;color:var(--muted)">${t.benchmark} · <i>${t.law}</i></div>
+      </div>`;
+    }).join('')}`;
+
+  // TAB 3 — Maßnahmen
+  document.getElementById('tp3').innerHTML=`
     <div class="ibox">Empfehlungen basieren auf den <b>schwächsten Dimensionen</b>. Alle Kosten und ROI sind methodisch belegt — per ℹ️ aufklappbar.</div>
     ${relM.map(m=>`
     <div class="mcard">
@@ -1927,9 +2093,9 @@ function openDrawer(name,d){
       </div>
     </div>`).join('')}`;
 
-  // TAB 3 — Förderung
+  // TAB 4 — Förderung
   const relF=relM.flatMap(m=>m.foerder||[]).filter((f,i,a)=>a.findIndex(x=>x.prog===f.prog)===i).slice(0,6);
-  document.getElementById('tp3').innerHTML=`
+  document.getElementById('tp4').innerHTML=`
     <div class="dlbox">
       <div class="dlt">🚨 EUI Call 4 — Deadline: 15. Juni 2026</div>
       <div class="dls">60 Mio€ ERDF · ~30 Projekte · Max. 5 Mio€ · 80% Förderquote.<br>
@@ -2002,9 +2168,79 @@ function renderStats(){
 }
 
 // ══════════════════════════════════════════════════════════════
-// BÜRGERBRILLE — Street Score per Klick
+// NORMATIVE BENCHMARKS — Soll-Zustand nach WHO, EU, ADFC etc.
 // ══════════════════════════════════════════════════════════════
-let brilleActive = false;
+const BENCHMARKS = {
+  trees: {
+    soll: 10,         // Bäume in 200m Radius
+    unit: 'Bäume',
+    source: 'WHO Urban Green Spaces 2016',
+    law: 'EU Renaturierungs-VO 2024/1991: 30% Stadtgrün bis 2030',
+    tip: 'Straßenbaum-Programm (75% BBSR)',
+  },
+  benches: {
+    soll: 5,          // Öffentliche Bänke in 200m
+    unit: 'öff. Bänke',
+    source: 'PPS Project for Public Spaces',
+    law: 'UN SDG 11.7: Zugang zu öff. Grün- und Freiflächen',
+    tip: 'Sitzinfrastruktur-Programm (~500€/Bank, Quick Win)',
+  },
+  footway: {
+    soll: 20,         // Score-Punkte
+    unit: 'Punkte',
+    source: 'DIN 18040 · FGSV Empfehlungen',
+    law: 'Barrierefreiheit: BGG §4 · UN BRK Art. 9',
+    tip: 'Gehwegqualität DAS 70% Förderung',
+  },
+  green: {
+    soll: 15,         // Score-Punkte
+    unit: 'Punkte',
+    source: 'WHO: max. 300m zur nächsten Grünfläche',
+    law: 'EU Renaturierungs-VO 2024: 30% Stadtgrün bis 2030',
+    tip: 'Schwammstadt / Urbaner Wald (80% ERDF)',
+  },
+  retail: {
+    soll: 8,          // Score-Punkte
+    unit: 'Punkte',
+    source: '15-Minuten-Stadt Konzept (C. Moreno, Paris)',
+    law: 'EU Urban Agenda: Inclusive Growth',
+    tip: 'Förderung lokaler Gewerbetreibender',
+  },
+  bike: {
+    soll: 10,         // Score-Punkte
+    unit: 'Punkte',
+    source: 'ADFC Klimaradtest · EU Cycling Strategy 2030',
+    law: 'StrVO §45: Radverkehrsinfrastruktur',
+    tip: 'Radschnellweg 75% NVP-Förderung',
+  },
+  noise: {
+    soll: 0,          // Penalty soll 0 sein
+    unit: 'dB-Penalty',
+    source: 'EU Umgebungslärmrichtlinie 2002/49/EG',
+    law: 'EU-Grenzwert: ≤65 dB(A) Lden · ≤55 dB(A) Lnight',
+    tip: 'Tempo 30 · Flüsterasphalt · Lärmschutzwand',
+  },
+  heat: {
+    soll: 0,          // Penalty soll 0 sein
+    unit: '°C-Penalty',
+    source: 'Copernicus Climate Change Service',
+    law: 'EU Hitzeschutzplan 2022 · WHO Heatwave Guidelines',
+    tip: 'Fassadenbegrünung A02 · Gründach A04 (80% ERDF)',
+  },
+};
+
+let choroplethVisible = false;
+
+function toggleChoropleth(){
+  choroplethVisible = !choroplethVisible;
+  const pane = map.getPane('choropleth');
+  if(pane) pane.style.display = (activeCount>0||!choroplethVisible) ? 'none' : '';
+  const btn = document.getElementById('choroBtn');
+  if(btn){
+    btn.classList.toggle('on', choroplethVisible);
+    btn.textContent = choroplethVisible ? '🗺️ Viertel AN' : '🗺️ Viertel';
+  }
+}
 let brilleClickHandler = null;
 
 function toggleBuergerbrille(){
@@ -2012,17 +2248,22 @@ function toggleBuergerbrille(){
   const btn = document.getElementById('bbrilleBtn');
   btn.classList.toggle('on', brilleActive);
   btn.textContent = brilleActive ? '👁 Bürgerbrille AN' : '👁 Bürgerbrille';
-  const mapEl = document.getElementById('map');
-  mapEl.classList.toggle('map-brille-active', brilleActive);
+  document.getElementById('map').classList.toggle('map-brille-active', brilleActive);
 
   if(brilleActive){
-    brilleClickHandler = (e) => computeStreetScore(e.latlng);
-    map.on('click', brilleClickHandler);
+    preloadCriticalData();
+    // Bürgerbrille popup sofort anzeigen
     document.getElementById('brillePopup').style.display='block';
-    document.getElementById('bpAddr').textContent='Klick auf die Karte…';
+    document.getElementById('bpAddr').textContent='👆 Klick auf die Karte…';
     document.getElementById('bpScore').textContent='—';
+    document.getElementById('bpBars').innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px 0">Daten werden geladen…</div>';
+    // Click-Handler mit höchster Priorität
+    brilleClickHandler = (e)=>{
+      computeStreetScore(e.latlng);
+    };
+    map.on('click', brilleClickHandler);
   } else {
-    if(brilleClickHandler) map.off('click', brilleClickHandler);
+    if(brilleClickHandler){ map.off('click', brilleClickHandler); brilleClickHandler=null; }
     closeBrillePopup();
   }
 }
@@ -2040,107 +2281,146 @@ function computeStreetScore(latlng){
   const lat=latlng.lat, lon=latlng.lng;
   document.getElementById('bpAddr').textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)} — berechne…`;
 
-  // Hilfsfunktion: Punkte in Radius finden
-  function inRadius(layer, radiusDeg){
-    const feats=[];
-    if(!layer) return feats;
-    layer.eachLayer && layer.eachLayer(l=>{
-      // LayerGroup
-      if(l.eachLayer) l.eachLayer(sub=>{
-        const ll=sub.getLatLng?.();
-        if(ll && Math.abs(ll.lat-lat)<radiusDeg && Math.abs(ll.lng-lon)<radiusDeg) feats.push(sub);
-      });
-      const ll=l.getLatLng?.();
-      if(ll && Math.abs(ll.lat-lat)<radiusDeg && Math.abs(ll.lng-lon)<radiusDeg) feats.push(l);
-    });
-    return feats;
+  const loaded=Object.keys(dataCache).filter(k=>k.includes(city)).length;
+  if(loaded===0){
+    document.getElementById('bpAddr').textContent='⏳ Daten laden… bitte 10 Sek warten und nochmal klicken';
+    setTimeout(()=>{ if(brilleActive) computeStreetScore(latlng); }, 4000);
+    return;
   }
 
-  function nearestWayQuality(layerObj, radiusDeg){
-    // Für Linien-Layer (Radwege, Fußwege): nächste Linie finden
+  // Direkt aus Cache lesen — kein aktiver Layer nötig
+  function getFeaturesInRadius(filename, radiusDeg){
+    const gj=dataCache[filename];
+    if(!gj?.features) return [];
+    return gj.features.filter(f=>{
+      try{
+        const type=f.geometry?.type;
+        if(type==='Point'){
+          const[flon,flat]=f.geometry.coordinates;
+          return Math.abs(flat-lat)<radiusDeg && Math.abs(flon-lon)<radiusDeg;
+        } else if(type==='Polygon'||type==='MultiPolygon'){
+          // Centroid berechnen
+          let coords=f.geometry.coordinates;
+          if(type==='MultiPolygon') coords=coords[0];
+          const ring=coords[0];
+          const clon=ring.reduce((s,c)=>s+c[0],0)/ring.length;
+          const clat=ring.reduce((s,c)=>s+c[1],0)/ring.length;
+          return Math.abs(clat-lat)<radiusDeg && Math.abs(clon-lon)<radiusDeg;
+        }
+        return false;
+      }catch(e){return false;}
+    });
+  }
+
+  function getNearestLineQuality(filename, prop, radiusDeg){
+    const gj=dataCache[filename];
+    if(!gj?.features) return null;
     let best=null;
-    if(!layerObj) return best;
-    const walk=(lg)=>{
-      if(lg.eachLayer) lg.eachLayer(walk);
-      else {
-        const feat=lg.feature;
-        if(!feat) return;
-        const coords=feat.geometry?.coordinates;
-        if(!coords) return;
-        const pts=feat.geometry.type==='LineString'?coords:[];
-        for(const [plon,plat] of pts){
+    for(const f of gj.features){
+      try{
+        const coords=f.geometry?.coordinates||[];
+        const pts=f.geometry?.type==='LineString'?coords:[];
+        for(const[plon,plat] of pts){
           if(Math.abs(plat-lat)<radiusDeg && Math.abs(plon-lon)<radiusDeg){
-            const q=feat.properties?._quality||feat.properties?.highway||'';
-            if(!best) best=q;
+            best=f.properties?.[prop]||f.properties?.highway||null;
+            break;
           }
         }
-      }
-    };
-    walk(layerObj);
+        if(best) break;
+      }catch(e){}
+    }
     return best;
   }
 
-  // Radius: 0.002 Grad ≈ 200m
-  const R=0.002;
-
   // 1. BÄUME (max 20 Punkte)
-  const trees=inRadius(layerObjs['trees'], R);
+  const trees=getFeaturesInRadius(`trees_${city}.geojson`, R);
   const treeScore=Math.min(20, trees.length*2);
 
   // 2. BÄNKE (max 15 Punkte)
-  const benches=inRadius(layerObjs['benches'], R);
+  const benches=getFeaturesInRadius(`benches_${city}.geojson`, R);
   let benchScore=0;
   benches.forEach(b=>{
-    const q=b.feature?.properties?._quality||'ok';
+    const q=b.properties?._quality||'ok';
     if(q==='excellent') benchScore+=5;
     else if(q==='good') benchScore+=4;
     else if(q==='ok'||q==='basic') benchScore+=3;
-    // commercial = 0 Punkte
   });
-  benchScore=Math.min(15, benchScore);
+  benchScore=Math.min(15,benchScore);
 
   // 3. FUßWEGE (max 20 Punkte)
-  const fwq=nearestWayQuality(layerObjs['footways_quality'], R);
+  const fwq=getNearestLineQuality(`footways_quality_${city}.geojson`,'_quality',R);
   const footScore=fwq==='excellent'?20:fwq==='good'?14:fwq==='ok'?8:fwq==='poor'?3:0;
 
   // 4. GRÜNFLÄCHE in 300m (max 15 Punkte)
-  const greenR=0.003;
-  const parks=inRadius(layerObjs['parks'], greenR);
+  const parks=getFeaturesInRadius(`green_${city}.geojson`, 0.003);
   const greenScore=parks.length>0?15:0;
 
   // 5. LOKALE GESCHÄFTE (max 10 Punkte)
-  const retail=inRadius(layerObjs['retail'], R);
+  const retail=getFeaturesInRadius(`retail_${city}.geojson`, R);
+  const chains=['rewe','edeka','aldi','lidl','penny','dm','rossmann','mcdonald','burger king','starbucks','subway','netto','kaufland'];
   let retailScore=0;
-  retail.forEach(r=>{const n=(r.feature?.properties?.name||'').toLowerCase();
-    const chains=['rewe','edeka','aldi','lidl','penny','dm','rossmann','mcdonald','burger king','starbucks','subway'];
+  retail.forEach(r=>{
+    const n=(r.properties?.name||'').toLowerCase();
     retailScore+=chains.some(c=>n.includes(c))?0.5:2;
   });
-  retailScore=Math.min(10, retailScore);
+  retailScore=Math.min(10,retailScore);
 
   // 6. RADWEG-QUALITÄT (max 10 Punkte)
-  const bikeq=nearestWayQuality(layerObjs['bike'], R);
-  const bikeScore=bikeq==='cycleway'?10:bikeq==='lane'||bikeq==='track'?6:bikeq==='shared_lane'?3:0;
+  const bikeGj=dataCache[`bike_${city}.geojson`];
+  let bikeScore=0;
+  if(bikeGj?.features){
+    for(const f of bikeGj.features){
+      try{
+        const coords=f.geometry?.coordinates||[];
+        for(const[plon,plat] of coords){
+          if(Math.abs(plat-lat)<R && Math.abs(plon-lon)<R){
+            const hw=f.properties?.highway||'';
+            const cy=f.properties?.cycleway||f.properties?.['cycleway:right']||'';
+            bikeScore=hw==='cycleway'?10:cy==='track'?8:cy==='lane'?6:cy==='shared_lane'?3:0;
+            break;
+          }
+        }
+        if(bikeScore) break;
+      }catch(e){}
+    }
+  }
 
   // 7. LÄRM-PENALTY (max -15 Punkte)
-  const noise=nearestWayQuality(layerObjs['noise'], R*1.5);
-  const noisePenalty=noise==='motorway'||noise==='trunk'?-15:noise==='primary'?-8:noise==='secondary'?-4:noise==='rail'?-10:0;
+  const noiseGj=dataCache[`noise_roads_${city}.geojson`];
+  let noisePenalty=0;
+  if(noiseGj?.features){
+    for(const f of noiseGj.features){
+      try{
+        const coords=f.geometry?.coordinates||[];
+        for(const[plon,plat] of coords){
+          if(Math.abs(plat-lat)<R*1.5 && Math.abs(plon-lon)<R*1.5){
+            const hw=f.properties?.highway||f.properties?.railway||'';
+            const p=hw==='motorway'||hw==='trunk'?-15:hw==='primary'?-8:hw==='secondary'?-4:hw==='rail'?-10:0;
+            if(p<noisePenalty) noisePenalty=p;
+            break;
+          }
+        }
+        if(noisePenalty<=-15) break;
+      }catch(e){}
+    }
+  }
 
   // 8. HITZE-PENALTY (max -10 Punkte)
-  const heatFeats=inRadius(layerObjs['heat'], R);
+  const heatFeats=getFeaturesInRadius(`heat_exposure_${city}.geojson`, R);
   let heatPenalty=0;
   heatFeats.forEach(h=>{
-    const cls=h.feature?.properties?.heat_class||'';
-    if(cls==='extreme') heatPenalty=Math.min(heatPenalty-10, heatPenalty);
-    else if(cls==='high') heatPenalty=Math.min(heatPenalty-5, heatPenalty);
+    const cls=h.properties?.heat_class||'';
+    if(cls==='extreme'&&heatPenalty>-10) heatPenalty=-10;
+    else if(cls==='high'&&heatPenalty>-5) heatPenalty=-5;
   });
 
-  const total=Math.max(0, Math.min(100,
+  const total=Math.max(0,Math.min(100,
     treeScore+benchScore+footScore+greenScore+retailScore+bikeScore+noisePenalty+heatPenalty
   ));
 
   // Anzeige
   const col=total>=65?'#16a34a':total>=45?'#ca8a04':total>=30?'#ea580c':'#dc2626';
-  const grade=total>=75?{g:'A',l:'Sehr gut'}:total>=62?{g:'B',l:'Gut'}:total>=50?{g:'C',l:'Mittel'}:total>=38?{g:'D',l:'Kritisch'}:{g:'F',l:'Dringend'};
+  const grade=total>=75?{g:'A',l:'Sehr gut'}:total>=62?{g:'B',l:'Gut'}:total>=50?{g:'C',l:'Mittel'}:total>=38?{g:'D',l:'Kritisch'}:{g:'F',l:'Dringend handeln'};
 
   document.getElementById('bpAddr').textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)}`;
   document.getElementById('bpScore').textContent=total;
@@ -2155,29 +2435,43 @@ function computeStreetScore(latlng){
   gp.style.background=`${col}20`;gp.style.color=col;
   gp.textContent=`Note ${grade.g} — ${grade.l}`;
 
-  // Bars
   const bars=[
-    {label:'🌳 Bäume',     val:treeScore,   max:20, col:'#16a34a'},
-    {label:'🪑 Bänke',     val:benchScore,  max:15, col:'#15803d'},
-    {label:'🚶 Fußweg',    val:footScore,   max:20, col:'#0284c7'},
-    {label:'🌿 Grünfläche',val:greenScore,  max:15, col:'#22c55e'},
-    {label:'🏪 Lokal',     val:retailScore, max:10, col:'#d97706'},
-    {label:'🚲 Radweg',    val:bikeScore,   max:10, col:'#ca8a04'},
-    {label:'🔊 Lärm',      val:noisePenalty,max:0,  col:'#7c3aed', penalty:true},
-    {label:'🌡️ Hitze',     val:heatPenalty, max:0,  col:'#dc2626', penalty:true},
+    {key:'trees',   label:'🌳 Bäume',      ist:treeScore,   max:20, col:'#16a34a', istVal:trees.length,     sollVal:BENCHMARKS.trees.soll,   unit:'Bäume',    penalty:false},
+    {key:'benches', label:'🪑 Bänke',       ist:benchScore,  max:15, col:'#15803d', istVal:benches.filter(b=>b.properties?._quality!=='commercial').length, sollVal:BENCHMARKS.benches.soll, unit:'öff.', penalty:false},
+    {key:'footway', label:'🚶 Fußweg',      ist:footScore,   max:20, col:'#0284c7', istVal:footScore,        sollVal:20,                       unit:'Pkt',      penalty:false},
+    {key:'green',   label:'🌿 Grünfläche',  ist:greenScore,  max:15, col:'#22c55e', istVal:parks.length,     sollVal:1,                        unit:'Parks',    penalty:false},
+    {key:'retail',  label:'🏪 Lokal',       ist:retailScore, max:10, col:'#d97706', istVal:retailScore,      sollVal:8,                        unit:'Pkt',      penalty:false},
+    {key:'bike',    label:'🚲 Radweg',      ist:bikeScore,   max:10, col:'#ca8a04', istVal:bikeScore,        sollVal:10,                       unit:'Pkt',      penalty:false},
+    {key:'noise',   label:'🔊 Lärm',        ist:noisePenalty,max:0,  col:'#7c3aed', penalty:true},
+    {key:'heat',    label:'🌡️ Hitze',       ist:heatPenalty, max:0,  col:'#dc2626', penalty:true},
   ];
 
   document.getElementById('bpBars').innerHTML=bars.map(b=>{
-    const pct=b.penalty?Math.min(100,Math.abs(b.val)/15*100):b.max>0?Math.min(100,b.val/b.max*100):0;
-    const show=b.penalty?b.val:b.val;
+    if(b.penalty){
+      const pct=Math.min(100,Math.abs(b.ist)/15*100);
+      const bm=BENCHMARKS[b.key];
+      return`<div class="bp-bar">
+        <div class="bp-bar-label">${b.label}</div>
+        <div class="bp-bar-track"><div class="bp-bar-fill" style="width:${pct}%;background:${b.col}"></div></div>
+        <div class="bp-bar-val" style="color:${b.col}">${b.ist}</div>
+      </div>
+      <div style="font-size:8px;color:var(--muted);margin:-2px 0 4px 140px">Soll: 0 · ${bm.source.split('·')[0].trim()}</div>`;
+    }
+    const istPct=Math.min(100,b.ist/b.max*100);
+    const sollPct=Math.min(100,(b.sollVal/b.max)*100*(b.max/Math.max(b.max,b.sollVal)));
+    const ok=b.ist>=b.max*(b.sollVal/Math.max(b.max,b.sollVal+1));
+    const bm=BENCHMARKS[b.key];
     return`<div class="bp-bar">
       <div class="bp-bar-label">${b.label}</div>
-      <div class="bp-bar-track"><div class="bp-bar-fill" style="width:${pct}%;background:${b.col}"></div></div>
-      <div class="bp-bar-val" style="color:${b.col}">${show>0?'+':''}${show}</div>
-    </div>`;
+      <div class="bp-bar-track" style="position:relative">
+        <div class="bp-bar-fill" style="width:${istPct}%;background:${ok?b.col:'#ea580c'}"></div>
+        <div style="position:absolute;top:0;left:${Math.min(95,sollPct)}%;width:2px;height:100%;background:rgba(255,255,255,0.5)"></div>
+      </div>
+      <div class="bp-bar-val" style="color:${ok?b.col:'#ea580c'}">${ok?'✓':b.ist}</div>
+    </div>
+    <div style="font-size:8px;color:var(--muted);margin:-2px 0 4px 140px">Ist: ${b.istVal} ${b.unit} · Soll: ${b.sollVal} ${b.unit} · ${bm.source.split('·')[0].trim()}</div>`;
   }).join('');
 
-  // Hauptproblem + Tipp
   const problems=[];
   if(treeScore<5) problems.push('Kaum Bäume');
   if(benchScore<3) problems.push('Keine öffentlichen Bänke');
@@ -2187,21 +2481,27 @@ function computeStreetScore(latlng){
   if(heatPenalty<-5) problems.push('Hitzeinsel');
 
   const tips={
-    'Kaum Bäume':'Maßnahme A01: Straßenbaum-Programm (75% Förderung)',
-    'Keine öffentlichen Bänke':'Maßnahme: Sitzinfrastruktur (Quick Win, ~500€/Bank)',
-    'Schlechter Fußweg':'Maßnahme: Gehwegqualität (DAS 70% Förderung)',
+    'Kaum Bäume':'Maßnahme A01: Straßenbaum-Programm (75% BBSR)',
+    'Keine öffentlichen Bänke':'Sitzinfrastruktur: ~500€/Bank (Quick Win)',
+    'Schlechter Fußweg':'Maßnahme: Gehwegqualität (DAS 70%)',
     'Kein Park in 300m':'Maßnahme A03: Schwammstadt / A05: Urbaner Wald',
     'Hohe Lärmbelastung':'Maßnahme B01: Tempo 30 · Flüsterasphalt',
     'Hitzeinsel':'Maßnahme A02: Fassadenbegrünung · A04: Gründach',
   };
 
-  const mainProblem=problems[0]||'Guter Standort';
+  const mainProblem=problems[0]||null;
   document.getElementById('bpProblem').innerHTML=
-    problems.length?`⚠ Hauptproblem: <b>${problems.join(', ')}</b>`:'✅ Guter Standort';
-
-  document.getElementById('bpTip').innerHTML=problems.length?
-    `💡 <b>Empfehlung:</b> ${tips[mainProblem]||'Weitere Analyse empfohlen'}`:
+    problems.length?`⚠ ${problems.join(' · ')}`:
+    total>=65?'✅ Guter Standort — oberhalb Durchschnitt':'Mehrere Faktoren verbesserbar';
+  document.getElementById('bpTip').innerHTML=mainProblem?
+    `💡 <b>Empfehlung:</b> ${tips[mainProblem]}`:
     `✅ Dieser Standort erfüllt die meisten Qualitätskriterien.`;
+
+  // Daten-Vollständigkeit anzeigen
+  const loaded=[trees,benches,heatFeats].filter(a=>a.length>0).length;
+  if(loaded===0){
+    document.getElementById('bpProblem').innerHTML='⏳ Daten werden geladen — bitte 10 Sek warten und nochmal klicken';
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2320,11 +2620,11 @@ async function loadLiveWind(){
   }
 }
 
-// Wind laden und alle 15 Minuten aktualisieren
+// Wind laden erst nach vollständigem Seitenload
 setTimeout(()=>{
-  loadLiveWind();
-  setInterval(loadLiveWind, 15*60*1000);
-}, 2000);
+  loadLiveWind().catch(()=>{});
+  setInterval(()=>loadLiveWind().catch(()=>{}), 15*60*1000);
+}, 5000);
 
 initMap();
 
