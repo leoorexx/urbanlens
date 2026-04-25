@@ -963,16 +963,26 @@ function preloadCriticalData(){
     `flood_exposure_${city}.geojson`,
     `bike_${city}.geojson`,
   ];
-  // Gestaffelt laden — 1 Datei pro Sekunde, nicht alles auf einmal
-  files.forEach((f, i)=>{
-    setTimeout(()=>{
-      if(!dataCache[f]){
-        fetch(`data/layers/${f}`)
-          .then(r=>r.ok?r.json():null)
-          .then(d=>{if(d)dataCache[f]=d;})
-          .catch(()=>{});
-      }
-    }, i * 1000);
+  // Parallel laden — alle gleichzeitig aber non-blocking
+  let loaded=0;
+  const addrEl=document.getElementById('bpAddr');
+  files.forEach(f=>{
+    if(!dataCache[f]){
+      fetch(`data/layers/${f}`)
+        .then(r=>r.ok?r.json():null)
+        .then(d=>{
+          if(d){ dataCache[f]=d; loaded++; }
+          if(addrEl&&brilleActive){
+            const remaining=files.length-Object.keys(dataCache).filter(k=>files.includes(k)).length;
+            if(remaining>0){
+              addrEl.textContent=`Lade Daten… ${loaded}/${files.length} bereit`;
+            } else {
+              addrEl.textContent='✅ Bereit — klick auf die Karte!';
+            }
+          }
+        })
+        .catch(()=>{loaded++;});
+    } else { loaded++; }
   });
 }
 
@@ -2208,7 +2218,14 @@ function computeStreetScore(latlng){
   const lat=latlng.lat, lon=latlng.lng;
   document.getElementById('bpAddr').textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)} — berechne…`;
 
-  const R=0.002; // ~200m in Grad
+  const loaded=Object.keys(dataCache).filter(k=>k.includes(city)).length;
+  if(loaded===0){
+    document.getElementById('bpAddr').textContent='⏳ Noch am Laden — bitte 5 Sek warten…';
+    document.getElementById('bpBars').innerHTML='';
+    // Nochmal versuchen in 3 Sekunden
+    setTimeout(()=>{ if(brilleActive) computeStreetScore(latlng); }, 3000);
+    return;
+  }
 
   // Direkt aus Cache lesen — kein aktiver Layer nötig
   function getFeaturesInRadius(filename, radiusDeg){
