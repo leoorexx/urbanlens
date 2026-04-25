@@ -807,9 +807,9 @@ function switchCity(c){
 function loadCity(c){
   const cfg=CITY_CFG[c];
 
-  // Timeout nach 8 Sekunden — danach Fallback
+  // Timeout nach 5 Sekunden
   const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(), 8000);
+  const timeout=setTimeout(()=>controller.abort(), 5000);
 
   fetch(cfg.geojson, {signal:controller.signal})
     .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();})
@@ -827,19 +827,11 @@ function loadCity(c){
     })
     .catch(()=>{
       clearTimeout(timeout);
-      // Fallback: Stadtteile als einfache Kreise aus NICE Score Daten anzeigen
+      // Fallback: ohne Choropleth starten — alle anderen Features funktionieren
       geoFeatures=[];
       renderList();renderStats();
       map.setView(cfg.center,cfg.zoom);
       document.getElementById('loader').style.display='none';
-      // Hinweis anzeigen
-      if(c==='utr'){
-        const info=document.createElement('div');
-        info.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:11px;color:var(--text);z-index:900;box-shadow:var(--shl)';
-        info.textContent='⚠️ Utrecht-Karte: GeoJSON-Server nicht erreichbar. Layer-Daten sind verfügbar.';
-        document.body.appendChild(info);
-        setTimeout(()=>info.remove(), 5000);
-      }
     });
 }
 
@@ -2547,11 +2539,17 @@ async function loadLiveWind(){
   }
 }
 
-// Wind laden und alle 15 Minuten aktualisieren
+// Sicherheitsnetz: Loader nach max 6 Sekunden immer verstecken
 setTimeout(()=>{
-  loadLiveWind();
-  setInterval(loadLiveWind, 15*60*1000);
-}, 2000);
+  const loader=document.getElementById('loader');
+  if(loader) loader.style.display='none';
+}, 6000);
+
+// Wind laden erst nach vollständigem Seitenload — nicht kritisch
+setTimeout(()=>{
+  loadLiveWind().catch(()=>{});
+  setInterval(()=>loadLiveWind().catch(()=>{}), 15*60*1000);
+}, 5000);
 
 initMap();
 
