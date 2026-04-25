@@ -6,7 +6,6 @@
 <title>UrbanLens — Digital Twin Frankfurt & Utrecht</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <style>
 :root{
   --bg:#f5f3ee;--surface:rgba(255,253,248,0.97);--surface2:#f0ede6;
@@ -1179,94 +1178,67 @@ function renderFloodZones(geojson){
 
 
 
-// 🌡️ LST HITZEKARTE — Canvas Heatmap aus vorhandenen Daten (kein API)
-// Wie 90green: glatte Farbfläche über die ganze Stadt
+// 🌡️ LST HITZEKARTE — Flächendeckendes Raster via Open-Meteo
 async function renderLSTGrid(id, statusEl){
   if(!activeLayers[id])return;
   statusEl.innerHTML='<span class="loading-dot"></span> Lade…';
 
-  // Gebäudedaten laden (schon im Cache nach erstem Heat-Layer-Load)
-  let heatData=dataCache[`heat_exposure_${city}.geojson`];
-  if(!heatData){
-    try{
-      const r=await fetch(`data/layers/heat_exposure_${city}.geojson`);
-      heatData=await r.json();
-      dataCache[`heat_exposure_${city}.geojson`]=heatData;
-    }catch(e){ statusEl.textContent='⚠ Fehler'; return; }
-  }
-
-  if(!activeLayers[id])return;
-
-  // Punkte für Leaflet.heat aufbereiten: [lat, lon, intensität]
-  // Intensität 0-1 basierend auf lst_delta oder Gebäudetyp
-  function centroid(coords){
-    if(coords&&coords[0]&&typeof coords[0][0]==='object')coords=coords[0];
-    return[coords.reduce((s,c)=>s+c[1],0)/coords.length, // lat
-           coords.reduce((s,c)=>s+c[0],0)/coords.length]; // lon
-  }
-
-  const HEAT_WEIGHT={
-    extreme:1.0, high:0.75, medium:0.45, low:0.2
-  };
-  // Zusätzlich: Grünflächen als Kältepunkte
-  const GREEN_WEIGHT=-0.3;
+  const CITY_BOUNDS={ffm:{s:50.05,w:8.55,n:50.22,e:8.82},utr:{s:52.04,w:5.05,n:52.14,e:5.20}};
+  const bounds=CITY_BOUNDS[city];
+  const STEP=0.008; // ~600m Raster
 
   const points=[];
+  for(let lat=bounds.s;lat<bounds.n;lat+=STEP)
+    for(let lon=bounds.w;lon<bounds.e;lon+=STEP)
+      points.push({lat:+(lat+STEP/2).toFixed(4),lon:+(lon+STEP/2).toFixed(4),gridLat:lat,gridLon:lon});
 
-  // Gebäude als Wärmequellen
-  heatData.features.forEach(f=>{
-    try{
-      const[lat,lon]=centroid(f.geometry.coordinates);
-      const cls=f.properties.heat_class||'low';
-      const lst=f.properties.lst_delta||0;
-      const weight=HEAT_WEIGHT[cls]??0.2;
-      // Mehrere Punkte pro Gebäude für bessere Flächen-Coverage
-      points.push([lat,lon,weight]);
-      // Leicht versetzt für glattere Darstellung
-      if(weight>0.5){
-        points.push([lat+0.001,lon,weight*0.7]);
-        points.push([lat,lon+0.001,weight*0.7]);
-        points.push([lat-0.001,lon,weight*0.6]);
-      }
-    }catch(e){}
-  });
+  statusEl.textContent=`⏳ ${points.length} Zellen…`;
 
-  // Grünflächen als Kältepole hinzufügen
-  const greenData=dataCache[`green_${city}.geojson`];
-  if(greenData){
-    greenData.features.forEach(f=>{
-      try{
-        const[lat,lon]=centroid(f.geometry.coordinates);
-        // Grünflächen kühlen ab — niedrige Intensität
-        points.push([lat,lon,0.05]);
-      }catch(e){}
-    });
+  function lstColor(t){
+    if(t>=45)return'#7f1d1d';if(t>=40)return'#b91c1c';if(t>=35)return'#dc2626';
+    if(t>=32)return'#f97316';if(t>=29)return'#fbbf24';if(t>=26)return'#fde68a';
+    if(t>=23)return'#a7f3d0';if(t>=20)return'#34d399';if(t>=17)return'#059669';
+    return'#065f46';
+  }
+  function lstLabel(t){
+    if(t>=40)return`🔴 Extremhitze ${t}°C`;if(t>=35)return`🔴 Sehr heiß ${t}°C`;
+    if(t>=30)return`🟠 Heiß ${t}°C`;if(t>=25)return`🟡 Warm ${t}°C`;
+    if(t>=20)return`🟢 Angenehm ${t}°C`;return`🔵 Kühl ${t}°C`;
   }
 
+  const group=L.layerGroup();
+  const BATCH=8;
+  let loaded=0;
+
+  for(let i=0;i<points.length;i+=BATCH){
+    if(!activeLayers[id])return;
+    const batch=points.slice(i,i+BATCH);
+    const lats=batch.map(p=>p.lat).join(',');
+    const lons=batch.map(p=>p.lon).join(',');
+    try{
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=soil_temperature_0cm,temperature_2m&timezone=Europe/Berlin&forecast_days=1`);
+      const data=await r.json();
+      const results=Array.isArray(data)?data:[data];
+      results.forEach((d,j)=>{
+        const p=batch[j];if(!p)return;
+        const lst=d.current?.soil_temperature_0cm??d.current?.temperature_2m??20;
+        L.rectangle([[p.gridLat,p.gridLon],[p.gridLat+STEP,p.gridLon+STEP]],
+          {fillColor:lstColor(lst),color:'transparent',fillOpacity:0.55,weight:0})
+        .bindTooltip(
+          `<b>${lstLabel(lst)}</b><br>Oberfläche: <b>${lst}°C</b> · Luft: ${d.current?.temperature_2m??'?'}°C<br>`+
+          `<small>Open-Meteo · Sentinel-3 LST · Copernicus CCS</small>`,
+          {sticky:true,maxWidth:240})
+        .addTo(group);
+      });
+      loaded+=batch.length;
+      if(activeLayers[id])statusEl.textContent=`⏳ ${loaded}/${points.length}`;
+    }catch(e){loaded+=batch.length;}
+    await new Promise(r=>setTimeout(r,120));
+  }
   if(!activeLayers[id])return;
-
-  // Leaflet.heat Layer erstellen
-  const heatLayer=L.heatLayer(points,{
-    radius:28,        // Radius in Pixeln — größer = glatter
-    blur:22,          // Blur — wie weich die Übergänge sind
-    maxZoom:17,
-    max:1.0,
-    gradient:{        // Farbskala wie 90green/Copernicus
-      0.0:'#065f46',  // Dunkelgrün — sehr kühl
-      0.15:'#059669', // Grün — kühl
-      0.3:'#34d399',  // Hellgrün — angenehm
-      0.45:'#fde68a', // Gelb — warm
-      0.6:'#fbbf24',  // Amber — heiß
-      0.72:'#f97316', // Orange — sehr heiß
-      0.82:'#dc2626', // Rot — kritisch
-      0.92:'#b91c1c', // Dunkelrot — extrem
-      1.0:'#7f1d1d',  // Fast schwarz-rot — Asphalt
-    }
-  });
-
-  heatLayer.addTo(map);
-  layerObjs[id]=heatLayer;
-  statusEl.textContent=`✓ ${points.length} Punkte`;
+  group.addTo(map);
+  layerObjs[id]=group;
+  statusEl.textContent=`✓ ${points.length} Zellen`;
 }
 
 // 🌡️ HITZEINSEL — Gebäude-Level wie 90green Bild 1
