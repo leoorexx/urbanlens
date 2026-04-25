@@ -2199,7 +2199,6 @@ function toggleBuergerbrille(){
     document.getElementById('bpBars').innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px 0">Daten werden geladen…</div>';
     // Click-Handler mit höchster Priorität
     brilleClickHandler = (e)=>{
-      L.DomEvent.stopPropagation(e);
       computeStreetScore(e.latlng);
     };
     map.on('click', brilleClickHandler);
