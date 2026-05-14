@@ -1489,6 +1489,7 @@ async function loadFlood() {
   } catch(e) {
     log('Überflutung: '+e.message, 'err');
     loaded.flood = false;
+    scheduleConflicts(); // still run conflicts with static data
   }
 }
 
@@ -1870,26 +1871,26 @@ async function switchCity(key, tabEl) {
 
 // ─── CITY LOAD SEQUENCE ─────────────────────────────────────
 async function cityLoad() {
-  prog(10,'Wetter…');
+  prog(20, 'Wetter…');
   drawBase();
-  await fetchWeather();
-  prog(28,'Straßennetz…');
-  await loadRoads();
-  await sleep(300);
-  prog(46,'Grünflächen…');
-  await loadGreen();
-  prog(60,'Luftqualität…');
-  await loadAQ();
-  prog(74,'Überflutungszonen…');
-  await loadFlood();
-  prog(88,'Satellitendaten…');
+  // Weather is fast (~300ms) — wait for it, then show map immediately
+  await fetchWeather().catch(function(e){ log('Wetter: '+e.message,'err'); });
+  prog(100, 'Bereit!');
+  hideLoader(); // ← Karte sofort sichtbar
+
+  // All heavy Overpass + API calls run in background, staggered to avoid rate limits
   loadMODIS();
-  prog(100,'Bereit!');
-  hideLoader();
-  // Non-blocking post-load
-  loadFlights();
-  setTimeout(function(){ computeConflicts(); }, 1500);
-  if(mode==='nice') { loadCycling(); loadPOI(); loadTransit(); }
+  setTimeout(function(){ loadRoads(); },    200);
+  setTimeout(function(){ loadGreen(); },    800);
+  setTimeout(function(){ loadAQ(); },      1600);
+  setTimeout(function(){ loadFlood(); },   2400);
+  setTimeout(function(){ loadFlights(); }, 3200);
+  setTimeout(function(){ computeConflicts(); }, 8000); // after data is mostly in
+  if(mode==='nice') {
+    setTimeout(function(){ loadCycling(); },  900);
+    setTimeout(function(){ loadPOI(); },     1800);
+    setTimeout(function(){ loadTransit(); }, 2700);
+  }
 }
 
 // ─── INIT ───────────────────────────────────────────────────
