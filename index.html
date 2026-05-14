@@ -1818,6 +1818,9 @@ function applyScenario() {
   toggleScenario();
   log('Szenario "'+type+'" auf Karte angewendet', 'ok');
 }
+
+// ─── TOGGLE ─────────────────────────────────────────────────
+function togL(name, rowEl) {
   layers[name] = !layers[name];
   var sw = el('sw-'+name); if(sw) sw.classList.toggle('on', layers[name]);
   rowEl.classList.toggle('on', layers[name]);
