@@ -22,6 +22,10 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
 #map{position:fixed;inset:0;z-index:1}
 #map3d-overlay{position:fixed;inset:0;z-index:2;display:none}
+.layer-btn-3d{position:fixed;top:62px;left:10px;z-index:1006;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:8px 14px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;box-shadow:var(--sh);display:none;align-items:center;gap:6px;transition:all .15s;margin-top:8px}
+.layer-btn-3d.active{display:flex}
+.layer-btn-3d:hover{background:var(--surface2)}
+.layer-panel-3d-pos{top:116px!important;left:10px!important}
 .mode-bar-3d{position:fixed;top:54px;left:0;right:0;z-index:1010;display:none;align-items:center;justify-content:center;padding:5px 12px;gap:3px;overflow-x:auto;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,0.07)}
 .mode-bar-3d.active{display:flex}
 .mode-btn-3d{padding:5px 13px;border-radius:14px;font-size:11px;font-weight:700;border:none;cursor:pointer;transition:all .15s;color:#6b7280;background:transparent;white-space:nowrap;flex-shrink:0}
@@ -351,6 +355,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="nsep"></div>
   <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none">📊 Dashboard</a>
   <div class="nsep"></div>
+  <button class="bbrille-btn" id="nav3dBtn" onclick="toggle3DView()">🏗 3D Analyse</button>
+  <div class="nsep"></div>
   <div class="ninfo">🏙 Frankfurt am Main · NICE Score — <b>117 Indikatoren</b></div>
   <div class="nav-r">
     <button class="bbrille-btn" id="bbrilleBtn" onclick="toggleBuergerbrille()">
@@ -410,6 +416,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- 3D OVERLAY — MapLibre GL JS embedded view                  -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div id="map3d-overlay"></div>
+
+<!-- 3D mode: Layer panel button repositioned to left side -->
+<button class="layer-btn-3d" id="layerBtn3d" onclick="toggle3DLayerPanel()">
+  🗺️ Karten-Layer <span class="lcount" id="layerCount3d">0</span>
+</button>
 
 <!-- 3D MODE BAR -->
 <div class="mode-bar-3d" id="modeBar3d">
@@ -723,11 +734,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lstatus" id="st-parking"></span>
   </div>
 
-  <div class="lp-section">🏗 3D Stadtanalyse</div>
-  <div style="padding:4px 0 8px">
-    <button class="btn3d-activate" id="btn3d" onclick="toggle3DView()">🏗 3D Ansicht aktivieren</button>
-    <div style="font-size:9px;color:var(--muted);margin-top:6px;line-height:1.5;text-align:center">MapLibre GL · 7 Analyseebenen · CO₂, Hitze, Fluglärm, Flut, Radwege, Bänke</div>
-  </div>
 
   <div class="llegend">
     <b style="color:var(--text)">🚲 Radwege:</b>
@@ -1473,6 +1479,7 @@ function toggleLayer(id){
   const st=document.getElementById('st-'+id);
   if(activeLayers[id]){
     if(layerObjs[id])map.removeLayer(layerObjs[id]);
+    if(is3dActive && map3d){if(map3d.getLayer('ml-'+id))map3d.removeLayer('ml-'+id);if(map3d.getSource('ml-'+id))map3d.removeSource('ml-'+id);}
     delete activeLayers[id];delete layerObjs[id];
     tog.classList.remove('on');st.textContent='';
     activeCount--;document.getElementById('layerCount').textContent=activeCount;
@@ -1481,6 +1488,7 @@ function toggleLayer(id){
     st.innerHTML='<span class="loading-dot"></span>';
     activeCount++;document.getElementById('layerCount').textContent=activeCount;
     loadLayer(id,st);
+    if(is3dActive && map3dReady) loadLayerInto3D(id, st);
   }
   // Toggle choropleth pane visibility instantly — no redraw needed
   const pane=map.getPane('choropleth');
@@ -3455,23 +3463,57 @@ function toggle3DView(){
   is3dActive = !is3dActive;
   const overlay = document.getElementById("map3d-overlay");
   const modeBar = document.getElementById("modeBar3d");
-  const btn = document.getElementById("btn3d");
+  const navBtn = document.getElementById("nav3dBtn");
+  const leftPanel = document.querySelector(".left");
+  const layerBtn = document.querySelector(".layer-btn");
+  const layerPanel = document.getElementById("layerPanel");
+  const layerBtn3d = document.getElementById("layerBtn3d");
+  const kdBtn = document.getElementById("kdBtn");
+  const kdPanel = document.getElementById("kdPanel");
 
   if(is3dActive){
     overlay.style.display = "block";
     modeBar.classList.add("active");
-    if(btn) btn.textContent = "✕ 3D Ansicht deaktivieren";
-    if(btn) btn.style.background = "#dc2626";
+    if(navBtn){ navBtn.classList.add("on"); navBtn.textContent = "✕ 3D"; }
+    // Hide 2D-only elements
+    if(leftPanel) leftPanel.style.display = "none";
+    if(layerBtn) layerBtn.style.display = "none";
+    if(kdBtn) kdBtn.style.display = "none";
+    if(kdPanel) kdPanel.style.display = "none";
+    // Close & reposition layer panel for 3D
+    if(layerPanel){ layerPanel.classList.remove("open"); layerPanel.style.display="none"; layerPanel.classList.add("layer-panel-3d-pos"); }
+    if(layerBtn3d) layerBtn3d.classList.add("active");
+    // Close right drawer
+    if(typeof closeDrawer === "function") closeDrawer();
+    // Show first 3D panel
+    document.querySelectorAll(".panel3d").forEach(p=>p.classList.remove("active"));
+    const firstPanel = document.getElementById("p3d-co2");
+    if(firstPanel) firstPanel.classList.add("active");
     if(!map3dReady) initMap3d();
+    else { document.getElementById("treebar3d").classList.add("active"); }
   } else {
     overlay.style.display = "none";
     modeBar.classList.remove("active");
-    // hide all 3d panels
+    if(navBtn){ navBtn.classList.remove("on"); navBtn.textContent = "🏗 3D Analyse"; }
+    // Restore 2D elements
+    if(leftPanel) leftPanel.style.display = "flex";
+    if(layerBtn) layerBtn.style.display = "flex";
+    if(kdBtn) kdBtn.style.display = "flex";
+    // Restore layer panel
+    if(layerPanel){ layerPanel.classList.remove("layer-panel-3d-pos"); layerPanel.style.display=""; }
+    if(layerBtn3d) layerBtn3d.classList.remove("active");
+    // Hide 3D panels
     document.querySelectorAll(".panel3d").forEach(p=>p.classList.remove("active"));
     document.getElementById("treebar3d").classList.remove("active");
     document.getElementById("info3d").style.display = "none";
-    if(btn) btn.textContent = "🏗 3D Ansicht aktivieren";
-    if(btn) btn.style.background = "#1a1a2e";
+    closeInfo3d();
+    // Remove all MapLibre extra layers
+    if(map3d) {
+      ["ml-heat","ml-flood","ml-parks","ml-schools","ml-health","ml-noise","ml-trees","ml-benches"].forEach(id=>{
+        if(map3d.getLayer(id)) map3d.removeLayer(id);
+        if(map3d.getSource(id)) map3d.removeSource(id);
+      });
+    }
   }
 }
 
@@ -3716,6 +3758,129 @@ function showBuildingInfo3d(p){
     ${rl}
     <div style="margin-top:10px;font-size:9px;color:#9ca3af">Copernicus Urban Atlas · OSM · EPC-Schätzmodell Hessen</div>`;
   document.getElementById("info3d").style.display="block";
+}
+
+function toggle3DLayerPanel(){
+  const lp = document.getElementById("layerPanel");
+  if(!lp) return;
+  const isOpen = lp.classList.contains("open");
+  if(isOpen){
+    lp.classList.remove("open");
+    lp.style.display = "none";
+  } else {
+    lp.classList.add("open");
+    lp.style.display = "block";
+    lp.style.top = "116px";
+    lp.style.left = "10px";
+  }
+}
+
+async function loadLayerInto3D(id, statusEl){
+  if(!map3d || !map3dReady) return;
+  const BASE = "https://raw.githubusercontent.com/leoorexx/urbanlens/main/data/layers";
+  const city = window.city || "ffm";
+  // Remove old layer/source if exists
+  if(map3d.getLayer('ml-'+id)) map3d.removeLayer('ml-'+id);
+  if(map3d.getSource('ml-'+id)) map3d.removeSource('ml-'+id);
+
+  const fileMap = {
+    heat: `heat_exposure_${city}.geojson`,
+    flood: `flood_exposure_${city}.geojson`,
+    parks: `green_${city}.geojson`,
+    trees: `trees_${city}.geojson`,
+    benches: `benches_${city}.geojson`,
+    noise: `noise_roads_${city}.geojson`,
+    bike: `bike_${city}.geojson`,
+    schools: `pois_${city}.geojson`,
+    health: `pois_${city}.geojson`,
+    co2: `co2_buildings_${city}.geojson`,
+    footways_quality: `footways_quality_${city}.geojson`,
+    hessen_heat: `heat_exposure_${city}.geojson`,
+    flight_noise: `flight_noise_${city}.geojson`,
+  };
+  const file = fileMap[id];
+  if(!file) return;
+  try {
+    const data = await fetch(`data/layers/${file}`).then(r=>{ if(!r.ok) throw Error(); return r.json(); })
+      .catch(()=> fetch(`${BASE}/${file}`).then(r=>r.json()));
+
+    map3d.addSource('ml-'+id, {type:"geojson", data});
+
+    if(id==="heat" || id==="hessen_heat"){
+      map3d.addLayer({id:'ml-'+id,type:"fill-extrusion",source:'ml-'+id,paint:{
+        "fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","lst_delta"],["get","lst"],0],
+          0,"#a7f3d0",1,"#fde68a",2,"#fbbf24",3,"#f97316",4,"#dc2626",5,"#7f1d1d"],
+        "fill-extrusion-height":["*",["coalesce",["get","lst_delta"],["get","lst"],2],4],
+        "fill-extrusion-opacity":0.75,
+      }});
+    } else if(id==="flood"){
+      map3d.addLayer({id:'ml-'+id,type:"fill-extrusion",source:'ml-'+id,paint:{
+        "fill-extrusion-color":["match",["get","flood_risk"],"critical","#7f1d1d","high","#ef4444","medium","#f97316","#fbbf24"],
+        "fill-extrusion-height":8,"fill-extrusion-opacity":0.8,
+      }});
+    } else if(id==="parks"){
+      map3d.addLayer({id:'ml-'+id,type:"fill",source:'ml-'+id,paint:{
+        "fill-color":"#16a34a","fill-opacity":0.4,"fill-outline-color":"#15803d",
+      }});
+    } else if(id==="trees"){
+      map3d.addLayer({id:'ml-'+id,type:"circle",source:'ml-'+id,paint:{
+        "circle-radius":["interpolate",["linear"],["zoom"],11,1,14,3,17,6],
+        "circle-color":"#16a34a","circle-opacity":0.85,
+      }});
+    } else if(id==="benches"){
+      map3d.addLayer({id:'ml-'+id,type:"circle",source:'ml-'+id,paint:{
+        "circle-radius":4,"circle-color":"#8b5cf6","circle-opacity":0.8,
+      }});
+    } else if(id==="noise"){
+      map3d.addLayer({id:'ml-'+id,type:"line",source:'ml-'+id,paint:{
+        "line-color":["match",["get","highway"],"motorway","#dc2626","trunk","#ea580c","primary","#d97706","#ca8a04"],
+        "line-width":3,"line-opacity":0.7,
+      }});
+    } else if(id==="bike"){
+      map3d.addLayer({id:'ml-'+id,type:"line",source:'ml-'+id,paint:{
+        "line-color":["match",["get","cycleway"],"track","#16a34a","lane","#4ade80","no","#ef4444","#22c55e"],
+        "line-width":2.5,"line-opacity":0.9,
+      }});
+    } else if(id==="footways_quality"){
+      map3d.addLayer({id:'ml-'+id,type:"line",source:'ml-'+id,paint:{
+        "line-color":["match",["get","surface"],"asphalt","#22c55e","paved","#22c55e","concrete","#4ade80","paving_stones","#fbbf24","sett","#f97316","ground","#dc2626","dirt","#dc2626","#d1d5db"],
+        "line-width":2,"line-opacity":0.8,
+      }});
+    } else if(id==="schools"){
+      const filtered = {...data, features: data.features.filter(f=>["school","kindergarten","university"].includes(f.properties.amenity||f.properties.building))};
+      map3d.getSource('ml-'+id).setData(filtered);
+      map3d.addLayer({id:'ml-'+id,type:"circle",source:'ml-'+id,paint:{
+        "circle-radius":6,"circle-color":"#3b82f6","circle-opacity":0.85,
+        "circle-stroke-color":"#1d4ed8","circle-stroke-width":1.5,
+      }});
+    } else if(id==="health"){
+      const filtered = {...data, features: data.features.filter(f=>["hospital","clinic","doctors","pharmacy"].includes(f.properties.amenity))};
+      map3d.getSource('ml-'+id).setData(filtered);
+      map3d.addLayer({id:'ml-'+id,type:"circle",source:'ml-'+id,paint:{
+        "circle-radius":7,"circle-color":"#ef4444","circle-opacity":0.85,
+        "circle-stroke-color":"#b91c1c","circle-stroke-width":1.5,
+      }});
+    } else if(id==="co2"){
+      data.features.forEach(f=>{ f.properties.height = HEIGHT_BY_TYPE3D[f.properties.building]??10; });
+      map3d.getSource('ml-'+id).setData(data);
+      map3d.addLayer({id:'ml-'+id,type:"fill-extrusion",source:'ml-'+id,paint:{
+        "fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","co2_kg_m2"],0],0,"#1e3a8a",60,"#3b82f6",100,"#fbbf24",140,"#f97316",180,"#7f1d1d"],
+        "fill-extrusion-height":["get","height"],"fill-extrusion-opacity":0.8,
+      }});
+    } else if(id==="flight_noise"){
+      map3d.addLayer({id:'ml-'+id,type:"fill",source:'ml-'+id,paint:{
+        "fill-color":["coalesce",["get","color"],"#f97316"],"fill-opacity":0.3,
+      }});
+    } else {
+      // Generic point fallback
+      map3d.addLayer({id:'ml-'+id,type:"circle",source:'ml-'+id,paint:{
+        "circle-radius":5,"circle-color":"#6366f1","circle-opacity":0.8,
+      }});
+    }
+    if(statusEl) statusEl.textContent = `✓ 3D`;
+  } catch(e) {
+    console.warn("3D layer load failed:", id, e);
+  }
 }
 </script>
 </body>
