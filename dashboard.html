@@ -129,6 +129,36 @@ svg text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 /* ATTRIBUTION */
 .attribution{text-align:center;font-size:9px;color:#9ca3af;padding:24px 0 12px;line-height:1.8}
 .attribution a{color:var(--accent);text-decoration:none}
+
+/* HITZE & GRÜN SECTION */
+.hg-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.hg-chain{display:flex;flex-direction:column;gap:2px;padding:14px 18px}
+.hg-step{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid;margin-bottom:2px}
+.hg-step.s-heat{background:rgba(239,68,68,0.07);border-color:rgba(239,68,68,0.22)}
+.hg-step.s-ndvi{background:rgba(34,197,94,0.07);border-color:rgba(34,197,94,0.22)}
+.hg-step.s-feuch{background:rgba(96,165,250,0.07);border-color:rgba(96,165,250,0.22)}
+.hg-step.s-hlth{background:rgba(168,85,247,0.07);border-color:rgba(168,85,247,0.22)}
+.hg-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.hg-body{flex:1}
+.hg-name{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px}
+.hg-val{font-size:14px;font-weight:800;line-height:1.1;margin-bottom:2px}
+.hg-desc{font-size:9px;color:var(--text2);line-height:1.5}
+.hg-arr{text-align:center;font-size:16px;color:var(--muted);line-height:1}
+.heat-rank-item{display:flex;align-items:center;gap:8px;padding:6px 18px;border-bottom:1px solid var(--border)}
+.heat-rank-item:last-child{border:none}
+.heat-rank-n{font-size:10px;color:var(--muted);width:18px;text-align:right;flex-shrink:0}
+.heat-rank-name{font-size:11px;font-weight:600;flex:1}
+.heat-rank-bar{width:80px;flex-shrink:0}
+.heat-rank-track{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.heat-rank-fill{height:100%;border-radius:4px;transition:width .6s}
+.heat-rank-val{font-size:10px;font-weight:700;width:44px;text-align:right;flex-shrink:0}
+.ndvi-rank-item{display:flex;align-items:center;gap:8px;padding:6px 18px;border-bottom:1px solid var(--border)}
+.ndvi-rank-item:last-child{border:none}
+.ndvi-rank-name{font-size:11px;font-weight:600;flex:1}
+.ndvi-rank-bar{width:80px;flex-shrink:0}
+.ndvi-rank-track{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.ndvi-rank-fill{height:100%;border-radius:4px;transition:width .6s}
+.ndvi-rank-val{font-size:10px;font-weight:700;width:44px;text-align:right;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -210,6 +240,97 @@ svg text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
         <div class="card-sub">Automatisch erkannte Muster basierend auf Dreifachbelastung und Verdrängungsgefahr.</div>
       </div>
       <div id="radarFeed"></div>
+    </div>
+  </div>
+
+  <!-- HITZE & GRÜN SECTION -->
+  <div style="margin-bottom:16px">
+    <div style="font-size:18px;font-weight:900;color:#1a1a2e;letter-spacing:-.3px;margin-bottom:4px">🌡️ Hitze-Inseln &amp; Grünflächenkataster</div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:14px">Wie Versiegelung, fehlende Vegetation und Feuchtstress zusammenwirken — und welche Stadtteile am stärksten betroffen sind.</div>
+  </div>
+
+  <div class="hg-grid">
+    <!-- Kausalkette -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">⛓️ Wirkungskette Hitzeinsel</div>
+        <div class="card-sub">So entsteht ein urbaner Hitzeinsel-Effekt — vier verbundene Faktoren.</div>
+      </div>
+      <div class="hg-chain">
+        <div class="hg-step s-heat">
+          <div class="hg-icon">🌡️</div>
+          <div class="hg-body">
+            <div class="hg-name">Oberflächentemperatur (LST)</div>
+            <div class="hg-val" style="color:#ef4444">+3,9°C Bahnhofsviertel</div>
+            <div class="hg-desc">Dichte Bebauung + dunkle Oberflächen absorbieren Sonnenwärme. Wenig Luft­zirkulation. Benchmark: Frankfurt Ø +1,4°C.</div>
+          </div>
+        </div>
+        <div class="hg-arr">↓</div>
+        <div class="hg-step s-ndvi">
+          <div class="hg-icon">🌿</div>
+          <div class="hg-body">
+            <div class="hg-name">Vegetationsmangel (NDVI)</div>
+            <div class="hg-val" style="color:#f97316">0.10 — Kritisch</div>
+            <div class="hg-desc">Kaum Grün = kein Kühleffekt durch Transpiration. Bäume und Parks können lokal bis −4°C Abkühlung leisten (Copernicus Sentinel-2).</div>
+          </div>
+        </div>
+        <div class="hg-arr">↓</div>
+        <div class="hg-step s-feuch">
+          <div class="hg-icon">💧</div>
+          <div class="hg-body">
+            <div class="hg-name">Feuchtstress (Versiegelung)</div>
+            <div class="hg-val" style="color:#ef4444">88% — Kritisch</div>
+            <div class="hg-desc">Versiegelte Flächen können kein Regenwasser speichern. Kein Wasser = kein Verdunstungskühleffekt. Starkregen läuft ungenutzt ab.</div>
+          </div>
+        </div>
+        <div class="hg-arr">↓</div>
+        <div class="hg-step s-hlth">
+          <div class="hg-icon">❤️</div>
+          <div class="hg-body">
+            <div class="hg-name">Gesundheitsfolgen</div>
+            <div class="hg-val" style="color:#ef4444">Hoch — 79/100</div>
+            <div class="hg-desc">UBA MK 4.0 (Feb. 2026): ~2 Mio€ Folgekosten pro Hitzetod. Frankfurt 2022: ~180 Hitzetote. Ältere, Kinder und Arme besonders gefährdet.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hitze-Ranking -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🔥 Wärmste Stadtteile — LST-Ranking</div>
+        <div class="card-sub">Oberflächentemperatur-Delta gegenüber dem Frankfurter Umland. Quelle: Copernicus Urban Atlas · HLNUG.</div>
+      </div>
+      <div id="heatRankList"></div>
+      <div style="padding:10px 18px 14px;border-top:1px solid var(--border)">
+        <div style="display:flex;gap:3px;border-radius:4px;overflow:hidden;height:10px;margin-bottom:4px">
+          <div style="flex:1;background:#4ade80"></div><div style="flex:1;background:#fde68a"></div>
+          <div style="flex:1;background:#f97316"></div><div style="flex:1;background:#ef4444"></div>
+          <div style="flex:1;background:#7f1d1d"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--muted)">
+          <span>Kühl (≤0°C)</span><span>+1°C</span><span>+2°C</span><span>+3°C</span><span>Extrem (+4°C)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NDVI / Grünkataster -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🌿 Grünflächenkataster — NDVI-Ranking</div>
+        <div class="card-sub">Vegetationsindex: Höher = mehr Grün = bessere natürliche Kühlung. NDVI-Proxy aus Versiegelungsgrad.</div>
+      </div>
+      <div id="ndviRankList"></div>
+      <div style="padding:10px 18px 14px;border-top:1px solid var(--border)">
+        <div style="display:flex;gap:3px;border-radius:4px;overflow:hidden;height:10px;margin-bottom:4px">
+          <div style="flex:1;background:#f97316"></div><div style="flex:1;background:#fde68a"></div>
+          <div style="flex:1;background:#a3e635"></div><div style="flex:1;background:#22c55e"></div>
+          <div style="flex:1;background:#15803d"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--muted)">
+          <span>Kritisch (&lt;0.20)</span><span>Niedrig</span><span>Mäßig</span><span>Gut</span><span>Sehr gut</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -615,6 +736,81 @@ function setScenario(s){
   renderMilestones();
 }
 
+// ── HITZE-RANKING & NDVI-KATASTER ────────────────────────────
+function heatFillColor(delta){
+  if(delta<=-0.5)return'#4ade80';
+  if(delta<=0)   return'#86efac';
+  if(delta<=0.5) return'#a3e635';
+  if(delta<=1.0) return'#fde68a';
+  if(delta<=1.5) return'#fbbf24';
+  if(delta<=2.0) return'#f97316';
+  if(delta<=2.5) return'#ef4444';
+  if(delta<=3.0) return'#dc2626';
+  if(delta<=3.5) return'#b91c1c';
+  return'#7f1d1d';
+}
+
+function renderHeatRanking(){
+  // Top 12 wärmste Stadtteile
+  const sorted = Object.entries(DISTRICTS)
+    .map(([name,d])=>({name, delta:d.lst_delta||0, versieg:d.versieg||50}))
+    .sort((a,b)=>b.delta-a.delta)
+    .slice(0,12);
+  const maxDelta = sorted[0].delta;
+
+  document.getElementById('heatRankList').innerHTML = sorted.map((e,i)=>{
+    const col = heatFillColor(e.delta);
+    const pct = Math.round((e.delta+1)/(maxDelta+1)*100);
+    const badge = e.delta>=3?'Extrem':e.delta>=2?'Heiß':e.delta>=1?'Warm':'Kühl';
+    return`<div class="heat-rank-item">
+      <div class="heat-rank-n">${i+1}</div>
+      <div class="heat-rank-name" style="color:${col}">${e.name}</div>
+      <div class="heat-rank-bar">
+        <div class="heat-rank-track">
+          <div class="heat-rank-fill" style="width:${pct}%;background:${col}"></div>
+        </div>
+      </div>
+      <div class="heat-rank-val" style="color:${col}">${e.delta>=0?'+':''}${e.delta}°C</div>
+    </div>`;
+  }).join('');
+}
+
+function renderNDVIRanking(){
+  // NDVI-Proxy: (100-versieg)/100 * 0.85, sortiert von BESTEM zu schlechtestem
+  const sorted = Object.entries(DISTRICTS)
+    .map(([name,d])=>({
+      name,
+      ndvi: Math.max(0.02,((100-(d.versieg||60))/100)*0.85),
+      versieg: d.versieg||60
+    }))
+    .sort((a,b)=>b.ndvi-a.ndvi)
+    .slice(0,12);
+
+  function ndviColor(v){
+    if(v>=0.55)return'#15803d';
+    if(v>=0.45)return'#22c55e';
+    if(v>=0.35)return'#a3e635';
+    if(v>=0.22)return'#f97316';
+    return'#ef4444';
+  }
+
+  document.getElementById('ndviRankList').innerHTML = sorted.map((e,i)=>{
+    const col = ndviColor(e.ndvi);
+    const pct = Math.round(e.ndvi*100);
+    const lbl = e.ndvi>=0.5?'Sehr gut':e.ndvi>=0.35?'Gut':e.ndvi>=0.22?'Mäßig':'Niedrig';
+    return`<div class="ndvi-rank-item">
+      <div class="heat-rank-n">${i+1}</div>
+      <div class="ndvi-rank-name" style="color:${col}">${e.name}</div>
+      <div class="ndvi-rank-bar">
+        <div class="ndvi-rank-track">
+          <div class="ndvi-rank-fill" style="width:${pct}%;background:${col}"></div>
+        </div>
+      </div>
+      <div class="ndvi-rank-val" style="color:${col}">${e.ndvi.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+}
+
 // ── INIT ─────────────────────────────────────────────────────
 renderKPIs();
 drawChart();
@@ -622,6 +818,8 @@ renderSzDetail();
 renderMilestones();
 renderRanking();
 renderRadar();
+renderHeatRanking();
+renderNDVIRanking();
 </script>
 </body>
 </html>
