@@ -6,6 +6,8 @@
 <title>UrbanLens — Digital Twin Frankfurt</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://unpkg.com/maplibre-gl@5.5.0/dist/maplibre-gl.css" rel="stylesheet"/>
+<script src="https://unpkg.com/maplibre-gl@5.5.0/dist/maplibre-gl.js"></script>
 <style>
 :root{
   --bg:#f5f3ee;--surface:#ffffff;--surface2:rgba(0,0,0,0.03);
@@ -19,6 +21,33 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
 #map{position:fixed;inset:0;z-index:1}
+#map3d-overlay{position:fixed;inset:0;z-index:2;display:none}
+.mode-bar-3d{position:fixed;top:54px;left:0;right:0;z-index:1010;display:none;align-items:center;justify-content:center;padding:5px 12px;gap:3px;overflow-x:auto;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,0.07)}
+.mode-bar-3d.active{display:flex}
+.mode-btn-3d{padding:5px 13px;border-radius:14px;font-size:11px;font-weight:700;border:none;cursor:pointer;transition:all .15s;color:#6b7280;background:transparent;white-space:nowrap;flex-shrink:0}
+.mode-btn-3d.on{background:#1a1a2e;color:#FFD600}
+.mode-btn-3d:hover:not(.on){background:rgba(0,0,0,0.07);color:#1a1a2e}
+.panel3d{position:fixed;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1);z-index:1005;top:108px;left:10px;width:272px;padding:15px;max-height:calc(100vh - 128px);overflow-y:auto;scrollbar-width:thin;display:none}
+.panel3d.active{display:block}
+.info3d{position:fixed;top:108px;right:10px;width:290px;padding:15px;display:none;max-height:calc(100vh - 128px);overflow-y:auto;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1);z-index:1005}
+.tree-bar-3d{position:fixed;bottom:20px;left:10px;width:272px;z-index:1005;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:10px 14px;display:none;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.tree-bar-3d.active{display:flex}
+.toggle-sw3d{width:36px;height:20px;border-radius:10px;background:rgba(0,0,0,0.12);border:none;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle-sw3d.on{background:#16a34a}
+.toggle-sw3d::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle-sw3d.on::after{left:19px}
+.loader3d{position:fixed;inset:0;z-index:1099;background:rgba(245,243,238,0.92);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center}
+.loader3d.active{display:flex}
+.kpi-row-3d{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.kpi-box-3d{background:#f5f3ee;border:1px solid rgba(0,0,0,0.06);border-radius:10px;padding:9px 11px}
+.kpi-val-3d{font-size:16px;font-weight:800;color:#1a1a2e;line-height:1}
+.kpi-lbl-3d{font-size:9px;color:#9ca3af;margin-top:3px}
+.ptitle3d{font-size:12px;font-weight:800;color:#1a1a2e;letter-spacing:-.2px;margin-bottom:4px}
+.psub3d{font-size:10px;color:#6b7280;line-height:1.5}
+.btn3d-activate{width:100%;padding:10px;background:#1a1a2e;color:#FFD600;border:none;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.02em}
+.btn3d-activate:hover{background:#2d2d4e;transform:translateY(-1px)}
+.maplibregl-ctrl-attrib{font-size:9px!important}
+.maplibregl-ctrl-group{border-radius:10px!important;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1)!important}
 
 /* NAV — white bar like Shadowmap homepage */
 .nav{position:fixed;top:0;left:0;right:0;height:54px;z-index:1000;background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:0 2px 16px rgba(0,0,0,0.08)}
@@ -322,8 +351,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="nsep"></div>
   <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none">📊 Dashboard</a>
   <div class="nsep"></div>
-  <a href="map3d.html" class="bbrille-btn" style="text-decoration:none">🏗 3D Ansicht</a>
-  <div class="nsep"></div>
   <div class="ninfo">🏙 Frankfurt am Main · NICE Score — <b>117 Indikatoren</b></div>
   <div class="nav-r">
     <button class="bbrille-btn" id="bbrilleBtn" onclick="toggleBuergerbrille()">
@@ -378,6 +405,144 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div id="map"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 3D OVERLAY — MapLibre GL JS embedded view                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="map3d-overlay"></div>
+
+<!-- 3D MODE BAR -->
+<div class="mode-bar-3d" id="modeBar3d">
+  <button class="mode-btn-3d on" data-mode3d="co2">💨 CO₂ 3D</button>
+  <button class="mode-btn-3d" data-mode3d="bi">🌡️ Hitze × Bäume</button>
+  <button class="mode-btn-3d" data-mode3d="footway">🚶 Gehwegqualität</button>
+  <button class="mode-btn-3d" data-mode3d="flight">✈️ Fluglärm-Korridor</button>
+  <button class="mode-btn-3d" data-mode3d="flood">🌊 Flut-Risiko</button>
+  <button class="mode-btn-3d" data-mode3d="bike">🚲 Bike-Lücken</button>
+  <button class="mode-btn-3d" data-mode3d="bench">🪑 Bänke-Dichte</button>
+  <button class="mode-btn-3d" onclick="toggle3DView()" style="margin-left:8px;background:rgba(220,38,38,0.1);color:#dc2626;border:1px solid rgba(220,38,38,0.2)">✕ 3D schließen</button>
+</div>
+
+<!-- 3D LEFT PANELS -->
+<div class="panel3d active" id="p3d-co2">
+  <div class="ptitle3d">💨 CO₂-Intensität — Gebäudeebene</div>
+  <div class="psub3d">Schätzwert aus Baujahr + Typ × EPC-Hessen · kg CO₂/m² Nutzfläche</div>
+  <div style="height:8px;border-radius:4px;margin:10px 0 4px;background:linear-gradient(90deg,#1e3a8a,#3b82f6,#fbbf24,#f97316,#7f1d1d)"></div>
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:#9ca3af"><span>0</span><span>60</span><span>100</span><span>140</span><span>180+</span></div>
+  <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:#374151;margin-top:12px"><span>Sanierungs-Szenario</span><span style="font-size:13px;font-weight:800;color:#1a1a2e;font-variant-numeric:tabular-nums" id="reno3d-val">−0%</span></div>
+  <input id="reno3d" type="range" min="0" max="70" step="5" value="0" style="width:100%;accent-color:#1a1a2e;margin-top:6px"/>
+  <div id="co2-stats-3d" style="font-size:10px;color:#9ca3af;margin-top:6px;line-height:1.5">—</div>
+  <div class="kpi-row-3d" id="kpi-co2-3d"></div>
+  <div style="margin-top:12px;border-top:1px solid rgba(0,0,0,0.06);padding-top:10px">
+    <div style="font-size:9px;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Datenkette</div>
+    <div style="display:flex;align-items:flex-start;gap:6px;padding:5px 0"><div style="font-size:13px;width:18px;text-align:center;margin-top:1px;flex-shrink:0">🏛</div><div><div style="font-size:9px;font-weight:800;color:#1a1a2e">OSM Gebäudetypologie + Baujahr</div><div style="font-size:9px;color:#9ca3af">building=*, start_date → 8.054 Gebäude</div></div></div>
+    <div style="display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-top:1px dashed rgba(0,0,0,0.07)"><div style="font-size:13px;width:18px;text-align:center;margin-top:1px;flex-shrink:0">⚙️</div><div><div style="font-size:9px;font-weight:800;color:#1a1a2e">EPC-Modell Hessen (BBSR 2023)</div><div style="font-size:9px;color:#9ca3af">Sanierungsklasse × Typ → CO₂ kg/m²</div></div></div>
+    <div style="display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-top:1px dashed rgba(0,0,0,0.07)"><div style="font-size:13px;width:18px;text-align:center;margin-top:1px;flex-shrink:0">🏗</div><div><div style="font-size:9px;font-weight:800;color:#1a1a2e">3D-Extrusion nach Emissionen</div><div style="font-size:9px;color:#9ca3af">Höhe = Typ-Proxy · Farbe = CO₂</div></div></div>
+  </div>
+</div>
+<div class="panel3d" id="p3d-bi">
+  <div class="ptitle3d">🌡️ Hitze × Bäume — bivariat 3×3</div>
+  <div class="psub3d">Thermische Belastung (Sentinel-3 LST) × Entfernung zum nächsten Straßenbaum</div>
+  <div id="bi-legend-3d" style="display:inline-grid;gap:3px;margin-top:10px;grid-template-columns:auto repeat(3,60px)"></div>
+  <div style="margin-top:10px;padding:8px 10px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.18);border-radius:8px;font-size:10px;color:#dc2626;line-height:1.5">
+    🔴 <b>Dunkelrot oben rechts</b> = heiß <em>und</em> baumfern = Klimatischer Hotspot.<br>Priorität für Straßenbäume, Entsiegelung und Verschattung.
+  </div>
+</div>
+<div class="panel3d" id="p3d-footway">
+  <div class="ptitle3d">🚶 Gehwegqualität — Barrierefreiheit</div>
+  <div class="psub3d">Oberflächenqualität aus OSM surface-Tags · 6.000 Segmente · Proxy für Barrierefreiheit</div>
+  <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:3px;border-radius:2px;background:#22c55e;flex-shrink:0"></div><span>Asphalt / befestigt — sehr gut</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:3px;border-radius:2px;background:#86efac;flex-shrink:0"></div><span>Beton / Betonplatten — gut</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:3px;border-radius:2px;background:#fbbf24;flex-shrink:0"></div><span>Pflastersteine / verdichtet — mittel</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:3px;border-radius:2px;background:#f97316;flex-shrink:0"></div><span>Kopfsteinpflaster / Kies — schlecht</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:3px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><span>Erde / Schotter — sehr schlecht</span></div>
+  </div>
+  <div class="kpi-row-3d" id="kpi-footway-3d"></div>
+</div>
+<div class="panel3d" id="p3d-flight">
+  <div class="ptitle3d">✈️ Fluglärm-Korridor — Schutzzonenkarte</div>
+  <div class="psub3d">Lärm-Schutzzonen nach FluLärmG · je nach aktiver Runway verschiebt sich der Korridor</div>
+  <div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:9px;border-radius:3px;background:#dc2626;opacity:.8;flex-shrink:0"></div><span>Zone 1 — Nachtschutzbereich &gt;53 dB(A)</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:9px;border-radius:3px;background:#f97316;opacity:.8;flex-shrink:0"></div><span>Zone 2 — Tagschutzbereich &gt;60 dB(A)</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:9px;border-radius:3px;background:#fbbf24;opacity:.8;flex-shrink:0"></div><span>Zone 3 — Außenschutzbereich &gt;55 dB(A)</span></div>
+  </div>
+  <div style="margin-top:10px;padding:8px 10px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:8px;font-size:10px;color:#1d4ed8;line-height:1.5">
+    💨 Je nach Windrichtung (DWD EDDF) ist Runway 07 oder 25 aktiv — der Lärm-Korridor verschiebt sich entsprechend.
+  </div>
+</div>
+<div class="panel3d" id="p3d-flood">
+  <div class="ptitle3d">🌊 Flut-Risiko — Überflutungsgefährdung</div>
+  <div class="psub3d">1.225 Gebäude im Risikobereich · HWGK Hessen · Distanz zu Gewässer + Geländehöhe DGM</div>
+  <div style="font-size:10px;font-weight:700;color:#374151;margin-top:10px;margin-bottom:2px">Risikofilter:</div>
+  <div id="flood-filter-3d" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">
+    <button class="fpill3d on" data-risk3d="all" style="padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;border:1.5px solid rgba(0,0,0,0.12);color:#6b7280;background:#fff;cursor:pointer">Alle</button>
+    <button class="fpill3d" data-risk3d="medium" style="padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;border:1.5px solid rgba(0,0,0,0.12);color:#6b7280;background:#fff;cursor:pointer">Mittel+</button>
+    <button class="fpill3d" data-risk3d="high" style="padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;border:1.5px solid rgba(0,0,0,0.12);color:#6b7280;background:#fff;cursor:pointer">Hoch+</button>
+    <button class="fpill3d" data-risk3d="critical" style="padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;border:1.5px solid rgba(0,0,0,0.12);color:#6b7280;background:#fff;cursor:pointer">Kritisch</button>
+  </div>
+  <div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:9px;border-radius:3px;background:#7f1d1d;flex-shrink:0"></div><span>Kritisch — unmittelbare Gefährdung</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:9px;border-radius:3px;background:#ef4444;flex-shrink:0"></div><span>Hoch — bei HQ100-Ereignis betroffen</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:9px;border-radius:3px;background:#f97316;flex-shrink:0"></div><span>Mittel — bei Extremregen betroffen</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:9px;border-radius:3px;background:#fbbf24;flex-shrink:0"></div><span>Gering — Randzone Überflutungsgebiet</span></div>
+  </div>
+  <div class="kpi-row-3d" id="kpi-flood-3d"></div>
+</div>
+<div class="panel3d" id="p3d-bike">
+  <div class="ptitle3d">🚲 Bike-Lücken-Analyse</div>
+  <div class="psub3d">Lärm-Straßen ohne Radweganschluss · direkt umsetzbare Stadtplanungsaussage</div>
+  <div style="font-size:10px;font-weight:700;color:#374151;margin-top:10px">Lärm-Straßen:</div>
+  <div style="margin-top:4px;display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:4px;border-radius:2px;background:#dc2626;flex-shrink:0"></div><span>Autobahn / Motorway</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:4px;border-radius:2px;background:#ea580c;flex-shrink:0"></div><span>Bundesstraße / Trunk</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:4px;border-radius:2px;background:#d97706;flex-shrink:0"></div><span>Hauptstraße / Primary</span></div>
+  </div>
+  <div style="font-size:10px;font-weight:700;color:#374151;margin-top:10px">Radwege:</div>
+  <div style="margin-top:4px;display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:4px;border-radius:2px;background:#16a34a;flex-shrink:0"></div><span>Track / geschützt</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:4px;border-radius:2px;background:#4ade80;flex-shrink:0"></div><span>Lane — markiert</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#374151"><div style="width:22px;height:4px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><span>Kein Radweg — Lücke</span></div>
+  </div>
+</div>
+<div class="panel3d" id="p3d-bench">
+  <div class="ptitle3d">🪑 Bänke-Dichte — Soziale Infrastruktur</div>
+  <div class="psub3d">Kernel-Dichte-Heatmap · 6.335 Sitzmöglichkeiten · Aufenthaltsqualität + Altersgerechtigkeit</div>
+  <div style="height:8px;border-radius:4px;margin:10px 0 4px;background:linear-gradient(90deg,rgba(255,255,255,0),#4ade80,#fbbf24,#f97316,#ef4444)"></div>
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:#9ca3af"><span>wenige</span><span>mittel</span><span>sehr dicht</span></div>
+  <div class="kpi-row-3d" id="kpi-bench-3d"></div>
+</div>
+
+<!-- 3D TREE TOGGLE -->
+<div class="tree-bar-3d" id="treebar3d">
+  <div>
+    <div style="font-size:11px;font-weight:700;color:#1a1a2e">🌳 Straßenbäume einblenden</div>
+    <div style="font-size:9px;color:#9ca3af;margin-top:2px">22.353 Bäume · OSM + Stadtbaumliste FFM</div>
+  </div>
+  <button class="toggle-sw3d" id="treeTog3d" onclick="toggleTrees3d()"></button>
+</div>
+
+<!-- 3D INFO PANEL -->
+<div class="info3d" id="info3d">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+    <div>
+      <div id="info3d-badge" style="font-size:9px;font-weight:700;color:#FFD600;text-transform:uppercase;letter-spacing:.08em;background:#1a1a2e;padding:2px 8px;border-radius:10px;display:inline-block">Gebäude</div>
+      <div id="info3d-type" style="font-size:12px;font-weight:800;color:#1a1a2e;letter-spacing:-.2px;margin-top:5px">—</div>
+    </div>
+    <button onclick="closeInfo3d()" style="background:rgba(0,0,0,0.06);border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px;color:#6b7280">✕</button>
+  </div>
+  <div id="info3d-body"></div>
+</div>
+
+<!-- 3D LOADER -->
+<div class="loader3d" id="loader3d">
+  <div style="background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;padding:20px 28px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.1)">
+    <div style="font-size:20px;font-weight:900;color:#1a1a2e;letter-spacing:-.5px;margin-bottom:8px">Urban<span style="color:#1a1a2e">Lens</span> 3D</div>
+    <div style="width:32px;height:32px;border:3px solid rgba(0,0,0,0.08);border-top-color:#FFD600;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px"></div>
+    <div id="loader3d-txt" style="font-size:12px;color:#9ca3af">Lade Daten…</div>
+  </div>
+</div>
 
 <div class="left">
   <div class="lhead">
@@ -556,6 +721,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="ltoggle" id="tog-parking"></button>
     <span class="lname">🚗 Parkplätze (MIV-Dominanz)</span>
     <span class="lstatus" id="st-parking"></span>
+  </div>
+
+  <div class="lp-section">🏗 3D Stadtanalyse</div>
+  <div style="padding:4px 0 8px">
+    <button class="btn3d-activate" id="btn3d" onclick="toggle3DView()">🏗 3D Ansicht aktivieren</button>
+    <div style="font-size:9px;color:var(--muted);margin-top:6px;line-height:1.5;text-align:center">MapLibre GL · 7 Analyseebenen · CO₂, Hitze, Fluglärm, Flut, Radwege, Bänke</div>
   </div>
 
   <div class="llegend">
@@ -3212,6 +3383,340 @@ document.getElementById('stList').addEventListener('click',e=>{
   const d=CITY_CFG[city].data[name];
   if(d)openDrawer(name,d);
 });
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// 3D VIEW — MapLibre GL JS integration
+// ═══════════════════════════════════════════════════════════════
+const BASE3D = "https://raw.githubusercontent.com/leoorexx/urbanlens/main/data/layers";
+
+const BIVARIATE3D = {
+  low:  {close:"#7FB069",mid:"#b8d4a0",far:"#f0e8c8"},
+  mid:  {close:"#8B7AB8",mid:"#d4a0b0",far:"#e8834a"},
+  high: {close:"#5C3A8C",mid:"#b5476b",far:"#8b0000"},
+};
+const HEIGHT_BY_TYPE3D = {
+  allotment_house:3,shed:3,garage:3,hut:3,roof:4,
+  house:8,detached:9,semidetached_house:9,terrace:10,bungalow:5,
+  apartments:18,residential:14,dormitory:16,
+  commercial:22,retail:12,office:28,supermarket:10,
+  industrial:14,warehouse:12,manufacture:14,
+  school:12,university:18,hospital:24,hotel:30,
+  church:28,cathedral:45,chapel:14,
+  train_station:18,public:16,civic:16,parking:8,garages:4,
+};
+const heightFor3d = t => HEIGHT_BY_TYPE3D[t] ?? 10;
+const greenClass3d = d => d==null?"far":d<50?"close":d<150?"mid":"far";
+const SURFACE_SCORE3D = {asphalt:92,paved:90,concrete:85,"concrete:plates":73,paving_stones:68,compacted:60,fine_gravel:55,sett:45,unhewn_cobblestone:40,wood:38,ground:30,dirt:28,pebblestone:25};
+const FLOOD_RISK_RANK3D = {low:0,medium:1,high:2,critical:3};
+const MODE_PITCH3D = {co2:52,bi:52,footway:0,flight:0,flood:20,bike:0,bench:0};
+
+let map3d = null, map3dReady = false, is3dActive = false;
+let currentMode3d = "co2", totalCO2_3d = 0, currentReno3d = 0, trees3dOn = false;
+let dataLoaded3d = {}, currentFloodFilter3d = "all";
+
+// Build bivariate legend
+(function(){
+  const el = document.getElementById("bi-legend-3d");
+  if(!el) return;
+  const hL = {high:"🔴 Heiß",mid:"🟡 Mittel",low:"🟢 Kühl"};
+  const gL = {close:"Nah",mid:"Mittel",far:"Fern"};
+  el.innerHTML =
+    `<div></div>` +
+    ["close","mid","far"].map(g=>`<div style="font-size:9px;color:#9ca3af;font-weight:600;text-align:center;padding-bottom:3px">${gL[g]}<br><span style="font-size:8px;color:#d1d5db">Grün</span></div>`).join("") +
+    ["high","mid","low"].flatMap(h=>[
+      `<div style="font-size:9px;color:#9ca3af;font-weight:600;text-align:right;padding-right:5px;align-self:center">${hL[h]}</div>`,
+      ...["close","mid","far"].map(g=>`<div style="height:24px;border-radius:4px;background:${BIVARIATE3D[h][g]};width:60px"></div>`)
+    ]).join("");
+})();
+
+function kpiHTML3d(a,b){
+  return `<div class="kpi-box-3d"><div class="kpi-val-3d" style="color:${a.c}">${a.v}</div><div class="kpi-lbl-3d">${a.l}</div></div>`+
+         `<div class="kpi-box-3d"><div class="kpi-val-3d" style="color:${b.c}">${b.v}</div><div class="kpi-lbl-3d">${b.l}</div></div>`;
+}
+function loader3dShow(txt){
+  document.getElementById("loader3d").classList.add("active");
+  document.getElementById("loader3d-txt").textContent=txt;
+}
+function loader3dHide(){
+  document.getElementById("loader3d").classList.remove("active");
+}
+function closeInfo3d(){
+  document.getElementById("info3d").style.display="none";
+  if(map3d && map3d.getLayer("bld-hl3d")) map3d.setFilter("bld-hl3d",["==",["id"],-1]);
+}
+function toggleTrees3d(){
+  trees3dOn=!trees3dOn;
+  document.getElementById("treeTog3d").className="toggle-sw3d"+(trees3dOn?" on":"");
+  if(map3d && map3d.getLayer("trees-dots3d")) map3d.setLayoutProperty("trees-dots3d","visibility",trees3dOn?"visible":"none");
+}
+
+function toggle3DView(){
+  is3dActive = !is3dActive;
+  const overlay = document.getElementById("map3d-overlay");
+  const modeBar = document.getElementById("modeBar3d");
+  const btn = document.getElementById("btn3d");
+
+  if(is3dActive){
+    overlay.style.display = "block";
+    modeBar.classList.add("active");
+    if(btn) btn.textContent = "✕ 3D Ansicht deaktivieren";
+    if(btn) btn.style.background = "#dc2626";
+    if(!map3dReady) initMap3d();
+  } else {
+    overlay.style.display = "none";
+    modeBar.classList.remove("active");
+    // hide all 3d panels
+    document.querySelectorAll(".panel3d").forEach(p=>p.classList.remove("active"));
+    document.getElementById("treebar3d").classList.remove("active");
+    document.getElementById("info3d").style.display = "none";
+    if(btn) btn.textContent = "🏗 3D Ansicht aktivieren";
+    if(btn) btn.style.background = "#1a1a2e";
+  }
+}
+
+function initMap3d(){
+  map3d = new maplibregl.Map({
+    container: "map3d-overlay",
+    style:{
+      version:8,
+      glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+      sources:{carto:{type:"raster",
+        tiles:[
+          "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+          "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+          "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+        ],tileSize:256,attribution:"© OpenStreetMap, © CARTO"}},
+      layers:[{id:"carto",type:"raster",source:"carto"}],
+    },
+    center:[8.6821,50.1109],zoom:13,pitch:52,bearing:-18,maxPitch:75,
+    attributionControl:{compact:true}
+  });
+  map3d.addControl(new maplibregl.NavigationControl({showCompass:true}),"bottom-right");
+
+  map3d.on("load", async ()=>{
+    map3dReady = true;
+    loader3dShow("Lade Gebäude (8k)…");
+    const buildings = await fetch(`${BASE3D}/co2_buildings_ffm.geojson`).then(r=>r.json());
+    let highCO2=0,midCO2=0,cnt=0;
+    buildings.features.forEach((f,i)=>{
+      const p=f.properties;
+      p.height=heightFor3d(p.building);
+      p.green_class=greenClass3d(p.green_dist_m);
+      p.bi_color=(BIVARIATE3D[p.heat_class]||{})[p.green_class]||"#aaa";
+      totalCO2_3d+=(p.co2_kg_m2||0)*p.height;
+      if((p.co2_kg_m2||0)>120)highCO2++;
+      else if((p.co2_kg_m2||0)>80)midCO2++;
+      cnt++;
+      if(f.id==null)f.id=i+1;
+    });
+
+    map3d.addSource("buildings3d",{type:"geojson",data:buildings});
+    map3d.addLayer({id:"bld-co2-3d",type:"fill-extrusion",source:"buildings3d",paint:{
+      "fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","co2_kg_m2"],0],
+        0,"#1e3a8a",60,"#3b82f6",100,"#fbbf24",140,"#f97316",180,"#7f1d1d"],
+      "fill-extrusion-height":["get","height"],
+      "fill-extrusion-opacity":0.88,
+    }});
+    map3d.addLayer({id:"bld-bi-3d",type:"fill-extrusion",source:"buildings3d",
+      layout:{visibility:"none"},paint:{
+      "fill-extrusion-color":["get","bi_color"],
+      "fill-extrusion-height":["get","height"],
+      "fill-extrusion-opacity":0.88,
+    }});
+    map3d.addLayer({id:"bld-hl3d",type:"fill-extrusion",source:"buildings3d",
+      filter:["==",["id"],-1],paint:{
+      "fill-extrusion-color":"#FFD600",
+      "fill-extrusion-height":["get","height"],
+      "fill-extrusion-opacity":1,
+    }});
+
+    loader3dShow("Lade Bäume (22k)…");
+    const trees = await fetch(`${BASE3D}/trees_ffm.geojson`).then(r=>r.json());
+    map3d.addSource("trees3d",{type:"geojson",data:trees});
+    map3d.addLayer({id:"trees-dots3d",type:"circle",source:"trees3d",
+      layout:{visibility:"none"},paint:{
+      "circle-radius":["interpolate",["linear"],["zoom"],11,0.8,14,2,17,5],
+      "circle-color":"#16a34a","circle-opacity":0.9,
+      "circle-stroke-color":"#14532d","circle-stroke-width":0.4,
+    }});
+
+    loader3dHide();
+    updateStats3d();
+    document.getElementById("kpi-co2-3d").innerHTML = kpiHTML3d(
+      {v:`${(highCO2/cnt*100).toFixed(0)}%`,l:"Sanierungsbedarf hoch (>120)",c:"#ef4444"},
+      {v:`${(midCO2/cnt*100).toFixed(0)}%`,l:"Mittlerer Bedarf (80–120)",c:"#f97316"}
+    );
+
+    ["bld-co2-3d","bld-bi-3d"].forEach(id=>{
+      map3d.on("mousemove",id,()=>map3d.getCanvas().style.cursor="pointer");
+      map3d.on("mouseleave",id,()=>map3d.getCanvas().style.cursor="");
+    });
+    map3d.on("click",e=>{
+      const layer = currentMode3d==="co2"?"bld-co2-3d":currentMode3d==="bi"?"bld-bi-3d":null;
+      if(!layer){return;}
+      const f = map3d.queryRenderedFeatures(e.point,{layers:[layer]})[0];
+      if(!f){closeInfo3d();map3d.setFilter("bld-hl3d",["==",["id"],-1]);return;}
+      map3d.setFilter("bld-hl3d",["==",["id"],f.id]);
+      showBuildingInfo3d(f.properties);
+    });
+
+    // show first panel
+    document.getElementById("p3d-co2").classList.add("active");
+    document.getElementById("treebar3d").classList.add("active");
+  });
+
+  // Wire mode buttons
+  document.querySelectorAll(".mode-btn-3d[data-mode3d]").forEach(b=>{
+    b.onclick=()=>{ if(b.dataset.mode3d) setMode3d(b.dataset.mode3d); };
+  });
+
+  // Reno slider
+  document.getElementById("reno3d").oninput=e=>{
+    currentReno3d=+e.target.value;
+    document.getElementById("reno3d-val").textContent=`−${currentReno3d}%`;
+    const f=1-currentReno3d/100;
+    if(map3d && map3d.getLayer("bld-co2-3d")){
+      map3d.setPaintProperty("bld-co2-3d","fill-extrusion-color",[
+        "interpolate",["linear"],["*",["coalesce",["get","co2_kg_m2"],0],f],
+        0,"#1e3a8a",60,"#3b82f6",100,"#fbbf24",140,"#f97316",180,"#7f1d1d"]);
+    }
+    updateStats3d();
+  };
+}
+
+function updateStats3d(){
+  const f=1-currentReno3d/100,reduced=totalCO2_3d*f,saved=totalCO2_3d-reduced;
+  const el=document.getElementById("co2-stats-3d");
+  if(el) el.innerHTML=`Stadtweite CO₂-Last: <b style="color:#1a1a2e">${(reduced/1e6).toFixed(2)}M kg/m²·m</b>`+
+    (currentReno3d>0?` · <span style="color:#059669">−${(saved/1e6).toFixed(2)}M eingespart</span>`:"");
+}
+
+async function setMode3d(m){
+  if(!map3dReady) return;
+  currentMode3d = m;
+  document.querySelectorAll(".mode-btn-3d[data-mode3d]").forEach(b=>b.classList.toggle("on",b.dataset.mode3d===m));
+  document.querySelectorAll(".panel3d").forEach(p=>p.classList.remove("active"));
+  const panel = document.getElementById("p3d-"+m);
+  if(panel) panel.classList.add("active");
+  map3d.easeTo({pitch:MODE_PITCH3D[m]??0,duration:700});
+
+  const is3d = m==="co2"||m==="bi";
+  if(map3d.getLayer("bld-co2-3d")){
+    map3d.setLayoutProperty("bld-co2-3d","visibility",m==="co2"?"visible":"none");
+    map3d.setLayoutProperty("bld-bi-3d","visibility",m==="bi"?"visible":"none");
+    if(!is3d) map3d.setFilter("bld-hl3d",["==",["id"],-1]);
+  }
+  const tbar = document.getElementById("treebar3d");
+  if(is3d) tbar.classList.add("active"); else tbar.classList.remove("active");
+  closeInfo3d();
+
+  if(m==="footway" && !dataLoaded3d.footway) await loadFootway3d();
+  if(m==="flight"  && !dataLoaded3d.flight)  await loadFlight3d();
+  if(m==="flood"   && !dataLoaded3d.flood)   await loadFlood3d();
+  if(m==="bike"    && !dataLoaded3d.bike)    await loadBike3d();
+  if(m==="bench"   && !dataLoaded3d.bench)   await loadBench3d();
+
+  const layerMap = {footway:["footway-lines-3d"],flight:["flight-fill-3d","flight-line-3d"],flood:["flood-blds-3d"],bike:["noise-roads-3d","bike-lanes-3d"],bench:["bench-heat-3d"]};
+  Object.entries(layerMap).forEach(([id,layers])=>{
+    const vis = id===m?"visible":"none";
+    layers.forEach(l=>{if(map3d.getLayer(l))map3d.setLayoutProperty(l,"visibility",vis);});
+  });
+}
+
+async function loadFootway3d(){
+  loader3dShow("Lade Gehwege…");
+  const data=await fetch(`${BASE3D}/footways_quality_ffm.geojson`).then(r=>r.json());
+  dataLoaded3d.footway=true;
+  let good=0,mid=0,bad=0;
+  data.features.forEach(f=>{const s=SURFACE_SCORE3D[f.properties.surface]??50;if(s>=70)good++;else if(s>=45)mid++;else bad++;});
+  map3d.addSource("footways3d",{type:"geojson",data});
+  map3d.addLayer({id:"footway-lines-3d",type:"line",source:"footways3d",paint:{
+    "line-color":["match",["get","surface"],"asphalt","#22c55e","paved","#22c55e","concrete","#4ade80","concrete:plates","#86efac","paving_stones","#fbbf24","compacted","#fbbf24","fine_gravel","#f97316","sett","#f97316","unhewn_cobblestone","#ef4444","ground","#dc2626","dirt","#dc2626","#d1d5db"],
+    "line-width":["interpolate",["linear"],["zoom"],12,1.5,15,4],"line-opacity":0.85,
+  }});
+  const tot=good+mid+bad;
+  document.getElementById("kpi-footway-3d").innerHTML=kpiHTML3d(
+    {v:`${(good/tot*100).toFixed(0)}%`,l:"Gut begehbar (≥70)",c:"#22c55e"},
+    {v:`${(bad/tot*100).toFixed(0)}%`,l:"Sanierungsbedarf (<45)",c:"#ef4444"}
+  );
+  loader3dHide();
+}
+
+async function loadFlight3d(){
+  loader3dShow("Lade Flugrouten…");
+  const data=await fetch(`${BASE3D}/flight_noise_ffm.geojson`).then(r=>r.json());
+  dataLoaded3d.flight=true;
+  map3d.addSource("flight3d",{type:"geojson",data});
+  map3d.addLayer({id:"flight-fill-3d",type:"fill",source:"flight3d",layout:{visibility:"none"},paint:{"fill-color":["coalesce",["get","color"],"#f97316"],"fill-opacity":0.32}});
+  map3d.addLayer({id:"flight-line-3d",type:"line",source:"flight3d",layout:{visibility:"none"},paint:{"line-color":["coalesce",["get","color"],"#f97316"],"line-width":2,"line-opacity":0.7,"line-dasharray":[3,2]}});
+  loader3dHide();
+}
+
+async function loadFlood3d(){
+  loader3dShow("Lade Flutrisiko-Gebäude…");
+  const data=await fetch(`${BASE3D}/flood_exposure_ffm.geojson`).then(r=>r.json());
+  dataLoaded3d.flood=true;
+  let critical=0,high=0;
+  data.features.forEach((f,i)=>{f.properties.height=heightFor3d(f.properties.building);if(f.id==null)f.id=90000+i;if(f.properties.flood_risk==="critical")critical++;else if(f.properties.flood_risk==="high")high++;});
+  map3d.addSource("flood3d",{type:"geojson",data});
+  map3d.addLayer({id:"flood-blds-3d",type:"fill-extrusion",source:"flood3d",layout:{visibility:"none"},paint:{
+    "fill-extrusion-color":["match",["get","flood_risk"],"critical","#7f1d1d","high","#ef4444","medium","#f97316","low","#fbbf24","#9ca3af"],
+    "fill-extrusion-height":["get","height"],"fill-extrusion-opacity":0.9,
+  }});
+  document.getElementById("kpi-flood-3d").innerHTML=kpiHTML3d({v:critical,l:"Kritische Gebäude",c:"#7f1d1d"},{v:high,l:"Hoch-Risiko Gebäude",c:"#ef4444"});
+  document.querySelectorAll("#flood-filter-3d .fpill3d").forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll("#flood-filter-3d .fpill3d").forEach(b=>{b.style.background="#fff";b.style.color="#6b7280";b.style.borderColor="rgba(0,0,0,0.12)";});
+      btn.style.background="#1a1a2e";btn.style.color="#fff";btn.style.borderColor="#1a1a2e";
+      currentFloodFilter3d=btn.dataset.risk3d;
+      const minRank={all:0,medium:1,high:2,critical:3}[currentFloodFilter3d]||0;
+      if(minRank===0){map3d.setFilter("flood-blds-3d",null);}
+      else{const ok=Object.keys(FLOOD_RISK_RANK3D).filter(r=>FLOOD_RISK_RANK3D[r]>=minRank);map3d.setFilter("flood-blds-3d",["in",["get","flood_risk"],["literal",ok]]);}
+    };
+  });
+  loader3dHide();
+}
+
+async function loadBike3d(){
+  loader3dShow("Lade Radwege + Straßen…");
+  const [bikeData,noiseData]=await Promise.all([fetch(`${BASE3D}/bike_ffm.geojson`).then(r=>r.json()),fetch(`${BASE3D}/noise_roads_ffm.geojson`).then(r=>r.json())]);
+  dataLoaded3d.bike=true;
+  map3d.addSource("noise_roads3d",{type:"geojson",data:noiseData});
+  map3d.addLayer({id:"noise-roads-3d",type:"line",source:"noise_roads3d",layout:{visibility:"none"},paint:{"line-color":["match",["get","highway"],"motorway","#dc2626","trunk","#ea580c","primary","#d97706","secondary","#ca8a04","#e5e7eb"],"line-width":["match",["get","highway"],"motorway",5,"trunk",4,"primary",3,2],"line-opacity":0.72}});
+  map3d.addSource("bike3d",{type:"geojson",data:bikeData});
+  map3d.addLayer({id:"bike-lanes-3d",type:"line",source:"bike3d",layout:{visibility:"none"},paint:{"line-color":["match",["get","cycleway"],"track","#16a34a","lane","#4ade80","shared_lane","#86efac","shared","#86efac","no","#ef4444","#22c55e"],"line-width":["interpolate",["linear"],["zoom"],11,1.5,14,3.5],"line-opacity":0.9}});
+  loader3dHide();
+}
+
+async function loadBench3d(){
+  loader3dShow("Lade Sitzbänke (6k)…");
+  const data=await fetch(`${BASE3D}/benches_ffm.geojson`).then(r=>r.json());
+  dataLoaded3d.bench=true;
+  map3d.addSource("benches3d",{type:"geojson",data});
+  map3d.addLayer({id:"bench-heat-3d",type:"heatmap",source:"benches3d",layout:{visibility:"none"},paint:{
+    "heatmap-weight":1,"heatmap-intensity":["interpolate",["linear"],["zoom"],10,0.5,16,3],
+    "heatmap-radius":["interpolate",["linear"],["zoom"],10,20,14,40,16,60],"heatmap-opacity":0.85,
+    "heatmap-color":["interpolate",["linear"],["heatmap-density"],0,"rgba(255,255,255,0)",0.15,"#4ade80",0.4,"#fbbf24",0.7,"#f97316",1,"#ef4444"],
+  }});
+  document.getElementById("kpi-bench-3d").innerHTML=kpiHTML3d({v:data.features.length.toLocaleString("de"),l:"Sitzmöglichkeiten gesamt",c:"#1a1a2e"},{v:(data.features.length/248).toFixed(1),l:"Bänke pro km² Stadtfläche",c:"#6366f1"});
+  loader3dHide();
+}
+
+function showBuildingInfo3d(p){
+  const co2c=!p.co2_kg_m2?"#9ca3af":p.co2_kg_m2>140?"#ef4444":p.co2_kg_m2>100?"#f97316":p.co2_kg_m2>60?"#eab308":"#22c55e";
+  const rl=(currentReno3d>0&&currentMode3d==="co2")?`<div style="background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.2);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:11px;color:#065f46">Nach −${currentReno3d}%: <b>${((+p.co2_kg_m2||0)*(1-currentReno3d/100)).toFixed(1)} kg/m²</b></div>`:"";
+  document.getElementById("info3d-badge").textContent="Gebäude";
+  document.getElementById("info3d-type").textContent=(p.building||"Unbekannt").replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+  document.getElementById("info3d-body").innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:11px"><span style="color:#6b7280">CO₂-Intensität</span><span style="font-weight:700;color:${co2c}">${p.co2_kg_m2??'—'} kg/m²</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:11px"><span style="color:#6b7280">Hitze (LST-Delta)</span><span style="font-weight:700;color:#1a1a2e">${p.lst_delta??'—'} K</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:11px"><span style="color:#6b7280">Distanz zu Grün</span><span style="font-weight:700;color:#1a1a2e">${p.green_dist_m??'—'} m</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px"><span style="color:#6b7280">Höhe (Proxy)</span><span style="font-weight:700;color:#1a1a2e">${p.height??'—'} m</span></div>
+    ${rl}
+    <div style="margin-top:10px;font-size:9px;color:#9ca3af">Copernicus Urban Atlas · OSM · EPC-Schätzmodell Hessen</div>`;
+  document.getElementById("info3d").style.display="block";
+}
 </script>
 </body>
 </html>
