@@ -383,6 +383,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <div class="lp-section">⚡ Composite-Insights (2 Layer kombiniert)</div>
 
+  <div class="lp-section">🛰 Amtliche Klimadaten — Geoportal Hessen</div>
+
+  <div class="lrow" onclick="toggleLayer('hessen_heat')">
+    <button class="ltoggle" id="tog-hessen_heat"></button>
+    <span class="lname">🌡 Hitzestress & LST — HLNUG amtlich</span>
+    <span class="lstatus" id="st-hessen_heat"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('hessen_lcz')">
+    <button class="ltoggle" id="tog-hessen_lcz"></button>
+    <span class="lname">🏗 Versiegelung & Klimazonen — LCZ</span>
+    <span class="lstatus" id="st-hessen_lcz"></span>
+  </div>
+
   <div class="lrow" onclick="toggleLayer('schools_heat')">
     <button class="ltoggle" id="tog-schools_heat"></button>
     <span class="lname">🏫🌡️ Schulen in Hitzezone</span>
@@ -541,51 +554,51 @@ const CITY_CFG={
     geojson:"https://cdn.jsdelivr.net/gh/codeforgermany/click_that_hood@main/public/data/frankfurt-main.geojson",
     nameProp:"name",
     data:{
-      "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, wb:33,mig:71,hw:true, heat:true, noise:82, sgb2:62,kinderarmut:70,einkommen:17000,arbeitslos:17,abitur:25},
-      "Gutleutviertel":   {A:24,B:27,C:80,D:38,E:18,F:35,G:18,H:42,pop:5000, wb:36,mig:65,hw:true, heat:true, noise:78, sgb2:44,kinderarmut:50,einkommen:20000,arbeitslos:13,abitur:30},
-      "Gallus":           {A:28,B:32,C:58,D:42,E:22,F:34,G:30,H:45,pop:72000,wb:38,mig:58,hw:false,heat:true, noise:72, sgb2:30,kinderarmut:36,einkommen:24000,arbeitslos:10,abitur:38},
-      "Altstadt":         {A:30,B:34,C:82,D:56,E:28,F:50,G:22,H:50,pop:12000,wb:55,mig:40,hw:false,heat:true, noise:75, sgb2:18,kinderarmut:20,einkommen:30000,arbeitslos:7, abitur:52},
-      "Innenstadt":       {A:28,B:32,C:84,D:58,E:24,F:52,G:20,H:52,pop:16000,wb:57,mig:38,hw:false,heat:true, noise:74, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:6, abitur:60},
-      "Fechenheim":       {A:32,B:35,C:45,D:40,E:30,F:40,G:36,H:42,pop:21000,wb:41,mig:48,hw:true, heat:false,noise:68, sgb2:26,kinderarmut:32,einkommen:25000,arbeitslos:9, abitur:34},
-      "Griesheim":        {A:35,B:38,C:52,D:48,E:34,F:42,G:34,H:48,pop:43000,wb:44,mig:44,hw:false,heat:true, noise:70, sgb2:24,kinderarmut:28,einkommen:26000,arbeitslos:9, abitur:38},
-      "Nied":             {A:38,B:40,C:42,D:44,E:36,F:44,G:40,H:44,pop:17000,wb:43,mig:42,hw:false,heat:false,noise:65, sgb2:22,kinderarmut:26,einkommen:27000,arbeitslos:8, abitur:40},
-      "Sossenheim":       {A:40,B:42,C:40,D:45,E:38,F:45,G:42,H:50,pop:18000,wb:46,mig:38,hw:false,heat:false,noise:62, sgb2:19,kinderarmut:23,einkommen:28000,arbeitslos:7, abitur:42},
-      "Niederrad":        {A:42,B:45,C:60,D:52,E:40,F:48,G:44,H:52,pop:26000,wb:51,mig:35,hw:true, heat:false,noise:66, sgb2:16,kinderarmut:19,einkommen:30000,arbeitslos:6, abitur:50},
-      "Zeilsheim":        {A:44,B:46,C:38,D:48,E:42,F:48,G:47,H:50,pop:15000,wb:50,mig:33,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:52},
-      "Höchst":           {A:45,B:47,C:62,D:52,E:42,F:50,G:44,H:52,pop:15000,wb:52,mig:36,hw:true, heat:false,noise:65, sgb2:22,kinderarmut:27,einkommen:26000,arbeitslos:8, abitur:38},
-      "Unterliederbach":  {A:46,B:48,C:40,D:50,E:44,F:50,G:50,H:52,pop:22000,wb:52,mig:30,hw:false,heat:false,noise:60, sgb2:16,kinderarmut:18,einkommen:30000,arbeitslos:6, abitur:48},
-      "Rödelheim":        {A:48,B:50,C:55,D:55,E:44,F:52,G:54,H:55,pop:20000,wb:53,mig:32,hw:false,heat:false,noise:62, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:44},
-      "Goldstein":        {A:52,B:54,C:36,D:52,E:48,F:52,G:57,H:55,pop:8000, wb:55,mig:22,hw:false,heat:false,noise:55, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:54},
-      "Sindlingen":       {A:50,B:52,C:38,D:54,E:48,F:54,G:54,H:55,pop:8000, wb:55,mig:24,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:30000,arbeitslos:6, abitur:46},
-      "Schwanheim":       {A:55,B:56,C:42,D:55,E:50,F:56,G:62,H:58,pop:19000,wb:57,mig:20,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:36000,arbeitslos:4, abitur:58},
-      "Bockenheim":       {A:50,B:55,C:76,D:68,E:40,F:62,G:44,H:58,pop:54000,wb:62,mig:28,hw:false,heat:true, noise:68, sgb2:14,kinderarmut:16,einkommen:34000,arbeitslos:6, abitur:62},
-      "Eckenheim":        {A:57,B:59,C:58,D:65,E:50,F:61,G:57,H:58,pop:12000,wb:62,mig:25,hw:false,heat:false,noise:60, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:5, abitur:58},
-      "Ostend":           {A:52,B:55,C:68,D:65,E:40,F:62,G:44,H:55,pop:27000,wb:62,mig:30,hw:false,heat:true, noise:65, sgb2:16,kinderarmut:18,einkommen:32000,arbeitslos:6, abitur:55},
-      "Sachsenhausen-Nord":{A:55,B:58,C:70,D:68,E:42,F:65,G:47,H:58,pop:35000,wb:65,mig:24,hw:false,heat:false,noise:62, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:66},
-      "Sachsenhausen-Süd":{A:58,B:60,C:65,D:70,E:45,F:68,G:52,H:60,pop:17000,wb:68,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:4, abitur:72},
-      "Riederwald":       {A:60,B:62,C:52,D:66,E:54,F:64,G:61,H:60,pop:8000, wb:64,mig:22,hw:false,heat:false,noise:55, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:42},
-      "Hausen":           {A:60,B:62,C:60,D:68,E:52,F:64,G:60,H:60,pop:10000,wb:64,mig:20,hw:false,heat:false,noise:56, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:58},
-      "Ginnheim":         {A:61,B:63,C:62,D:70,E:53,F:65,G:61,H:62,pop:13000,wb:66,mig:18,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66},
-      "Nordend-West":     {A:60,B:62,C:72,D:75,E:42,F:70,G:52,H:62,pop:37000,wb:70,mig:20,hw:false,heat:false,noise:62, sgb2:10,kinderarmut:11,einkommen:42000,arbeitslos:4, abitur:74},
-      "Bornheim":         {A:58,B:60,C:73,D:72,E:45,F:68,G:50,H:60,pop:47000,wb:68,mig:22,hw:false,heat:false,noise:60, sgb2:13,kinderarmut:15,einkommen:36000,arbeitslos:5, abitur:64},
-      "Nordend-Ost":      {A:62,B:64,C:70,D:76,E:44,F:72,G:53,H:64,pop:28000,wb:72,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76},
-      "Dornbusch":        {A:60,B:62,C:65,D:70,E:52,F:68,G:57,H:62,pop:33000,wb:68,mig:16,hw:false,heat:false,noise:56, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76},
-      "Heddernheim":      {A:58,B:60,C:55,D:68,E:52,F:65,G:57,H:60,pop:19000,wb:65,mig:20,hw:false,heat:false,noise:54, sgb2:12,kinderarmut:14,einkommen:35000,arbeitslos:5, abitur:60},
-      "Praunheim":        {A:62,B:64,C:55,D:70,E:54,F:65,G:64,H:62,pop:17000,wb:66,mig:16,hw:false,heat:false,noise:52, sgb2:11,kinderarmut:13,einkommen:36000,arbeitslos:4, abitur:62},
-      "Preungesheim":     {A:60,B:62,C:52,D:66,E:54,F:64,G:60,H:60,pop:11000,wb:64,mig:18,hw:false,heat:false,noise:54, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:56},
-      "Westend-Süd":      {A:62,B:65,C:72,D:78,E:36,F:72,G:54,H:65,pop:31000,wb:72,mig:14,hw:false,heat:false,noise:60, sgb2:6, kinderarmut:7, einkommen:58000,arbeitslos:2, abitur:88},
-      "Westend-Nord":     {A:64,B:67,C:70,D:80,E:33,F:74,G:57,H:68,pop:22000,wb:74,mig:12,hw:false,heat:false,noise:58, sgb2:5, kinderarmut:6, einkommen:62000,arbeitslos:2, abitur:92},
-      "Eschersheim":      {A:62,B:64,C:60,D:72,E:54,F:70,G:61,H:64,pop:25000,wb:70,mig:14,hw:false,heat:false,noise:52, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66},
-      "Niederursel":      {A:64,B:66,C:52,D:72,E:57,F:68,G:64,H:65,pop:25000,wb:68,mig:14,hw:false,heat:false,noise:50, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:64},
-      "Seckbach":         {A:66,B:68,C:48,D:72,E:60,F:68,G:69,H:65,pop:14000,wb:68,mig:12,hw:false,heat:false,noise:48, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:3, abitur:68},
-      "Oberrad":          {A:65,B:66,C:52,D:70,E:58,F:68,G:65,H:63,pop:13000,wb:68,mig:12,hw:false,heat:false,noise:50, sgb2:10,kinderarmut:11,einkommen:39000,arbeitslos:4, abitur:66},
-      "Bonames":          {A:62,B:64,C:45,D:68,E:56,F:64,G:64,H:62,pop:8000, wb:64,mig:15,hw:false,heat:false,noise:48, sgb2:16,kinderarmut:19,einkommen:29000,arbeitslos:6, abitur:44},
-      "Frankfurter Berg": {A:60,B:62,C:48,D:68,E:54,F:64,G:62,H:60,pop:8000, wb:64,mig:16,hw:false,heat:false,noise:50, sgb2:18,kinderarmut:21,einkommen:27000,arbeitslos:7, abitur:42},
-      "Berkersheim":      {A:70,B:72,C:42,D:72,E:62,F:68,G:71,H:65,pop:4000, wb:68,mig:10,hw:false,heat:false,noise:44, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:72},
-      "Kalbach-Riedberg": {A:70,B:72,C:50,D:78,E:62,F:72,G:70,H:68,pop:15000,wb:72,mig:10,hw:false,heat:false,noise:46, sgb2:6, kinderarmut:7, einkommen:50000,arbeitslos:2, abitur:82},
-      "Nieder-Eschbach":  {A:71,B:73,C:38,D:74,E:64,F:70,G:73,H:68,pop:10000,wb:70,mig:10,hw:false,heat:false,noise:44, sgb2:8, kinderarmut:9, einkommen:43000,arbeitslos:3, abitur:70},
-      "Nieder-Erlenbach": {A:73,B:75,C:32,D:74,E:65,F:72,G:75,H:70,pop:4000, wb:72,mig:8, hw:false,heat:false,noise:40, sgb2:5, kinderarmut:6, einkommen:52000,arbeitslos:2, abitur:80},
-      "Harheim":          {A:72,B:74,C:35,D:72,E:65,F:70,G:74,H:68,pop:5000, wb:70,mig:8, hw:false,heat:false,noise:42, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:70},
+      "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, wb:33,mig:71,hw:true, heat:true, noise:82, sgb2:62,kinderarmut:70,einkommen:17000,arbeitslos:17,abitur:25, versieg:88,lst_delta:3.9},
+      "Gutleutviertel":   {A:24,B:27,C:80,D:38,E:18,F:35,G:18,H:42,pop:5000, wb:36,mig:65,hw:true, heat:true, noise:78, sgb2:44,kinderarmut:50,einkommen:20000,arbeitslos:13,abitur:30, versieg:82,lst_delta:3.4},
+      "Gallus":           {A:28,B:32,C:58,D:42,E:22,F:34,G:30,H:45,pop:72000,wb:38,mig:58,hw:false,heat:true, noise:72, sgb2:30,kinderarmut:36,einkommen:24000,arbeitslos:10,abitur:38, versieg:74,lst_delta:2.9},
+      "Altstadt":         {A:30,B:34,C:82,D:56,E:28,F:50,G:22,H:50,pop:12000,wb:55,mig:40,hw:false,heat:true, noise:75, sgb2:18,kinderarmut:20,einkommen:30000,arbeitslos:7, abitur:52, versieg:80,lst_delta:3.2},
+      "Innenstadt":       {A:28,B:32,C:84,D:58,E:24,F:52,G:20,H:52,pop:16000,wb:57,mig:38,hw:false,heat:true, noise:74, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:6, abitur:60, versieg:83,lst_delta:3.5},
+      "Fechenheim":       {A:32,B:35,C:45,D:40,E:30,F:40,G:36,H:42,pop:21000,wb:41,mig:48,hw:true, heat:false,noise:68, sgb2:26,kinderarmut:32,einkommen:25000,arbeitslos:9, abitur:34, versieg:65,lst_delta:2.1},
+      "Griesheim":        {A:35,B:38,C:52,D:48,E:34,F:42,G:34,H:48,pop:43000,wb:44,mig:44,hw:false,heat:true, noise:70, sgb2:24,kinderarmut:28,einkommen:26000,arbeitslos:9, abitur:38, versieg:72,lst_delta:2.6},
+      "Nied":             {A:38,B:40,C:42,D:44,E:36,F:44,G:40,H:44,pop:17000,wb:43,mig:42,hw:false,heat:false,noise:65, sgb2:22,kinderarmut:26,einkommen:27000,arbeitslos:8, abitur:40, versieg:60,lst_delta:1.8},
+      "Sossenheim":       {A:40,B:42,C:40,D:45,E:38,F:45,G:42,H:50,pop:18000,wb:46,mig:38,hw:false,heat:false,noise:62, sgb2:19,kinderarmut:23,einkommen:28000,arbeitslos:7, abitur:42, versieg:55,lst_delta:1.5},
+      "Niederrad":        {A:42,B:45,C:60,D:52,E:40,F:48,G:44,H:52,pop:26000,wb:51,mig:35,hw:true, heat:false,noise:66, sgb2:16,kinderarmut:19,einkommen:30000,arbeitslos:6, abitur:50, versieg:62,lst_delta:1.9},
+      "Zeilsheim":        {A:44,B:46,C:38,D:48,E:42,F:48,G:47,H:50,pop:15000,wb:50,mig:33,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:52, versieg:48,lst_delta:1.1},
+      "Höchst":           {A:45,B:47,C:62,D:52,E:42,F:50,G:44,H:52,pop:15000,wb:52,mig:36,hw:true, heat:false,noise:65, sgb2:22,kinderarmut:27,einkommen:26000,arbeitslos:8, abitur:38, versieg:68,lst_delta:2.2},
+      "Unterliederbach":  {A:46,B:48,C:40,D:50,E:44,F:50,G:50,H:52,pop:22000,wb:52,mig:30,hw:false,heat:false,noise:60, sgb2:16,kinderarmut:18,einkommen:30000,arbeitslos:6, abitur:48, versieg:52,lst_delta:1.3},
+      "Rödelheim":        {A:48,B:50,C:55,D:55,E:44,F:52,G:54,H:55,pop:20000,wb:53,mig:32,hw:false,heat:false,noise:62, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:44, versieg:58,lst_delta:1.6},
+      "Goldstein":        {A:52,B:54,C:36,D:52,E:48,F:52,G:57,H:55,pop:8000, wb:55,mig:22,hw:false,heat:false,noise:55, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:54, versieg:42,lst_delta:0.8},
+      "Sindlingen":       {A:50,B:52,C:38,D:54,E:48,F:54,G:54,H:55,pop:8000, wb:55,mig:24,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:30000,arbeitslos:6, abitur:46, versieg:52,lst_delta:1.4},
+      "Schwanheim":       {A:55,B:56,C:42,D:55,E:50,F:56,G:62,H:58,pop:19000,wb:57,mig:20,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:36000,arbeitslos:4, abitur:58, versieg:38,lst_delta:0.4},
+      "Bockenheim":       {A:50,B:55,C:76,D:68,E:40,F:62,G:44,H:58,pop:54000,wb:62,mig:28,hw:false,heat:true, noise:68, sgb2:14,kinderarmut:16,einkommen:34000,arbeitslos:6, abitur:62, versieg:70,lst_delta:2.4},
+      "Eckenheim":        {A:57,B:59,C:58,D:65,E:50,F:61,G:57,H:58,pop:12000,wb:62,mig:25,hw:false,heat:false,noise:60, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:5, abitur:58, versieg:62,lst_delta:1.9},
+      "Ostend":           {A:52,B:55,C:68,D:65,E:40,F:62,G:44,H:55,pop:27000,wb:62,mig:30,hw:false,heat:true, noise:65, sgb2:16,kinderarmut:18,einkommen:32000,arbeitslos:6, abitur:55, versieg:72,lst_delta:2.7},
+      "Sachsenhausen-Nord":{A:55,B:58,C:70,D:68,E:42,F:65,G:47,H:58,pop:35000,wb:65,mig:24,hw:false,heat:false,noise:62, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:66, versieg:65,lst_delta:2.0},
+      "Sachsenhausen-Süd":{A:58,B:60,C:65,D:70,E:45,F:68,G:52,H:60,pop:17000,wb:68,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:4, abitur:72, versieg:60,lst_delta:1.7},
+      "Riederwald":       {A:60,B:62,C:52,D:66,E:54,F:64,G:61,H:60,pop:8000, wb:64,mig:22,hw:false,heat:false,noise:55, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:42, versieg:55,lst_delta:1.4},
+      "Hausen":           {A:60,B:62,C:60,D:68,E:52,F:64,G:60,H:60,pop:10000,wb:64,mig:20,hw:false,heat:false,noise:56, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:58, versieg:52,lst_delta:1.2},
+      "Ginnheim":         {A:61,B:63,C:62,D:70,E:53,F:65,G:61,H:62,pop:13000,wb:66,mig:18,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66, versieg:55,lst_delta:1.3},
+      "Nordend-West":     {A:60,B:62,C:72,D:75,E:42,F:70,G:52,H:62,pop:37000,wb:70,mig:20,hw:false,heat:false,noise:62, sgb2:10,kinderarmut:11,einkommen:42000,arbeitslos:4, abitur:74, versieg:68,lst_delta:2.2},
+      "Bornheim":         {A:58,B:60,C:73,D:72,E:45,F:68,G:50,H:60,pop:47000,wb:68,mig:22,hw:false,heat:false,noise:60, sgb2:13,kinderarmut:15,einkommen:36000,arbeitslos:5, abitur:64, versieg:66,lst_delta:2.1},
+      "Nordend-Ost":      {A:62,B:64,C:70,D:76,E:44,F:72,G:53,H:64,pop:28000,wb:72,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76, versieg:65,lst_delta:2.0},
+      "Dornbusch":        {A:60,B:62,C:65,D:70,E:52,F:68,G:57,H:62,pop:33000,wb:68,mig:16,hw:false,heat:false,noise:56, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76, versieg:58,lst_delta:1.5},
+      "Heddernheim":      {A:58,B:60,C:55,D:68,E:52,F:65,G:57,H:60,pop:19000,wb:65,mig:20,hw:false,heat:false,noise:54, sgb2:12,kinderarmut:14,einkommen:35000,arbeitslos:5, abitur:60, versieg:50,lst_delta:1.1},
+      "Praunheim":        {A:62,B:64,C:55,D:70,E:54,F:65,G:64,H:62,pop:17000,wb:66,mig:16,hw:false,heat:false,noise:52, sgb2:11,kinderarmut:13,einkommen:36000,arbeitslos:4, abitur:62, versieg:45,lst_delta:0.8},
+      "Preungesheim":     {A:60,B:62,C:52,D:66,E:54,F:64,G:60,H:60,pop:11000,wb:64,mig:18,hw:false,heat:false,noise:54, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:56, versieg:52,lst_delta:1.2},
+      "Westend-Süd":      {A:62,B:65,C:72,D:78,E:36,F:72,G:54,H:65,pop:31000,wb:72,mig:14,hw:false,heat:false,noise:60, sgb2:6, kinderarmut:7, einkommen:58000,arbeitslos:2, abitur:88, versieg:62,lst_delta:1.8},
+      "Westend-Nord":     {A:64,B:67,C:70,D:80,E:33,F:74,G:57,H:68,pop:22000,wb:74,mig:12,hw:false,heat:false,noise:58, sgb2:5, kinderarmut:6, einkommen:62000,arbeitslos:2, abitur:92, versieg:58,lst_delta:1.5},
+      "Eschersheim":      {A:62,B:64,C:60,D:72,E:54,F:70,G:61,H:64,pop:25000,wb:70,mig:14,hw:false,heat:false,noise:52, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66, versieg:50,lst_delta:1.1},
+      "Niederursel":      {A:64,B:66,C:52,D:72,E:57,F:68,G:64,H:65,pop:25000,wb:68,mig:14,hw:false,heat:false,noise:50, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:64, versieg:48,lst_delta:0.9},
+      "Seckbach":         {A:66,B:68,C:48,D:72,E:60,F:68,G:69,H:65,pop:14000,wb:68,mig:12,hw:false,heat:false,noise:48, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:3, abitur:68, versieg:42,lst_delta:0.6},
+      "Oberrad":          {A:65,B:66,C:52,D:70,E:58,F:68,G:65,H:63,pop:13000,wb:68,mig:12,hw:false,heat:false,noise:50, sgb2:10,kinderarmut:11,einkommen:39000,arbeitslos:4, abitur:66, versieg:46,lst_delta:0.8},
+      "Bonames":          {A:62,B:64,C:45,D:68,E:56,F:64,G:64,H:62,pop:8000, wb:64,mig:15,hw:false,heat:false,noise:48, sgb2:16,kinderarmut:19,einkommen:29000,arbeitslos:6, abitur:44, versieg:42,lst_delta:0.7},
+      "Frankfurter Berg": {A:60,B:62,C:48,D:68,E:54,F:64,G:62,H:60,pop:8000, wb:64,mig:16,hw:false,heat:false,noise:50, sgb2:18,kinderarmut:21,einkommen:27000,arbeitslos:7, abitur:42, versieg:44,lst_delta:0.8},
+      "Berkersheim":      {A:70,B:72,C:42,D:72,E:62,F:68,G:71,H:65,pop:4000, wb:68,mig:10,hw:false,heat:false,noise:44, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:72, versieg:32,lst_delta:0.2},
+      "Kalbach-Riedberg": {A:70,B:72,C:50,D:78,E:62,F:72,G:70,H:68,pop:15000,wb:72,mig:10,hw:false,heat:false,noise:46, sgb2:6, kinderarmut:7, einkommen:50000,arbeitslos:2, abitur:82, versieg:38,lst_delta:0.3},
+      "Nieder-Eschbach":  {A:71,B:73,C:38,D:74,E:64,F:70,G:73,H:68,pop:10000,wb:70,mig:10,hw:false,heat:false,noise:44, sgb2:8, kinderarmut:9, einkommen:43000,arbeitslos:3, abitur:70, versieg:35,lst_delta:0.0},
+      "Nieder-Erlenbach": {A:73,B:75,C:32,D:74,E:65,F:72,G:75,H:70,pop:4000, wb:72,mig:8, hw:false,heat:false,noise:40, sgb2:5, kinderarmut:6, einkommen:52000,arbeitslos:2, abitur:80, versieg:22,lst_delta:-0.8},
+      "Harheim":          {A:72,B:74,C:35,D:72,E:65,F:70,G:74,H:68,pop:5000, wb:70,mig:8, hw:false,heat:false,noise:42, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:70, versieg:28,lst_delta:-0.3},
     }
   },
   utr:{
@@ -993,6 +1006,12 @@ function loadLayer(id,statusEl){
     case 'transit':  return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['bus_stop','tram_stop','station','halt']));
     case 'community':return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['community_centre','social_centre','place_of_worship','social_facility','library','sports_centre']));
     // ── COMPOSITE LAYER ──────────────────────────────────────
+    case 'hessen_heat': return loadHessenWFS('hessen_heat', statusEl,
+      'https://geodatendienste-umweltplanung-hessen.de/ows/services/org.2.49666e11-dd55-4623-a47f-70be6191017a_wfs',
+      'ft:hot_cold_spots_final', renderHessenHeat);
+    case 'hessen_lcz': return loadHessenWFS('hessen_lcz', statusEl,
+      'https://geodatendienste-umweltplanung-hessen.de/ows/services/org.2.de55d3b8-5139-4aad-a685-f7b3ca3015fa_wfs',
+      'lcz_v6', renderHessenLCZ);
     case 'schools_heat':
       loadLocal(`pois_${city}.geojson`,id,statusEl,pois=>{
         loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,heat=>{
@@ -1367,6 +1386,118 @@ function renderCO2Layer(geojson){
 }
 
 
+
+// ══════════════════════════════════════════════════════════════
+// HESSEN GEOPORTAL WFS — Amtliche Klimadaten
+// Quelle: Geoportal Hessen / HLNUG · Datenlizenz Deutschland 2.0
+// Lazy loaded on demand · Cached · Max 1500 features
+// ══════════════════════════════════════════════════════════════
+const hessenWFSCache = {};
+
+function loadHessenWFS(id, statusEl, endpoint, typeName, renderFn) {
+  if (!activeLayers[id]) return;
+
+  // Cache hit — no re-fetch
+  if (hessenWFSCache[id]) {
+    renderFn(id, hessenWFSCache[id], statusEl);
+    return;
+  }
+
+  // Frankfurt bbox only — limit data volume
+  const bbox = '8.55,50.05,8.82,50.22,EPSG:4326';
+  const url = `${endpoint}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature` +
+    `&typeName=${typeName}&BBOX=${bbox}&SRSNAME=EPSG:4326` +
+    `&outputFormat=application/json&count=1500`;
+
+  fetch(url)
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => {
+      if (!activeLayers[id]) return; // user toggled off while loading
+      hessenWFSCache[id] = data;
+      renderFn(id, data, statusEl);
+    })
+    .catch(err => {
+      console.warn('Hessen WFS', id, err.message);
+      if (statusEl) statusEl.innerHTML =
+        err.message.includes('CORS') || err.message.includes('fetch') || err.name === 'TypeError'
+          ? '<span style="color:#f97316;font-size:9px">⚠ CORS blockiert</span>'
+          : `<span style="color:#ef4444;font-size:9px">⚠ ${err.message}</span>`;
+    });
+}
+
+function lstColor(lst) {
+  if (lst == null) return { fillColor: '#6b7280', fillOpacity: 0.4, weight: 0, color: 'none' };
+  if (lst >= 34)   return { fillColor: '#7f1d1d', fillOpacity: 0.72, weight: 0, color: 'none' };
+  if (lst >= 32)   return { fillColor: '#dc2626', fillOpacity: 0.65, weight: 0, color: 'none' };
+  if (lst >= 30)   return { fillColor: '#f97316', fillOpacity: 0.58, weight: 0, color: 'none' };
+  if (lst >= 28)   return { fillColor: '#fbbf24', fillOpacity: 0.50, weight: 0, color: 'none' };
+  if (lst >= 25)   return { fillColor: '#a3e635', fillOpacity: 0.40, weight: 0, color: 'none' };
+  return            { fillColor: '#22d3ee', fillOpacity: 0.35, weight: 0, color: 'none' };
+}
+
+function sealingColor(pct) {
+  if (pct == null) return { fillColor: '#6b7280', fillOpacity: 0.3, weight: 0, color: 'none' };
+  if (pct >= 80)   return { fillColor: '#7f1d1d', fillOpacity: 0.70, weight: 0, color: 'none' };
+  if (pct >= 60)   return { fillColor: '#dc2626', fillOpacity: 0.62, weight: 0, color: 'none' };
+  if (pct >= 40)   return { fillColor: '#f97316', fillOpacity: 0.55, weight: 0, color: 'none' };
+  if (pct >= 20)   return { fillColor: '#eab308', fillOpacity: 0.45, weight: 0, color: 'none' };
+  return            { fillColor: '#22c55e', fillOpacity: 0.38, weight: 0, color: 'none' };
+}
+
+function renderHessenHeat(id, data, statusEl) {
+  if (!activeLayers[id]) return;
+  const layer = L.geoJSON(data, {
+    renderer: window.canvasRenderer,
+    style: f => lstColor(f.properties.lst_tag),
+    onEachFeature: (f, l) => {
+      const p = f.properties;
+      const lst = p.lst_tag != null ? p.lst_tag.toFixed(1) : '?';
+      const lstN = p.lst_nacht != null ? p.lst_nacht.toFixed(1) : '?';
+      const tn = p.tropennaechte != null ? Math.round(p.tropennaechte) : '?';
+      const pet = p.pet != null ? p.pet.toFixed(1) : '?';
+      l.bindTooltip(
+        `<b>🌡 Hitzestress (amtlich)</b><br>` +
+        `LST Tag: <b>${lst}°C</b> · Nacht: ${lstN}°C<br>` +
+        `Tropennächte: <b>${tn}</b> · PET: ${pet}°C<br>` +
+        `<small>Quelle: HLNUG / Geoportal Hessen · 100m Raster<br>` +
+        `Datenlizenz Deutschland 2.0</small>`,
+        { sticky: true, maxWidth: 260 }
+      );
+    }
+  }).addTo(map);
+  layerObjs[id] = layer;
+  if (statusEl) statusEl.textContent = `✓ ${data.features?.length || 0} Zellen`;
+}
+
+function renderHessenLCZ(id, data, statusEl) {
+  if (!activeLayers[id]) return;
+  const layer = L.geoJSON(data, {
+    renderer: window.canvasRenderer,
+    style: f => {
+      const p = f.properties;
+      const totalSealing = (p.vollversiegelt_prozent || 0) + (p.teilversiegelt_prozent || 0);
+      return sealingColor(totalSealing);
+    },
+    onEachFeature: (f, l) => {
+      const p = f.properties;
+      const voll = (p.vollversiegelt_prozent || 0).toFixed(1);
+      const teil = (p.teilversiegelt_prozent || 0).toFixed(1);
+      const unvers = (p.unversiegelt_prozent || 0).toFixed(1);
+      const hoch = (p.hochwuechsig_prozent || 0).toFixed(1);
+      const lcz = p.lcz || '?';
+      l.bindTooltip(
+        `<b>🏗 Lokale Klimazone ${lcz}</b><br>` +
+        `Vollversiegelt: <b>${voll}%</b> · Teilversiegelt: ${teil}%<br>` +
+        `Unversiegelt: ${unvers}% · Hochvegetation: ${hoch}%<br>` +
+        `<small>Quelle: Geoportal Hessen LCZ-Datensatz · 100m Raster<br>` +
+        `Datenlizenz Deutschland 2.0</small>`,
+        { sticky: true, maxWidth: 260 }
+      );
+    }
+  }).addTo(map);
+  layerObjs[id] = layer;
+  if (statusEl) statusEl.textContent = `✓ ${data.features?.length || 0} Zellen`;
+}
 
 // ── Globale Geo-Hilfsfunktionen ───────────────────────────────
 function dist2(lo1,la1,lo2,la2){const d=lo2-lo1,e=la2-la1;return d*d+e*e;}
@@ -1971,6 +2102,24 @@ function openDrawer(name,d){
     ${d.sgb2>=25||d.kinderarmut>=35?`<div class="soc-risk">⚠️ <b>Soziale Risikolage:</b> Überdurchschnittliche Armutsquoten. Handlungsbedarf bei Bildung, Sozialinfrastruktur und Einkommensförderung. Kandidat für ESF+, ERDF Soziale Infrastruktur (80% Förderquote).</div>`:d.sgb2<=8&&d.einkommen>=45000?`<div class="soc-good">✅ <b>Stabile Soziallage:</b> Unterdurchschnittliche Armutsquoten und überdurchschnittliches Einkommen. Gute Bildungsvoraussetzungen.</div>`:''}
     <div style="font-size:8px;color:var(--muted);margin-top:6px;padding:6px 8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
       Quellen: Frankfurt Stadtmonitoring Soziales 2024 · BA Statistik · Paritätischer Armutsbericht · Zensus 2022
+    </div>`:''}
+    ${d.versieg!=null?`
+    <div class="sec">🛰 Klimaphysik — amtliche Messwerte</div>
+    <div class="social-grid">
+      <div class="skpi">
+        <div class="skpi-val" style="color:${d.versieg>=70?'#ef4444':d.versieg>=50?'#f97316':d.versieg>=35?'#eab308':'#22c55e'}">${d.versieg}%</div>
+        <div class="skpi-lbl">Versiegelungsgrad</div>
+        <div class="skpi-bar"><div class="skpi-fill" style="width:${d.versieg}%;background:${d.versieg>=70?'#ef4444':d.versieg>=50?'#f97316':d.versieg>=35?'#eab308':'#22c55e'}"></div></div>
+      </div>
+      <div class="skpi">
+        <div class="skpi-val" style="color:${d.lst_delta>=3?'#ef4444':d.lst_delta>=2?'#f97316':d.lst_delta>=1?'#eab308':d.lst_delta<0?'#22c55e':'#a3e635'}">${d.lst_delta>=0?'+':''}${d.lst_delta}°C</div>
+        <div class="skpi-lbl">LST-Delta Tageshitze</div>
+        <div class="skpi-bar"><div class="skpi-fill" style="width:${Math.min(100,Math.max(0,(d.lst_delta+1)/5*100))}%;background:${d.lst_delta>=3?'#ef4444':d.lst_delta>=2?'#f97316':d.lst_delta>=1?'#eab308':'#22c55e'}"></div></div>
+      </div>
+    </div>
+    <div style="font-size:8px;color:var(--muted);margin-top:4px;padding:5px 8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+      🛰 Copernicus Urban Atlas 2018 · HLNUG Hot/Coldspot-Datensatz Hessen<br>
+      Datenlizenz Deutschland 2.0 · 100m Rasterauflösung · <span style="color:var(--accent)">🟢 Amtliche Quelle</span>
     </div>`:''}`;
 
   // TAB 1 — Dimensionen
