@@ -211,11 +211,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .kd-panel{position:fixed;top:166px;left:268px;z-index:650;width:280px;max-height:calc(100vh - 230px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);padding:14px;display:none}
 .kd-panel.open{display:block}
 .kd-panel::-webkit-scrollbar{width:4px}.kd-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-.kd-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kd-title{font-size:11px;font-weight:800;color:var(--text);letter-spacing:.02em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .kd-chain{margin-bottom:12px}
-.kd-chain-hdr{font-size:10px;font-weight:800;padding:5px 8px;border-radius:6px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.kd-chain1-hdr{background:rgba(220,38,38,0.1);color:#dc2626;border:1px solid rgba(220,38,38,0.2)}
-.kd-chain2-hdr{background:rgba(234,179,8,0.1);color:#ca8a04;border:1px solid rgba(234,179,8,0.2)}
+.kd-chain-hdr{font-size:11px;font-weight:800;padding:6px 10px;border-radius:7px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.kd-chain1-hdr{background:rgba(220,38,38,0.14);color:#fca5a5;border:1px solid rgba(220,38,38,0.3)}
+.kd-chain2-hdr{background:rgba(234,179,8,0.12);color:#fde68a;border:1px solid rgba(234,179,8,0.3)}
 .kd-item{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .12s;margin-bottom:3px;border:1px solid transparent}
 .kd-item:hover{background:var(--surface2)}
 .kd-item.c1{border-color:rgba(220,38,38,0.15)}
@@ -226,14 +226,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @keyframes kdpulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0.5)}60%{transform:scale(1.1);box-shadow:0 0 0 6px rgba(239,68,68,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0)}}
 .kd-item.c2 .kd-dot{animation-name:kdpulse2}
 @keyframes kdpulse2{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(234,179,8,0.5)}60%{transform:scale(1.1);box-shadow:0 0 0 6px rgba(234,179,8,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(234,179,8,0)}}
-.kd-name{font-size:11px;font-weight:700;flex:1}
-.kd-score{font-size:9px;color:var(--muted);margin-top:2px;line-height:1.5}
-.kd-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
-.kd-tag{font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px}
-.kd-tag.red{background:rgba(220,38,38,0.12);color:#dc2626;border:1px solid rgba(220,38,38,0.2)}
-.kd-tag.yellow{background:rgba(234,179,8,0.1);color:#ca8a04;border:1px solid rgba(234,179,8,0.2)}
-.kd-empty{font-size:10px;color:var(--muted);text-align:center;padding:16px 0;font-style:italic}
-.kd-legend{font-size:8px;color:var(--muted);padding:8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);margin-top:8px;line-height:1.6}
+.kd-name{font-size:12px;font-weight:700;flex:1;color:var(--text)}
+.kd-why{font-size:10px;color:var(--text2);margin-top:3px;line-height:1.55}
+.kd-impact{font-size:9px;color:var(--accent);margin-top:4px;font-weight:600}
+.kd-numbers{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.kd-num{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px}
+.kd-num.red{background:rgba(220,38,38,0.15);color:#fca5a5;border:1px solid rgba(220,38,38,0.3)}
+.kd-num.yellow{background:rgba(234,179,8,0.12);color:#fde68a;border:1px solid rgba(234,179,8,0.3)}
+.kd-action{display:inline-block;margin-top:6px;font-size:9px;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.kd-empty{font-size:10px;color:var(--text2);text-align:center;padding:14px 0;font-style:italic;opacity:0.7}
+.kd-divider{height:1px;background:var(--border);margin:10px 0}
 
 /* Social KPI grid */
 .social-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
@@ -348,18 +350,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   🗺️ Karten-Layer <span class="lcount" id="layerCount">0</span>
 </button>
 
-<!-- KONFLIKT-DETEKTOR -->
+<!-- RISIKORADAR -->
 <button class="kd-btn" id="kdBtn" onclick="toggleKDPanel()">
-  ⚡ Konflikt-Detektor <span class="kd-count" id="kdCount">0</span>
+  🔍 Risikoradar <span class="kd-count" id="kdCount">0</span>
 </button>
 <div class="kd-panel" id="kdPanel">
-  <div class="kd-title">⚡ Palantir — Konfliktketten</div>
+  <div class="kd-title">🔍 Automatische Stadtdiagnose</div>
+  <div style="font-size:9px;color:var(--text2);margin-bottom:10px;line-height:1.5;padding:6px 8px;background:rgba(255,255,255,0.05);border-radius:7px;border:1px solid var(--border2)">
+    Klick auf einen Stadtteil → Details + Maßnahmen öffnen sich rechts.<br>
+    <span style="color:var(--accent)">Straßen-Layer einschalten</span> um zu sehen wo genau im Viertel das Problem liegt.
+  </div>
   <div id="kdChain1" class="kd-chain"></div>
   <div id="kdChain2" class="kd-chain"></div>
-  <div class="kd-legend">
-    <b style="color:#ef4444">● Kette 1 — Brennpunkt:</b> LST ≥+2,5°C UND SGB-II ≥25% UND Kinderarmut ≥30%<br>
-    <b style="color:#ca8a04">● Kette 2 — Gentrifizierungsrisiko:</b> Klima-Score ≥55 UND Sozial-Score ≤45 UND Migration ≥35%
-  </div>
 </div>
 <div class="layer-panel" id="layerPanel">
   <div class="lp-title">Straßen-Layer ein/ausschalten</div>
@@ -915,41 +917,67 @@ function renderKDPanel(){
   const total = k1.length + k2.length;
   document.getElementById('kdCount').textContent = total;
 
-  // Kette 1
+  // ── Muster 1: Dreifachbelastung ──────────────────────────────
   const c1El = document.getElementById('kdChain1');
-  c1El.innerHTML = `<div class="kd-chain-hdr kd-chain1-hdr">🔴 Kette 1 — Brennpunkte (${k1.length})</div>` +
-    (k1.length===0 ? `<div class="kd-empty">Keine aktiven Brennpunkte</div>` :
-    k1.map(({name,d})=>`
-      <div class="kd-item c1" onclick="openDrawer('${name}',CITY_CFG[city].data['${name}'])">
-        <div class="kd-dot c1"></div>
-        <div>
-          <div class="kd-name">${name}</div>
-          <div class="kd-score">LST +${d.lst_delta}°C · SGB-II ${d.sgb2}% · Armut ${d.kinderarmut}%</div>
-          <div class="kd-tags">
-            <span class="kd-tag red">🌡 +${d.lst_delta}°C Hitze</span>
-            <span class="kd-tag red">💶 ${d.sgb2}% SGB-II</span>
-            <span class="kd-tag red">👶 ${d.kinderarmut}% Kinderarmut</span>
+  if(k1.length===0){
+    c1El.innerHTML=`<div class="kd-chain-hdr kd-chain1-hdr">🔴 Dreifachbelastung — 0 Stadtteile</div>
+      <div class="kd-empty">✓ Kein Stadtteil trägt gleichzeitig extreme Hitze, hohe Armut und Kinderarmut</div>`;
+  } else {
+    c1El.innerHTML=`
+      <div class="kd-chain-hdr kd-chain1-hdr">🔴 Dreifachbelastung — ${k1.length} ${k1.length===1?'Stadtteil':'Stadtteile'}</div>
+      <div style="font-size:9px;color:var(--text2);line-height:1.5;margin-bottom:8px;padding:5px 6px;border-left:2px solid #ef4444">
+        Klimawandel trifft Armut: Wo es heiß ist, haben die Menschen am wenigsten Mittel um sich zu schützen — keine Klimaanlage, kein Urlaub, oft beengte Wohnverhältnisse.
+      </div>
+      ${k1.map(({name,d})=>{
+        const hitzeStufe=d.lst_delta>=4?'extreme Hitze':'starke Überhitzung';
+        const armutStufe=d.sgb2>=50?'jeder zweite Haushalt':d.sgb2>=30?'fast ein Drittel':'ein Viertel';
+        return`<div class="kd-item c1" onclick="openDrawer('${name}',CITY_CFG[city].data['${name}'])">
+          <div class="kd-dot c1"></div>
+          <div style="flex:1">
+            <div class="kd-name">${name}</div>
+            <div class="kd-why">Im Sommer ${hitzeStufe} (+${d.lst_delta}°C über Stadtdurchschnitt). ${armutStufe} lebt von Sozialhilfe — ${d.kinderarmut}% der Kinder sind von Armut betroffen. Diese drei Faktoren verstärken sich gegenseitig.</div>
+            <div class="kd-impact">→ Höchster Handlungsbedarf · ESF+, ERDF verfügbar</div>
+            <div class="kd-numbers">
+              <span class="kd-num red">🌡 +${d.lst_delta}°C Hitze</span>
+              <span class="kd-num red">💶 ${d.sgb2}% SGB-II</span>
+              <span class="kd-num red">👶 ${d.kinderarmut}% Kinderarmut</span>
+            </div>
+            <div class="kd-action">Details & Maßnahmen ansehen →</div>
           </div>
-        </div>
-      </div>`).join(''));
+        </div>`;
+      }).join('<div class="kd-divider"></div>')}`;
+  }
 
-  // Kette 2
+  // ── Muster 2: Verdrängungsgefahr ────────────────────────────
   const c2El = document.getElementById('kdChain2');
-  c2El.innerHTML = `<div class="kd-chain-hdr kd-chain2-hdr">🟡 Kette 2 — Gentrifizierungsrisiko (${k2.length})</div>` +
-    (k2.length===0 ? `<div class="kd-empty">Kein Gentrifizierungsrisiko erkannt</div>` :
-    k2.map(({name,d})=>`
-      <div class="kd-item c2" onclick="openDrawer('${name}',CITY_CFG[city].data['${name}'])">
-        <div class="kd-dot c2"></div>
-        <div>
-          <div class="kd-name">${name}</div>
-          <div class="kd-score">Klima ${climateScore(d)} · Sozial ${socialScore(d)} · Mig ${d.mig}%</div>
-          <div class="kd-tags">
-            <span class="kd-tag yellow">🌡 Klima ${climateScore(d)}/100</span>
-            <span class="kd-tag yellow">👥 Mig ${d.mig}%</span>
-            <span class="kd-tag yellow">📉 Sozial ${socialScore(d)}</span>
+  if(k2.length===0){
+    c2El.innerHTML=`<div class="kd-chain-hdr kd-chain2-hdr" style="margin-top:12px">🟡 Verdrängungsgefahr — 0 Stadtteile</div>
+      <div class="kd-empty">✓ Kein aktutes Gentrifizierungsrisiko erkannt</div>`;
+  } else {
+    c2El.innerHTML=`
+      <div class="kd-chain-hdr kd-chain2-hdr" style="margin-top:12px">🟡 Verdrängungsgefahr — ${k2.length} ${k2.length===1?'Stadtteil':'Stadtteile'}</div>
+      <div style="font-size:9px;color:var(--text2);line-height:1.5;margin-bottom:8px;padding:5px 6px;border-left:2px solid #eab308">
+        Wenn Klimaschutz und Aufwertung kommen, steigen die Mieten — bevor die jetzigen Bewohner davon profitieren können.
+      </div>
+      ${k2.map(({name,d})=>{
+        const cs=climateScore(d), ss=socialScore(d);
+        const gap=cs-ss;
+        return`<div class="kd-item c2" onclick="openDrawer('${name}',CITY_CFG[city].data['${name}'])">
+          <div class="kd-dot c2"></div>
+          <div style="flex:1">
+            <div class="kd-name">${name}</div>
+            <div class="kd-why">Klimascore ${cs}/100 ist ${gap} Punkte besser als der Sozialscore (${ss}/100). Das Viertel wertet ökologisch auf — aber ${d.mig}% der Bewohner haben Migrationshintergrund und sind bei steigenden Mieten besonders gefährdet zu verdrängt zu werden.</div>
+            <div class="kd-impact">→ Handlungsfenster jetzt · Mietpreisbremse, Sozialbindung prüfen</div>
+            <div class="kd-numbers">
+              <span class="kd-num yellow">🌿 Klima ${cs}/100</span>
+              <span class="kd-num yellow">📉 Sozial ${ss}/100</span>
+              <span class="kd-num yellow">👥 ${d.mig}% Migration</span>
+            </div>
+            <div class="kd-action">Details & Maßnahmen ansehen →</div>
           </div>
-        </div>
-      </div>`).join(''));
+        </div>`;
+      }).join('<div class="kd-divider"></div>')}`;
+  }
 }
 
 function renderKDMarkers(){
@@ -1097,7 +1125,8 @@ function renderMap(){
       const k=Object.keys(cfg.data).find(k=>raw===k||raw.includes(k)||k.includes(raw));
       const s=k?lensScore(cfg.data[k]):null;
       const col=s!=null?qColor(s,allS):'#cccccc';
-      return{fillColor:col,fillOpacity:0.28,color:col,weight:1.5,opacity:0.6};
+      // Flächen-Füllung komplett weg — nur Umrisse, damit Straßenlayer sichtbar bleiben
+      return{fillColor:col,fillOpacity:0,color:col,weight:2.5,opacity:0.75};
     },
     onEachFeature:(f,layer)=>{
       const raw=f.properties[cfg.nameProp]||'?';
@@ -1106,12 +1135,11 @@ function renderMap(){
       const s=d?lensScore(d):'?';
       const risks=d?[d.hw?'💧 HQ100':'',d.heat?'🌡️ Hitzeinsel':'',d.noise>70?'🔊 Lärm':''].filter(Boolean).join(' · '):'';
       layer.bindTooltip(`<b>${k||raw}</b> · Score: <b>${s}</b>/100${risks?'<br><small>'+risks+'</small>':''}`,{sticky:true});
-      // Capture name+data in closure for click — fixes Utrecht bug
       const areaName=k||raw;
       const areaData=d;
       layer.on({
         click:()=>{ if(areaData) openDrawer(areaName, areaData); },
-        mouseover:e=>{ e.target.setStyle({fillOpacity:.5,weight:2.5}); e.target.bringToFront(); },
+        mouseover:e=>{ e.target.setStyle({fillOpacity:.15,weight:3.5,fillColor:qColor(s,allS)}); e.target.bringToFront(); },
         mouseout:e=>{ if(geoLayer) geoLayer.resetStyle(e.target); }
       });
     }
