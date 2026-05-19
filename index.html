@@ -247,6 +247,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* Social risk badge */
 .soc-risk{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:7px 10px;font-size:10px;color:#ef4444;line-height:1.5;margin-top:8px}
 .soc-good{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:7px 10px;font-size:10px;color:#22c55e;line-height:1.5;margin-top:8px}
+
+/* SZENARIO ENGINE */
+.sz-intro{font-size:10px;color:var(--text2);line-height:1.6;background:var(--surface2);padding:10px 12px;border-radius:9px;border:1px solid var(--border);margin-bottom:14px}
+.sz-card{border-radius:12px;padding:13px 14px;margin-bottom:10px;border:1.5px solid}
+.sz-card.sq{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2)}
+.sz-card.mi{background:rgba(234,179,8,0.06);border-color:rgba(234,179,8,0.2)}
+.sz-card.vt{background:rgba(34,197,94,0.06);border-color:rgba(34,197,94,0.2)}
+.sz-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.sz-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.sz-card.sq .sz-label{color:#ef4444}
+.sz-card.mi .sz-label{color:#eab308}
+.sz-card.vt .sz-label{color:#22c55e}
+.sz-title{font-size:13px;font-weight:800;color:var(--text)}
+.sz-score-box{text-align:right;flex-shrink:0}
+.sz-score-big{font-size:22px;font-weight:900;line-height:1}
+.sz-card.sq .sz-score-big{color:#ef4444}
+.sz-card.mi .sz-score-big{color:#eab308}
+.sz-card.vt .sz-score-big{color:#22c55e}
+.sz-score-lbl{font-size:8px;color:var(--muted);margin-top:2px}
+.sz-bar-wrap{margin-bottom:10px}
+.sz-bar-track{height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;margin-top:3px}
+.sz-bar-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.sz-bar-label{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:3px}
+.sz-desc{font-size:10px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+.sz-measures{font-size:9px;color:var(--text2);line-height:1.7}
+.sz-measures b{color:var(--text)}
+.sz-cost{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.sz-cost-item{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid var(--border2);color:var(--text2)}
+.sz-arrow{font-size:11px;margin:4px 0;color:var(--muted);text-align:center}
+.sz-delta{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:20px;margin-left:6px}
 </style>
 </head>
 <body>
@@ -555,12 +585,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="tab" onclick="showTab(1)">Dimensionen</div>
     <div class="tab" onclick="showTab(2)">Maßnahmen</div>
     <div class="tab" onclick="showTab(3)">Förderung</div>
+    <div class="tab" onclick="showTab(4)">Szenarien</div>
   </div>
   <div class="dbody">
     <div class="tp on" id="tp0"></div>
     <div class="tp" id="tp1"></div>
     <div class="tp" id="tp2"></div>
     <div class="tp" id="tp3"></div>
+    <div class="tp" id="tp4"></div>
   </div>
 </div>
 
@@ -2412,6 +2444,139 @@ function openDrawer(name,d){
     <div class="ibox" style="font-size:9px">
       ⚠ Förderangaben zur Orientierung. Kein Ersatz für individuelle Beratung. Konditionen können sich ändern. Alle 25 Programme: Layer-Architektur in Notion.
     </div>`;
+
+  // TAB 4 — Szenarien
+  (()=>{
+    // Projektion: wie entwickelt sich der Score je nach Handeln?
+    const weakCount = weakKeys.length;
+    const klimaRisiko = (d.lst_delta||0) >= 2.5 ? 'hoch' : (d.lst_delta||0) >= 1.5 ? 'mittel' : 'gering';
+    const sozialRisiko = (d.sgb2||0) >= 25 ? 'hoch' : (d.sgb2||0) >= 15 ? 'mittel' : 'gering';
+
+    // Szenario A: Status quo — keine Interventionen
+    // Klimawandel verschlechtert A,G,H; soziale Schere verbreitert D,E,F
+    const klimaDrift = klimaRisiko==='hoch'?-8:klimaRisiko==='mittel'?-4:-1;
+    const sozDrift   = sozialRisiko==='hoch'?-6:sozialRisiko==='mittel'?-3:-1;
+    const sqScore    = Math.max(10, s + klimaDrift + sozDrift);
+
+    // Szenario B: Minimalintervention — 2 Quick Wins (ca. 200k€)
+    const quickWins = MASS.filter(m=>m.typ==='quick_win'&&m.dims.some(k=>weakKeys.includes(k))).slice(0,2);
+    const miGain    = quickWins.length * 6 + Math.abs(klimaDrift)*0.4 + 4;
+    const miScore   = Math.min(100, s + Math.round(miGain));
+    const miKosten  = quickWins.reduce((a,m)=>a+m.kosten,0);
+    const miRoi     = quickWins.reduce((a,m)=>a+m.roi,0);
+
+    // Szenario C: Vollständige Transformation — alle Maßnahmen + Förderung
+    const allM = MASS.filter(m=>m.dims.some(k=>weakKeys.includes(k)));
+    const vtGain  = allM.length * 5 + 18 - (s >= 60 ? 8 : 0); // diminishing returns für hohe scores
+    const vtScore = Math.min(100, s + Math.round(vtGain));
+    const vtKosten = allM.reduce((a,m)=>a+m.kosten,0);
+    const vtRoi    = allM.reduce((a,m)=>a+m.roi,0);
+    const vtFoerder = Math.round(vtKosten * 0.72); // ~72% Förderquote Ø
+
+    function szBar(from, to, color){
+      const fromPct = from, toPct = to;
+      return `<div class="sz-bar-wrap">
+        <div class="sz-bar-track">
+          <div class="sz-bar-fill" style="width:${fromPct}%;background:${color};opacity:0.3"></div>
+        </div>
+        <div class="sz-bar-track" style="margin-top:3px">
+          <div class="sz-bar-fill" style="width:${toPct}%;background:${color}"></div>
+        </div>
+        <div class="sz-bar-label"><span>Heute: ${from}/100</span><span>2035: ${to}/100</span></div>
+      </div>`;
+    }
+
+    const klimaTrend = klimaRisiko==='hoch'
+      ? `Ohne Schutzmaßnahmen steigen Hitzetage weiter. Die Versiegelung (${d.versieg||'?'}%) verhindert natürliche Kühlung. LST-Delta aktuell +${d.lst_delta||'?'}°C — bis 2035 könnten es +${((d.lst_delta||0)+1.2).toFixed(1)}°C sein (DWD Klimaprojektion RCP 4.5).`
+      : `Klimarisiko aktuell überschaubar, aber steigend. Frühe Maßnahmen jetzt sind deutlich günstiger als Reaktionen später.`;
+
+    const sozTrend = sozialRisiko==='hoch'
+      ? `Ohne Intervention zementiert sich Armut über Generationen: Kinder in armen Stadtteilen haben statistisch ${d.kinderarmut||'?'}% Armutsrisiko — das überträgt sich auf die nächste Generation (IAB 2023).`
+      : `Soziale Lage stabil bis leicht verbesserbar mit gezielten Investitionen in Bildung und Teilhabe.`;
+
+    document.getElementById('tp4').innerHTML=`
+      <div class="sz-intro">
+        Drei Entwicklungspfade bis <b>2035</b> — basierend auf Klimaprojektionen (DWD RCP 4.5), IAB-Armutsforschung und verfügbaren Förderprogrammen.<br><br>
+        <b>Heute: Score ${s}/100</b> · Stadt-Ø: ${avgS}
+      </div>
+
+      <div class="sz-card sq">
+        <div class="sz-top">
+          <div>
+            <div class="sz-label">Szenario A</div>
+            <div class="sz-title">Status quo — Nichts tun</div>
+          </div>
+          <div class="sz-score-box">
+            <div class="sz-score-big">${sqScore}</div>
+            <div class="sz-score-lbl">/100 in 2035</div>
+          </div>
+        </div>
+        ${szBar(s, sqScore, '#ef4444')}
+        <div class="sz-desc">${klimaTrend}<br><br>${sozTrend}</div>
+        <div class="sz-measures"><b>Was passiert konkret:</b><br>
+          ${klimaRisiko==='hoch'?'· Hitzetote: Frankfurt 2022 = ~180 Übersterblichkeit. Trend +12%/Dekade (Destatis)<br>':''}
+          ${sozialRisiko==='hoch'?`· Sozialhilfekosten steigen: Ø 14.000€/Person/Jahr × wachsende Fallzahlen<br>`:''}
+          · Förderfenster verpassen, höhere Eigenmittel nötig später
+        </div>
+        <div class="sz-cost">
+          <span class="sz-cost-item">💰 Investition: 0€</span>
+          <span class="sz-cost-item" style="color:#ef4444">📉 Folgekosten: hoch</span>
+        </div>
+      </div>
+
+      <div class="sz-card mi">
+        <div class="sz-top">
+          <div>
+            <div class="sz-label">Szenario B</div>
+            <div class="sz-title">Minimalintervention — Quick Wins</div>
+          </div>
+          <div class="sz-score-box">
+            <div class="sz-score-big">${miScore}</div>
+            <div class="sz-score-lbl">/100 in 2035</div>
+          </div>
+        </div>
+        ${szBar(s, miScore, '#eab308')}
+        <div class="sz-desc">2–3 sofort umsetzbare Maßnahmen mit hohem Wirkungsgrad und verfügbarer Förderung. Stoppwirkung gegen den negativen Trend, aber keine strukturelle Lösung.</div>
+        <div class="sz-measures"><b>Konkrete Maßnahmen:</b><br>
+          ${quickWins.map(m=>`· ${m.icon} <b>${m.name}</b> — ${m.desc.substring(0,60)}…`).join('<br>')}
+        </div>
+        <div class="sz-cost">
+          <span class="sz-cost-item">💰 ${fmt(miKosten)} Investition</span>
+          <span class="sz-cost-item" style="color:#15803d">📈 ${fmt(miRoi)} ROI/10J</span>
+          <span class="sz-cost-item">🏛 bis 75% Förderung möglich</span>
+        </div>
+      </div>
+
+      <div class="sz-card vt">
+        <div class="sz-top">
+          <div>
+            <div class="sz-label">Szenario C</div>
+            <div class="sz-title">Vollständige Transformation</div>
+          </div>
+          <div class="sz-score-box">
+            <div class="sz-score-big">${vtScore}</div>
+            <div class="sz-score-lbl">/100 in 2035</div>
+          </div>
+        </div>
+        ${szBar(s, vtScore, '#22c55e')}
+        <div class="sz-desc">Alle ${allM.length} adressierbaren Maßnahmen werden umgesetzt — koordiniert über EU/Bund/Land-Programme. ${name} wird zum Modellstadtteil mit messbarer Wirkung für den EUI Call 4 Antrag.</div>
+        <div class="sz-measures"><b>Effekte:</b><br>
+          · Klimadimension A+G: +${Math.round(vtGain*0.4)} Punkte durch Begrünung & Entsiegelung<br>
+          · Sozialdimension D+F: +${Math.round(vtGain*0.35)} Punkte durch Bildung & Teilhabe<br>
+          · Mobilitätsdimension C: +${Math.round(vtGain*0.25)} Punkte durch ÖPNV & Radwege<br>
+          · Eigenanteil nach Förderabzug: <b>${fmt(vtKosten-vtFoerder)}</b> (Stadt/Land trägt Rest)
+        </div>
+        <div class="sz-cost">
+          <span class="sz-cost-item">💰 ${fmt(vtKosten)} gesamt</span>
+          <span class="sz-cost-item" style="color:#15803d">📈 ${fmt(vtRoi)} ROI/10J</span>
+          <span class="sz-cost-item" style="color:var(--accent)">🏛 ~${fmt(vtFoerder)} Förderung (72% Ø)</span>
+        </div>
+      </div>
+
+      <div class="ibox" style="font-size:9px;margin-top:4px">
+        ⚠ Projektionen sind illustrativ basierend auf Literaturwerten (DWD, IAB, UBA, BBSR). Kein Ersatz für eine formale Machbarkeitsstudie. Scores sind Schätzwerte ±10 Punkte.
+      </div>`;
+  })();
 
   document.getElementById('drawer').classList.add('open');
   showTab(0);
