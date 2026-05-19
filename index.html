@@ -35,7 +35,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* LEFT */
-.left{position:fixed;top:62px;left:10px;bottom:56px;width:248px;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.left{position:fixed;top:62px;left:10px;bottom:10px;width:248px;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
 .lhead{padding:12px 12px 8px;border-bottom:1px solid var(--border);flex-shrink:0}
 .ltitle{font-size:11px;font-weight:700;color:var(--text)}
 .lsub{font-size:9px;color:var(--muted);margin-top:2px}
@@ -79,7 +79,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .llegcolor{width:24px;height:4px;border-radius:2px;flex-shrink:0}
 
 /* RIGHT DRAWER */
-.right{position:fixed;top:62px;right:10px;bottom:56px;width:320px;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);display:flex;flex-direction:column;overflow:hidden;transform:translateX(340px);transition:transform .3s cubic-bezier(0.4,0,0.2,1)}
+.right{position:fixed;top:62px;right:10px;bottom:10px;width:320px;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);display:flex;flex-direction:column;overflow:hidden;transform:translateX(340px);transition:transform .3s cubic-bezier(0.4,0,0.2,1)}
 .right.open{transform:translateX(0)}
 .dhead{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)}
 .dtop{display:flex;align-items:flex-start;justify-content:space-between}
@@ -175,12 +175,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bp-tip b{color:var(--accent)}
 /* Cursor wenn Bürgerbrille aktiv */
 .map-brille-active{cursor:crosshair!important}
-.stats{position:fixed;bottom:0;left:0;right:0;height:48px;z-index:500;background:#252830;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;overflow-x:auto;overflow-y:hidden}
-.stats::-webkit-scrollbar{display:none}
-.stat{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0;cursor:pointer;transition:background .12s;white-space:nowrap}
-.stat:hover{background:rgba(255,255,255,0.05)}
-.stl{font-size:8px;color:#636d85;text-transform:uppercase;letter-spacing:.07em;margin-bottom:1px}
-.stv{font-size:13px;font-weight:800;color:#f0f4ff}.sts{font-size:8px;color:#636d85;margin-top:1px}
+.stats{display:none}
 
 /* LOADER */
 .loader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
@@ -194,10 +189,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .leaflet-control-zoom{border:none!important;box-shadow:none!important}
 .leaflet-control-zoom a{background:#252830!important;color:#f0f4ff!important;border:1px solid rgba(255,255,255,0.12)!important;margin-bottom:4px!important;border-radius:8px!important;display:flex!important;align-items:center!important;justify-content:center!important}
 /* WIND & RUNWAY INDICATOR */
-.wind-pill{position:fixed;top:62px;right:16px;z-index:700;background:#252830;border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:#f0f4ff;display:flex;align-items:center;gap:6px;box-shadow:var(--sh);cursor:pointer}
+.wind-pill{position:fixed;top:70px;left:268px;z-index:700;background:#252830;border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:#f0f4ff;display:flex;align-items:center;gap:6px;box-shadow:var(--sh);cursor:pointer}
 .wind-arrow{font-size:16px;transition:transform .5s}
 .wind-rwy{font-size:9px;color:var(--muted);font-weight:500}
-.wind-popup{position:fixed;top:96px;right:16px;z-index:700;width:240px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl);padding:14px;display:none}
+.wind-popup{position:fixed;top:112px;left:268px;z-index:700;width:240px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl);padding:14px;display:none}
 .wind-popup.open{display:block}
 .wind-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
 .wind-label{color:var(--muted)}
