@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8"/>
-<title>UrbanLens — 3D Gebäudeanalyse Frankfurt</title>
+<title>UrbanLens — Stadtanalyse Frankfurt</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link href="https://unpkg.com/maplibre-gl@5.5.0/dist/maplibre-gl.css" rel="stylesheet"/>
 <script src="https://unpkg.com/maplibre-gl@5.5.0/dist/maplibre-gl.js"></script>
@@ -11,20 +11,16 @@
 html,body,#map{height:100%}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f3ee}
 
-/* ── NAV (gleich wie index.html) ──────────────────────────── */
+/* NAV */
 .nav{position:fixed;top:0;left:0;right:0;height:54px;z-index:200;background:#fff;
   border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;
   padding:0 16px;box-shadow:0 2px 16px rgba(0,0,0,0.06)}
 .logo{font-size:17px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px;text-decoration:none}
-.logo span{color:#1a1a2e}
 .nsep{width:1px;height:24px;background:rgba(0,0,0,0.1);margin:0 4px}
 .nav-pill{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;
   text-decoration:none;border:1.5px solid rgba(0,0,0,0.1);color:#1a1a2e;
-  background:rgba(0,0,0,0.05);transition:all .15s;cursor:pointer}
+  background:rgba(0,0,0,0.05);transition:all .15s}
 .nav-pill:hover{background:#1a1a2e;color:#FFD600;border-color:#1a1a2e}
-.nav-pill.active{background:#1a1a2e;color:#FFD600;border-color:#1a1a2e}
-.nav-info{font-size:11px;color:#6b7280;font-weight:500}
-.nav-info b{color:#1a1a2e}
 .nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
 .epill{background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.2);
   border-radius:20px;padding:4px 12px;font-size:11px;color:#b45309;font-weight:600}
@@ -34,59 +30,86 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dot{width:6px;height:6px;border-radius:50%;background:#16a34a;animation:blink 1.4s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* ── PANELS ───────────────────────────────────────────────── */
+/* MODE BAR */
+.mode-bar{position:fixed;top:54px;left:0;right:0;z-index:150;
+  display:flex;align-items:center;justify-content:center;
+  padding:5px 12px;gap:3px;overflow-x:auto;
+  background:rgba(255,255,255,0.95);backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(0,0,0,0.07)}
+.mode-btn{padding:5px 13px;border-radius:14px;font-size:11px;font-weight:700;
+  border:none;cursor:pointer;transition:all .15s;color:#6b7280;background:transparent;
+  white-space:nowrap;flex-shrink:0}
+.mode-btn.on{background:#1a1a2e;color:#FFD600}
+.mode-btn:hover:not(.on){background:rgba(0,0,0,0.07);color:#1a1a2e}
+
+/* PANELS */
 .panel{position:fixed;background:#fff;border:1px solid rgba(0,0,0,0.08);
-  border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1),0 1px 8px rgba(0,0,0,0.06);
-  z-index:100}
-.panel-title{font-size:12px;font-weight:800;color:#1a1a2e;letter-spacing:-.2px}
-.panel-sub{font-size:10px;color:#6b7280;margin-top:3px;line-height:1.5}
+  border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1);z-index:100}
+.left-panel{top:108px;left:10px;width:272px;padding:15px;
+  max-height:calc(100vh - 128px);overflow-y:auto;scrollbar-width:thin}
+.info-panel{top:108px;right:10px;width:290px;padding:15px;display:none;
+  max-height:calc(100vh - 128px);overflow-y:auto}
 
-/* MODE SWITCHER */
-.mode-bar{position:fixed;top:66px;left:50%;transform:translateX(-50%);z-index:150;
-  background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:20px;
-  padding:3px;display:flex;gap:2px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
-.mode-btn{padding:6px 16px;border-radius:16px;font-size:11px;font-weight:700;
-  border:none;cursor:pointer;transition:all .15s;color:#6b7280;background:transparent}
-.mode-btn.on{background:#1a1a2e;color:#FFD600;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
-.mode-btn:hover:not(.on){background:rgba(0,0,0,0.05);color:#1a1a2e}
+/* TYPOGRAPHY */
+.ptitle{font-size:12px;font-weight:800;color:#1a1a2e;letter-spacing:-.2px;margin-bottom:4px}
+.psub{font-size:10px;color:#6b7280;line-height:1.5}
 
-/* LEFT PANEL */
-.left-panel{top:116px;left:10px;width:268px;padding:16px}
-
-/* RIGHT INFO PANEL */
-.info-panel{top:116px;right:10px;width:288px;padding:16px;display:none}
-
-/* BAUMSCHALTER */
-.tree-toggle{top:116px;left:10px;width:268px;padding:12px 16px;
-  display:flex;align-items:center;justify-content:space-between}
-
-/* LEGEND GRADIENT */
+/* LEGEND */
 .leg-bar{height:8px;border-radius:4px;margin:10px 0 4px}
 .leg-labs{display:flex;justify-content:space-between;font-size:9px;color:#9ca3af}
 
-/* BIVARIATE GRID */
-.bi-grid{display:inline-grid;gap:4px;margin-top:10px}
-.bi-cell{height:26px;border-radius:5px}
-.bi-axis-label{font-size:9px;color:#9ca3af;font-weight:600}
+/* BIVARIATE */
+.bi-grid{display:inline-grid;gap:3px;margin-top:10px}
+.bi-cell{height:24px;border-radius:4px}
+.bi-ax{font-size:9px;color:#9ca3af;font-weight:600}
 
-/* KPI ROW IN PANEL */
+/* KPI */
 .kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .kpi-box{background:#f5f3ee;border:1px solid rgba(0,0,0,0.06);border-radius:10px;padding:9px 11px}
 .kpi-val{font-size:16px;font-weight:800;color:#1a1a2e;line-height:1}
-.kpi-lbl{font-size:9px;color:#9ca3af;margin-top:3px;font-weight:500}
+.kpi-lbl{font-size:9px;color:#9ca3af;margin-top:3px}
 
 /* DATA TABLE */
-.data-row{display:flex;justify-content:space-between;align-items:center;
-  padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:11px}
-.data-row:last-child{border:none}
-.data-key{color:#6b7280}
-.data-val{font-weight:700;color:#1a1a2e}
-.reno-box{background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.2);
-  border-radius:8px;padding:8px 10px;margin-top:10px;font-size:11px;color:#065f46}
+.drow{display:flex;justify-content:space-between;padding:5px 0;
+  border-bottom:1px solid rgba(0,0,0,0.05);font-size:11px}
+.drow:last-child{border:none}
+.dk{color:#6b7280}.dv{font-weight:700;color:#1a1a2e}
 
-/* TOGGLE SWITCH */
-.toggle-wrap{display:flex;align-items:center;gap:8px;cursor:pointer}
-.toggle-lbl{font-size:11px;font-weight:600;color:#374151}
+/* CONTROLS */
+.reno-label{display:flex;justify-content:space-between;font-size:11px;
+  font-weight:600;color:#374151;margin-top:12px}
+.reno-val{font-size:13px;font-weight:800;color:#1a1a2e;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:#1a1a2e;margin-top:6px}
+
+/* FILTER PILLS */
+.filter-pills{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.fpill{padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;
+  border:1.5px solid rgba(0,0,0,0.12);color:#6b7280;background:#fff;
+  cursor:pointer;transition:all .15s}
+.fpill.on{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+
+/* SWATCHES */
+.sw-list{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.sw-row{display:flex;align-items:center;gap:7px;font-size:10px;color:#374151}
+.sw{width:22px;height:9px;border-radius:3px;flex-shrink:0}
+.sw.ln{height:3px;border-radius:2px}
+
+/* DATA CHAIN */
+.chain{margin-top:12px;border-top:1px solid rgba(0,0,0,0.06);padding-top:10px}
+.chain-ttl{font-size:9px;font-weight:800;color:#9ca3af;text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:6px}
+.cstep{display:flex;align-items:flex-start;gap:6px;padding:5px 0}
+.cstep+.cstep{border-top:1px dashed rgba(0,0,0,0.07)}
+.cico{font-size:13px;flex-shrink:0;width:18px;text-align:center;margin-top:1px}
+.cbody{flex:1;min-width:0}
+.ctop{font-size:9px;font-weight:800;color:#1a1a2e;line-height:1.3}
+.cdesc{font-size:9px;color:#9ca3af;line-height:1.4;margin-top:1px}
+
+/* TREE TOGGLE */
+.tree-bar{position:fixed;bottom:20px;left:10px;width:272px;z-index:100;
+  background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:12px;
+  padding:10px 14px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 2px 12px rgba(0,0,0,0.08)}
 .toggle-sw{width:36px;height:20px;border-radius:10px;background:rgba(0,0,0,0.12);
   border:none;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
 .toggle-sw.on{background:#16a34a}
@@ -94,27 +117,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   background:#fff;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
 .toggle-sw.on::after{left:19px}
 
-/* SLIDER */
-input[type=range]{width:100%;accent-color:#1a1a2e;margin-top:8px}
-.reno-label{display:flex;justify-content:space-between;align-items:center;
-  font-size:11px;font-weight:600;color:#374151;margin-top:12px}
-.reno-val{font-size:13px;font-weight:800;color:#1a1a2e;font-variant-numeric:tabular-nums}
-
 /* LOADER */
-.loader{position:fixed;inset:0;z-index:999;background:rgba(245,243,238,0.9);
+.loader{position:fixed;inset:0;z-index:999;background:rgba(245,243,238,0.92);
   backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center}
 .loader-box{background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;
   padding:20px 28px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.1)}
 .loader-logo{font-size:20px;font-weight:900;color:#1a1a2e;letter-spacing:-.5px;margin-bottom:8px}
-.loader-ring{width:32px;height:32px;border:3px solid rgba(0,0,0,0.1);border-top-color:#FFD600;
+.loader-ring{width:32px;height:32px;border:3px solid rgba(0,0,0,0.08);border-top-color:#FFD600;
   border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loader-txt{font-size:12px;color:#9ca3af}
 
-/* MAPLIBRE OVERRIDES */
+/* MAPLIBRE */
 .maplibregl-ctrl-attrib{font-size:9px!important}
-.maplibregl-ctrl-group{border-radius:10px!important;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1)!important}
-.maplibregl-ctrl-group button{width:32px!important;height:32px!important}
+.maplibregl-ctrl-group{border-radius:10px!important;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1)!important}
 </style>
 </head>
 <body>
@@ -126,61 +143,188 @@ input[type=range]{width:100%;accent-color:#1a1a2e;margin-top:8px}
   <a href="index.html" class="nav-pill" style="text-decoration:none">← Karte</a>
   <a href="dashboard.html" class="nav-pill" style="text-decoration:none">📊 Dashboard</a>
   <div class="nsep"></div>
-  <div class="nav-info">🏙 Frankfurt am Main · <b>3D Gebäudeanalyse</b> · 8.054 Gebäude · 22.353 Bäume</div>
+  <div style="font-size:11px;color:#6b7280;font-weight:500">🏙 Frankfurt · <b style="color:#1a1a2e">7 Analyseebenen</b> · aus OSM + Copernicus</div>
   <div class="nav-r">
-    <div class="epill">📅 EUI Deadline 15. Juni 2026</div>
+    <div class="epill">📅 EUI 15. Juni 2026</div>
     <div class="lpill"><div class="dot"></div>Open Data Live</div>
   </div>
 </nav>
 
-<!-- MODE SWITCHER -->
+<!-- MODE BAR -->
 <div class="mode-bar">
-  <button class="mode-btn on" id="mode-co2">💨 CO₂-Intensität 3D</button>
-  <button class="mode-btn" id="mode-bi">🌡️ Hitze × Grün bivariat</button>
+  <button class="mode-btn on" data-mode="co2">💨 CO₂ 3D</button>
+  <button class="mode-btn" data-mode="bi">🌡️ Hitze × Bäume</button>
+  <button class="mode-btn" data-mode="footway">🚶 Gehwegqualität</button>
+  <button class="mode-btn" data-mode="flight">✈️ Fluglärm-Korridor</button>
+  <button class="mode-btn" data-mode="flood">🌊 Flut-Risiko</button>
+  <button class="mode-btn" data-mode="bike">🚲 Bike-Lücken</button>
+  <button class="mode-btn" data-mode="bench">🪑 Bänke-Dichte</button>
 </div>
 
 <!-- MAP -->
-<div id="map" style="position:fixed;inset:0;top:54px"></div>
+<div id="map" style="position:fixed;inset:0;top:100px"></div>
 
-<!-- LEFT PANEL CO₂ -->
+<!-- ── PANEL: CO₂ ─────────────────────────────────────────── -->
 <div class="panel left-panel" id="panel-co2">
-  <div class="panel-title">💨 CO₂-Intensität — Gebäudeebene</div>
-  <div class="panel-sub">Energetische Sanierungsklasse pro Gebäude · kg CO₂/m² Nutzfläche · Schätzwert aus Baujahr + Typ</div>
+  <div class="ptitle">💨 CO₂-Intensität — Gebäudeebene</div>
+  <div class="psub">Schätzwert aus Baujahr + Typ × EPC-Hessen · kg CO₂/m² Nutzfläche</div>
   <div class="leg-bar" style="background:linear-gradient(90deg,#1e3a8a,#3b82f6,#fbbf24,#f97316,#7f1d1d)"></div>
-  <div class="leg-labs"><span>0</span><span>60</span><span>100</span><span>140</span><span>180+ kg/m²</span></div>
-  <div class="reno-label">
-    <span>Sanierungs-Szenario</span>
-    <span class="reno-val" id="reno-val">−0%</span>
-  </div>
+  <div class="leg-labs"><span>0</span><span>60</span><span>100</span><span>140</span><span>180+</span></div>
+  <div class="reno-label"><span>Sanierungs-Szenario</span><span class="reno-val" id="reno-val">−0%</span></div>
   <input id="reno" type="range" min="0" max="70" step="5" value="0"/>
-  <div id="stats" style="font-size:10px;color:#9ca3af;margin-top:6px;line-height:1.5">—</div>
-  <div class="kpi-row" id="kpiCO2"></div>
-  <div style="margin-top:10px;font-size:9px;color:#9ca3af;border-top:1px solid rgba(0,0,0,0.06);padding-top:8px">
-    📐 Höhe = Gebäudetyp-Schätzwert · Farbe = CO₂ kg/m²<br>
-    Quelle: OSM + Copernicus Urban Atlas · Gebäudebaujahr Schätzmodell<br>
-    <span style="color:#FFD600;font-weight:700">●</span> Klick auf Gebäude → Details rechts
+  <div id="co2-stats" style="font-size:10px;color:#9ca3af;margin-top:6px;line-height:1.5">—</div>
+  <div class="kpi-row" id="kpi-co2"></div>
+  <div class="chain">
+    <div class="chain-ttl">Datenkette</div>
+    <div class="cstep"><div class="cico">🏛</div><div class="cbody"><div class="ctop">OSM Gebäudetypologie + Baujahr</div><div class="cdesc">building=*, start_date → 8.054 Gebäude</div></div></div>
+    <div class="cstep"><div class="cico">⚙️</div><div class="cbody"><div class="ctop">EPC-Modell Hessen (BBSR 2023)</div><div class="cdesc">Sanierungsklasse × Typ → CO₂ kg/m²</div></div></div>
+    <div class="cstep"><div class="cico">🏗</div><div class="cbody"><div class="ctop">3D-Extrusion nach Emissionen</div><div class="cdesc">Höhe = Typ-Proxy · Farbe = CO₂</div></div></div>
+    <div class="cstep"><div class="cico">🎯</div><div class="cbody"><div class="ctop">Sanierungs-Prioritätsliste</div><div class="cdesc">Slider zeigt Einsparpotenzial je Szenario</div></div></div>
   </div>
 </div>
 
-<!-- LEFT PANEL BIVARIAT -->
+<!-- ── PANEL: Hitze × Bäume ──────────────────────────────── -->
 <div class="panel left-panel" id="panel-bi" style="display:none">
-  <div class="panel-title">🌡️ Hitze × Grünnähe — bivariat</div>
-  <div class="panel-sub">Jedes Gebäude nach zwei Achsen gleichzeitig eingefärbt: thermische Belastung (LST) und Entfernung zur nächsten Grünfläche.</div>
-  <div class="bi-grid" id="bi-legend" style="grid-template-columns:auto repeat(3,64px)"></div>
+  <div class="ptitle">🌡️ Hitze × Bäume — bivariat 3×3</div>
+  <div class="psub">Thermische Belastung (Sentinel-3 LST) × Entfernung zum nächsten Straßenbaum</div>
+  <div class="bi-grid" id="bi-legend" style="grid-template-columns:auto repeat(3,60px)"></div>
   <div style="margin-top:10px;padding:8px 10px;background:rgba(239,68,68,0.06);
-    border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:10px;color:#dc2626;line-height:1.5">
-    🔴 <b>Dunkelrot oben rechts</b> = heiß <em>und</em> baumfern = klimatischer Hotspot.<br>
-    Priorität für Entsiegelung, Straßenbäume und Verschattung.
+    border:1px solid rgba(239,68,68,0.18);border-radius:8px;font-size:10px;color:#dc2626;line-height:1.5">
+    🔴 <b>Dunkelrot oben rechts</b> = heiß <em>und</em> baumfern = Klimatischer Hotspot.<br>
+    Priorität für Straßenbäume, Entsiegelung und Verschattung.
   </div>
-  <div style="margin-top:10px;font-size:9px;color:#9ca3af;border-top:1px solid rgba(0,0,0,0.06);padding-top:8px">
-    LST-Delta: Copernicus Sentinel-3 · 100m Auflösung<br>
-    Grünflächen: OpenStreetMap + HLNUG Biotopkartierung<br>
-    <span style="color:#FFD600;font-weight:700">●</span> Klick auf Gebäude → Details rechts
+  <div class="chain">
+    <div class="chain-ttl">Datenkette</div>
+    <div class="cstep"><div class="cico">🛰</div><div class="cbody"><div class="ctop">Sentinel-3 SLSTR · 100m Auflösung</div><div class="cdesc">LST-Delta pro Gebäude vs. Stadtmittel</div></div></div>
+    <div class="cstep"><div class="cico">🌳</div><div class="cbody"><div class="ctop">22.353 Straßenbäume (OSM + Stadt FFM)</div><div class="cdesc">Nächster-Baum-Distanz → nah/mittel/fern</div></div></div>
+    <div class="cstep"><div class="cico">🎨</div><div class="cbody"><div class="ctop">Bivariate 3×3-Farbmatrix</div><div class="cdesc">Gleichzeitige Codierung beider Achsen</div></div></div>
+    <div class="cstep"><div class="cico">🌿</div><div class="cbody"><div class="ctop">Klimagerechtigkeit-Story</div><div class="cdesc">Heiße baumferne Quartiere = Handlungsbedarf</div></div></div>
   </div>
 </div>
 
-<!-- BAUM-TOGGLE (unten links an left-panel angedockt) -->
-<div class="panel" style="position:fixed;bottom:24px;left:10px;width:268px;padding:11px 16px;z-index:100;display:flex;align-items:center;justify-content:space-between">
+<!-- ── PANEL: Gehwegqualität ─────────────────────────────── -->
+<div class="panel left-panel" id="panel-footway" style="display:none">
+  <div class="ptitle">🚶 Gehwegqualität — Barrierefreiheit</div>
+  <div class="psub">Oberflächenqualität aus OSM surface-Tags · 6.000 Segmente · Proxy für Barrierefreiheit</div>
+  <div class="sw-list">
+    <div class="sw-row"><div class="sw ln" style="background:#22c55e"></div><span>Asphalt / befestigt — sehr gut</span></div>
+    <div class="sw-row"><div class="sw ln" style="background:#86efac"></div><span>Beton / Betonplatten — gut</span></div>
+    <div class="sw-row"><div class="sw ln" style="background:#fbbf24"></div><span>Pflastersteine / verdichtet — mittel</span></div>
+    <div class="sw-row"><div class="sw ln" style="background:#f97316"></div><span>Kopfsteinpflaster / Kies — schlecht</span></div>
+    <div class="sw-row"><div class="sw ln" style="background:#ef4444"></div><span>Erde / Schotter — sehr schlecht</span></div>
+    <div class="sw-row"><div class="sw ln" style="background:#d1d5db"></div><span>Unbekannt</span></div>
+  </div>
+  <div class="kpi-row" id="kpi-footway"></div>
+  <div class="chain">
+    <div class="chain-ttl">Datenkette</div>
+    <div class="cstep"><div class="cico">🗺</div><div class="cbody"><div class="ctop">OpenStreetMap surface=* Tags</div><div class="cdesc">6.000 Gehwegsegmente Frankfurt</div></div></div>
+    <div class="cstep"><div class="cico">⚙️</div><div class="cbody"><div class="ctop">Qualitätsscore nach Oberfläche</div><div class="cdesc">asphalt→92 · pflaster→68 · erde→28</div></div></div>
+    <div class="cstep"><div class="cico">🎨</div><div class="cbody"><div class="ctop">Linienkarte nach Qualitätsklasse</div><div class="cdesc">Grün = barrierefrei · Rot = problematisch</div></div></div>
+    <div class="cstep"><div class="cico">♿</div><div class="cbody"><div class="ctop">Barrierefreiheits-Prioritätskarte</div><div class="cdesc">Sanierungsbedarf für ältere + mobilitätseingeschränkte Personen</div></div></div>
+  </div>
+</div>
+
+<!-- ── PANEL: Fluglärm ───────────────────────────────────── -->
+<div class="panel left-panel" id="panel-flight" style="display:none">
+  <div class="ptitle">✈️ Fluglärm-Korridor — Schutzzonenkarte</div>
+  <div class="psub">Lärm-Schutzzonen nach FluLärmG · je nach aktiver Runway verschiebt sich der Korridor</div>
+  <div class="sw-list" style="margin-top:10px">
+    <div class="sw-row"><div class="sw" style="background:#dc2626;opacity:.8"></div><span>Zone 1 — Nachtschutzbereich &gt;53 dB(A)</span></div>
+    <div class="sw-row"><div class="sw" style="background:#f97316;opacity:.8"></div><span>Zone 2 — Tagschutzbereich &gt;60 dB(A)</span></div>
+    <div class="sw-row"><div class="sw" style="background:#fbbf24;opacity:.8"></div><span>Zone 3 — Außenschutzbereich &gt;55 dB(A)</span></div>
+  </div>
+  <div style="margin-top:10px;padding:8px 10px;background:rgba(59,130,246,0.06);
+    border:1px solid rgba(59,130,246,0.2);border-radius:8px;font-size:10px;color:#1d4ed8;line-height:1.5">
+    💨 Je nach Windrichtung (DWD EDDF) ist Runway 07 oder 25 aktiv — der Lärm-Korridor verschiebt sich entsprechend. Klick auf Zone für Details.
+  </div>
+  <div class="chain">
+    <div class="chain-ttl">Datenkette</div>
+    <div class="cstep"><div class="cico">✈️</div><div class="cbody"><div class="ctop">DFS / Fraport Flugrouten-GIS</div><div class="cdesc">Schutzzonengrenzen nach FluLärmG § 2</div></div></div>
+    <div class="cstep"><div class="cico">💨</div><div class="cbody"><div class="ctop">DWD Live-Winddaten (METAR EDDF)</div><div class="cdesc">Windrichtung → aktive Runway-Seite</div></div></div>
+    <div class="cstep"><div class="cico">🗺</div><div class="cbody"><div class="ctop">Zonenkarte mit Belastungsklasse</div><div class="cdesc">Rot = kritisch · Orange = erhöht · Gelb = betroffen</div></div></div>
+    <div class="cstep"><div class="cico">🏠</div><div class="cbody"><div class="ctop">Schallschutz-Anspruchskarte</div><div class="cdesc">Grundlage für Lärmsanierung + Entschädigung</div></div></div>
+  </div>
+</div>
+
+<!-- ── PANEL: Flut-Risiko ────────────────────────────────── -->
+<div class="panel left-panel" id="panel-flood" style="display:none">
+  <div class="ptitle">🌊 Flut-Risiko — Überflutungsgefährdung</div>
+  <div class="psub">1.225 Gebäude im Risikobereich · HWGK Hessen · Distanz zu Gewässer + Geländehöhe DGM</div>
+  <div style="font-size:10px;font-weight:700;color:#374151;margin-top:10px;margin-bottom:2px">Risikofilter:</div>
+  <div class="filter-pills" id="flood-filter">
+    <button class="fpill on" data-risk="all">Alle</button>
+    <button class="fpill" data-risk="medium">Mittel+</button>
+    <button class="fpill" data-risk="high">Hoch+</button>
+    <button class="fpill" data-risk="critical">Kritisch</button>
+  </div>
+  <div class="sw-list" style="margin-top:10px">
+    <div class="sw-row"><div class="sw" style="background:#7f1d1d"></div><span>Kritisch — unmittelbare Gefährdung</span></div>
+    <div class="sw-row"><div class="sw" style="background:#ef4444"></div><span>Hoch — bei HQ100-Ereignis betroffen</span></div>
+    <div class="sw-row"><div class="sw" style="background:#f97316"></div><span>Mittel — bei Extremregen betroffen</span></div>
+    <div class="sw-row"><div class="sw" style="background:#fbbf24"></div><span>Gering — Randzone Überflutungsgebiet</span></div>
+  </div>
+  <div class="kpi-row" id="kpi-flood"></div>
+  <div class="chain">
+    <div class="chain-ttl">Datenkette</div>
+    <div class="cstep"><div class="cico">🗻</div><div class="cbody"><div class="ctop">DGM1 Hessen (1m) + HWGK</div><div class="cdesc">Hochwassergefahrenkarte HQ10/100/extrem</div></div></div>
+    <div class="cstep"><div class="cico">🏘</div><div class="cbody"><div class="ctop">OSM Gebäude × Flächenüberlagerung</div><div class="cdesc">1.225 Gebäude im Risikobereich</div></div></div>
+    <div class="cstep"><div class="cico">🎨</div><div class="cbody"><div class="ctop">Risikokarte nach Überflutungsklasse</div><div class="cdesc">3D-Extrusion + Filter nach Jährlichkeit</div></div></div>
+    <div class="cstep"><div class="cico">🛡</div><div class="cbody"><div class="ctop">Klimaresilienz-Priorisierung</div><div class="cdesc">Rückzug, Schutz, Versicherung, Frühwarnung</div></div></div>
+  </div>
+</div>
+
+<!-- ── PANEL: Bike-Lücken ────────────────────────────────── -->
+<div class="panel left-panel" id="panel-bike" style="display:none">
+  <div class="ptitle">🚲 Bike-Lücken-Analyse</div>
+  <div class="psub">Lärm-Straßen ohne Radweganschluss · direkt umsetzbare Stadtplanungsaussage</div>
+  <div style="font-size:10px;font-weight:700;color:#374151;margin-top:10px">Lärm-Straßen:</div>
+  <div class="sw-list" style="margin-top:4px">
+    <div class="sw-row"><div class="sw ln" style="background:#dc2626;height:4px"></div><span>Autobahn / Motorway</span></div>
+    <div class="sw-row"><div class="sw ln" style="background:#ea580c;height:4px"></div><span>Bundesstraße / Trunk</span></div>
+    <div class="sw-row"><div class="sw ln" style="background:#d97706;height:4px"></div><span>Hauptstraße / Primary</span></div>
+  </div>
+  <div style="font-size:10px;font-weight:700;color:#374151;margin-top:10px">Radwege:</div>
+  <div class="sw-list" style="margin-top:4px">
+    <div class="sw-row"><div class="sw ln" style="background:#16a34a;height:4px"></div><span>Schutzstreifen / Track — geschützt</span></div>
+    <div class="sw-row"><div class="sw ln" style="background:#4ade80;height:4px"></div><span>Radfahrstreifen / Lane — markiert</span></div>
+    <div class="sw-row"><div class="sw ln" style="background:#86efac;height:4px"></div><span>Angebotsstreifen — shared</span></div>
+    <div class="sw-row"><div class="sw ln" style="background:#ef4444;height:4px"></div><span>Kein Radweg — Lücke</span></div>
+  </div>
+  <div style="margin-top:10px;padding:8px 10px;background:rgba(239,68,68,0.06);
+    border:1px solid rgba(239,68,68,0.18);border-radius:8px;font-size:10px;color:#b91c1c;line-height:1.5">
+    🔴 Rote Lücken neben orangen/roten Lärm-Straßen = Handlungspriorität für Radweglückenschluss.
+  </div>
+  <div class="chain">
+    <div class="chain-ttl">Datenkette</div>
+    <div class="cstep"><div class="cico">🔊</div><div class="cbody"><div class="ctop">OSM highway=* (Lärm-Proxy)</div><div class="cdesc">Motorway/Trunk/Primary = hohe Verkehrsbelastung</div></div></div>
+    <div class="cstep"><div class="cico">🚲</div><div class="cbody"><div class="ctop">OSM cycleway=* · 1.542 Segmente</div><div class="cdesc">track/lane/shared → Qualität + Lücken</div></div></div>
+    <div class="cstep"><div class="cico">🗺</div><div class="cbody"><div class="ctop">Overlay: Lärm-Straßen × Radweg-Netz</div><div class="cdesc">Visuelle Lückenanalyse ohne Routing-Engine</div></div></div>
+    <div class="cstep"><div class="cico">🎯</div><div class="cbody"><div class="ctop">Radweg-Prioritätsprogramm</div><div class="cdesc">Rote Lücken = sofortige Schutzstreifen-Maßnahmen</div></div></div>
+  </div>
+</div>
+
+<!-- ── PANEL: Bänke-Dichte ───────────────────────────────── -->
+<div class="panel left-panel" id="panel-bench" style="display:none">
+  <div class="ptitle">🪑 Bänke-Dichte — Soziale Infrastruktur</div>
+  <div class="psub">Kernel-Dichte-Heatmap · 6.335 Sitzmöglichkeiten · Indikator für Aufenthaltsqualität + Altersgerechtigkeit</div>
+  <div class="leg-bar" style="background:linear-gradient(90deg,rgba(255,255,255,0),#4ade80,#fbbf24,#f97316,#ef4444)"></div>
+  <div class="leg-labs"><span>wenige</span><span>mittel</span><span>viele</span><span>sehr dicht</span></div>
+  <div class="kpi-row" id="kpi-bench"></div>
+  <div style="margin-top:10px;padding:8px 10px;background:rgba(99,102,241,0.06);
+    border:1px solid rgba(99,102,241,0.2);border-radius:8px;font-size:10px;color:#4338ca;line-height:1.5">
+    🪑 Bänke sind ein unterschätzter Sozialindikator: Bereiche ohne Sitzmöglichkeiten schließen ältere und mobilitätseingeschränkte Menschen aus öffentlichen Räumen aus.
+  </div>
+  <div class="chain">
+    <div class="chain-ttl">Datenkette</div>
+    <div class="cstep"><div class="cico">🗺</div><div class="cbody"><div class="ctop">OSM amenity=bench · 6.335 Punkte</div><div class="cdesc">Material, Rückenlehne, Sitzplätze</div></div></div>
+    <div class="cstep"><div class="cico">🔢</div><div class="cbody"><div class="ctop">Kernel-Dichte (MapLibre heatmap)</div><div class="cdesc">Räumliche Häufung → Dichte-Gradient</div></div></div>
+    <div class="cstep"><div class="cico">🌡</div><div class="cbody"><div class="ctop">Heatmap grün → rot nach Dichte</div><div class="cdesc">Rot = gut versorgt · Weiß = unterversorgt</div></div></div>
+    <div class="cstep"><div class="cico">👴</div><div class="cbody"><div class="ctop">Altersgerechte Stadtraumplanung</div><div class="cdesc">Kombination mit Demographie → Ausstattungslücken</div></div></div>
+  </div>
+</div>
+
+<!-- TREE TOGGLE (nur in 3D-Modi sichtbar) -->
+<div class="tree-bar" id="tree-bar">
   <div>
     <div style="font-size:11px;font-weight:700;color:#1a1a2e">🌳 Straßenbäume einblenden</div>
     <div style="font-size:9px;color:#9ca3af;margin-top:2px">22.353 Bäume · OSM + Stadtbaumliste FFM</div>
@@ -188,14 +332,16 @@ input[type=range]{width:100%;accent-color:#1a1a2e;margin-top:8px}
   <button class="toggle-sw" id="treeTog" onclick="toggleTrees()"></button>
 </div>
 
-<!-- INFO PANEL (rechts, beim Klick) -->
+<!-- INFO PANEL -->
 <div class="panel info-panel" id="info">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
     <div>
-      <div style="font-size:9px;font-weight:700;color:#FFD600;text-transform:uppercase;letter-spacing:.08em;background:#1a1a2e;padding:2px 8px;border-radius:10px;display:inline-block">Gebäude</div>
-      <div class="panel-title" id="info-type" style="margin-top:5px">—</div>
+      <div id="info-badge" style="font-size:9px;font-weight:700;color:#FFD600;text-transform:uppercase;
+        letter-spacing:.08em;background:#1a1a2e;padding:2px 8px;border-radius:10px;display:inline-block">Gebäude</div>
+      <div class="ptitle" id="info-type" style="margin-top:5px">—</div>
     </div>
-    <button onclick="closeInfo()" style="background:rgba(0,0,0,0.06);border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px;color:#6b7280">✕</button>
+    <button onclick="closeInfo()" style="background:rgba(0,0,0,0.06);border:none;
+      border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px;color:#6b7280">✕</button>
   </div>
   <div id="info-body"></div>
 </div>
@@ -205,7 +351,7 @@ input[type=range]{width:100%;accent-color:#1a1a2e;margin-top:8px}
   <div class="loader-box">
     <div class="loader-logo">Urban<span style="color:#1a1a2e">Lens</span></div>
     <div class="loader-ring"></div>
-    <div class="loader-txt" id="loader-txt">Lade 8.054 Gebäude + 22.353 Bäume…</div>
+    <div class="loader-txt" id="loader-txt">Lade Gebäude…</div>
   </div>
 </div>
 
@@ -213,9 +359,9 @@ input[type=range]{width:100%;accent-color:#1a1a2e;margin-top:8px}
 const BASE = "https://raw.githubusercontent.com/leoorexx/urbanlens/main/data/layers";
 
 const BIVARIATE = {
-  low:  { close:"#7FB069", mid:"#b8d4a0", far:"#f0e8c8" },
-  mid:  { close:"#8B7AB8", mid:"#d4a0b0", far:"#e8834a" },
-  high: { close:"#5C3A8C", mid:"#b5476b", far:"#8b0000"  },
+  low:  {close:"#7FB069",mid:"#b8d4a0",far:"#f0e8c8"},
+  mid:  {close:"#8B7AB8",mid:"#d4a0b0",far:"#e8834a"},
+  high: {close:"#5C3A8C",mid:"#b5476b",far:"#8b0000"},
 };
 
 const HEIGHT_BY_TYPE = {
@@ -226,42 +372,51 @@ const HEIGHT_BY_TYPE = {
   industrial:14,warehouse:12,manufacture:14,
   school:12,university:18,hospital:24,hotel:30,
   church:28,cathedral:45,chapel:14,
-  train_station:18,public:16,civic:16,
-  parking:8,garages:4,
+  train_station:18,public:16,civic:16,parking:8,garages:4,
 };
 const heightFor = t => HEIGHT_BY_TYPE[t] ?? 10;
 const greenClass = d => d==null?"far":d<50?"close":d<150?"mid":"far";
 
-// ── BIVARIATE LEGENDE ────────────────────────────────────────
-const legendEl = document.getElementById("bi-legend");
-const heatLabels = {high:"🔴 Heiß",mid:"🟡 Mittel",low:"🟢 Kühl"};
-const greenLabels = {close:"Nah",mid:"Mittel",far:"Fern"};
-legendEl.innerHTML =
-  `<div></div>` +
-  ["close","mid","far"].map(g=>`<div class="bi-axis-label" style="text-align:center;padding-bottom:3px">${greenLabels[g]}<br><span style="font-size:8px;color:#d1d5db">Grün</span></div>`).join("") +
-  ["high","mid","low"].flatMap(h=>[
-    `<div class="bi-axis-label" style="text-align:right;padding-right:6px;align-self:center">${heatLabels[h]}</div>`,
-    ...["close","mid","far"].map(g=>`<div class="bi-cell" style="background:${BIVARIATE[h][g]};width:64px"></div>`)
-  ]).join("");
+const SURFACE_SCORE = {
+  asphalt:92,paved:90,concrete:85,
+  "concrete:plates":73,"concrete:lanes":70,paving_stones:68,
+  compacted:60,fine_gravel:55,
+  sett:45,unhewn_cobblestone:40,
+  wood:38,ground:30,dirt:28,pebblestone:25,
+};
 
-// ── MAP INIT ─────────────────────────────────────────────────
+const FLOOD_RISK_RANK = {low:0,medium:1,high:2,critical:3};
+
+let currentMode = "co2";
+let totalCO2 = 0, currentReno = 0, treesOn = false;
+let dataLoaded = {}, currentFloodFilter = "all";
+
+// ── BUILD BIVARIATE LEGEND ─────────────────────────────────────
+(function(){
+  const el = document.getElementById("bi-legend");
+  const hL = {high:"🔴 Heiß",mid:"🟡 Mittel",low:"🟢 Kühl"};
+  const gL = {close:"Nah",mid:"Mittel",far:"Fern"};
+  el.innerHTML =
+    `<div></div>` +
+    ["close","mid","far"].map(g=>`<div class="bi-ax" style="text-align:center;padding-bottom:3px">${gL[g]}<br><span style="font-size:8px;color:#d1d5db">Grün</span></div>`).join("") +
+    ["high","mid","low"].flatMap(h=>[
+      `<div class="bi-ax" style="text-align:right;padding-right:5px;align-self:center">${hL[h]}</div>`,
+      ...["close","mid","far"].map(g=>`<div class="bi-cell" style="background:${BIVARIATE[h][g]};width:60px"></div>`)
+    ]).join("");
+})();
+
+// ── MAP ────────────────────────────────────────────────────────
 const map = new maplibregl.Map({
   container:"map",
   style:{
     version:8,
     glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-    sources:{
-      carto:{
-        type:"raster",
-        tiles:[
-          "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-          "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-          "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-        ],
-        tileSize:256,
-        attribution:"© OpenStreetMap, © CARTO"
-      }
-    },
+    sources:{carto:{type:"raster",
+      tiles:[
+        "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+      ],tileSize:256,attribution:"© OpenStreetMap, © CARTO"}},
     layers:[{id:"carto",type:"raster",source:"carto"}],
   },
   center:[8.6821,50.1109],zoom:13,pitch:52,bearing:-18,maxPitch:75,
@@ -269,13 +424,11 @@ const map = new maplibregl.Map({
 });
 map.addControl(new maplibregl.NavigationControl({showCompass:true}),"bottom-right");
 
-let totalCO2=0, currentMode="co2", currentReno=0, treesOn=false;
-
+// ── INITIAL LOAD (CO₂ + Trees) ────────────────────────────────
 map.on("load", async ()=>{
-  document.getElementById("loader-txt").textContent="Lade Gebäude…";
-
+  loaderShow("Lade Gebäude (8k)…");
   const buildings = await fetch(`${BASE}/co2_buildings_ffm.geojson`).then(r=>r.json());
-  let highCO2=0, midCO2=0, count=0;
+  let highCO2=0,midCO2=0,cnt=0;
   buildings.features.forEach((f,i)=>{
     const p=f.properties;
     p.height=heightFor(p.building);
@@ -284,106 +437,322 @@ map.on("load", async ()=>{
     totalCO2+=(p.co2_kg_m2||0)*p.height;
     if((p.co2_kg_m2||0)>120)highCO2++;
     else if((p.co2_kg_m2||0)>80)midCO2++;
-    count++;
+    cnt++;
     if(f.id==null)f.id=i+1;
   });
 
   map.addSource("buildings",{type:"geojson",data:buildings});
-
-  // CO₂ Layer
-  map.addLayer({id:"bld-co2",type:"fill-extrusion",source:"buildings",
-    paint:{
-      "fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","co2_kg_m2"],0],
-        0,"#1e3a8a",60,"#3b82f6",100,"#fbbf24",140,"#f97316",180,"#7f1d1d"],
-      "fill-extrusion-height":["get","height"],
-      "fill-extrusion-base":0,
-      "fill-extrusion-opacity":0.88,
-    }});
-
-  // Bivariat Layer
+  map.addLayer({id:"bld-co2",type:"fill-extrusion",source:"buildings",paint:{
+    "fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","co2_kg_m2"],0],
+      0,"#1e3a8a",60,"#3b82f6",100,"#fbbf24",140,"#f97316",180,"#7f1d1d"],
+    "fill-extrusion-height":["get","height"],
+    "fill-extrusion-opacity":0.88,
+  }});
   map.addLayer({id:"bld-bi",type:"fill-extrusion",source:"buildings",
-    layout:{visibility:"none"},
-    paint:{
-      "fill-extrusion-color":["get","bi_color"],
-      "fill-extrusion-height":["get","height"],
-      "fill-extrusion-base":0,
-      "fill-extrusion-opacity":0.88,
-    }});
-
-  // Highlight Layer
+    layout:{visibility:"none"},paint:{
+    "fill-extrusion-color":["get","bi_color"],
+    "fill-extrusion-height":["get","height"],
+    "fill-extrusion-opacity":0.88,
+  }});
   map.addLayer({id:"bld-hl",type:"fill-extrusion",source:"buildings",
-    filter:["==",["id"],-1],
-    paint:{
-      "fill-extrusion-color":"#FFD600",
-      "fill-extrusion-height":["get","height"],
-      "fill-extrusion-opacity":1,
-    }});
+    filter:["==",["id"],-1],paint:{
+    "fill-extrusion-color":"#FFD600",
+    "fill-extrusion-height":["get","height"],
+    "fill-extrusion-opacity":1,
+  }});
 
-  // Trees
-  document.getElementById("loader-txt").textContent="Lade Bäume…";
+  loaderShow("Lade Bäume (22k)…");
   const trees = await fetch(`${BASE}/trees_ffm.geojson`).then(r=>r.json());
   map.addSource("trees",{type:"geojson",data:trees});
   map.addLayer({id:"trees-dots",type:"circle",source:"trees",
-    layout:{visibility:"none"},
-    paint:{
-      "circle-radius":["interpolate",["linear"],["zoom"],11,0.8,14,2,17,5],
-      "circle-color":"#16a34a",
-      "circle-opacity":0.9,
-      "circle-stroke-color":"#14532d",
-      "circle-stroke-width":0.4,
-    }});
+    layout:{visibility:"none"},paint:{
+    "circle-radius":["interpolate",["linear"],["zoom"],11,0.8,14,2,17,5],
+    "circle-color":"#16a34a","circle-opacity":0.9,
+    "circle-stroke-color":"#14532d","circle-stroke-width":0.4,
+  }});
 
-  document.getElementById("loader").remove();
+  loaderHide();
   updateStats();
-  renderKPIs(count,highCO2,midCO2);
+  document.getElementById("kpi-co2").innerHTML = kpiHTML(
+    {v:`${(highCO2/cnt*100).toFixed(0)}%`,l:"Sanierungsbedarf hoch (>120)",c:"#ef4444"},
+    {v:`${(midCO2/cnt*100).toFixed(0)}%`,l:"Mittlerer Bedarf (80–120)",c:"#f97316"}
+  );
 
-  // ── CLICK ─────────────────────────────────────────────────
-  const clickLayers=["bld-co2","bld-bi"];
-  clickLayers.forEach(id=>{
+  // Click on buildings
+  ["bld-co2","bld-bi"].forEach(id=>{
     map.on("mousemove",id,()=>map.getCanvas().style.cursor="pointer");
     map.on("mouseleave",id,()=>map.getCanvas().style.cursor="");
   });
   map.on("click",e=>{
-    const layer=currentMode==="co2"?"bld-co2":"bld-bi";
-    const f=map.queryRenderedFeatures(e.point,{layers:[layer]})[0];
+    const layer = currentMode==="co2"?"bld-co2":currentMode==="bi"?"bld-bi":null;
+    if(!layer){return;}
+    const f = map.queryRenderedFeatures(e.point,{layers:[layer]})[0];
     if(!f){closeInfo();map.setFilter("bld-hl",["==",["id"],-1]);return;}
     map.setFilter("bld-hl",["==",["id"],f.id]);
-    showInfo(f.properties);
+    showBuildingInfo(f.properties);
   });
 });
 
-function renderKPIs(count,high,mid){
-  const pctHigh=(high/count*100).toFixed(0);
-  const pctMid=(mid/count*100).toFixed(0);
-  document.getElementById("kpiCO2").innerHTML=`
-    <div class="kpi-box">
-      <div class="kpi-val" style="color:#ef4444">${pctHigh}%</div>
-      <div class="kpi-lbl">Sanierungsbedarf hoch (>120 kg/m²)</div>
-    </div>
-    <div class="kpi-box">
-      <div class="kpi-val" style="color:#f97316">${pctMid}%</div>
-      <div class="kpi-lbl">Mittlerer Bedarf (80–120 kg/m²)</div>
-    </div>`;
+// ── MODE SWITCH ────────────────────────────────────────────────
+const MODE_PITCH = {co2:52,bi:52,footway:0,flight:0,flood:20,bike:0,bench:0};
+
+async function setMode(m) {
+  currentMode = m;
+  document.querySelectorAll(".mode-btn").forEach(b=>b.classList.toggle("on",b.dataset.mode===m));
+  document.querySelectorAll(".left-panel").forEach(p=>p.style.display=p.id==="panel-"+m?"block":"none");
+  map.easeTo({pitch:MODE_PITCH[m]??0,duration:700});
+
+  const is3d = m==="co2"||m==="bi";
+  if(map.getLayer("bld-co2")){
+    map.setLayoutProperty("bld-co2","visibility",m==="co2"?"visible":"none");
+    map.setLayoutProperty("bld-bi","visibility",m==="bi"?"visible":"none");
+    if(!is3d) map.setFilter("bld-hl",["==",["id"],-1]);
+  }
+  document.getElementById("tree-bar").style.display = is3d?"flex":"none";
+  closeInfo();
+
+  if(m==="footway" && !dataLoaded.footway) await loadFootway();
+  if(m==="flight"  && !dataLoaded.flight)  await loadFlight();
+  if(m==="flood"   && !dataLoaded.flood)   await loadFlood();
+  if(m==="bike"    && !dataLoaded.bike)    await loadBike();
+  if(m==="bench"   && !dataLoaded.bench)   await loadBench();
+
+  const layerMap = {
+    footway:["footway-lines"],
+    flight:["flight-fill","flight-line"],
+    flood:["flood-blds"],
+    bike:["noise-roads","bike-lanes"],
+    bench:["bench-heat"],
+  };
+  Object.entries(layerMap).forEach(([id,layers])=>{
+    const vis = id===m?"visible":"none";
+    layers.forEach(l=>{ if(map.getLayer(l)) map.setLayoutProperty(l,"visibility",vis); });
+  });
+}
+document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+
+// ── FOOTWAY ────────────────────────────────────────────────────
+async function loadFootway(){
+  loaderShow("Lade Gehwege…");
+  const data = await fetch(`${BASE}/footways_quality_ffm.geojson`).then(r=>r.json());
+  dataLoaded.footway = true;
+  let good=0,mid=0,bad=0;
+  data.features.forEach(f=>{
+    const s=SURFACE_SCORE[f.properties.surface]??50;
+    if(s>=70)good++; else if(s>=45)mid++; else bad++;
+  });
+  map.addSource("footways",{type:"geojson",data});
+  map.addLayer({id:"footway-lines",type:"line",source:"footways",paint:{
+    "line-color":["match",["get","surface"],
+      "asphalt","#22c55e","paved","#22c55e",
+      "concrete","#4ade80","concrete:plates","#86efac","concrete:lanes","#86efac",
+      "paving_stones","#fbbf24","compacted","#fbbf24","fine_gravel","#f97316",
+      "sett","#f97316","unhewn_cobblestone","#ef4444",
+      "wood","#ef4444","ground","#dc2626","dirt","#dc2626","pebblestone","#dc2626",
+      "#d1d5db"],
+    "line-width":["interpolate",["linear"],["zoom"],12,1.5,15,4],
+    "line-opacity":0.85,
+  }});
+  map.on("mousemove","footway-lines",()=>map.getCanvas().style.cursor="pointer");
+  map.on("mouseleave","footway-lines",()=>map.getCanvas().style.cursor="");
+  map.on("click",e=>{
+    if(currentMode!=="footway")return;
+    const f=map.queryRenderedFeatures(e.point,{layers:["footway-lines"]})[0];
+    if(!f){closeInfo();return;}
+    const s=f.properties.surface||"unbekannt";
+    const score=SURFACE_SCORE[s]??50;
+    const col=score>=70?"#22c55e":score>=45?"#f97316":"#ef4444";
+    document.getElementById("info-badge").textContent="Gehweg";
+    document.getElementById("info-type").textContent=s.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+    document.getElementById("info-body").innerHTML=`
+      <div class="drow"><span class="dk">Oberfläche</span><span class="dv">${s}</span></div>
+      <div class="drow"><span class="dk">Qualitätsscore</span><span class="dv" style="color:${col}">${score}/100</span></div>
+      <div class="drow"><span class="dk">Barrierefreiheit</span><span class="dv">${score>=80?"✅ Gut":score>=60?"🟡 Mittel":"🔴 Schlecht"}</span></div>
+      <div class="drow"><span class="dk">Straßentyp</span><span class="dv">${f.properties.highway||"—"}</span></div>
+      <div style="margin-top:10px;font-size:9px;color:#9ca3af">Quelle: OpenStreetMap · surface=* Tag</div>`;
+    document.getElementById("info").style.display="block";
+  });
+  const tot=good+mid+bad;
+  document.getElementById("kpi-footway").innerHTML=kpiHTML(
+    {v:`${(good/tot*100).toFixed(0)}%`,l:"Gut begehbar (≥70)",c:"#22c55e"},
+    {v:`${(bad/tot*100).toFixed(0)}%`,l:"Sanierungsbedarf (<45)",c:"#ef4444"}
+  );
+  loaderHide();
 }
 
-function showInfo(p){
-  const co2Color=!p.co2_kg_m2?"#9ca3af":p.co2_kg_m2>140?"#ef4444":p.co2_kg_m2>100?"#f97316":p.co2_kg_m2>60?"#eab308":"#22c55e";
-  const renoLine=(currentReno>0&&currentMode==="co2")
-    ?`<div class="reno-box">Nach −${currentReno}% Sanierung: <b>${((+p.co2_kg_m2||0)*(1-currentReno/100)).toFixed(1)} kg/m²</b></div>`:"";
+// ── FLIGHT ─────────────────────────────────────────────────────
+async function loadFlight(){
+  loaderShow("Lade Flugrouten…");
+  const data = await fetch(`${BASE}/flight_noise_ffm.geojson`).then(r=>r.json());
+  dataLoaded.flight = true;
+  map.addSource("flight",{type:"geojson",data});
+  map.addLayer({id:"flight-fill",type:"fill",source:"flight",
+    layout:{visibility:"none"},paint:{
+    "fill-color":["coalesce",["get","color"],"#f97316"],
+    "fill-opacity":0.32,
+  }});
+  map.addLayer({id:"flight-line",type:"line",source:"flight",
+    layout:{visibility:"none"},paint:{
+    "line-color":["coalesce",["get","color"],"#f97316"],
+    "line-width":2,"line-opacity":0.7,"line-dasharray":[3,2],
+  }});
+  map.on("mousemove","flight-fill",()=>map.getCanvas().style.cursor="pointer");
+  map.on("mouseleave","flight-fill",()=>map.getCanvas().style.cursor="");
+  map.on("click",e=>{
+    if(currentMode!=="flight")return;
+    const f=map.queryRenderedFeatures(e.point,{layers:["flight-fill"]})[0];
+    if(!f){closeInfo();return;}
+    const p=f.properties;
+    document.getElementById("info-badge").textContent="Lärmzone";
+    document.getElementById("info-type").textContent=p.label||p.zone||"Lärmschutzzone";
+    document.getElementById("info-body").innerHTML=`
+      <div class="drow"><span class="dk">Zone</span><span class="dv">${p.zone||"—"}</span></div>
+      <div class="drow"><span class="dk">Schutzbereich</span><span class="dv">${p.label||"—"}</span></div>
+      <div class="drow"><span class="dk">Hinweis</span><span class="dv" style="font-size:10px;font-weight:500;white-space:normal;line-height:1.4">${p.note||"—"}</span></div>
+      <div style="margin-top:10px;font-size:9px;color:#9ca3af">Quelle: DFS / Fraport · FluLärmG § 2</div>`;
+    document.getElementById("info").style.display="block";
+  });
+  loaderHide();
+}
+
+// ── FLOOD ──────────────────────────────────────────────────────
+async function loadFlood(){
+  loaderShow("Lade Flutrisiko-Gebäude…");
+  const data = await fetch(`${BASE}/flood_exposure_ffm.geojson`).then(r=>r.json());
+  dataLoaded.flood = true;
+  let critical=0,high=0;
+  data.features.forEach((f,i)=>{
+    f.properties.height=heightFor(f.properties.building);
+    if(f.id==null)f.id=90000+i;
+    if(f.properties.flood_risk==="critical")critical++;
+    else if(f.properties.flood_risk==="high")high++;
+  });
+  map.addSource("flood",{type:"geojson",data});
+  map.addLayer({id:"flood-blds",type:"fill-extrusion",source:"flood",
+    layout:{visibility:"none"},paint:{
+    "fill-extrusion-color":["match",["get","flood_risk"],
+      "critical","#7f1d1d","high","#ef4444","medium","#f97316","low","#fbbf24","#9ca3af"],
+    "fill-extrusion-height":["get","height"],
+    "fill-extrusion-opacity":0.9,
+  }});
+  map.on("mousemove","flood-blds",()=>map.getCanvas().style.cursor="pointer");
+  map.on("mouseleave","flood-blds",()=>map.getCanvas().style.cursor="");
+  map.on("click",e=>{
+    if(currentMode!=="flood")return;
+    const f=map.queryRenderedFeatures(e.point,{layers:["flood-blds"]})[0];
+    if(!f){closeInfo();return;}
+    const p=f.properties;
+    const rc={critical:"#7f1d1d",high:"#ef4444",medium:"#f97316",low:"#fbbf24"}[p.flood_risk]||"#9ca3af";
+    document.getElementById("info-badge").textContent="Flut-Risiko";
+    document.getElementById("info-type").textContent=(p.building||"Gebäude").replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+    document.getElementById("info-body").innerHTML=`
+      <div class="drow"><span class="dk">Risikoklasse</span><span class="dv" style="color:${rc}">${p.flood_risk||"—"}</span></div>
+      <div class="drow"><span class="dk">Distanz Gewässer</span><span class="dv">${p.flood_dist_m||"—"} m</span></div>
+      <div class="drow"><span class="dk">Gebäudetyp</span><span class="dv">${p.building||"—"}</span></div>
+      <div style="margin-top:10px;font-size:9px;color:#9ca3af">Quelle: HWGK Hessen · DGM1 · OSM Buildings</div>`;
+    document.getElementById("info").style.display="block";
+  });
+  document.getElementById("kpi-flood").innerHTML=kpiHTML(
+    {v:critical,l:"Kritische Gebäude",c:"#7f1d1d"},
+    {v:high,l:"Hoch-Risiko Gebäude",c:"#ef4444"}
+  );
+  document.querySelectorAll("#flood-filter .fpill").forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll("#flood-filter .fpill").forEach(b=>b.classList.remove("on"));
+      btn.classList.add("on");
+      currentFloodFilter=btn.dataset.risk;
+      const minRank={all:0,medium:1,high:2,critical:3}[currentFloodFilter]||0;
+      if(minRank===0){map.setFilter("flood-blds",null);}
+      else{
+        const ok=Object.keys(FLOOD_RISK_RANK).filter(r=>FLOOD_RISK_RANK[r]>=minRank);
+        map.setFilter("flood-blds",["in",["get","flood_risk"],["literal",ok]]);
+      }
+    };
+  });
+  loaderHide();
+}
+
+// ── BIKE ───────────────────────────────────────────────────────
+async function loadBike(){
+  loaderShow("Lade Radwege + Straßen…");
+  const [bikeData,noiseData] = await Promise.all([
+    fetch(`${BASE}/bike_ffm.geojson`).then(r=>r.json()),
+    fetch(`${BASE}/noise_roads_ffm.geojson`).then(r=>r.json()),
+  ]);
+  dataLoaded.bike=true;
+  map.addSource("noise_roads",{type:"geojson",data:noiseData});
+  map.addLayer({id:"noise-roads",type:"line",source:"noise_roads",
+    layout:{visibility:"none"},paint:{
+    "line-color":["match",["get","highway"],
+      "motorway","#dc2626","trunk","#ea580c","primary","#d97706","secondary","#ca8a04","#e5e7eb"],
+    "line-width":["match",["get","highway"],"motorway",5,"trunk",4,"primary",3,2],
+    "line-opacity":0.72,
+  }});
+  map.addSource("bike",{type:"geojson",data:bikeData});
+  map.addLayer({id:"bike-lanes",type:"line",source:"bike",
+    layout:{visibility:"none"},paint:{
+    "line-color":["match",["get","cycleway"],
+      "track","#16a34a","lane","#4ade80",
+      "shared_lane","#86efac","shared","#86efac",
+      "no","#ef4444","#22c55e"],
+    "line-width":["interpolate",["linear"],["zoom"],11,1.5,14,3.5],
+    "line-opacity":0.9,
+  }});
+  loaderHide();
+}
+
+// ── BENCH ──────────────────────────────────────────────────────
+async function loadBench(){
+  loaderShow("Lade Sitzbänke (6k)…");
+  const data=await fetch(`${BASE}/benches_ffm.geojson`).then(r=>r.json());
+  dataLoaded.bench=true;
+  map.addSource("benches",{type:"geojson",data});
+  map.addLayer({id:"bench-heat",type:"heatmap",source:"benches",
+    layout:{visibility:"none"},paint:{
+    "heatmap-weight":1,
+    "heatmap-intensity":["interpolate",["linear"],["zoom"],10,0.5,16,3],
+    "heatmap-radius":["interpolate",["linear"],["zoom"],10,20,14,40,16,60],
+    "heatmap-opacity":0.85,
+    "heatmap-color":["interpolate",["linear"],["heatmap-density"],
+      0,"rgba(255,255,255,0)",0.15,"#4ade80",0.4,"#fbbf24",0.7,"#f97316",1,"#ef4444"],
+  }});
+  document.getElementById("kpi-bench").innerHTML=kpiHTML(
+    {v:data.features.length.toLocaleString("de"),l:"Sitzmöglichkeiten gesamt",c:"#1a1a2e"},
+    {v:(data.features.length/248).toFixed(1),l:"Bänke pro km² Stadtfläche",c:"#6366f1"}
+  );
+  loaderHide();
+}
+
+// ── HELPERS ────────────────────────────────────────────────────
+function kpiHTML(a,b){
+  return `<div class="kpi-box"><div class="kpi-val" style="color:${a.c}">${a.v}</div><div class="kpi-lbl">${a.l}</div></div>`+
+         `<div class="kpi-box"><div class="kpi-val" style="color:${b.c}">${b.v}</div><div class="kpi-lbl">${b.l}</div></div>`;
+}
+function loaderShow(txt){
+  const l=document.getElementById("loader");
+  l.style.display="flex";
+  document.getElementById("loader-txt").textContent=txt;
+}
+function loaderHide(){
+  document.getElementById("loader").style.display="none";
+}
+
+function showBuildingInfo(p){
+  const co2c=!p.co2_kg_m2?"#9ca3af":p.co2_kg_m2>140?"#ef4444":p.co2_kg_m2>100?"#f97316":p.co2_kg_m2>60?"#eab308":"#22c55e";
+  const rl=(currentReno>0&&currentMode==="co2")
+    ?`<div style="background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.2);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:11px;color:#065f46">Nach −${currentReno}%: <b>${((+p.co2_kg_m2||0)*(1-currentReno/100)).toFixed(1)} kg/m²</b></div>`:"";
+  document.getElementById("info-badge").textContent="Gebäude";
   document.getElementById("info-type").textContent=(p.building||"Unbekannt").replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
   document.getElementById("info-body").innerHTML=`
-    <div class="data-row"><span class="data-key">CO₂-Intensität</span><span class="data-val" style="color:${co2Color}">${p.co2_kg_m2??'—'} kg/m²</span></div>
-    <div class="data-row"><span class="data-key">Klasse</span><span class="data-val">${p.co2_class??'—'}</span></div>
-    <div class="data-row"><span class="data-key">Hitze (LST-Delta)</span><span class="data-val">${p.lst_delta??'—'} K</span></div>
-    <div class="data-row"><span class="data-key">Hitzeklasse</span><span class="data-val">${p.heat_class??'—'}</span></div>
-    <div class="data-row"><span class="data-key">Distanz zu Grün</span><span class="data-val">${p.green_dist_m??'—'} m</span></div>
-    <div class="data-row"><span class="data-key">Baujahr-Klasse</span><span class="data-val">${p.age_class??'—'}</span></div>
-    <div class="data-row"><span class="data-key">Gebäudehöhe (Proxy)</span><span class="data-val">${p.height??'—'} m</span></div>
-    ${renoLine}
-    <div style="margin-top:10px;font-size:9px;color:#9ca3af;line-height:1.5">
-      Copernicus Urban Atlas 2018 · OSM Gebäudetypologie<br>
-      CO₂-Schätzwert: Baujahr + Typ × EPC-Faktor (Hessen)
-    </div>`;
+    <div class="drow"><span class="dk">CO₂-Intensität</span><span class="dv" style="color:${co2c}">${p.co2_kg_m2??'—'} kg/m²</span></div>
+    <div class="drow"><span class="dk">Klasse</span><span class="dv">${p.co2_class??'—'}</span></div>
+    <div class="drow"><span class="dk">Hitze (LST-Delta)</span><span class="dv">${p.lst_delta??'—'} K</span></div>
+    <div class="drow"><span class="dk">Hitzeklasse</span><span class="dv">${p.heat_class??'—'}</span></div>
+    <div class="drow"><span class="dk">Distanz zu Grün</span><span class="dv">${p.green_dist_m??'—'} m</span></div>
+    <div class="drow"><span class="dk">Baujahr-Klasse</span><span class="dv">${p.age_class??'—'}</span></div>
+    <div class="drow"><span class="dk">Höhe (Proxy)</span><span class="dv">${p.height??'—'} m</span></div>
+    ${rl}
+    <div style="margin-top:10px;font-size:9px;color:#9ca3af;line-height:1.5">Copernicus Urban Atlas · OSM · EPC-Schätzmodell Hessen</div>`;
   document.getElementById("info").style.display="block";
 }
 
@@ -392,22 +761,7 @@ function closeInfo(){
   if(map.getLayer("bld-hl"))map.setFilter("bld-hl",["==",["id"],-1]);
 }
 
-// ── MODE SWITCH ──────────────────────────────────────────────
-function setMode(m){
-  currentMode=m;
-  ["co2","bi"].forEach(id=>{
-    document.getElementById("mode-"+id).className="mode-btn"+(m===id||(m==="bivariate"&&id==="bi")?" on":"");
-    document.getElementById("panel-"+id).style.display=(m===id||(m==="bivariate"&&id==="bi"))?"block":"none";
-  });
-  if(map.getLayer("bld-co2")){
-    map.setLayoutProperty("bld-co2","visibility",m==="co2"?"visible":"none");
-    map.setLayoutProperty("bld-bi","visibility",m==="bi"?"visible":"none");
-  }
-}
-document.getElementById("mode-co2").onclick=()=>setMode("co2");
-document.getElementById("mode-bi").onclick=()=>{currentMode="bi";setMode("bi");};
-
-// ── RENOVATION SLIDER ────────────────────────────────────────
+// ── SLIDER ─────────────────────────────────────────────────────
 document.getElementById("reno").oninput=e=>{
   currentReno=+e.target.value;
   document.getElementById("reno-val").textContent=`−${currentReno}%`;
@@ -419,21 +773,18 @@ document.getElementById("reno").oninput=e=>{
   }
   updateStats();
 };
-
 function updateStats(){
-  const f=1-currentReno/100;
-  const reduced=totalCO2*f, saved=totalCO2-reduced;
-  document.getElementById("stats").innerHTML=
+  const f=1-currentReno/100,reduced=totalCO2*f,saved=totalCO2-reduced;
+  document.getElementById("co2-stats").innerHTML=
     `Stadtweite CO₂-Last: <b style="color:#1a1a2e">${(reduced/1e6).toFixed(2)}M kg/m²·m</b>`+
     (currentReno>0?` · <span style="color:#059669">−${(saved/1e6).toFixed(2)}M eingespart</span>`:"");
 }
 
-// ── BÄUME ────────────────────────────────────────────────────
+// ── TREES ──────────────────────────────────────────────────────
 function toggleTrees(){
   treesOn=!treesOn;
   document.getElementById("treeTog").className="toggle-sw"+(treesOn?" on":"");
-  if(map.getLayer("trees-dots"))
-    map.setLayoutProperty("trees-dots","visibility",treesOn?"visible":"none");
+  if(map.getLayer("trees-dots"))map.setLayoutProperty("trees-dots","visibility",treesOn?"visible":"none");
 }
 </script>
 </body>
