@@ -1,0 +1,16 @@
+[package]
+name    = "urbanlens-cli"
+version = "0.1.0"
+edition = "2021"
+description = "CLI data processor — enriches GeoJSON with Heat Risk Scores and Best-Scenario output"
+
+[[bin]]
+name = "urbanlens"
+path = "src/main.rs"
+
+[dependencies]
+urbanlens-core = { path = "../urbanlens-core" }
+anyhow         = { workspace = true }
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+clap           = { version = "4", features = ["derive"] }

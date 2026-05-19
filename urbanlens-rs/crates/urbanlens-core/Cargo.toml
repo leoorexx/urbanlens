@@ -1,0 +1,17 @@
+[package]
+name    = "urbanlens-core"
+version = "0.1.0"
+edition = "2021"
+description = "Core data model, scoring and scenario engine for UrbanLens heat-island analysis"
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+thiserror  = { workspace = true }
+anyhow     = { workspace = true }
+geo        = { workspace = true }
+rstar      = { workspace = true }
+
+[dev-dependencies]
+# approx comparison for f32 in tests
+float-cmp = "0.9"

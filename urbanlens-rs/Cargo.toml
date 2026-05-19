@@ -1,0 +1,15 @@
+[workspace]
+members = [
+    "crates/urbanlens-core",
+    "crates/urbanlens-cli",
+    "crates/urbanlens-wasm",
+]
+resolver = "2"
+
+[workspace.dependencies]
+serde       = { version = "1",    features = ["derive"] }
+serde_json  = "1"
+thiserror   = "1"
+anyhow      = "1"
+geo         = { version = "0.28", features = ["use-serde"] }
+rstar       = "0.12"
