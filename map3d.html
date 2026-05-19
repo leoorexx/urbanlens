@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<title>UrbanLens — 3D Gebäudeanalyse Frankfurt</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://unpkg.com/maplibre-gl@5.5.0/dist/maplibre-gl.css" rel="stylesheet"/>
+<script src="https://unpkg.com/maplibre-gl@5.5.0/dist/maplibre-gl.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body,#map{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f3ee}
+
+/* ── NAV (gleich wie index.html) ──────────────────────────── */
+.nav{position:fixed;top:0;left:0;right:0;height:54px;z-index:200;background:#fff;
+  border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;
+  padding:0 16px;box-shadow:0 2px 16px rgba(0,0,0,0.06)}
+.logo{font-size:17px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px;text-decoration:none}
+.logo span{color:#1a1a2e}
+.nsep{width:1px;height:24px;background:rgba(0,0,0,0.1);margin:0 4px}
+.nav-pill{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;
+  text-decoration:none;border:1.5px solid rgba(0,0,0,0.1);color:#1a1a2e;
+  background:rgba(0,0,0,0.05);transition:all .15s;cursor:pointer}
+.nav-pill:hover{background:#1a1a2e;color:#FFD600;border-color:#1a1a2e}
+.nav-pill.active{background:#1a1a2e;color:#FFD600;border-color:#1a1a2e}
+.nav-info{font-size:11px;color:#6b7280;font-weight:500}
+.nav-info b{color:#1a1a2e}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.epill{background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.2);
+  border-radius:20px;padding:4px 12px;font-size:11px;color:#b45309;font-weight:600}
+.lpill{display:flex;align-items:center;gap:5px;background:rgba(22,163,74,0.08);
+  border:1px solid rgba(22,163,74,0.2);border-radius:20px;padding:4px 12px;
+  font-size:11px;color:#15803d;font-weight:600}
+.dot{width:6px;height:6px;border-radius:50%;background:#16a34a;animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── PANELS ───────────────────────────────────────────────── */
+.panel{position:fixed;background:#fff;border:1px solid rgba(0,0,0,0.08);
+  border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1),0 1px 8px rgba(0,0,0,0.06);
+  z-index:100}
+.panel-title{font-size:12px;font-weight:800;color:#1a1a2e;letter-spacing:-.2px}
+.panel-sub{font-size:10px;color:#6b7280;margin-top:3px;line-height:1.5}
+
+/* MODE SWITCHER */
+.mode-bar{position:fixed;top:66px;left:50%;transform:translateX(-50%);z-index:150;
+  background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:20px;
+  padding:3px;display:flex;gap:2px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.mode-btn{padding:6px 16px;border-radius:16px;font-size:11px;font-weight:700;
+  border:none;cursor:pointer;transition:all .15s;color:#6b7280;background:transparent}
+.mode-btn.on{background:#1a1a2e;color:#FFD600;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+.mode-btn:hover:not(.on){background:rgba(0,0,0,0.05);color:#1a1a2e}
+
+/* LEFT PANEL */
+.left-panel{top:116px;left:10px;width:268px;padding:16px}
+
+/* RIGHT INFO PANEL */
+.info-panel{top:116px;right:10px;width:288px;padding:16px;display:none}
+
+/* BAUMSCHALTER */
+.tree-toggle{top:116px;left:10px;width:268px;padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between}
+
+/* LEGEND GRADIENT */
+.leg-bar{height:8px;border-radius:4px;margin:10px 0 4px}
+.leg-labs{display:flex;justify-content:space-between;font-size:9px;color:#9ca3af}
+
+/* BIVARIATE GRID */
+.bi-grid{display:inline-grid;gap:4px;margin-top:10px}
+.bi-cell{height:26px;border-radius:5px}
+.bi-axis-label{font-size:9px;color:#9ca3af;font-weight:600}
+
+/* KPI ROW IN PANEL */
+.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.kpi-box{background:#f5f3ee;border:1px solid rgba(0,0,0,0.06);border-radius:10px;padding:9px 11px}
+.kpi-val{font-size:16px;font-weight:800;color:#1a1a2e;line-height:1}
+.kpi-lbl{font-size:9px;color:#9ca3af;margin-top:3px;font-weight:500}
+
+/* DATA TABLE */
+.data-row{display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:11px}
+.data-row:last-child{border:none}
+.data-key{color:#6b7280}
+.data-val{font-weight:700;color:#1a1a2e}
+.reno-box{background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.2);
+  border-radius:8px;padding:8px 10px;margin-top:10px;font-size:11px;color:#065f46}
+
+/* TOGGLE SWITCH */
+.toggle-wrap{display:flex;align-items:center;gap:8px;cursor:pointer}
+.toggle-lbl{font-size:11px;font-weight:600;color:#374151}
+.toggle-sw{width:36px;height:20px;border-radius:10px;background:rgba(0,0,0,0.12);
+  border:none;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle-sw.on{background:#16a34a}
+.toggle-sw::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;
+  background:#fff;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle-sw.on::after{left:19px}
+
+/* SLIDER */
+input[type=range]{width:100%;accent-color:#1a1a2e;margin-top:8px}
+.reno-label{display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;font-weight:600;color:#374151;margin-top:12px}
+.reno-val{font-size:13px;font-weight:800;color:#1a1a2e;font-variant-numeric:tabular-nums}
+
+/* LOADER */
+.loader{position:fixed;inset:0;z-index:999;background:rgba(245,243,238,0.9);
+  backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center}
+.loader-box{background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;
+  padding:20px 28px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.1)}
+.loader-logo{font-size:20px;font-weight:900;color:#1a1a2e;letter-spacing:-.5px;margin-bottom:8px}
+.loader-ring{width:32px;height:32px;border:3px solid rgba(0,0,0,0.1);border-top-color:#FFD600;
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-txt{font-size:12px;color:#9ca3af}
+
+/* MAPLIBRE OVERRIDES */
+.maplibregl-ctrl-attrib{font-size:9px!important}
+.maplibregl-ctrl-group{border-radius:10px!important;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1)!important}
+.maplibregl-ctrl-group button{width:32px!important;height:32px!important}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="home.html" style="text-decoration:none"><div class="logo">Urban<span>Lens</span></div></a>
+  <div class="nsep"></div>
+  <a href="index.html" class="nav-pill" style="text-decoration:none">← Karte</a>
+  <a href="dashboard.html" class="nav-pill" style="text-decoration:none">📊 Dashboard</a>
+  <div class="nsep"></div>
+  <div class="nav-info">🏙 Frankfurt am Main · <b>3D Gebäudeanalyse</b> · 8.054 Gebäude · 22.353 Bäume</div>
+  <div class="nav-r">
+    <div class="epill">📅 EUI Deadline 15. Juni 2026</div>
+    <div class="lpill"><div class="dot"></div>Open Data Live</div>
+  </div>
+</nav>
+
+<!-- MODE SWITCHER -->
+<div class="mode-bar">
+  <button class="mode-btn on" id="mode-co2">💨 CO₂-Intensität 3D</button>
+  <button class="mode-btn" id="mode-bi">🌡️ Hitze × Grün bivariat</button>
+</div>
+
+<!-- MAP -->
+<div id="map" style="position:fixed;inset:0;top:54px"></div>
+
+<!-- LEFT PANEL CO₂ -->
+<div class="panel left-panel" id="panel-co2">
+  <div class="panel-title">💨 CO₂-Intensität — Gebäudeebene</div>
+  <div class="panel-sub">Energetische Sanierungsklasse pro Gebäude · kg CO₂/m² Nutzfläche · Schätzwert aus Baujahr + Typ</div>
+  <div class="leg-bar" style="background:linear-gradient(90deg,#1e3a8a,#3b82f6,#fbbf24,#f97316,#7f1d1d)"></div>
+  <div class="leg-labs"><span>0</span><span>60</span><span>100</span><span>140</span><span>180+ kg/m²</span></div>
+  <div class="reno-label">
+    <span>Sanierungs-Szenario</span>
+    <span class="reno-val" id="reno-val">−0%</span>
+  </div>
+  <input id="reno" type="range" min="0" max="70" step="5" value="0"/>
+  <div id="stats" style="font-size:10px;color:#9ca3af;margin-top:6px;line-height:1.5">—</div>
+  <div class="kpi-row" id="kpiCO2"></div>
+  <div style="margin-top:10px;font-size:9px;color:#9ca3af;border-top:1px solid rgba(0,0,0,0.06);padding-top:8px">
+    📐 Höhe = Gebäudetyp-Schätzwert · Farbe = CO₂ kg/m²<br>
+    Quelle: OSM + Copernicus Urban Atlas · Gebäudebaujahr Schätzmodell<br>
+    <span style="color:#FFD600;font-weight:700">●</span> Klick auf Gebäude → Details rechts
+  </div>
+</div>
+
+<!-- LEFT PANEL BIVARIAT -->
+<div class="panel left-panel" id="panel-bi" style="display:none">
+  <div class="panel-title">🌡️ Hitze × Grünnähe — bivariat</div>
+  <div class="panel-sub">Jedes Gebäude nach zwei Achsen gleichzeitig eingefärbt: thermische Belastung (LST) und Entfernung zur nächsten Grünfläche.</div>
+  <div class="bi-grid" id="bi-legend" style="grid-template-columns:auto repeat(3,64px)"></div>
+  <div style="margin-top:10px;padding:8px 10px;background:rgba(239,68,68,0.06);
+    border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:10px;color:#dc2626;line-height:1.5">
+    🔴 <b>Dunkelrot oben rechts</b> = heiß <em>und</em> baumfern = klimatischer Hotspot.<br>
+    Priorität für Entsiegelung, Straßenbäume und Verschattung.
+  </div>
+  <div style="margin-top:10px;font-size:9px;color:#9ca3af;border-top:1px solid rgba(0,0,0,0.06);padding-top:8px">
+    LST-Delta: Copernicus Sentinel-3 · 100m Auflösung<br>
+    Grünflächen: OpenStreetMap + HLNUG Biotopkartierung<br>
+    <span style="color:#FFD600;font-weight:700">●</span> Klick auf Gebäude → Details rechts
+  </div>
+</div>
+
+<!-- BAUM-TOGGLE (unten links an left-panel angedockt) -->
+<div class="panel" style="position:fixed;bottom:24px;left:10px;width:268px;padding:11px 16px;z-index:100;display:flex;align-items:center;justify-content:space-between">
+  <div>
+    <div style="font-size:11px;font-weight:700;color:#1a1a2e">🌳 Straßenbäume einblenden</div>
+    <div style="font-size:9px;color:#9ca3af;margin-top:2px">22.353 Bäume · OSM + Stadtbaumliste FFM</div>
+  </div>
+  <button class="toggle-sw" id="treeTog" onclick="toggleTrees()"></button>
+</div>
+
+<!-- INFO PANEL (rechts, beim Klick) -->
+<div class="panel info-panel" id="info">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+    <div>
+      <div style="font-size:9px;font-weight:700;color:#FFD600;text-transform:uppercase;letter-spacing:.08em;background:#1a1a2e;padding:2px 8px;border-radius:10px;display:inline-block">Gebäude</div>
+      <div class="panel-title" id="info-type" style="margin-top:5px">—</div>
+    </div>
+    <button onclick="closeInfo()" style="background:rgba(0,0,0,0.06);border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px;color:#6b7280">✕</button>
+  </div>
+  <div id="info-body"></div>
+</div>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="loader-box">
+    <div class="loader-logo">Urban<span style="color:#1a1a2e">Lens</span></div>
+    <div class="loader-ring"></div>
+    <div class="loader-txt" id="loader-txt">Lade 8.054 Gebäude + 22.353 Bäume…</div>
+  </div>
+</div>
+
+<script>
+const BASE = "https://raw.githubusercontent.com/leoorexx/urbanlens/main/data/layers";
+
+const BIVARIATE = {
+  low:  { close:"#7FB069", mid:"#b8d4a0", far:"#f0e8c8" },
+  mid:  { close:"#8B7AB8", mid:"#d4a0b0", far:"#e8834a" },
+  high: { close:"#5C3A8C", mid:"#b5476b", far:"#8b0000"  },
+};
+
+const HEIGHT_BY_TYPE = {
+  allotment_house:3,shed:3,garage:3,hut:3,roof:4,
+  house:8,detached:9,semidetached_house:9,terrace:10,bungalow:5,
+  apartments:18,residential:14,dormitory:16,
+  commercial:22,retail:12,office:28,supermarket:10,
+  industrial:14,warehouse:12,manufacture:14,
+  school:12,university:18,hospital:24,hotel:30,
+  church:28,cathedral:45,chapel:14,
+  train_station:18,public:16,civic:16,
+  parking:8,garages:4,
+};
+const heightFor = t => HEIGHT_BY_TYPE[t] ?? 10;
+const greenClass = d => d==null?"far":d<50?"close":d<150?"mid":"far";
+
+// ── BIVARIATE LEGENDE ────────────────────────────────────────
+const legendEl = document.getElementById("bi-legend");
+const heatLabels = {high:"🔴 Heiß",mid:"🟡 Mittel",low:"🟢 Kühl"};
+const greenLabels = {close:"Nah",mid:"Mittel",far:"Fern"};
+legendEl.innerHTML =
+  `<div></div>` +
+  ["close","mid","far"].map(g=>`<div class="bi-axis-label" style="text-align:center;padding-bottom:3px">${greenLabels[g]}<br><span style="font-size:8px;color:#d1d5db">Grün</span></div>`).join("") +
+  ["high","mid","low"].flatMap(h=>[
+    `<div class="bi-axis-label" style="text-align:right;padding-right:6px;align-self:center">${heatLabels[h]}</div>`,
+    ...["close","mid","far"].map(g=>`<div class="bi-cell" style="background:${BIVARIATE[h][g]};width:64px"></div>`)
+  ]).join("");
+
+// ── MAP INIT ─────────────────────────────────────────────────
+const map = new maplibregl.Map({
+  container:"map",
+  style:{
+    version:8,
+    glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    sources:{
+      carto:{
+        type:"raster",
+        tiles:[
+          "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+          "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+          "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+        ],
+        tileSize:256,
+        attribution:"© OpenStreetMap, © CARTO"
+      }
+    },
+    layers:[{id:"carto",type:"raster",source:"carto"}],
+  },
+  center:[8.6821,50.1109],zoom:13,pitch:52,bearing:-18,maxPitch:75,
+  attributionControl:{compact:true}
+});
+map.addControl(new maplibregl.NavigationControl({showCompass:true}),"bottom-right");
+
+let totalCO2=0, currentMode="co2", currentReno=0, treesOn=false;
+
+map.on("load", async ()=>{
+  document.getElementById("loader-txt").textContent="Lade Gebäude…";
+
+  const buildings = await fetch(`${BASE}/co2_buildings_ffm.geojson`).then(r=>r.json());
+  let highCO2=0, midCO2=0, count=0;
+  buildings.features.forEach((f,i)=>{
+    const p=f.properties;
+    p.height=heightFor(p.building);
+    p.green_class=greenClass(p.green_dist_m);
+    p.bi_color=(BIVARIATE[p.heat_class]||{})[p.green_class]||"#aaa";
+    totalCO2+=(p.co2_kg_m2||0)*p.height;
+    if((p.co2_kg_m2||0)>120)highCO2++;
+    else if((p.co2_kg_m2||0)>80)midCO2++;
+    count++;
+    if(f.id==null)f.id=i+1;
+  });
+
+  map.addSource("buildings",{type:"geojson",data:buildings});
+
+  // CO₂ Layer
+  map.addLayer({id:"bld-co2",type:"fill-extrusion",source:"buildings",
+    paint:{
+      "fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","co2_kg_m2"],0],
+        0,"#1e3a8a",60,"#3b82f6",100,"#fbbf24",140,"#f97316",180,"#7f1d1d"],
+      "fill-extrusion-height":["get","height"],
+      "fill-extrusion-base":0,
+      "fill-extrusion-opacity":0.88,
+    }});
+
+  // Bivariat Layer
+  map.addLayer({id:"bld-bi",type:"fill-extrusion",source:"buildings",
+    layout:{visibility:"none"},
+    paint:{
+      "fill-extrusion-color":["get","bi_color"],
+      "fill-extrusion-height":["get","height"],
+      "fill-extrusion-base":0,
+      "fill-extrusion-opacity":0.88,
+    }});
+
+  // Highlight Layer
+  map.addLayer({id:"bld-hl",type:"fill-extrusion",source:"buildings",
+    filter:["==",["id"],-1],
+    paint:{
+      "fill-extrusion-color":"#FFD600",
+      "fill-extrusion-height":["get","height"],
+      "fill-extrusion-opacity":1,
+    }});
+
+  // Trees
+  document.getElementById("loader-txt").textContent="Lade Bäume…";
+  const trees = await fetch(`${BASE}/trees_ffm.geojson`).then(r=>r.json());
+  map.addSource("trees",{type:"geojson",data:trees});
+  map.addLayer({id:"trees-dots",type:"circle",source:"trees",
+    layout:{visibility:"none"},
+    paint:{
+      "circle-radius":["interpolate",["linear"],["zoom"],11,0.8,14,2,17,5],
+      "circle-color":"#16a34a",
+      "circle-opacity":0.9,
+      "circle-stroke-color":"#14532d",
+      "circle-stroke-width":0.4,
+    }});
+
+  document.getElementById("loader").remove();
+  updateStats();
+  renderKPIs(count,highCO2,midCO2);
+
+  // ── CLICK ─────────────────────────────────────────────────
+  const clickLayers=["bld-co2","bld-bi"];
+  clickLayers.forEach(id=>{
+    map.on("mousemove",id,()=>map.getCanvas().style.cursor="pointer");
+    map.on("mouseleave",id,()=>map.getCanvas().style.cursor="");
+  });
+  map.on("click",e=>{
+    const layer=currentMode==="co2"?"bld-co2":"bld-bi";
+    const f=map.queryRenderedFeatures(e.point,{layers:[layer]})[0];
+    if(!f){closeInfo();map.setFilter("bld-hl",["==",["id"],-1]);return;}
+    map.setFilter("bld-hl",["==",["id"],f.id]);
+    showInfo(f.properties);
+  });
+});
+
+function renderKPIs(count,high,mid){
+  const pctHigh=(high/count*100).toFixed(0);
+  const pctMid=(mid/count*100).toFixed(0);
+  document.getElementById("kpiCO2").innerHTML=`
+    <div class="kpi-box">
+      <div class="kpi-val" style="color:#ef4444">${pctHigh}%</div>
+      <div class="kpi-lbl">Sanierungsbedarf hoch (>120 kg/m²)</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-val" style="color:#f97316">${pctMid}%</div>
+      <div class="kpi-lbl">Mittlerer Bedarf (80–120 kg/m²)</div>
+    </div>`;
+}
+
+function showInfo(p){
+  const co2Color=!p.co2_kg_m2?"#9ca3af":p.co2_kg_m2>140?"#ef4444":p.co2_kg_m2>100?"#f97316":p.co2_kg_m2>60?"#eab308":"#22c55e";
+  const renoLine=(currentReno>0&&currentMode==="co2")
+    ?`<div class="reno-box">Nach −${currentReno}% Sanierung: <b>${((+p.co2_kg_m2||0)*(1-currentReno/100)).toFixed(1)} kg/m²</b></div>`:"";
+  document.getElementById("info-type").textContent=(p.building||"Unbekannt").replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+  document.getElementById("info-body").innerHTML=`
+    <div class="data-row"><span class="data-key">CO₂-Intensität</span><span class="data-val" style="color:${co2Color}">${p.co2_kg_m2??'—'} kg/m²</span></div>
+    <div class="data-row"><span class="data-key">Klasse</span><span class="data-val">${p.co2_class??'—'}</span></div>
+    <div class="data-row"><span class="data-key">Hitze (LST-Delta)</span><span class="data-val">${p.lst_delta??'—'} K</span></div>
+    <div class="data-row"><span class="data-key">Hitzeklasse</span><span class="data-val">${p.heat_class??'—'}</span></div>
+    <div class="data-row"><span class="data-key">Distanz zu Grün</span><span class="data-val">${p.green_dist_m??'—'} m</span></div>
+    <div class="data-row"><span class="data-key">Baujahr-Klasse</span><span class="data-val">${p.age_class??'—'}</span></div>
+    <div class="data-row"><span class="data-key">Gebäudehöhe (Proxy)</span><span class="data-val">${p.height??'—'} m</span></div>
+    ${renoLine}
+    <div style="margin-top:10px;font-size:9px;color:#9ca3af;line-height:1.5">
+      Copernicus Urban Atlas 2018 · OSM Gebäudetypologie<br>
+      CO₂-Schätzwert: Baujahr + Typ × EPC-Faktor (Hessen)
+    </div>`;
+  document.getElementById("info").style.display="block";
+}
+
+function closeInfo(){
+  document.getElementById("info").style.display="none";
+  if(map.getLayer("bld-hl"))map.setFilter("bld-hl",["==",["id"],-1]);
+}
+
+// ── MODE SWITCH ──────────────────────────────────────────────
+function setMode(m){
+  currentMode=m;
+  ["co2","bi"].forEach(id=>{
+    document.getElementById("mode-"+id).className="mode-btn"+(m===id||(m==="bivariate"&&id==="bi")?" on":"");
+    document.getElementById("panel-"+id).style.display=(m===id||(m==="bivariate"&&id==="bi"))?"block":"none";
+  });
+  if(map.getLayer("bld-co2")){
+    map.setLayoutProperty("bld-co2","visibility",m==="co2"?"visible":"none");
+    map.setLayoutProperty("bld-bi","visibility",m==="bi"?"visible":"none");
+  }
+}
+document.getElementById("mode-co2").onclick=()=>setMode("co2");
+document.getElementById("mode-bi").onclick=()=>{currentMode="bi";setMode("bi");};
+
+// ── RENOVATION SLIDER ────────────────────────────────────────
+document.getElementById("reno").oninput=e=>{
+  currentReno=+e.target.value;
+  document.getElementById("reno-val").textContent=`−${currentReno}%`;
+  const f=1-currentReno/100;
+  if(map.getLayer("bld-co2")){
+    map.setPaintProperty("bld-co2","fill-extrusion-color",[
+      "interpolate",["linear"],["*",["coalesce",["get","co2_kg_m2"],0],f],
+      0,"#1e3a8a",60,"#3b82f6",100,"#fbbf24",140,"#f97316",180,"#7f1d1d"]);
+  }
+  updateStats();
+};
+
+function updateStats(){
+  const f=1-currentReno/100;
+  const reduced=totalCO2*f, saved=totalCO2-reduced;
+  document.getElementById("stats").innerHTML=
+    `Stadtweite CO₂-Last: <b style="color:#1a1a2e">${(reduced/1e6).toFixed(2)}M kg/m²·m</b>`+
+    (currentReno>0?` · <span style="color:#059669">−${(saved/1e6).toFixed(2)}M eingespart</span>`:"");
+}
+
+// ── BÄUME ────────────────────────────────────────────────────
+function toggleTrees(){
+  treesOn=!treesOn;
+  document.getElementById("treeTog").className="toggle-sw"+(treesOn?" on":"");
+  if(map.getLayer("trees-dots"))
+    map.setLayoutProperty("trees-dots","visibility",treesOn?"visible":"none");
+}
+</script>
+</body>
+</html>
