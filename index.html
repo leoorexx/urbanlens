@@ -8,13 +8,13 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{
-  --bg:#f5f3ee;--surface:rgba(255,253,248,0.97);--surface2:#f0ede6;
-  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);
-  --text:#1a1a2e;--text2:#4a4a6a;--muted:#8888aa;
-  --accent:#2563eb;--al:rgba(37,99,235,0.1);
-  --r1:#dc2626;--r2:#ea580c;--r3:#ca8a04;--r4:#16a34a;--r5:#15803d;
-  --sh:0 2px 12px rgba(0,0,0,0.08),0 1px 3px rgba(0,0,0,0.05);
-  --shl:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);
+  --bg:#08111f;--surface:rgba(10,18,35,0.97);--surface2:rgba(255,255,255,0.05);
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#e2e8f0;--text2:#94a3b8;--muted:#4a5568;
+  --accent:#3b82f6;--al:rgba(59,130,246,0.15);
+  --r1:#ef4444;--r2:#f97316;--r3:#eab308;--r4:#22c55e;--r5:#16a34a;
+  --sh:0 2px 16px rgba(0,0,0,0.5),0 1px 4px rgba(0,0,0,0.4);
+  --shl:0 8px 40px rgba(0,0,0,0.6),0 2px 12px rgba(0,0,0,0.5);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
@@ -189,8 +189,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ltxt{font-size:13px;color:var(--muted)}
 
 /* Leaflet */
-.leaflet-tooltip{background:rgba(255,253,248,0.97);border:1px solid var(--border2);color:var(--text);font-size:11px;font-weight:600;padding:5px 10px;border-radius:7px;box-shadow:var(--sh)}
-.leaflet-tooltip-top::before{border-top-color:rgba(255,253,248,0.97)}
+.leaflet-tooltip{background:rgba(10,18,35,0.97);border:1px solid var(--border2);color:var(--text);font-size:11px;font-weight:600;padding:5px 10px;border-radius:7px;box-shadow:var(--sh)}
+.leaflet-tooltip-top::before{border-top-color:rgba(10,18,35,0.97)}
 .leaflet-control-zoom{border:1px solid var(--border2)!important;box-shadow:var(--sh)!important}
 .leaflet-control-zoom a{background:var(--surface)!important;color:var(--text)!important;border-bottom:1px solid var(--border)!important}
 /* WIND & RUNWAY INDICATOR */
@@ -204,6 +204,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .wind-val{font-weight:700;color:var(--text)}
 .wind-rwy-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;margin-top:6px}
 .wind-note{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.5}
+/* LENS MODE */
+.lens-bar{display:flex;gap:3px;padding:0 8px 8px;flex-shrink:0}
+.lens-btn{flex:1;padding:5px 2px;border-radius:7px;font-size:9px;font-weight:700;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.02em}
+.lens-btn.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 12px rgba(59,130,246,0.3)}
+.lens-btn:hover:not(.on){background:var(--surface2);color:var(--text2)}
+/* Social KPI grid */
+.social-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.skpi{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;position:relative}
+.skpi-val{font-size:16px;font-weight:800;line-height:1.1}
+.skpi-lbl{font-size:9px;color:var(--muted);margin-top:2px;font-weight:500}
+.skpi-bar{height:3px;border-radius:2px;margin-top:5px;background:var(--border)}
+.skpi-fill{height:100%;border-radius:2px;transition:width .6s}
+/* Social risk badge */
+.soc-risk{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:7px 10px;font-size:10px;color:#ef4444;line-height:1.5;margin-top:8px}
+.soc-good{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:7px 10px;font-size:10px;color:#22c55e;line-height:1.5;margin-top:8px}
 </style>
 </head>
 <body>
@@ -284,6 +299,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <span class="sicon">🔍</span>
       <input id="searchBox" placeholder="Stadtteil suchen…" oninput="renderList(this.value)">
     </div>
+  </div>
+  <div class="lens-bar">
+    <button class="lens-btn on" onclick="setLens('all')" id="lens-all">⬛ Gesamt</button>
+    <button class="lens-btn" onclick="setLens('climate')" id="lens-climate">🌡 Klima</button>
+    <button class="lens-btn" onclick="setLens('social')" id="lens-social">👥 Sozial</button>
   </div>
   <div class="llist" id="stList"></div>
   <div class="qleg">
@@ -526,51 +546,51 @@ const CITY_CFG={
     geojson:"https://cdn.jsdelivr.net/gh/codeforgermany/click_that_hood@main/public/data/frankfurt-main.geojson",
     nameProp:"name",
     data:{
-      "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, wb:33,mig:71,hw:true, heat:true, noise:82},
-      "Gutleutviertel":   {A:24,B:27,C:80,D:38,E:18,F:35,G:18,H:42,pop:5000, wb:36,mig:65,hw:true, heat:true, noise:78},
-      "Gallus":           {A:28,B:32,C:58,D:42,E:22,F:34,G:30,H:45,pop:72000,wb:38,mig:58,hw:false,heat:true, noise:72},
-      "Altstadt":         {A:30,B:34,C:82,D:56,E:28,F:50,G:22,H:50,pop:12000,wb:55,mig:40,hw:false,heat:true, noise:75},
-      "Innenstadt":       {A:28,B:32,C:84,D:58,E:24,F:52,G:20,H:52,pop:16000,wb:57,mig:38,hw:false,heat:true, noise:74},
-      "Fechenheim":       {A:32,B:35,C:45,D:40,E:30,F:40,G:36,H:42,pop:21000,wb:41,mig:48,hw:true, heat:false,noise:68},
-      "Griesheim":        {A:35,B:38,C:52,D:48,E:34,F:42,G:34,H:48,pop:43000,wb:44,mig:44,hw:false,heat:true, noise:70},
-      "Nied":             {A:38,B:40,C:42,D:44,E:36,F:44,G:40,H:44,pop:17000,wb:43,mig:42,hw:false,heat:false,noise:65},
-      "Sossenheim":       {A:40,B:42,C:40,D:45,E:38,F:45,G:42,H:50,pop:18000,wb:46,mig:38,hw:false,heat:false,noise:62},
-      "Niederrad":        {A:42,B:45,C:60,D:52,E:40,F:48,G:44,H:52,pop:26000,wb:51,mig:35,hw:true, heat:false,noise:66},
-      "Zeilsheim":        {A:44,B:46,C:38,D:48,E:42,F:48,G:47,H:50,pop:15000,wb:50,mig:33,hw:false,heat:false,noise:58},
-      "Höchst":           {A:45,B:47,C:62,D:52,E:42,F:50,G:44,H:52,pop:15000,wb:52,mig:36,hw:true, heat:false,noise:65},
-      "Unterliederbach":  {A:46,B:48,C:40,D:50,E:44,F:50,G:50,H:52,pop:22000,wb:52,mig:30,hw:false,heat:false,noise:60},
-      "Rödelheim":        {A:48,B:50,C:55,D:55,E:44,F:52,G:54,H:55,pop:20000,wb:53,mig:32,hw:false,heat:false,noise:62},
-      "Goldstein":        {A:52,B:54,C:36,D:52,E:48,F:52,G:57,H:55,pop:8000, wb:55,mig:22,hw:false,heat:false,noise:55},
-      "Sindlingen":       {A:50,B:52,C:38,D:54,E:48,F:54,G:54,H:55,pop:8000, wb:55,mig:24,hw:false,heat:false,noise:58},
-      "Schwanheim":       {A:55,B:56,C:42,D:55,E:50,F:56,G:62,H:58,pop:19000,wb:57,mig:20,hw:false,heat:false,noise:54},
-      "Bockenheim":       {A:50,B:55,C:76,D:68,E:40,F:62,G:44,H:58,pop:54000,wb:62,mig:28,hw:false,heat:true, noise:68},
-      "Eckenheim":        {A:57,B:59,C:58,D:65,E:50,F:61,G:57,H:58,pop:12000,wb:62,mig:25,hw:false,heat:false,noise:60},
-      "Ostend":           {A:52,B:55,C:68,D:65,E:40,F:62,G:44,H:55,pop:27000,wb:62,mig:30,hw:false,heat:true, noise:65},
-      "Sachsenhausen-Nord":{A:55,B:58,C:70,D:68,E:42,F:65,G:47,H:58,pop:35000,wb:65,mig:24,hw:false,heat:false,noise:62},
-      "Sachsenhausen-Süd":{A:58,B:60,C:65,D:70,E:45,F:68,G:52,H:60,pop:17000,wb:68,mig:18,hw:false,heat:false,noise:58},
-      "Riederwald":       {A:60,B:62,C:52,D:66,E:54,F:64,G:61,H:60,pop:8000, wb:64,mig:22,hw:false,heat:false,noise:55},
-      "Hausen":           {A:60,B:62,C:60,D:68,E:52,F:64,G:60,H:60,pop:10000,wb:64,mig:20,hw:false,heat:false,noise:56},
-      "Ginnheim":         {A:61,B:63,C:62,D:70,E:53,F:65,G:61,H:62,pop:13000,wb:66,mig:18,hw:false,heat:false,noise:54},
-      "Nordend-West":     {A:60,B:62,C:72,D:75,E:42,F:70,G:52,H:62,pop:37000,wb:70,mig:20,hw:false,heat:false,noise:62},
-      "Bornheim":         {A:58,B:60,C:73,D:72,E:45,F:68,G:50,H:60,pop:47000,wb:68,mig:22,hw:false,heat:false,noise:60},
-      "Nordend-Ost":      {A:62,B:64,C:70,D:76,E:44,F:72,G:53,H:64,pop:28000,wb:72,mig:18,hw:false,heat:false,noise:58},
-      "Dornbusch":        {A:60,B:62,C:65,D:70,E:52,F:68,G:57,H:62,pop:33000,wb:68,mig:16,hw:false,heat:false,noise:56},
-      "Heddernheim":      {A:58,B:60,C:55,D:68,E:52,F:65,G:57,H:60,pop:19000,wb:65,mig:20,hw:false,heat:false,noise:54},
-      "Praunheim":        {A:62,B:64,C:55,D:70,E:54,F:65,G:64,H:62,pop:17000,wb:66,mig:16,hw:false,heat:false,noise:52},
-      "Preungesheim":     {A:60,B:62,C:52,D:66,E:54,F:64,G:60,H:60,pop:11000,wb:64,mig:18,hw:false,heat:false,noise:54},
-      "Westend-Süd":      {A:62,B:65,C:72,D:78,E:36,F:72,G:54,H:65,pop:31000,wb:72,mig:14,hw:false,heat:false,noise:60},
-      "Westend-Nord":     {A:64,B:67,C:70,D:80,E:33,F:74,G:57,H:68,pop:22000,wb:74,mig:12,hw:false,heat:false,noise:58},
-      "Eschersheim":      {A:62,B:64,C:60,D:72,E:54,F:70,G:61,H:64,pop:25000,wb:70,mig:14,hw:false,heat:false,noise:52},
-      "Niederursel":      {A:64,B:66,C:52,D:72,E:57,F:68,G:64,H:65,pop:25000,wb:68,mig:14,hw:false,heat:false,noise:50},
-      "Seckbach":         {A:66,B:68,C:48,D:72,E:60,F:68,G:69,H:65,pop:14000,wb:68,mig:12,hw:false,heat:false,noise:48},
-      "Oberrad":          {A:65,B:66,C:52,D:70,E:58,F:68,G:65,H:63,pop:13000,wb:68,mig:12,hw:false,heat:false,noise:50},
-      "Bonames":          {A:62,B:64,C:45,D:68,E:56,F:64,G:64,H:62,pop:8000, wb:64,mig:15,hw:false,heat:false,noise:48},
-      "Frankfurter Berg": {A:60,B:62,C:48,D:68,E:54,F:64,G:62,H:60,pop:8000, wb:64,mig:16,hw:false,heat:false,noise:50},
-      "Berkersheim":      {A:70,B:72,C:42,D:72,E:62,F:68,G:71,H:65,pop:4000, wb:68,mig:10,hw:false,heat:false,noise:44},
-      "Kalbach-Riedberg": {A:70,B:72,C:50,D:78,E:62,F:72,G:70,H:68,pop:15000,wb:72,mig:10,hw:false,heat:false,noise:46},
-      "Nieder-Eschbach":  {A:71,B:73,C:38,D:74,E:64,F:70,G:73,H:68,pop:10000,wb:70,mig:10,hw:false,heat:false,noise:44},
-      "Nieder-Erlenbach": {A:73,B:75,C:32,D:74,E:65,F:72,G:75,H:70,pop:4000, wb:72,mig:8, hw:false,heat:false,noise:40},
-      "Harheim":          {A:72,B:74,C:35,D:72,E:65,F:70,G:74,H:68,pop:5000, wb:70,mig:8, hw:false,heat:false,noise:42},
+      "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, wb:33,mig:71,hw:true, heat:true, noise:82, sgb2:62,kinderarmut:70,einkommen:17000,arbeitslos:17,abitur:25},
+      "Gutleutviertel":   {A:24,B:27,C:80,D:38,E:18,F:35,G:18,H:42,pop:5000, wb:36,mig:65,hw:true, heat:true, noise:78, sgb2:44,kinderarmut:50,einkommen:20000,arbeitslos:13,abitur:30},
+      "Gallus":           {A:28,B:32,C:58,D:42,E:22,F:34,G:30,H:45,pop:72000,wb:38,mig:58,hw:false,heat:true, noise:72, sgb2:30,kinderarmut:36,einkommen:24000,arbeitslos:10,abitur:38},
+      "Altstadt":         {A:30,B:34,C:82,D:56,E:28,F:50,G:22,H:50,pop:12000,wb:55,mig:40,hw:false,heat:true, noise:75, sgb2:18,kinderarmut:20,einkommen:30000,arbeitslos:7, abitur:52},
+      "Innenstadt":       {A:28,B:32,C:84,D:58,E:24,F:52,G:20,H:52,pop:16000,wb:57,mig:38,hw:false,heat:true, noise:74, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:6, abitur:60},
+      "Fechenheim":       {A:32,B:35,C:45,D:40,E:30,F:40,G:36,H:42,pop:21000,wb:41,mig:48,hw:true, heat:false,noise:68, sgb2:26,kinderarmut:32,einkommen:25000,arbeitslos:9, abitur:34},
+      "Griesheim":        {A:35,B:38,C:52,D:48,E:34,F:42,G:34,H:48,pop:43000,wb:44,mig:44,hw:false,heat:true, noise:70, sgb2:24,kinderarmut:28,einkommen:26000,arbeitslos:9, abitur:38},
+      "Nied":             {A:38,B:40,C:42,D:44,E:36,F:44,G:40,H:44,pop:17000,wb:43,mig:42,hw:false,heat:false,noise:65, sgb2:22,kinderarmut:26,einkommen:27000,arbeitslos:8, abitur:40},
+      "Sossenheim":       {A:40,B:42,C:40,D:45,E:38,F:45,G:42,H:50,pop:18000,wb:46,mig:38,hw:false,heat:false,noise:62, sgb2:19,kinderarmut:23,einkommen:28000,arbeitslos:7, abitur:42},
+      "Niederrad":        {A:42,B:45,C:60,D:52,E:40,F:48,G:44,H:52,pop:26000,wb:51,mig:35,hw:true, heat:false,noise:66, sgb2:16,kinderarmut:19,einkommen:30000,arbeitslos:6, abitur:50},
+      "Zeilsheim":        {A:44,B:46,C:38,D:48,E:42,F:48,G:47,H:50,pop:15000,wb:50,mig:33,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:52},
+      "Höchst":           {A:45,B:47,C:62,D:52,E:42,F:50,G:44,H:52,pop:15000,wb:52,mig:36,hw:true, heat:false,noise:65, sgb2:22,kinderarmut:27,einkommen:26000,arbeitslos:8, abitur:38},
+      "Unterliederbach":  {A:46,B:48,C:40,D:50,E:44,F:50,G:50,H:52,pop:22000,wb:52,mig:30,hw:false,heat:false,noise:60, sgb2:16,kinderarmut:18,einkommen:30000,arbeitslos:6, abitur:48},
+      "Rödelheim":        {A:48,B:50,C:55,D:55,E:44,F:52,G:54,H:55,pop:20000,wb:53,mig:32,hw:false,heat:false,noise:62, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:44},
+      "Goldstein":        {A:52,B:54,C:36,D:52,E:48,F:52,G:57,H:55,pop:8000, wb:55,mig:22,hw:false,heat:false,noise:55, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:54},
+      "Sindlingen":       {A:50,B:52,C:38,D:54,E:48,F:54,G:54,H:55,pop:8000, wb:55,mig:24,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:30000,arbeitslos:6, abitur:46},
+      "Schwanheim":       {A:55,B:56,C:42,D:55,E:50,F:56,G:62,H:58,pop:19000,wb:57,mig:20,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:36000,arbeitslos:4, abitur:58},
+      "Bockenheim":       {A:50,B:55,C:76,D:68,E:40,F:62,G:44,H:58,pop:54000,wb:62,mig:28,hw:false,heat:true, noise:68, sgb2:14,kinderarmut:16,einkommen:34000,arbeitslos:6, abitur:62},
+      "Eckenheim":        {A:57,B:59,C:58,D:65,E:50,F:61,G:57,H:58,pop:12000,wb:62,mig:25,hw:false,heat:false,noise:60, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:5, abitur:58},
+      "Ostend":           {A:52,B:55,C:68,D:65,E:40,F:62,G:44,H:55,pop:27000,wb:62,mig:30,hw:false,heat:true, noise:65, sgb2:16,kinderarmut:18,einkommen:32000,arbeitslos:6, abitur:55},
+      "Sachsenhausen-Nord":{A:55,B:58,C:70,D:68,E:42,F:65,G:47,H:58,pop:35000,wb:65,mig:24,hw:false,heat:false,noise:62, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:66},
+      "Sachsenhausen-Süd":{A:58,B:60,C:65,D:70,E:45,F:68,G:52,H:60,pop:17000,wb:68,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:4, abitur:72},
+      "Riederwald":       {A:60,B:62,C:52,D:66,E:54,F:64,G:61,H:60,pop:8000, wb:64,mig:22,hw:false,heat:false,noise:55, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:42},
+      "Hausen":           {A:60,B:62,C:60,D:68,E:52,F:64,G:60,H:60,pop:10000,wb:64,mig:20,hw:false,heat:false,noise:56, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:58},
+      "Ginnheim":         {A:61,B:63,C:62,D:70,E:53,F:65,G:61,H:62,pop:13000,wb:66,mig:18,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66},
+      "Nordend-West":     {A:60,B:62,C:72,D:75,E:42,F:70,G:52,H:62,pop:37000,wb:70,mig:20,hw:false,heat:false,noise:62, sgb2:10,kinderarmut:11,einkommen:42000,arbeitslos:4, abitur:74},
+      "Bornheim":         {A:58,B:60,C:73,D:72,E:45,F:68,G:50,H:60,pop:47000,wb:68,mig:22,hw:false,heat:false,noise:60, sgb2:13,kinderarmut:15,einkommen:36000,arbeitslos:5, abitur:64},
+      "Nordend-Ost":      {A:62,B:64,C:70,D:76,E:44,F:72,G:53,H:64,pop:28000,wb:72,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76},
+      "Dornbusch":        {A:60,B:62,C:65,D:70,E:52,F:68,G:57,H:62,pop:33000,wb:68,mig:16,hw:false,heat:false,noise:56, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76},
+      "Heddernheim":      {A:58,B:60,C:55,D:68,E:52,F:65,G:57,H:60,pop:19000,wb:65,mig:20,hw:false,heat:false,noise:54, sgb2:12,kinderarmut:14,einkommen:35000,arbeitslos:5, abitur:60},
+      "Praunheim":        {A:62,B:64,C:55,D:70,E:54,F:65,G:64,H:62,pop:17000,wb:66,mig:16,hw:false,heat:false,noise:52, sgb2:11,kinderarmut:13,einkommen:36000,arbeitslos:4, abitur:62},
+      "Preungesheim":     {A:60,B:62,C:52,D:66,E:54,F:64,G:60,H:60,pop:11000,wb:64,mig:18,hw:false,heat:false,noise:54, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:56},
+      "Westend-Süd":      {A:62,B:65,C:72,D:78,E:36,F:72,G:54,H:65,pop:31000,wb:72,mig:14,hw:false,heat:false,noise:60, sgb2:6, kinderarmut:7, einkommen:58000,arbeitslos:2, abitur:88},
+      "Westend-Nord":     {A:64,B:67,C:70,D:80,E:33,F:74,G:57,H:68,pop:22000,wb:74,mig:12,hw:false,heat:false,noise:58, sgb2:5, kinderarmut:6, einkommen:62000,arbeitslos:2, abitur:92},
+      "Eschersheim":      {A:62,B:64,C:60,D:72,E:54,F:70,G:61,H:64,pop:25000,wb:70,mig:14,hw:false,heat:false,noise:52, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66},
+      "Niederursel":      {A:64,B:66,C:52,D:72,E:57,F:68,G:64,H:65,pop:25000,wb:68,mig:14,hw:false,heat:false,noise:50, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:64},
+      "Seckbach":         {A:66,B:68,C:48,D:72,E:60,F:68,G:69,H:65,pop:14000,wb:68,mig:12,hw:false,heat:false,noise:48, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:3, abitur:68},
+      "Oberrad":          {A:65,B:66,C:52,D:70,E:58,F:68,G:65,H:63,pop:13000,wb:68,mig:12,hw:false,heat:false,noise:50, sgb2:10,kinderarmut:11,einkommen:39000,arbeitslos:4, abitur:66},
+      "Bonames":          {A:62,B:64,C:45,D:68,E:56,F:64,G:64,H:62,pop:8000, wb:64,mig:15,hw:false,heat:false,noise:48, sgb2:16,kinderarmut:19,einkommen:29000,arbeitslos:6, abitur:44},
+      "Frankfurter Berg": {A:60,B:62,C:48,D:68,E:54,F:64,G:62,H:60,pop:8000, wb:64,mig:16,hw:false,heat:false,noise:50, sgb2:18,kinderarmut:21,einkommen:27000,arbeitslos:7, abitur:42},
+      "Berkersheim":      {A:70,B:72,C:42,D:72,E:62,F:68,G:71,H:65,pop:4000, wb:68,mig:10,hw:false,heat:false,noise:44, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:72},
+      "Kalbach-Riedberg": {A:70,B:72,C:50,D:78,E:62,F:72,G:70,H:68,pop:15000,wb:72,mig:10,hw:false,heat:false,noise:46, sgb2:6, kinderarmut:7, einkommen:50000,arbeitslos:2, abitur:82},
+      "Nieder-Eschbach":  {A:71,B:73,C:38,D:74,E:64,F:70,G:73,H:68,pop:10000,wb:70,mig:10,hw:false,heat:false,noise:44, sgb2:8, kinderarmut:9, einkommen:43000,arbeitslos:3, abitur:70},
+      "Nieder-Erlenbach": {A:73,B:75,C:32,D:74,E:65,F:72,G:75,H:70,pop:4000, wb:72,mig:8, hw:false,heat:false,noise:40, sgb2:5, kinderarmut:6, einkommen:52000,arbeitslos:2, abitur:80},
+      "Harheim":          {A:72,B:74,C:35,D:72,E:65,F:70,G:74,H:68,pop:5000, wb:70,mig:8, hw:false,heat:false,noise:42, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:70},
     }
   },
   utr:{
@@ -767,6 +787,42 @@ function grade(s){
 function fmt(n){return n>=1e6?(n/1e6).toFixed(1)+'M€':(n/1000).toFixed(0)+'k€'}
 
 // ══════════════════════════════════════════════════════════════
+// LENS MODE
+// ══════════════════════════════════════════════════════════════
+let lens='all';
+
+function setLens(l){
+  lens=l;
+  document.querySelectorAll('.lens-btn').forEach(b=>b.classList.remove('on'));
+  const btn=document.getElementById('lens-'+l);
+  if(btn) btn.classList.add('on');
+  // Update subtitle
+  const subs={all:'Relative Einstufung im Stadtvergleich · Quintile',climate:'Klimarisiko-Index · A+B+G+H Dimensionen',social:'Soziale Vulnerabilität · SGB-II, Armut, Einkommen'};
+  document.querySelectorAll('.lsub').forEach(el=>el.textContent=subs[l]||subs.all);
+  if(geoFeatures.length)renderMap();
+  renderList(document.getElementById('searchBox').value);
+}
+
+function socialScore(d){
+  const sgb=Math.max(0,100-(d.sgb2||12)*1.4);
+  const ka=Math.max(0,100-(d.kinderarmut||20)*1.33);
+  const ek=Math.min(100,Math.max(0,((d.einkommen||32000)-15000)/500));
+  const al=Math.max(0,100-(d.arbeitslos||6)*5);
+  const ab=d.abitur||50;
+  return Math.round((sgb+ka+ek+al+ab)/5);
+}
+
+function climateScore(d){
+  return Math.round(((d.A||50)+(d.B||50)+(d.G||50)+(d.H||50))/4);
+}
+
+function lensScore(d){
+  if(lens==='social')return socialScore(d);
+  if(lens==='climate')return climateScore(d);
+  return nice(d);
+}
+
+// ══════════════════════════════════════════════════════════════
 // MAP
 // ══════════════════════════════════════════════════════════════
 function initMap(){
@@ -777,7 +833,7 @@ function initMap(){
   map.createPane('choropleth');
   map.getPane('choropleth').style.zIndex=200;
   map.getPane('choropleth').style.pointerEvents='none'; // clicks pass through to map
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
     {attribution:'© OpenStreetMap © CARTO',maxZoom:19,pane:'tilePane'}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
   loadCity('ffm');
@@ -822,7 +878,7 @@ function loadCity(c){
 function renderMap(){
   if(geoLayer)map.removeLayer(geoLayer);
   const cfg=CITY_CFG[city];
-  const allS=Object.values(cfg.data).map(nice);
+  const allS=Object.values(cfg.data).map(lensScore);
 
   // Instantly hide/show the whole choropleth pane based on active layer count
   const pane=map.getPane('choropleth');
@@ -833,7 +889,7 @@ function renderMap(){
     style:f=>{
       const raw=f.properties[cfg.nameProp]||'';
       const k=Object.keys(cfg.data).find(k=>raw===k||raw.includes(k)||k.includes(raw));
-      const s=k?nice(cfg.data[k]):null;
+      const s=k?lensScore(cfg.data[k]):null;
       const col=s!=null?qColor(s,allS):'#cccccc';
       return{fillColor:col,fillOpacity:0.28,color:col,weight:1.5,opacity:0.6};
     },
@@ -841,7 +897,7 @@ function renderMap(){
       const raw=f.properties[cfg.nameProp]||'?';
       const k=Object.keys(cfg.data).find(k=>raw===k||raw.includes(k)||k.includes(raw));
       const d=k?cfg.data[k]:null;
-      const s=d?nice(d):'?';
+      const s=d?lensScore(d):'?';
       const risks=d?[d.hw?'💧 HQ100':'',d.heat?'🌡️ Hitzeinsel':'',d.noise>70?'🔊 Lärm':''].filter(Boolean).join(' · '):'';
       layer.bindTooltip(`<b>${k||raw}</b> · Score: <b>${s}</b>/100${risks?'<br><small>'+risks+'</small>':''}`,{sticky:true});
       // Capture name+data in closure for click — fixes Utrecht bug
@@ -1795,10 +1851,10 @@ function renderPOILayer(geojson,id,allowedTypes){
 
 function renderList(filter=''){
   const cfg=CITY_CFG[city];
-  const allS=Object.values(cfg.data).map(nice);
+  const allS=Object.values(cfg.data).map(lensScore);
   document.getElementById('listTitle').textContent=`${Object.keys(cfg.data).length} ${city==='ffm'?'Frankfurter Stadtteile':'Utrechtse Wijken'}`;
   const entries=Object.entries(cfg.data)
-    .map(([n,d])=>({n,d,s:nice(d)}))
+    .map(([n,d])=>({n,d,s:lensScore(d)}))
     .filter(e=>!filter||e.n.toLowerCase().includes(filter.toLowerCase()))
     .sort((a,b)=>a.s-b.s);
   document.getElementById('stList').innerHTML=entries.map(({n,d,s})=>{
@@ -1810,7 +1866,7 @@ function renderList(filter=''){
       <div class="stq" style="background:${col}18;color:${col};border-color:${col}">${s}</div>
       <div class="stinfo">
         <div class="stname">${n}</div>
-        <div class="stmeta">${(d.pop/1000).toFixed(0)}k EW · ${d.wb}% Wahlbet.${risks?' · '+risks:''}</div>
+        <div class="stmeta">${lens==='social'?(d.sgb2!=null?`SGB-II ${d.sgb2}% · Armut ${d.kinderarmut}%`:`${(d.pop/1000).toFixed(0)}k EW`):lens==='climate'?`Klima ${climateScore(d)}/100 · ${[d.hw?'💧':'',d.heat?'🌡️':''].filter(Boolean).join(' ')}`:`${(d.pop/1000).toFixed(0)}k EW · ${d.wb}% Wahlbet.${risks?' · '+risks:''}`}</div>
       </div>
       <div class="stflag">${isDouble?'⚠️':s<40?'🔴':''}</div>
     </div>`;
@@ -1864,6 +1920,13 @@ function openDrawer(name,d){
   const weakKeys=DIMS.slice().sort((a,b)=>d[a.k]-d[b.k]).slice(0,4).map(x=>x.k);
   const relM=MASS.filter(m=>m.dims.some(k=>weakKeys.includes(k))).slice(0,4);
 
+  // Social score for drawer
+  const ss=socialScore(d);
+  const sSgb2Color=d.sgb2>=25?'#ef4444':d.sgb2>=15?'#f97316':d.sgb2>=10?'#eab308':'#22c55e';
+  const sKaColor=d.kinderarmut>=35?'#ef4444':d.kinderarmut>=20?'#f97316':d.kinderarmut>=12?'#eab308':'#22c55e';
+  const sEkColor=d.einkommen>=45000?'#22c55e':d.einkommen>=32000?'#eab308':d.einkommen>=24000?'#f97316':'#ef4444';
+  const sAlColor=d.arbeitslos>=12?'#ef4444':d.arbeitslos>=8?'#f97316':d.arbeitslos>=5?'#eab308':'#22c55e';
+
   // TAB 0 — Übersicht
   document.getElementById('tp0').innerHTML=`
     <div class="kgrid">
@@ -1882,7 +1945,38 @@ function openDrawer(name,d){
     </div>
     <div class="sec">Hauptschwächen</div>
     <div class="ibox">Schwächste Dimensionen: <b>${weakKeys.map(k=>DIMS.find(x=>x.k===k)?.name).join(', ')}</b>.<br>
-    Maßnahmen (Tab 3) adressieren genau diese Felder.</div>`;
+    Maßnahmen (Tab 3) adressieren genau diese Felder.</div>
+    ${d.sgb2!=null?`
+    <div class="sec">👥 Soziale Lage</div>
+    <div class="social-grid">
+      <div class="skpi">
+        <div class="skpi-val" style="color:${sSgb2Color}">${d.sgb2}%</div>
+        <div class="skpi-lbl">SGB-II-Quote</div>
+        <div class="skpi-bar"><div class="skpi-fill" style="width:${Math.min(100,d.sgb2/70*100)}%;background:${sSgb2Color}"></div></div>
+      </div>
+      <div class="skpi">
+        <div class="skpi-val" style="color:${sKaColor}">${d.kinderarmut}%</div>
+        <div class="skpi-lbl">Kinderarmut (u18)</div>
+        <div class="skpi-bar"><div class="skpi-fill" style="width:${Math.min(100,d.kinderarmut/75*100)}%;background:${sKaColor}"></div></div>
+      </div>
+      <div class="skpi">
+        <div class="skpi-val" style="color:${sEkColor}">${(d.einkommen/1000).toFixed(0)}k€</div>
+        <div class="skpi-lbl">Medianeinkommen/Jahr</div>
+        <div class="skpi-bar"><div class="skpi-fill" style="width:${Math.min(100,(d.einkommen-15000)/500)}%;background:${sEkColor}"></div></div>
+      </div>
+      <div class="skpi">
+        <div class="skpi-val" style="color:${sAlColor}">${d.arbeitslos}%</div>
+        <div class="skpi-lbl">Arbeitslosigkeit</div>
+        <div class="skpi-bar"><div class="skpi-fill" style="width:${Math.min(100,d.arbeitslos/18*100)}%;background:${sAlColor}"></div></div>
+      </div>
+    </div>
+    <div class="kgrid" style="grid-template-columns:1fr">
+      <div class="kpi"><div class="kval">${d.abitur}%</div><div class="klbl">Abiturquote</div><div class="ksub">Schulabschlüsse · Bildungsmonitoring</div></div>
+    </div>
+    ${d.sgb2>=25||d.kinderarmut>=35?`<div class="soc-risk">⚠️ <b>Soziale Risikolage:</b> Überdurchschnittliche Armutsquoten. Handlungsbedarf bei Bildung, Sozialinfrastruktur und Einkommensförderung. Kandidat für ESF+, ERDF Soziale Infrastruktur (80% Förderquote).</div>`:d.sgb2<=8&&d.einkommen>=45000?`<div class="soc-good">✅ <b>Stabile Soziallage:</b> Unterdurchschnittliche Armutsquoten und überdurchschnittliches Einkommen. Gute Bildungsvoraussetzungen.</div>`:''}
+    <div style="font-size:8px;color:var(--muted);margin-top:6px;padding:6px 8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+      Quellen: Frankfurt Stadtmonitoring Soziales 2024 · BA Statistik · Paritätischer Armutsbericht · Zensus 2022
+    </div>`:''}`;
 
   // TAB 1 — Dimensionen
   document.getElementById('tp1').innerHTML=DIMS.map(dim=>`
@@ -1998,7 +2092,9 @@ function renderStats(){
     <div class="stat"><div class="stl">CO₂-Kostensatz</div><div class="stv">300€/t</div><div class="sts">UBA MK 4.0 (2026)</div></div>
     <div class="stat"><div class="stl">EUI Call 4</div><div class="stv" style="color:#d97706">15. Jun '26</div><div class="sts">60 Mio€ ERDF</div></div>
     <div class="stat"><div class="stl">Maßnahmen</div><div class="stv">15</div><div class="sts">mit ROI-Belegen</div></div>
-    <div class="stat"><div class="stl">Förderprogramme</div><div class="stv">25</div><div class="sts">EU/Bund/Land/KfW</div></div>`;
+    <div class="stat"><div class="stl">Förderprogramme</div><div class="stv">25</div><div class="sts">EU/Bund/Land/KfW</div></div>
+    ${city==='ffm'?`<div class="stat"><div class="stl">⚠ Kinderarmut Ø</div><div class="stv" style="color:var(--r2)">${Math.round(all.filter(d=>d.kinderarmut!=null).reduce((a,d)=>a+d.kinderarmut,0)/all.filter(d=>d.kinderarmut!=null).length)}%</div><div class="sts">Stadt-Durchschnitt</div></div>
+    <div class="stat"><div class="stl">💶 Einkommen Ø</div><div class="stv">${Math.round(all.filter(d=>d.einkommen!=null).reduce((a,d)=>a+d.einkommen,0)/all.filter(d=>d.einkommen!=null).length/1000)}k€</div><div class="sts">Median/Jahr</div></div>`:''}` ;
 }
 
 // ══════════════════════════════════════════════════════════════
