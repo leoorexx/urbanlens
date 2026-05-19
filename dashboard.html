@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanLens Dashboard — Frankfurts Klimazukunft</title>
+<style>
+:root{
+  --bg:#f5f3ee;--surface:#252830;--surface2:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+  --text:#f0f4ff;--text2:#a0aec0;--muted:#636d85;
+  --accent:#FFD600;--al:rgba(255,214,0,0.13);
+  --r1:#ef4444;--r2:#f97316;--r3:#eab308;--r4:#22c55e;--r5:#16a34a;
+  --sh:0 4px 24px rgba(0,0,0,0.4),0 1px 8px rgba(0,0,0,0.28);
+  --shl:0 8px 48px rgba(0,0,0,0.5),0 2px 16px rgba(0,0,0,0.35);
+  --c15:#22c55e; --c25:#eab308; --c35:#ef4444; --cint:#3b82f6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);overflow-x:hidden;min-height:100vh}
+
+/* NAV */
+.nav{position:sticky;top:0;left:0;right:0;height:54px;z-index:100;background:#fff;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:12px;padding:0 24px;box-shadow:0 2px 16px rgba(0,0,0,0.06)}
+.logo{font-size:17px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px;text-decoration:none}
+.logo span{color:#1a1a2e}
+.nav-pill{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;text-decoration:none;transition:all .15s}
+.nav-pill.map{background:rgba(0,0,0,0.06);color:#1a1a2e;border:1.5px solid rgba(0,0,0,0.1)}
+.nav-pill.map:hover{background:#1a1a2e;color:var(--accent)}
+.nav-pill.active{background:#1a1a2e;color:var(--accent)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.epill{background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.2);border-radius:20px;padding:4px 12px;font-size:11px;color:#b45309;font-weight:600}
+
+/* LAYOUT */
+.page{max-width:1400px;margin:0 auto;padding:24px 20px 48px}
+.headline{margin-bottom:6px}
+.headline h1{font-size:26px;font-weight:900;color:#1a1a2e;letter-spacing:-.5px}
+.headline p{font-size:13px;color:#6b7280;margin-top:4px;line-height:1.6}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:20px 0}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;box-shadow:var(--sh)}
+.kpi-val{font-size:28px;font-weight:900;line-height:1;color:var(--text)}
+.kpi-lbl{font-size:10px;font-weight:700;color:var(--text2);margin-top:5px;text-transform:uppercase;letter-spacing:.06em}
+.kpi-sub{font-size:9px;color:var(--muted);margin-top:3px}
+.kpi-card.warn .kpi-val{color:#ef4444}
+.kpi-card.ok .kpi-val{color:#22c55e}
+.kpi-card.accent .kpi-val{color:var(--accent)}
+
+/* GRID */
+.main-grid{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);overflow:hidden}
+.card-head{padding:16px 18px 12px;border-bottom:1px solid var(--border)}
+.card-title{font-size:13px;font-weight:800;color:var(--text)}
+.card-sub{font-size:10px;color:var(--text2);margin-top:3px;line-height:1.5}
+.card-body{padding:16px 18px}
+
+/* SZENARIO TABS */
+.sz-tabs{display:flex;gap:6px;padding:14px 18px 0}
+.sz-tab{padding:6px 14px;border-radius:20px;font-size:10px;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .15s}
+.sz-tab[data-s="1.5"]{border-color:rgba(34,197,94,0.3);color:#86efac;background:rgba(34,197,94,0.08)}
+.sz-tab[data-s="1.5"].on{background:#22c55e;color:#1a1a2e;border-color:#22c55e}
+.sz-tab[data-s="2.5"]{border-color:rgba(234,179,8,0.3);color:#fde68a;background:rgba(234,179,8,0.08)}
+.sz-tab[data-s="2.5"].on{background:#eab308;color:#1a1a2e;border-color:#eab308}
+.sz-tab[data-s="3.5"]{border-color:rgba(239,68,68,0.3);color:#fca5a5;background:rgba(239,68,68,0.08)}
+.sz-tab[data-s="3.5"].on{background:#ef4444;color:#fff;border-color:#ef4444}
+.sz-tab[data-s="int"]{border-color:rgba(59,130,246,0.3);color:#93c5fd;background:rgba(59,130,246,0.08)}
+.sz-tab[data-s="int"].on{background:#3b82f6;color:#fff;border-color:#3b82f6}
+
+/* SVG CHART */
+.chart-wrap{padding:16px 18px 8px;overflow:hidden}
+svg text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.chart-legend{display:flex;gap:14px;padding:8px 18px 14px;flex-wrap:wrap}
+.cl-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)}
+.cl-dot{width:10px;height:4px;border-radius:2px;flex-shrink:0}
+
+/* SCENARIO DETAIL */
+.sc-desc{font-size:10px;color:var(--text2);line-height:1.6;padding:12px 18px;border-bottom:1px solid var(--border)}
+.sc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 18px;border-bottom:1px solid var(--border)}
+.sc-kpi{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;text-align:center}
+.sc-val{font-size:16px;font-weight:800;line-height:1}
+.sc-lbl{font-size:8px;color:var(--muted);margin-top:3px}
+.sc-districts{padding:10px 18px 14px}
+.sc-d-title{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.sc-d-item{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sc-d-name{font-size:10px;font-weight:600;color:var(--text);width:120px;flex-shrink:0}
+.sc-d-bar-wrap{flex:1;position:relative;height:18px}
+.sc-d-bar-bg{position:absolute;left:0;top:50%;transform:translateY(-50%);height:6px;background:var(--border);border-radius:3px;width:100%}
+.sc-d-bar{position:absolute;left:0;top:50%;transform:translateY(-50%);height:6px;border-radius:3px;transition:width .6s ease}
+.sc-d-score{font-size:10px;font-weight:700;width:28px;text-align:right;flex-shrink:0}
+.sc-d-delta{font-size:9px;width:36px;text-align:right;flex-shrink:0;font-weight:600}
+
+/* RANKING */
+.rank-list{padding:10px 18px}
+.rank-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.rank-item:last-child{border:none}
+.rank-n{font-size:10px;color:var(--muted);width:20px;flex-shrink:0;text-align:right}
+.rank-name{font-size:11px;font-weight:600;flex:1;color:var(--text)}
+.rank-bar-wrap{width:90px;position:relative;height:16px;flex-shrink:0}
+.rank-bar-bg{position:absolute;left:0;top:50%;transform:translateY(-50%);height:5px;background:var(--border);border-radius:3px;width:100%}
+.rank-bar-fill{position:absolute;left:0;top:50%;transform:translateY(-50%);height:5px;border-radius:3px}
+.rank-score{font-size:10px;font-weight:700;width:24px;text-align:right;flex-shrink:0}
+.rank-badge{font-size:8px;padding:1px 5px;border-radius:8px;font-weight:700;flex-shrink:0}
+.rb-red{background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)}
+.rb-amber{background:rgba(234,179,8,0.12);color:#fde68a;border:1px solid rgba(234,179,8,0.25)}
+.rb-green{background:rgba(34,197,94,0.1);color:#86efac;border:1px solid rgba(34,197,94,0.2)}
+
+/* RADAR FEED */
+.radar-item{padding:12px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.radar-item:last-child{border:none}
+.radar-item:hover{background:var(--surface2)}
+.radar-type{font-size:9px;font-weight:700;margin-bottom:3px}
+.radar-type.r1{color:#fca5a5}
+.radar-type.r2{color:#fde68a}
+.radar-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.radar-desc{font-size:9px;color:var(--text2);line-height:1.5}
+.radar-tags{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.rtag{font-size:8px;font-weight:700;padding:1px 6px;border-radius:8px}
+.rtag.r{background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)}
+.rtag.y{background:rgba(234,179,8,0.1);color:#fde68a;border:1px solid rgba(234,179,8,0.2)}
+
+/* TIMELINE MILESTONES */
+.milestones{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 18px 16px}
+.ms-year{font-size:9px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.ms-body{font-size:9px;color:var(--text2);line-height:1.6}
+.ms-body b{color:var(--text)}
+
+/* ATTRIBUTION */
+.attribution{text-align:center;font-size:9px;color:#9ca3af;padding:24px 0 12px;line-height:1.8}
+.attribution a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="logo" href="index.html">Urban<span>Lens</span></a>
+  <a class="nav-pill map" href="index.html">← Zurück zur Karte</a>
+  <a class="nav-pill active" href="dashboard.html">📊 Dashboard</a>
+  <div class="nav-r">
+    <div class="epill">📅 EUI Deadline 15. Juni 2026</div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="headline">
+    <h1>Frankfurt — Klimazukunft 2025–2050</h1>
+    <p>Wie entwickeln sich Frankfurts 46 Stadtteile unter verschiedenen Klimapfaden? Was kostet Nichtstun — und was bringt Handeln?<br>
+    Datenquellen: NICE Score · Copernicus/HLNUG · IPCC AR6 · DWD Klimaprojektion · IAB · Zensus 2022</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="main-grid">
+    <!-- Klimapfade Chart -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🌡️ Klimapfade 2025–2050 — Frankfurts NICE Score</div>
+        <div class="card-sub">Wie entwickelt sich der durchschnittliche Lebensqualitäts-Score der Stadt unter den drei IPCC-Klimaszenarien? Und was leisten Maßnahmen?</div>
+      </div>
+      <div class="sz-tabs">
+        <div class="sz-tab on" data-s="1.5" onclick="setScenario('1.5')">+1,5°C Paris-Ziel</div>
+        <div class="sz-tab" data-s="2.5" onclick="setScenario('2.5')">+2,5°C Aktueller Kurs</div>
+        <div class="sz-tab" data-s="3.5" onclick="setScenario('3.5')">+3,5°C Business as usual</div>
+        <div class="sz-tab" data-s="int" onclick="setScenario('int')">✅ Mit Vollintervention</div>
+      </div>
+      <div class="chart-wrap">
+        <svg id="klimaChart" width="100%" viewBox="0 0 720 260" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="chart-legend">
+        <div class="cl-item"><div class="cl-dot" style="background:#22c55e"></div>+1,5°C (Paris)</div>
+        <div class="cl-item"><div class="cl-dot" style="background:#eab308"></div>+2,5°C (aktueller Kurs)</div>
+        <div class="cl-item"><div class="cl-dot" style="background:#ef4444"></div>+3,5°C (Business as usual)</div>
+        <div class="cl-item"><div class="cl-dot" style="background:#3b82f6"></div>Mit Vollintervention (+2,5°C)</div>
+        <div class="cl-item"><div class="cl-dot" style="background:rgba(255,214,0,0.6);width:6px;height:6px;border-radius:50%"></div>Heute: Ø <span id="avgLbl" style="font-weight:700;color:var(--accent)"></span>/100</div>
+      </div>
+      <div class="milestones" id="milestones"></div>
+    </div>
+
+    <!-- Szenario Detail -->
+    <div class="card" id="szDetail">
+      <div class="card-head">
+        <div class="card-title" id="szTitle">Szenario: +1,5°C</div>
+        <div class="card-sub" id="szSubtitle"></div>
+      </div>
+      <div class="sc-desc" id="szDesc"></div>
+      <div class="sc-grid" id="szGrid"></div>
+      <div class="sc-districts">
+        <div class="sc-d-title">Meistbetroffene Stadtteile 2050</div>
+        <div id="szDistrictList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-grid">
+    <!-- Vulnerability Ranking -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📊 Klimavulnerabilität — alle 46 Stadtteile</div>
+        <div class="card-sub">Score-Ranking heute. Farbe = Quintil im Stadtvergleich. Klick → öffnet Stadtteil auf der Karte.</div>
+      </div>
+      <div class="rank-list" id="rankList"></div>
+    </div>
+
+    <!-- Risikoradar Feed -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🔍 Risikoradar — Automatische Stadtdiagnose</div>
+        <div class="card-sub">Automatisch erkannte Muster basierend auf Dreifachbelastung und Verdrängungsgefahr.</div>
+      </div>
+      <div id="radarFeed"></div>
+    </div>
+  </div>
+
+  <div class="attribution">
+    UrbanLens · Open Source · Daten: <a href="https://geoportal.hessen.de">Geoportal Hessen</a> · <a href="https://www.openstreetmap.org">OpenStreetMap</a> · <a href="https://www.zensus2022.de">Zensus 2022</a> · <a href="https://www.dwd.de/klimaatlas">DWD Klimaatlas</a> · IPCC AR6 (2021)<br>
+    Projektionen ±10 Punkte · Kein Ersatz für formale Gutachten · Stand Mai 2026
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// DISTRICT DATA (essentials — A-H, social, climate)
+// ══════════════════════════════════════════════════════════════
+const DISTRICTS = {
+  "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, sgb2:62,kinderarmut:70,einkommen:17000,arbeitslos:17,mig:71,versieg:88,lst_delta:3.9,hw:true},
+  "Gutleutviertel":   {A:24,B:27,C:80,D:38,E:18,F:35,G:18,H:42,pop:5000, sgb2:44,kinderarmut:50,einkommen:20000,arbeitslos:13,mig:65,versieg:82,lst_delta:3.4,hw:true},
+  "Gallus":           {A:28,B:32,C:58,D:42,E:22,F:34,G:30,H:45,pop:72000,sgb2:30,kinderarmut:36,einkommen:24000,arbeitslos:10,mig:58,versieg:74,lst_delta:2.9,hw:false},
+  "Altstadt":         {A:30,B:34,C:82,D:56,E:28,F:50,G:22,H:50,pop:12000,sgb2:18,kinderarmut:20,einkommen:30000,arbeitslos:7, mig:40,versieg:80,lst_delta:3.2,hw:false},
+  "Innenstadt":       {A:28,B:32,C:84,D:58,E:24,F:52,G:20,H:52,pop:16000,sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:6, mig:38,versieg:83,lst_delta:3.5,hw:false},
+  "Fechenheim":       {A:32,B:35,C:45,D:40,E:30,F:40,G:36,H:42,pop:21000,sgb2:26,kinderarmut:32,einkommen:25000,arbeitslos:9, mig:48,versieg:65,lst_delta:2.1,hw:true},
+  "Griesheim":        {A:35,B:38,C:52,D:48,E:34,F:42,G:34,H:48,pop:43000,sgb2:24,kinderarmut:28,einkommen:26000,arbeitslos:9, mig:44,versieg:72,lst_delta:2.6,hw:false},
+  "Nied":             {A:38,B:40,C:42,D:44,E:36,F:44,G:40,H:44,pop:17000,sgb2:22,kinderarmut:26,einkommen:27000,arbeitslos:8, mig:42,versieg:60,lst_delta:1.8,hw:false},
+  "Sossenheim":       {A:40,B:42,C:40,D:45,E:38,F:45,G:42,H:50,pop:18000,sgb2:19,kinderarmut:23,einkommen:28000,arbeitslos:7, mig:38,versieg:55,lst_delta:1.5,hw:false},
+  "Niederrad":        {A:42,B:45,C:60,D:52,E:40,F:48,G:44,H:52,pop:26000,sgb2:16,kinderarmut:19,einkommen:30000,arbeitslos:6, mig:35,versieg:62,lst_delta:1.9,hw:true},
+  "Zeilsheim":        {A:44,B:46,C:38,D:48,E:42,F:48,G:47,H:50,pop:15000,sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, mig:33,versieg:48,lst_delta:1.1,hw:false},
+  "Höchst":           {A:45,B:47,C:62,D:52,E:42,F:50,G:44,H:52,pop:15000,sgb2:22,kinderarmut:27,einkommen:26000,arbeitslos:8, mig:36,versieg:68,lst_delta:2.2,hw:true},
+  "Unterliederbach":  {A:46,B:48,C:40,D:50,E:44,F:50,G:50,H:52,pop:22000,sgb2:16,kinderarmut:18,einkommen:30000,arbeitslos:6, mig:30,versieg:52,lst_delta:1.3,hw:false},
+  "Rödelheim":        {A:48,B:50,C:55,D:55,E:44,F:52,G:54,H:55,pop:20000,sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, mig:32,versieg:58,lst_delta:1.6,hw:false},
+  "Goldstein":        {A:52,B:54,C:36,D:52,E:48,F:52,G:57,H:55,pop:8000, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, mig:22,versieg:42,lst_delta:0.8,hw:false},
+  "Sindlingen":       {A:50,B:52,C:38,D:54,E:48,F:54,G:54,H:55,pop:8000, sgb2:14,kinderarmut:16,einkommen:30000,arbeitslos:6, mig:24,versieg:52,lst_delta:1.4,hw:false},
+  "Schwanheim":       {A:55,B:56,C:42,D:55,E:50,F:56,G:62,H:58,pop:19000,sgb2:10,kinderarmut:11,einkommen:36000,arbeitslos:4, mig:20,versieg:38,lst_delta:0.4,hw:false},
+  "Bockenheim":       {A:50,B:55,C:76,D:68,E:40,F:62,G:44,H:58,pop:54000,sgb2:14,kinderarmut:16,einkommen:34000,arbeitslos:6, mig:28,versieg:70,lst_delta:2.4,hw:false},
+  "Eckenheim":        {A:57,B:59,C:58,D:65,E:50,F:61,G:57,H:58,pop:12000,sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:5, mig:25,versieg:62,lst_delta:1.9,hw:false},
+  "Ostend":           {A:52,B:55,C:68,D:65,E:40,F:62,G:44,H:55,pop:27000,sgb2:16,kinderarmut:18,einkommen:32000,arbeitslos:6, mig:30,versieg:72,lst_delta:2.7,hw:false},
+  "Sachsenhausen-Nord":{A:55,B:58,C:70,D:68,E:42,F:65,G:47,H:58,pop:35000,sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4,mig:24,versieg:65,lst_delta:2.0,hw:false},
+  "Sachsenhausen-Süd":{A:58,B:60,C:65,D:70,E:45,F:68,G:52,H:60,pop:17000,sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:4, mig:18,versieg:60,lst_delta:1.7,hw:false},
+  "Riederwald":       {A:60,B:62,C:52,D:66,E:54,F:64,G:61,H:60,pop:8000, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, mig:22,versieg:55,lst_delta:1.4,hw:false},
+  "Hausen":           {A:60,B:62,C:60,D:68,E:52,F:64,G:60,H:60,pop:10000,sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, mig:20,versieg:52,lst_delta:1.2,hw:false},
+  "Ginnheim":         {A:61,B:63,C:62,D:70,E:53,F:65,G:61,H:62,pop:13000,sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, mig:18,versieg:55,lst_delta:1.3,hw:false},
+  "Nordend-West":     {A:60,B:62,C:72,D:75,E:42,F:70,G:52,H:62,pop:37000,sgb2:10,kinderarmut:11,einkommen:42000,arbeitslos:4, mig:20,versieg:68,lst_delta:2.2,hw:false},
+  "Bornheim":         {A:58,B:60,C:73,D:72,E:45,F:68,G:50,H:60,pop:47000,sgb2:13,kinderarmut:15,einkommen:36000,arbeitslos:5, mig:22,versieg:66,lst_delta:2.1,hw:false},
+  "Nordend-Ost":      {A:62,B:64,C:70,D:76,E:44,F:72,G:53,H:64,pop:28000,sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, mig:18,versieg:65,lst_delta:2.0,hw:false},
+  "Dornbusch":        {A:60,B:62,C:65,D:70,E:52,F:68,G:57,H:62,pop:33000,sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, mig:16,versieg:58,lst_delta:1.5,hw:false},
+  "Heddernheim":      {A:58,B:60,C:55,D:68,E:52,F:65,G:57,H:60,pop:19000,sgb2:12,kinderarmut:14,einkommen:35000,arbeitslos:5, mig:20,versieg:50,lst_delta:1.1,hw:false},
+  "Praunheim":        {A:62,B:64,C:55,D:70,E:54,F:65,G:64,H:62,pop:17000,sgb2:11,kinderarmut:13,einkommen:36000,arbeitslos:4, mig:16,versieg:45,lst_delta:0.8,hw:false},
+  "Preungesheim":     {A:60,B:62,C:52,D:66,E:54,F:64,G:60,H:60,pop:11000,sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, mig:18,versieg:52,lst_delta:1.2,hw:false},
+  "Westend-Süd":      {A:62,B:65,C:72,D:78,E:36,F:72,G:54,H:65,pop:31000,sgb2:6, kinderarmut:7, einkommen:58000,arbeitslos:2, mig:14,versieg:62,lst_delta:1.8,hw:false},
+  "Westend-Nord":     {A:64,B:67,C:70,D:80,E:33,F:74,G:57,H:68,pop:22000,sgb2:5, kinderarmut:6, einkommen:62000,arbeitslos:2, mig:12,versieg:58,lst_delta:1.5,hw:false},
+  "Eschersheim":      {A:62,B:64,C:60,D:72,E:54,F:70,G:61,H:64,pop:25000,sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, mig:14,versieg:50,lst_delta:1.1,hw:false},
+  "Niederursel":      {A:64,B:66,C:52,D:72,E:57,F:68,G:64,H:65,pop:25000,sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, mig:14,versieg:48,lst_delta:0.9,hw:false},
+  "Seckbach":         {A:66,B:68,C:48,D:72,E:60,F:68,G:69,H:65,pop:14000,sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:3, mig:12,versieg:42,lst_delta:0.6,hw:false},
+  "Oberrad":          {A:65,B:66,C:52,D:70,E:58,F:68,G:65,H:63,pop:13000,sgb2:10,kinderarmut:11,einkommen:39000,arbeitslos:4, mig:12,versieg:46,lst_delta:0.8,hw:false},
+  "Bonames":          {A:62,B:64,C:45,D:68,E:56,F:64,G:64,H:62,pop:8000, sgb2:16,kinderarmut:19,einkommen:29000,arbeitslos:6, mig:15,versieg:42,lst_delta:0.7,hw:false},
+  "Frankfurter Berg": {A:60,B:62,C:48,D:68,E:54,F:64,G:62,H:60,pop:8000, sgb2:18,kinderarmut:21,einkommen:27000,arbeitslos:7, mig:16,versieg:44,lst_delta:0.8,hw:false},
+  "Berkersheim":      {A:70,B:72,C:42,D:72,E:62,F:68,G:71,H:65,pop:4000, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, mig:10,versieg:32,lst_delta:0.2,hw:false},
+  "Kalbach-Riedberg": {A:70,B:72,C:50,D:78,E:62,F:72,G:70,H:68,pop:15000,sgb2:6, kinderarmut:7, einkommen:50000,arbeitslos:2, mig:10,versieg:38,lst_delta:0.3,hw:false},
+  "Nieder-Eschbach":  {A:71,B:73,C:38,D:74,E:64,F:70,G:73,H:68,pop:10000,sgb2:8, kinderarmut:9, einkommen:43000,arbeitslos:3, mig:10,versieg:35,lst_delta:0.0,hw:false},
+  "Nieder-Erlenbach": {A:73,B:75,C:32,D:74,E:65,F:72,G:75,H:70,pop:4000, sgb2:5, kinderarmut:6, einkommen:52000,arbeitslos:2, mig:8, versieg:22,lst_delta:-0.8,hw:false},
+  "Harheim":          {A:72,B:74,C:35,D:72,E:65,F:70,G:74,H:68,pop:5000, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, mig:8, versieg:28,lst_delta:-0.3,hw:false},
+};
+
+// ── SCORING ─────────────────────────────────────────────────
+function nice(d){return Math.round(['A','B','C','D','E','F','G','H'].reduce((s,k)=>s+(d[k]||50),0)/8)}
+
+// Klimaszenario-Projektionsmodell
+// scenario: '1.5'|'2.5'|'3.5'|'int'
+// year: 2025..2050
+function projectScore(d, scenario, year){
+  const base = nice(d);
+  const t = (year - 2025) / 25; // 0→1 über 25 Jahre
+
+  // Globale Erwärmungs-Multiplikatoren (relativ zum Stadteffekt)
+  // Basiert auf DWD Klimaprojektion RCP 2.6 / 4.5 / 8.5 regional für Rhein-Main
+  const warming = {1.5:0.18, 2.5:0.55, 3.5:1.0, int:0.55};
+  const wm = warming[scenario];
+
+  // Klimadrift: stark versiegelte, heiße Stadtteile leiden mehr
+  const heatExposure = (d.lst_delta||0) / 4.0; // 0-1
+  const sealFactor   = (d.versieg||50)  / 100;
+  const climateDrift = -(heatExposure * 22 + sealFactor * 12) * wm * t;
+
+  // Überflutungsrisiko (HQ100-Flächen): mit Klimawandel häufiger
+  const floodDrift = d.hw ? -(8 * wm * t) : 0;
+
+  // Sozialer Drift: Armut festigt sich ohne Intervention
+  const povertyFactor = ((d.sgb2||10) - 10) / 60; // 0-1
+  const socialDrift = scenario === 'int'
+    ? +(povertyFactor * 18 * t)    // Intervention dreht es um
+    : -(povertyFactor * 14 * wm * t);
+
+  // Interventionstrendlinie: +2,5°C-Welt, aber mit Maßnahmen
+  const interventionBonus = scenario === 'int' ? (base < 55 ? 22 : 12) * t : 0;
+
+  const projected = base + climateDrift + floodDrift + socialDrift + interventionBonus;
+  return Math.max(8, Math.min(100, Math.round(projected)));
+}
+
+function cityAvg(scenario, year){
+  const scores = Object.values(DISTRICTS).map(d => projectScore(d, scenario, year));
+  return Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+}
+
+// ── KPI ROW ──────────────────────────────────────────────────
+function renderKPIs(){
+  const all = Object.values(DISTRICTS);
+  const scores = all.map(nice);
+  const avg = Math.round(scores.reduce((a,b)=>a+b)/scores.length);
+  const crit = scores.filter(s=>s<40).length;
+  const good = scores.filter(s=>s>=65).length;
+  const heat3 = Object.values(DISTRICTS).filter(d=>d.lst_delta>=2.5&&d.sgb2>=25&&d.kinderarmut>=30).length;
+  const gentrif = Object.entries(DISTRICTS).filter(([,d])=>{
+    const cs=Math.round((d.A+d.B+d.G+d.H)/4);
+    const ss=Math.round((Math.max(0,100-(d.sgb2||12)*1.4)+Math.max(0,100-(d.kinderarmut||20)*1.33)+Math.min(100,Math.max(0,((d.einkommen||32000)-15000)/500))+Math.max(0,100-(d.arbeitslos||6)*5)+(d.habitur||50))/5);
+    return cs>=55&&ss<=45&&d.mig>=35;
+  }).length;
+
+  document.getElementById('kpiRow').innerHTML=`
+    <div class="kpi-card">
+      <div class="kpi-val">${avg}<small style="font-size:14px;font-weight:400;color:var(--muted)">/100</small></div>
+      <div class="kpi-lbl">Ø NICE Score heute</div>
+      <div class="kpi-sub">Frankfurt gesamt · 46 Stadtteile</div>
+    </div>
+    <div class="kpi-card warn">
+      <div class="kpi-val">${crit}</div>
+      <div class="kpi-lbl">Kritische Stadtteile</div>
+      <div class="kpi-sub">Score &lt;40 · dringende Priorität</div>
+    </div>
+    <div class="kpi-card ok">
+      <div class="kpi-val">${good}</div>
+      <div class="kpi-lbl">Gute Stadtteile</div>
+      <div class="kpi-sub">Score ≥65 · Vorbildfunktion</div>
+    </div>
+    <div class="kpi-card warn">
+      <div class="kpi-val">${heat3}</div>
+      <div class="kpi-lbl">Dreifachbelastet</div>
+      <div class="kpi-sub">Hitze + Armut + Kinderarmut gleichzeitig</div>
+    </div>
+    <div class="kpi-card accent">
+      <div class="kpi-val" style="color:var(--accent)">${Math.round(cityAvg('3.5',2050))}<small style="font-size:14px;font-weight:400;color:var(--muted)">/100</small></div>
+      <div class="kpi-lbl">Ø Score 2050 bei +3,5°C</div>
+      <div class="kpi-sub">Ohne Intervention · <span style="color:#ef4444">–${avg-Math.round(cityAvg('3.5',2050))} Punkte</span></div>
+    </div>`;
+
+  document.getElementById('avgLbl').textContent = avg;
+}
+
+// ── SVG KLIMAPFADE CHART ─────────────────────────────────────
+const YEARS = [2025,2030,2035,2040,2045,2050];
+const ML=58,MR=20,MT=24,MB=36,W=720,H=260;
+const PW=W-ML-MR, PH=H-MT-MB;
+const SMIN=20, SMAX=72;
+
+function scX(yi){ return ML + (yi/(YEARS.length-1))*PW; }
+function scY(v){ return MT + (1-(v-SMIN)/(SMAX-SMIN))*PH; }
+
+function pathD(scenario){
+  return YEARS.map((yr,i)=>`${i===0?'M':'L'}${scX(i).toFixed(1)},${scY(cityAvg(scenario,yr)).toFixed(1)}`).join(' ');
+}
+
+let activeScenario = '1.5';
+
+function drawChart(){
+  const svg = document.getElementById('klimaChart');
+  const scenarios = [
+    {id:'1.5', color:'#22c55e', dash:'none', width:2.5, label:'+1,5°C'},
+    {id:'2.5', color:'#eab308', dash:'none', width:2.5, label:'+2,5°C'},
+    {id:'3.5', color:'#ef4444', dash:'none', width:2.5, label:'+3,5°C'},
+    {id:'int', color:'#3b82f6', dash:'6,3',  width:2,   label:'Intervention'},
+  ];
+
+  // Grid lines
+  let grid='';
+  for(let v=20;v<=70;v+=10){
+    const y=scY(v).toFixed(1);
+    grid+=`<line x1="${ML}" y1="${y}" x2="${W-MR}" y2="${y}" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>`;
+    grid+=`<text x="${ML-6}" y="${y}" fill="#636d85" font-size="9" text-anchor="end" dominant-baseline="middle">${v}</text>`;
+  }
+  // Year labels
+  let xlabels='';
+  YEARS.forEach((yr,i)=>{
+    const x=scX(i).toFixed(1);
+    xlabels+=`<text x="${x}" y="${H-MB+16}" fill="#636d85" font-size="9" text-anchor="middle">${yr}</text>`;
+    if(yr>2025) xlabels+=`<line x1="${x}" y1="${MT}" x2="${x}" y2="${H-MB}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>`;
+  });
+
+  // "Heute" dot + label
+  const nowY = scY(cityAvg('1.5',2025)).toFixed(1);
+  const nowX = scX(0).toFixed(1);
+
+  // Shaded divergence area (between 1.5 and 3.5)
+  const areaTop = YEARS.map((yr,i)=>`${i===0?'M':'L'}${scX(i).toFixed(1)},${scY(cityAvg('1.5',yr)).toFixed(1)}`).join(' ');
+  const areaBot = YEARS.slice().reverse().map((yr,i,arr)=>`L${scX(arr.length-1-i).toFixed(1)},${scY(cityAvg('3.5',yr)).toFixed(1)}`).join(' ');
+
+  // Highlight active scenario
+  const activePath = pathD(activeScenario);
+  const activeColor = scenarios.find(s=>s.id===activeScenario)?.color||'#fff';
+
+  let paths='';
+  scenarios.forEach(sc=>{
+    const isActive = sc.id === activeScenario;
+    paths+=`<path d="${pathD(sc.id)}" stroke="${sc.color}" stroke-width="${isActive?4:sc.width}"
+      stroke-dasharray="${sc.dash}" fill="none" opacity="${isActive?1:0.35}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+
+  // Dots on active scenario
+  let dots='';
+  YEARS.forEach((yr,i)=>{
+    const v=cityAvg(activeScenario,yr);
+    dots+=`<circle cx="${scX(i).toFixed(1)}" cy="${scY(v).toFixed(1)}" r="${i===0?5:3.5}" fill="${activeColor}" stroke="${i===0?'#fff':'none'}" stroke-width="2"/>`;
+    if(yr!==2025) dots+=`<text x="${scX(i).toFixed(1)}" y="${(scY(v)-9).toFixed(1)}" fill="${activeColor}" font-size="9" text-anchor="middle" font-weight="700">${v}</text>`;
+  });
+
+  svg.innerHTML=`
+    ${grid}${xlabels}
+    <path d="${areaTop} ${areaBot} Z" fill="rgba(239,68,68,0.05)"/>
+    ${paths}${dots}
+    <circle cx="${nowX}" cy="${nowY}" r="6" fill="var(--accent)" stroke="#fff" stroke-width="2"/>
+    <text x="${parseFloat(nowX)+10}" y="${parseFloat(nowY)-8}" fill="#FFD600" font-size="10" font-weight="800">Heute: ${cityAvg('1.5',2025)}</text>
+  `;
+}
+
+// ── SZENARIO MILESTONES ──────────────────────────────────────
+const MILESTONES = {
+  '1.5':{
+    2035:"<b>+0,4°C</b> über Vorindustrie regional. Hitzetage +8/Jahr in FFM. Maßnahmen zeigen erste Wirkung.",
+    2045:"Paris-Ziel gehalten. Adaption reicht. Wohlhabende Viertel profitieren stärker als schwache.",
+    2050:"Ø Score −7 Pkt. Soziale Schere bleibt Hauptproblem."
+  },
+  '2.5':{
+    2035:"Extremhitze-Sommer häufen sich (+14 Tage). HQ100-Ereignisse 2× häufiger. Schwache Viertel kriseln.",
+    2045:"Hitzestress systemrelevant. Schäden übersteigen Anpassungskosten in Risikoviertel.",
+    2050:"Ø Score −16 Pkt. <b>Bahnhofsviertel, Gallus, Gutleutviertel</b> kritisch instabil."
+  },
+  '3.5':{
+    2035:"Tipping point erreicht. Rhein-Überschwemmungen 3× häufiger. Erste Evakuierungen.",
+    2045:"Strukturkrise: Versicherungen ziehen sich aus Risikogebieten zurück. Immobilien-Werte stürzen.",
+    2050:"Ø Score −28 Pkt. <b>Mehrere Stadtteile fallen unter Score 15</b> — nicht mehr sanierbar ohne Milliarden-Investition."
+  },
+  'int':{
+    2035:"Quick-Win-Maßnahmen wirken. Kühlinseln, Begrünung, Sozial-Infra verbessern schwächste Viertel +8 Pkt.",
+    2045:"Strukturelle Maßnahmen zahlen sich aus. Schwanheim, Gallus, Bockenheim als Modellviertel.",
+    2050:"Ø Score −2 Pkt trotz +2,5°C. <b>FFM nutzt EUI Call 4 und DAS-Förderung voll</b> — Netto 72% gefördert."
+  }
+};
+
+function renderMilestones(){
+  const ms = MILESTONES[activeScenario];
+  document.getElementById('milestones').innerHTML=`
+    <div><div class="ms-year">2035</div><div class="ms-body">${ms[2035]}</div></div>
+    <div><div class="ms-year">2045</div><div class="ms-body">${ms[2045]}</div></div>
+    <div><div class="ms-year">2050</div><div class="ms-body">${ms[2050]}</div></div>`;
+}
+
+// ── SZENARIO DETAIL PANEL ────────────────────────────────────
+const SZ_META = {
+  '1.5':{
+    title:'Szenario +1,5°C — Paris-Ziel gehalten',
+    sub:'IPCC SSP1-1.9 · Erreichbar bei konsequenter globaler Klimapolitik bis 2030',
+    desc:'Das bestmögliche Szenario. Global werden Emissionen drastisch reduziert. Frankfurt muss trotzdem adaptieren — Hitzetage steigen, aber beherrschbar. Soziale Ungleichheit bleibt die größere Herausforderung als das Klima selbst.',
+    heat:'Ø +4 Hitzetage/Jahr',warn:'⬆ Moderat',cost:'~180 Mio€ Adaption',color:'#22c55e'
+  },
+  '2.5':{
+    title:'Szenario +2,5°C — Aktueller Kurs',
+    sub:'IPCC SSP2-4.5 · Aktuelle nationale Klimapolitiken ohne Verschärfung',
+    desc:'Der wahrscheinlichste Pfad bei unveränderter Politik. Frankfurt erlebt häufige Extremhitze-Sommer (>35°C), stärkere Überflutungen und wachsende soziale Spaltung. Viertel wie das Bahnhofsviertel geraten in systemische Krise.',
+    heat:'Ø +18 Hitzetage/Jahr',warn:'⚠ Ernst',cost:'~520 Mio€ Schäden',color:'#eab308'
+  },
+  '3.5':{
+    title:'Szenario +3,5°C — Business as usual',
+    sub:'IPCC SSP5-8.5 · Keine weitere Klimapolitik, fossile Expansion',
+    desc:'Das schlimmste realistische Szenario. Frankfurt wird strukturell verändert: Überschwemmungsgebiete am Main werden unbewohnbar, Hitzetote steigen auf mehrere Hundert pro Jahr, Immobilienwerte in Risikovierteln kollabieren. Ein reversibles Szenario nur mit multi-Milliarden-Sofortprogramm.',
+    heat:'Ø +38 Hitzetage/Jahr',warn:'🔴 Krise',cost:'~2,1 Mrd€ Schäden',color:'#ef4444'
+  },
+  'int':{
+    title:'Vollintervention — +2,5°C mit Maßnahmen',
+    sub:'Aktuelle Klimapolitik + Volles Förderportfolio: EUI, ERDF, DAS, KfW',
+    desc:'Was passiert wenn Frankfurt alle 15 Maßnahmen umsetzt und alle Förderquellen ausschöpft? Bei +2,5°C-Weltklima bleibt der Score fast stabil — weil Grüninfrastruktur, Sozialinvestitionen und bessere Mobilität die Klimafolgen abfedern. Kosten: ~1,1 Mrd€, davon 72% (790 Mio€) EU/Bund-gefördert.',
+    heat:'Ø +18 Hitzetage/Jahr',warn:'✅ Beherrschbar',cost:'~310 Mio€ Eigenanteil',color:'#3b82f6'
+  }
+};
+
+function renderSzDetail(){
+  const meta = SZ_META[activeScenario];
+
+  // Top 5 worst-affected districts in 2050
+  const ranked = Object.entries(DISTRICTS)
+    .map(([name,d])=>({name, base:nice(d), proj:projectScore(d,activeScenario,2050)}))
+    .sort((a,b)=>(a.proj-a.base)-(b.proj-b.base))
+    .slice(0,6);
+
+  document.getElementById('szTitle').textContent = meta.title;
+  document.getElementById('szSubtitle').textContent = meta.sub;
+  document.getElementById('szDesc').textContent = meta.desc;
+  document.getElementById('szGrid').innerHTML=`
+    <div class="sc-kpi"><div class="sc-val" style="color:${meta.color}">${meta.heat}</div><div class="sc-lbl">Frankfurt 2050</div></div>
+    <div class="sc-kpi"><div class="sc-val" style="color:${activeScenario==='3.5'?'#ef4444':activeScenario==='int'?'#22c55e':'#eab308'}">${meta.warn}</div><div class="sc-lbl">Gesamtbewertung</div></div>
+    <div class="sc-kpi"><div class="sc-val" style="font-size:12px;color:var(--text2)">${meta.cost}</div><div class="sc-lbl">2050 kumuliert</div></div>`;
+
+  document.getElementById('szDistrictList').innerHTML=ranked.map(r=>{
+    const delta = r.proj - r.base;
+    const barW = Math.round((r.proj/100)*100);
+    const col = r.proj>=65?'#22c55e':r.proj>=50?'#eab308':r.proj>=35?'#f97316':'#ef4444';
+    return`<div class="sc-d-item">
+      <div class="sc-d-name">${r.name}</div>
+      <div class="sc-d-bar-wrap">
+        <div class="sc-d-bar-bg"></div>
+        <div class="sc-d-bar" style="width:${barW}%;background:${col}"></div>
+      </div>
+      <div class="sc-d-score" style="color:${col}">${r.proj}</div>
+      <div class="sc-d-delta" style="color:${delta<0?'#ef4444':'#22c55e'}">${delta>0?'+':''}${delta}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── RANKING LIST ─────────────────────────────────────────────
+function renderRanking(){
+  const entries = Object.entries(DISTRICTS)
+    .map(([name,d])=>({name, s:nice(d), d}))
+    .sort((a,b)=>a.s-b.s);
+
+  const scores = entries.map(e=>e.s);
+  const min=Math.min(...scores), max=Math.max(...scores);
+
+  function qcol(s){
+    const p=scores.filter(x=>x<=s).length/scores.length;
+    if(p<=.2)return'#ef4444';if(p<=.4)return'#f97316';
+    if(p<=.6)return'#eab308';if(p<=.8)return'#22c55e';return'#16a34a';
+  }
+
+  const isHeat3 = d=>d.lst_delta>=2.5&&d.sgb2>=25&&d.kinderarmut>=30;
+  const isGentri = d=>{
+    const cs=Math.round((d.A+d.B+d.G+d.H)/4);
+    const ss=Math.round((Math.max(0,100-(d.sgb2||12)*1.4)+Math.max(0,100-(d.kinderarmut||20)*1.33)+Math.min(100,Math.max(0,((d.einkommen||32000)-15000)/500))+Math.max(0,100-(d.arbeitslos||6)*5)+50)/5);
+    return cs>=55&&ss<=45&&d.mig>=35;
+  };
+
+  document.getElementById('rankList').innerHTML=entries.map((e,i)=>{
+    const col=qcol(e.s);
+    const badge=isHeat3(e.d)?`<span class="rank-badge rb-red">⚡ 3×</span>`:isGentri(e.d)?`<span class="rank-badge rb-amber">⚠ G</span>`:e.s>=65?`<span class="rank-badge rb-green">✓</span>`:'';
+    const barW=Math.round(((e.s-min)/(max-min))*100);
+    return`<div class="rank-item" style="cursor:pointer" onclick="window.open('index.html#${encodeURIComponent(e.name)}','_blank')">
+      <div class="rank-n">${i+1}</div>
+      <div class="rank-name">${e.name}</div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar-bg"></div>
+        <div class="rank-bar-fill" style="width:${barW}%;background:${col};height:5px;border-radius:3px;position:absolute;left:0;top:50%;transform:translateY(-50%)"></div>
+      </div>
+      <div class="rank-score" style="color:${col}">${e.s}</div>
+      ${badge}
+    </div>`;
+  }).join('');
+}
+
+// ── RISIKORADAR FEED ─────────────────────────────────────────
+function renderRadar(){
+  const k1=[], k2=[];
+  Object.entries(DISTRICTS).forEach(([name,d])=>{
+    if(d.lst_delta>=2.5&&d.sgb2>=25&&d.kinderarmut>=30) k1.push({name,d});
+    const cs=Math.round((d.A+d.B+d.G+d.H)/4);
+    const ss=Math.round((Math.max(0,100-(d.sgb2||12)*1.4)+Math.max(0,100-(d.kinderarmut||20)*1.33)+Math.min(100,Math.max(0,((d.einkommen||32000)-15000)/500))+Math.max(0,100-(d.arbeitslos||6)*5)+50)/5);
+    if(cs>=55&&ss<=45&&d.mig>=35) k2.push({name,d,cs,ss});
+  });
+  k1.sort((a,b)=>b.d.lst_delta-a.d.lst_delta);
+  k2.sort((a,b)=>a.ss-b.ss);
+
+  const items=[
+    ...k1.map(({name,d})=>`
+      <div class="radar-item" onclick="window.open('index.html','_blank')">
+        <div class="radar-type r1">🔴 DREIFACHBELASTUNG</div>
+        <div class="radar-name">${name}</div>
+        <div class="radar-desc">Im Sommer heizt sich das Viertel +${d.lst_delta}°C stärker auf als der Stadtdurchschnitt. ${d.sgb2}% der Haushalte erhalten Sozialhilfe — ${d.kinderarmut}% der Kinder unter 18 sind arm. Klimawandel und soziale Not verstärken sich.</div>
+        <div class="radar-tags">
+          <span class="rtag r">🌡 +${d.lst_delta}°C LST</span>
+          <span class="rtag r">💶 ${d.sgb2}% SGB-II</span>
+          <span class="rtag r">👶 ${d.kinderarmut}% Kinderarmut</span>
+          ${d.hw?'<span class="rtag r">💧 HQ100</span>':''}
+        </div>
+      </div>`),
+    ...k2.map(({name,d,cs,ss})=>`
+      <div class="radar-item" onclick="window.open('index.html','_blank')">
+        <div class="radar-type r2">🟡 VERDRÄNGUNGSGEFAHR</div>
+        <div class="radar-name">${name}</div>
+        <div class="radar-desc">Klimascore ${cs}/100 ist deutlich besser als Sozialscore ${ss}/100 — das Viertel wertet ökologisch auf. Mit ${d.mig}% Migrantenanteil sind die heutigen Bewohner besonders gefährdet wenn Mieten steigen.</div>
+        <div class="radar-tags">
+          <span class="rtag y">🌿 Klima ${cs}</span>
+          <span class="rtag y">📉 Sozial ${ss}</span>
+          <span class="rtag y">👥 ${d.mig}% Mig</span>
+        </div>
+      </div>`)
+  ];
+
+  document.getElementById('radarFeed').innerHTML = items.length
+    ? items.join('')
+    : `<div style="padding:24px;text-align:center;color:var(--text2);font-size:11px">✓ Keine aktiven Risikomuster erkannt</div>`;
+}
+
+// ── SCENARIO SWITCH ───────────────────────────────────────────
+function setScenario(s){
+  activeScenario=s;
+  document.querySelectorAll('.sz-tab').forEach(t=>t.classList.toggle('on',t.dataset.s===s));
+  drawChart();
+  renderSzDetail();
+  renderMilestones();
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+renderKPIs();
+drawChart();
+renderSzDetail();
+renderMilestones();
+renderRanking();
+renderRadar();
+</script>
+</body>
+</html>
