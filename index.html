@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UrbanLens — Digital Twin Frankfurt & Utrecht</title>
+<title>UrbanLens — Digital Twin Frankfurt</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -23,9 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* NAV — white bar like Shadowmap homepage */
 .nav{position:fixed;top:0;left:0;right:0;height:54px;z-index:1000;background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:0 2px 16px rgba(0,0,0,0.08)}
 .logo{font-size:17px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px}.logo span{color:#1a1a2e}
-.city-toggle{display:flex;gap:2px;background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.1);border-radius:20px;padding:3px;margin-left:8px}
-.ct{padding:5px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;color:#6b7280;transition:all .15s;user-select:none}
-.ct.on{background:#1a1a2e;color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.city-toggle{display:none}
 .nsep{width:1px;height:24px;background:rgba(0,0,0,0.1);margin:0 4px}
 .ninfo{font-size:11px;color:#6b7280;font-weight:500}.ninfo b{color:#1a1a2e}
 .nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -288,18 +286,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <nav class="nav">
-  <div class="logo">Urban<span>Lens</span></div>
-  <div class="city-toggle">
-    <div class="ct on" id="ct-ffm" onclick="switchCity('ffm')">🏙 Frankfurt</div>
-    <div class="ct" id="ct-utr" onclick="switchCity('utr')">🌷 Utrecht</div>
-  </div>
+  <a href="home.html" style="text-decoration:none"><div class="logo">Urban<span>Lens</span></div></a>
   <div class="nsep"></div>
-  <div class="ninfo">NICE Score — <b>117 Indikatoren</b> · Open Source</div>
+  <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none">📊 Dashboard</a>
+  <div class="nsep"></div>
+  <div class="ninfo">🏙 Frankfurt am Main · NICE Score — <b>117 Indikatoren</b></div>
   <div class="nav-r">
     <button class="bbrille-btn" id="bbrilleBtn" onclick="toggleBuergerbrille()">
       👁 Bürgerbrille
     </button>
-    <a href="dashboard.html" style="background:rgba(0,0,0,0.06);border:1.5px solid rgba(0,0,0,0.12);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;color:#1a1a2e;text-decoration:none;transition:all .15s" onmouseover="this.style.background='#1a1a2e';this.style.color='#FFD600'" onmouseout="this.style.background='rgba(0,0,0,0.06)';this.style.color='#1a1a2e'">📊 Dashboard</a>
     <div class="epill">📅 EUI Deadline 15. Juni 2026</div>
     <div class="lpill"><div class="dot"></div>Open Data Live</div>
   </div>
@@ -679,24 +674,6 @@ const CITY_CFG={
       "Nieder-Eschbach":  {A:71,B:73,C:38,D:74,E:64,F:70,G:73,H:68,pop:10000,wb:70,mig:10,hw:false,heat:false,noise:44, sgb2:8, kinderarmut:9, einkommen:43000,arbeitslos:3, abitur:70, versieg:35,lst_delta:0.0},
       "Nieder-Erlenbach": {A:73,B:75,C:32,D:74,E:65,F:72,G:75,H:70,pop:4000, wb:72,mig:8, hw:false,heat:false,noise:40, sgb2:5, kinderarmut:6, einkommen:52000,arbeitslos:2, abitur:80, versieg:22,lst_delta:-0.8},
       "Harheim":          {A:72,B:74,C:35,D:72,E:65,F:70,G:74,H:68,pop:5000, wb:70,mig:8, hw:false,heat:false,noise:42, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:70, versieg:28,lst_delta:-0.3},
-    }
-  },
-  utr:{
-    name:"Utrecht",center:[52.0907,5.1214],zoom:13,
-    bbox:"52.04,5.05,52.14,5.20",
-    geojson:"https://service.pdok.nl/cbs/wijkenbuurten/2023/wfs/v1_0?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&typeName=wijkenbuurten2023:cbs_wijken_2023&outputFormat=application/json&CQL_FILTER=GM_NAAM=%27Utrecht%27",
-    nameProp:"WK_NAAM",
-    data:{
-      "Binnenstad":        {A:40,B:44,C:90,D:68,E:26,F:70,G:33,H:60,pop:17000,wb:68,mig:38,hw:false,heat:true, noise:80},
-      "Oost":              {A:62,B:65,C:75,D:75,E:45,F:70,G:58,H:64,pop:26000,wb:70,mig:22,hw:false,heat:false,noise:60},
-      "Noordoost":         {A:54,B:56,C:68,D:65,E:47,F:61,G:51,H:59,pop:19000,wb:62,mig:28,hw:false,heat:false,noise:62},
-      "Noordwest":         {A:49,B:51,C:62,D:60,E:43,F:57,G:46,H:55,pop:23000,wb:58,mig:32,hw:false,heat:false,noise:65},
-      "Overvecht":         {A:31,B:34,C:55,D:42,E:29,F:37,G:30,H:43,pop:31000,wb:40,mig:55,hw:false,heat:true, noise:68},
-      "Leidsche Rijn":     {A:65,B:67,C:60,D:72,E:60,F:66,G:64,H:66,pop:45000,wb:66,mig:18,hw:false,heat:false,noise:50},
-      "Vleuten-De Meern":  {A:70,B:72,C:52,D:74,E:64,F:68,G:70,H:68,pop:28000,wb:68,mig:12,hw:false,heat:false,noise:46},
-      "West":              {A:47,B:50,C:65,D:57,E:39,F:54,G:44,H:53,pop:18000,wb:56,mig:35,hw:false,heat:false,noise:66},
-      "Zuidoost":          {A:44,B:46,C:57,D:54,E:37,F:51,G:42,H:51,pop:14000,wb:54,mig:30,hw:false,heat:false,noise:64},
-      "Zuid":              {A:57,B:59,C:68,D:64,E:43,F:63,G:54,H:59,pop:22000,wb:64,mig:20,hw:false,heat:false,noise:58},
     }
   }
 };
@@ -1102,19 +1079,7 @@ function initMap(){
   loadCity('ffm');
 }
 
-function switchCity(c){
-  city=c;selected=null;closeDrawer();
-  document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
-  document.getElementById('ct-'+c).classList.add('on');
-  document.getElementById('loaderTxt').textContent=c==='ffm'?'Frankfurter Stadtteile…':'Utrechtse Wijken…';
-  document.getElementById('loader').style.display='flex';
-  // Clear all active layers
-  Object.keys(layerObjs).forEach(k=>{if(layerObjs[k])map.removeLayer(layerObjs[k]);delete layerObjs[k];});
-  Object.keys(activeLayers).forEach(k=>delete activeLayers[k]);
-  document.querySelectorAll('.ltoggle').forEach(el=>el.classList.remove('on'));
-  activeCount=0;document.getElementById('layerCount').textContent='0';
-  loadCity(c);
-}
+function switchCity(c){ /* deprecated — Frankfurt only */ }
 
 function loadCity(c){
   const cfg=CITY_CFG[c];
@@ -2237,7 +2202,7 @@ function renderPOILayer(geojson,id,allowedTypes){
 function renderList(filter=''){
   const cfg=CITY_CFG[city];
   const allS=Object.values(cfg.data).map(lensScore);
-  document.getElementById('listTitle').textContent=`${Object.keys(cfg.data).length} ${city==='ffm'?'Frankfurter Stadtteile':'Utrechtse Wijken'}`;
+  document.getElementById('listTitle').textContent=`${Object.keys(cfg.data).length} Frankfurter Stadtteile`;
   const entries=Object.entries(cfg.data)
     .map(([n,d])=>({n,d,s:lensScore(d)}))
     .filter(e=>!filter||e.n.toLowerCase().includes(filter.toLowerCase()))
