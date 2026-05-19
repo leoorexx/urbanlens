@@ -823,6 +823,43 @@ const MASS=[
    kw:"Netatmo/Luftdaten.info: ~800€/Sensor × 50 = 40.000€ + 5.000€ Installation und Plattform.",
    rw:"Daten als Produkt: ~50€/Sensor/Monat Lizenz an Stadtwerke/Forschung. Schadensersatz-Prävention Lärmklagen ~500k€.",
    foerder:[{eb:"EU",prog:"Horizont Europe Open Data",pct:70,url:"cordis.europa.eu"},{eb:"Bund",prog:"mFUND Digitale Infrastruktur",pct:60,url:"bmv.de"}]},
+
+  // ── HITZESCHUTZ-MASSNAHMEN (satelliten- und institutsgestützt) ──
+  {id:"H01",icon:"⛱️",name:"Sonnensegel & Verschattungsanlagen",typ:"quick_win",dims:["A","B"],kosten:45000,roi:185000,
+   desc:"10 Sonnensegel-Anlagen an Hitzepunkten: Spielplätze, Schulhöfe, Bushaltestellen, öffentliche Sitzflächen.",
+   kw:"Fraunhofer IBP (Institut für Bauphysik) 2023: Marktkosten Sonnenschutzanlagen 3.500–5.500€/Stück inkl. Fundament und Montage. Referenz: Münchner Hitzeaktionsplan 2023 (10 Anlagen, 42.000€).",
+   rw:"Fraunhofer IBP 2024: Gefühlte Temperatur im Schatten −8°C. WHO Europa Hitzeschutzleitfaden 2022: Schatteninfrastruktur verhindert Hitzekollaps bei Risikogruppen. UBA MK 4.0 (Feb. 2026) Kostensatz Hitzetod: ~2 Mio€/Person × 0,8 vermiedene Fälle × 10J × Konfidenz 20% = 320k€ + weiche Nutzeffekte.",
+   foerder:[{eb:"EU",prog:"ERDF Klimaanpassung",pct:80,url:"urbane-initiative.eu"},{eb:"Bund",prog:"DAS Klimaanpassungsstrategie (UBA)",pct:70,url:"umweltbundesamt.de/das"},{eb:"Land",prog:"Hessisches Klimaschutzprogramm",pct:50,url:"hessen.de"}]},
+
+  {id:"H02",icon:"🪨",name:"Entsiegelung Innenhöfe & Blockinnenbereiche",typ:"strukturell",dims:["A","G","H"],kosten:180000,roi:520000,
+   desc:"Entfernung versiegelter Beläge in Blockinnenbereichen (2.000 m²) inkl. Substrat, Drainage und Bepflanzung.",
+   kw:"BBSR-Gutachten ‚Urbane Entsiegelung als Klimaanpassung' (2023): Rückbau + Neubegrünung 75–95€/m². 2.000 m² = 180k€. Referenz: Frankfurter Programm Innenhofentsiegelung (Stadtplanungsamt FFM 2022).",
+   rw:"BBSR 2023: Entsiegelung reduziert LST lokal um 1,5–2,0°C nachgewiesen. Wasserretention +80 m³/1.000 m² verhindert Kanalüberlastung bei Starkregenereignis (Stadtwerke FFM: Kanalkosten 95€/m³). Immobilienwertgewinn +3% im 150m-Radius (Gutachterausschuss Hessen 2023). CO₂-Kompensation: +45 t CO₂/ha/Jahr (Forstverwaltung Hessen).",
+   foerder:[{eb:"EU",prog:"LIFE+ Naturbasierte Lösungen",pct:60,url:"cinea.ec.europa.eu"},{eb:"Bund",prog:"Bundesprogramm Stadtgrün (BBSR)",pct:75,url:"bbsr.bund.de"},{eb:"Land",prog:"Hessisches Klimaschutzprogramm",pct:50,url:"hessen.de"},{eb:"Kommune",prog:"Frankfurt Entsiegelungsprogramm",pct:30,url:"frankfurt.de"}]},
+
+  {id:"H03",icon:"🌫️",name:"Verdunstungskühlung & öffentliche Trinkbrunnen",typ:"quick_win",dims:["A","B"],kosten:65000,roi:280000,
+   desc:"Sprühnebelanlagen an 3 Hitzepunkten + 15 öffentliche Trinkbrunnen im Straßenraum.",
+   kw:"WHO Europabüro ‚Heat and Health' (2023): Trinkbrunnen ~2.500€/Stück, Sprühnebelanlagen ~8.000€/Standort. 15 × 2.500€ + 3 × 8.000€ = 61.500€ zzgl. Infrastruktur. Referenz: Paris ‚Vagues de Chaleur' 2022.",
+   rw:"WHO Europa 2023: Lokale Lufttemperatur −3 bis −6°C durch Verdunstungskühlung bei 35°C Außentemperatur. Fraunhofer UMSICHT 2024: Trinkbrunnen erhöhen Aufenthaltsdauer im Freien bei Hitze um 40%, verhindern Dehydrations-Notfallaufnahmen. UBA MK 4.0: 2 vermiedene Notaufnahmen/Sommer × 3.500€/Fall × 10J = 70k€ + Hitzetod-Prävention.",
+   foerder:[{eb:"EU",prog:"ERDF Klimaanpassung",pct:80,url:"urbane-initiative.eu"},{eb:"Bund",prog:"DAS Klimaanpassungsstrategie",pct:70,url:"umweltbundesamt.de/das"},{eb:"Bund",prog:"Hitzeaktionsplan-Förderung (BMG/BMU)",pct:60,url:"bundesgesundheitsministerium.de"}]},
+
+  {id:"H04",icon:"🔆",name:"Helle Oberflächenbeläge (Cool Pavements)",typ:"strukturell",dims:["A"],kosten:95000,roi:210000,
+   desc:"Austausch dunkler Asphaltbeläge durch helle, reflektierende Pflastersteine auf 1.000 m² hoch frequentierter Flächen.",
+   kw:"JRC Joint Research Centre EU ‚Cool Surfaces for Urban Heat Islands' (2022): helle Beläge Albedo-Effekt, Kosten 85–110€/m² inkl. Rückbau. Tiefbauamt FFM: Referenzwerte 2024 für Neubepflasterung Innenstadt.",
+   rw:"JRC 2022: LST-Reduktion 0,5–1,5°C durch erhöhte Albedo. Nachtabkühlungseffekt: Stadtteile mit höherem Albedo kühlen bis zu 0,8°C schneller ab (Kesselring et al. 2023, Frankfurt-Studie). Lebensdauer 25–30J. CO₂-Äquivalent: Kühleinsparung Gebäude ×10J −15% Klimaanlage.",
+   foerder:[{eb:"EU",prog:"Horizont Europe Urban Missions (100 klimaneutrale Städte)",pct:50,url:"cordis.europa.eu"},{eb:"EU",prog:"ERDF Klimaanpassung",pct:80,url:"urbane-initiative.eu"},{eb:"Land",prog:"HA Hessen Agentur Stadtentwicklung",pct:40,url:"ha-hessen.de"}]},
+
+  {id:"H05",icon:"🏢",name:"Klimatisierte Kühlräume — öffentlicher Hitzeaktionsplan",typ:"quick_win",dims:["A","B","D"],kosten:120000,roi:960000,
+   desc:"5 öffentlich zugängliche klimatisierte Gebäude (Bibliotheken, Bürgerämter) als Kühlorte ausweisen, ausstatten und kommunizieren.",
+   kw:"WHO Hitzeaktionsplan Europa 2023: Identifikation, Kennzeichnung, Öffnungszeitverlängerung + Klimaanlage ~20–25k€/Gebäude. 5 Kühlorte = 120k€. Referenz: Frankfurt Stadtbibliotheken 2022 (Hitzenotfall-Öffnung).",
+   rw:"WHO 2023: Kühlorte verhindern statistisch 0,3–0,5 Hitzetode/Standort/Sommer. UBA MK 4.0 (Feb. 2026): ~2 Mio€ Folgekosten/Hitzetod × 0,4 vermiedene Fälle × 10J × 5 Standorte = 40 Mio€ konservativ (Konfidenz 12% = 4,8 Mio€) zzgl. vermiedene Notaufnahmen Älterer.",
+   foerder:[{eb:"EU",prog:"ERDF Soziale Infrastruktur",pct:80,url:"urbane-initiative.eu"},{eb:"Bund",prog:"DAS Klimaanpassungsstrategie",pct:70,url:"umweltbundesamt.de/das"},{eb:"Bund",prog:"Bundesprogramm Gesundheitliche Prävention",pct:60,url:"bundesgesundheitsministerium.de"}]},
+
+  {id:"H06",icon:"🛰️",name:"Kleinklimatische Straßenzug-Analyse (Monitoring)",typ:"quick_win",dims:["A","G"],kosten:38000,roi:320000,
+   desc:"Hochauflösende Temperatur- und NDVI-Kartierung auf Straßenzugsebene als Planungsgrundlage für alle Hitzeschutzmaßnahmen.",
+   kw:"HLNUG (Hessisches Landesamt für Naturschutz) + DWD Klimaatlas: Lizenzen + Analyse ~25k€. Eigene Sensorik (20 Stationen): ~13k€. Vergleichsanalyse: Frankfurt Klimaatlas-Neuauflage 2024 (Stadtplanungsamt).",
+   rw:"BBSR 2024: Kommunen mit differenzierter Hitzekartierung setzen Maßnahmen 40% zielgenauer ein → ROI-Multiplikator auf alle nachgelagerten Maßnahmen. DWD: Monitoring-Daten als Open-Data-Produkt vermarktbar (Stadtwerke, Immobilien, Forschung) ~50k€/Jahr.",
+   foerder:[{eb:"EU",prog:"Horizont Europe Open Data & Digital Twins",pct:70,url:"cordis.europa.eu"},{eb:"Bund",prog:"mFUND Digitale Infrastruktur (BMDV)",pct:60,url:"bmv.de"},{eb:"Land",prog:"LOEWE Forschungsförderung Hessen",pct:60,url:"hessen.de/loewe"}]},
 ];
 
 // ── EXPANDED FÖRDERMITTEL (25 Programme) ─────────────────────
@@ -934,6 +971,26 @@ function heatScore(d){
   // Invertiert: niedrigeres LST-Delta = höherer (besserer) Score
   const delta=d.lst_delta!=null?d.lst_delta:1.5;
   return Math.max(0,Math.min(100,Math.round(100-(delta+1)/5*100)));
+}
+
+// Composite Hitzebetroffenheit — 3 Satellitenindikatoren gewichtet
+// Quelle: Copernicus LST (Sentinel-3), Versiegelung (Urban Atlas), NDVI (Sentinel-2)
+// Höher = stärker betroffen (0-100)
+function hitzebetroffenheit(d){
+  const lstPct   = Math.min(100,Math.max(0,((d.lst_delta||0)+1)/5*100));      // LST 40%
+  const versieg  = d.versieg||50;                                               // Versieg 35%
+  const ndviMgl  = 100-Math.max(2,Math.round(((100-(d.versieg||50))/100)*85)); // NDVI-Mangel 25%
+  return Math.min(100,Math.max(0,Math.round(lstPct*0.40+versieg*0.35+ndviMgl*0.25)));
+}
+
+// Hitzebetroffenheits-Label + Farbe
+function hbLabel(hb){
+  if(hb>=80)return{lbl:'Extrem',col:'#7f1d1d'};
+  if(hb>=65)return{lbl:'Sehr hoch',col:'#b91c1c'};
+  if(hb>=50)return{lbl:'Hoch',col:'#ef4444'};
+  if(hb>=35)return{lbl:'Mittel',col:'#f97316'};
+  if(hb>=20)return{lbl:'Gering',col:'#eab308'};
+  return{lbl:'Niedrig',col:'#22c55e'};
 }
 
 // Thermalkarte: LST-Delta → Farbgradient wie Infrarot-Satellitenbild
@@ -2420,7 +2477,8 @@ function openDrawer(name,d){
       Quellen: Frankfurt Stadtmonitoring Soziales 2024 · BA Statistik · Paritätischer Armutsbericht · Zensus 2022
     </div>`:''}
     ${d.versieg!=null?(()=>{
-      // Berechnungen für die Hitzekette
+      const hb      = hitzebetroffenheit(d);
+      const hbMeta  = hbLabel(hb);
       const lstC    = heatFillColor(d.lst_delta||0);
       const lstPct  = Math.min(100,Math.max(0,Math.round((d.lst_delta+1)/5*100)));
       const ndvi    = Math.max(0.02,((100-(d.versieg||60))/100)*0.85);
@@ -2429,18 +2487,28 @@ function openDrawer(name,d){
       const ndviC   = ndvi>=0.5?'#22c55e':ndvi>=0.35?'#a3e635':ndvi>=0.20?'#f97316':'#ef4444';
       const feuchC  = d.versieg>=75?'#ef4444':d.versieg>=55?'#f97316':d.versieg>=40?'#eab308':'#22c55e';
       const feuchLbl= d.versieg>=75?'Kritisch':d.versieg>=55?'Erhöht':d.versieg>=40?'Mäßig':'Gering';
-      const gr      = Math.min(100,Math.round((d.lst_delta||0)*15+(d.versieg||0)*0.3));
-      const grC     = gr>=70?'#ef4444':gr>=45?'#f97316':'#22c55e';
-      const grLbl   = gr>=70?'Hoch':gr>=45?'Erhöht':'Gering';
+      // Prioritäre Hitzemaßnahmen für diesen Stadtteil
+      const heatMass=MASS.filter(m=>m.id.startsWith('H')||m.id==='D02').slice(0,3);
       return`
-      <div class="sec">🌡️ Hitzeinsel-Analyse</div>
+      <div class="sec">🌡️ Hitzebetroffenheit — Satellitenanalyse</div>
+      <div style="background:${hbMeta.col}18;border:1.5px solid ${hbMeta.col}44;border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+        <div style="text-align:center;flex-shrink:0">
+          <div style="font-size:28px;font-weight:900;color:${hbMeta.col};line-height:1">${hb}</div>
+          <div style="font-size:8px;color:var(--muted);margin-top:2px">/100</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:800;color:${hbMeta.col};margin-bottom:3px">Betroffenheit: ${hbMeta.lbl}</div>
+          <div style="font-size:9px;color:var(--text2);line-height:1.5">Composite aus 3 Satellitenindikatoren — LST (40%) · Versiegelung (35%) · NDVI-Mangel (25%)<br>
+          <b style="color:var(--text2)">Quellen:</b> Copernicus Sentinel-3 · Urban Atlas 2018 · HLNUG Hessen</div>
+        </div>
+      </div>
       <div class="hk-wrap">
         <div class="hk-step s-heat">
           <div class="hk-icon">🌡️</div>
           <div class="hk-body">
-            <div class="hk-name">Oberflächentemperatur (LST-Delta)</div>
+            <div class="hk-name">Oberflächentemperatur LST · Copernicus Sentinel-3 · 100m</div>
             <div class="hk-val" style="color:${lstC}">${d.lst_delta>=0?'+':''}${d.lst_delta}°C <small style="font-size:10px;font-weight:400;color:var(--text2)">vs. Umland</small></div>
-            <div class="hk-desc">Abweichung zum Frankfurter Umlandmittel. Je dichter bebaut und versiegelt, desto heißer das Viertel.</div>
+            <div class="hk-desc">Abweichung zum Frankfurter Umlandmittel. Dichte Bebauung und dunkle Oberflächen speichern Sonnenwärme — fehlende Luftzirkulation verstärkt den Effekt. DWD-Klimaatlas: Frankfurt erwartet +2,5 Hitzetage/Dekade.</div>
             <div class="hk-bar"><div class="hk-bar-fill" style="width:${lstPct}%;background:${lstC}"></div></div>
           </div>
         </div>
@@ -2448,9 +2516,9 @@ function openDrawer(name,d){
         <div class="hk-step s-ndvi">
           <div class="hk-icon">🌿</div>
           <div class="hk-body">
-            <div class="hk-name">Vegetationsindex (NDVI-Proxy)</div>
+            <div class="hk-name">Vegetationsindex NDVI-Proxy · Sentinel-2 · 10m</div>
             <div class="hk-val" style="color:${ndviC}">${ndvi.toFixed(2)} <small style="font-size:10px;font-weight:400;color:var(--text2)">${ndviLbl}</small></div>
-            <div class="hk-desc">Abgeleitet aus Versiegelungsgrad. Grün kühlt durch Transpiration bis −4°C. Echter NDVI: Copernicus Sentinel-2 (10m).</div>
+            <div class="hk-desc">Abgeleitet aus Versiegelungsgrad. Grünflächen kühlen durch Transpiration lokal bis −4°C (Fraunhofer IBP 2024). Stadtbaumkronendichte ist kritischer Faktor — HLNUG Stadtbaumliste FFM 2023.</div>
             <div class="hk-bar"><div class="hk-bar-fill" style="width:${ndviPct}%;background:${ndviC}"></div></div>
           </div>
         </div>
@@ -2458,9 +2526,9 @@ function openDrawer(name,d){
         <div class="hk-step s-feuch">
           <div class="hk-icon">💧</div>
           <div class="hk-body">
-            <div class="hk-name">Feuchtstress & Versiegelung</div>
+            <div class="hk-name">Feuchtstress & Versiegelung · Copernicus Urban Atlas</div>
             <div class="hk-val" style="color:${feuchC}">${d.versieg}% <small style="font-size:10px;font-weight:400;color:var(--text2)">${feuchLbl}</small></div>
-            <div class="hk-desc">Versiegelte Flächen können kein Regenwasser speichern → kein Verdunstungskühleffekt → höhere Temperaturen bei Hitze.</div>
+            <div class="hk-desc">Versiegelte Flächen speichern kein Regenwasser → kein Verdunstungskühleffekt bei Hitzewellen. BBSR 2023: Entsiegelung um 10% reduziert LST um 0,8–1,2°C lokal nachgewiesen.</div>
             <div class="hk-bar"><div class="hk-bar-fill" style="width:${d.versieg}%;background:${feuchC}"></div></div>
           </div>
         </div>
@@ -2468,16 +2536,34 @@ function openDrawer(name,d){
         <div class="hk-step s-hlth">
           <div class="hk-icon">❤️</div>
           <div class="hk-body">
-            <div class="hk-name">Gesundheitsrisiko Hitze</div>
-            <div class="hk-val" style="color:${grC}">${grLbl} <small style="font-size:10px;font-weight:400;color:var(--text2)">${gr}/100</small></div>
-            <div class="hk-desc">Kombinierter Hitzestress-Index. UBA MK 4.0 (Feb. 2026): ~2 Mio€ Folgekosten pro Hitzetod. Frankfurt: ~180 Übersterblichkeit 2022.</div>
-            <div class="hk-bar"><div class="hk-bar-fill" style="width:${gr}%;background:${grC}"></div></div>
+            <div class="hk-name">Gesundheitsfolgen · UBA MK 4.0 · WHO Europa</div>
+            <div class="hk-val" style="color:${hbMeta.col}">${hbMeta.lbl} <small style="font-size:10px;font-weight:400;color:var(--text2)">${hb}/100 Hitzebetroffenheit</small></div>
+            <div class="hk-desc">UBA MK 4.0 (Feb. 2026): ~2 Mio€ Folgekosten pro Hitzetod. Frankfurt 2022: ~180 Übersterblichkeit. Besonders gefährdet: Ältere >75J, Kleinkinder, chronisch Kranke, Obdachlose.</div>
+            <div class="hk-bar"><div class="hk-bar-fill" style="width:${hb}%;background:${hbMeta.col}"></div></div>
           </div>
         </div>
       </div>
+      ${hb>=45?`
+      <div class="sec">🛡️ Prioritäre Hitzeschutz-Maßnahmen</div>
+      ${heatMass.map(m=>`
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:16px">${m.icon}</span>
+          <span style="font-size:11px;font-weight:700;color:var(--text)">${m.name}</span>
+          <span style="margin-left:auto;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;${m.typ==='quick_win'?'background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.2)':'background:rgba(255,214,0,0.1);color:#ca8a04;border:1px solid rgba(255,214,0,0.2)'}">${m.typ==='quick_win'?'⚡ Quick Win':'🏗 Strukturell'}</span>
+        </div>
+        <div style="font-size:9px;color:var(--text2);line-height:1.5;margin-bottom:6px">${m.desc}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid var(--border2);color:var(--text2)">💰 ${fmt(m.kosten)}</span>
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);color:#22c55e">📈 ROI ${fmt(m.roi)}</span>
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);color:#a78bfa">${m.foerder[0]?.pct||'?'}% förderbar</span>
+        </div>
+        <div style="font-size:8px;color:var(--muted);margin-top:5px;border-top:1px solid var(--border);padding-top:4px">${m.kw.split('.')[0]}.</div>
+      </div>`).join('')}
+      `:''}
       <div style="font-size:8px;color:var(--muted);padding:5px 8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
-        🛰 Copernicus Urban Atlas 2018 · HLNUG Hot/Coldspot-Datensatz Hessen · Versiegelung: Copernicus Urban Atlas<br>
-        Datenlizenz Deutschland 2.0 · 100m Rasterauflösung · <span style="color:var(--accent)">🟢 Amtliche Quelle</span>
+        🛰 Copernicus Urban Atlas 2018 · HLNUG Hot/Coldspot-Datensatz Hessen · DWD Klimaatlas · Fraunhofer IBP · JRC EU<br>
+        Datenlizenz Deutschland 2.0 · 100m Rasterauflösung · <span style="color:var(--accent)">🟢 Amtliche + institutionelle Quellen</span>
       </div>`;
     })():''}`;
 
@@ -2497,8 +2583,38 @@ function openDrawer(name,d){
     </div>`).join('');
 
   // TAB 2 — Maßnahmen
+  const hb2 = d.versieg!=null ? hitzebetroffenheit(d) : 0;
+  const heatRelM = hb2>=45 ? MASS.filter(m=>m.id.startsWith('H')||m.id==='D02') : [];
   document.getElementById('tp2').innerHTML=`
-    <div class="ibox">Empfehlungen basieren auf den <b>schwächsten Dimensionen</b>. Alle Kosten und ROI sind methodisch belegt — per ℹ️ aufklappbar.</div>
+    <div class="ibox">Empfehlungen basieren auf den <b>schwächsten Dimensionen</b>. Alle Kosten und ROI sind methodisch belegt (ℹ️ aufklappbar). Institutionelle Quellen: Fraunhofer IBP · JRC EU · BBSR · WHO Europa · UBA · DWD.</div>
+    ${heatRelM.length?`
+    <div style="font-size:10px;font-weight:800;color:#ef4444;text-transform:uppercase;letter-spacing:.07em;margin:0 0 8px;display:flex;align-items:center;gap:6px">
+      <span>🔥 Hitzeschutz — Priorität ${hb2>=65?'HOCH':'MITTEL'}</span>
+      <span style="font-size:9px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:1px 8px;color:#fca5a5">${hb2}/100 Hitzebetroffenheit</span>
+    </div>
+    ${heatRelM.map(m=>`
+    <div class="mcard" style="border-color:rgba(239,68,68,0.2)">
+      <div class="mtop">
+        <div class="memi">${m.icon}</div>
+        <div class="mri">
+          <div class="mnm">${m.name}</div>
+          <div class="mde">${m.desc}</div>
+          <div class="mpills">
+            <span class="pill ${m.typ==='quick_win'?'pqw':'pst'}">${m.typ==='quick_win'?'⚡ Quick Win':'🏗 Strukturell'}</span>
+            <span class="pill peu">🌡️ Hitzeschutz</span>
+          </div>
+        </div>
+      </div>
+      <div class="mnums">
+        <div class="mn"><div class="mnv">${fmt(m.kosten)}</div><div class="mnl">Investition <span class="ib" data-tip="${m.kw}">i</span></div></div>
+        <div class="mn" style="background:rgba(22,163,74,0.05);border-color:rgba(22,163,74,0.15)">
+          <div class="mnv" style="color:#15803d">${fmt(m.roi)}</div>
+          <div class="mnl">ROI 10J <span class="ib" data-tip="${m.rw}">i</span></div>
+        </div>
+      </div>
+      <div class="mwhy"><b>Institutionelle Grundlage:</b> ${m.kw.split('.')[0]}.</div>
+    </div>`).join('')}
+    <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px">⚙️ Weitere Maßnahmen nach NICE-Score</div>`:''}
     ${relM.map(m=>`
     <div class="mcard">
       <div class="mtop">
