@@ -189,10 +189,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .leaflet-control-zoom{border:none!important;box-shadow:none!important}
 .leaflet-control-zoom a{background:#252830!important;color:#f0f4ff!important;border:1px solid rgba(255,255,255,0.12)!important;margin-bottom:4px!important;border-radius:8px!important;display:flex!important;align-items:center!important;justify-content:center!important}
 /* WIND & RUNWAY INDICATOR */
-.wind-pill{position:fixed;top:70px;left:268px;z-index:700;background:#252830;border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:#f0f4ff;display:flex;align-items:center;gap:6px;box-shadow:var(--sh);cursor:pointer}
+.wind-pill{position:fixed;top:70px;left:430px;z-index:700;background:#252830;border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:#f0f4ff;display:flex;align-items:center;gap:6px;box-shadow:var(--sh);cursor:pointer}
 .wind-arrow{font-size:16px;transition:transform .5s}
 .wind-rwy{font-size:9px;color:var(--muted);font-weight:500}
-.wind-popup{position:fixed;top:112px;left:268px;z-index:700;width:240px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl);padding:14px;display:none}
+.wind-popup{position:fixed;top:112px;left:430px;z-index:700;width:240px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl);padding:14px;display:none}
 .wind-popup.open{display:block}
 .wind-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
 .wind-label{color:var(--muted)}
@@ -204,6 +204,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lens-btn{flex:1;padding:5px 2px;border-radius:7px;font-size:9px;font-weight:700;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.02em}
 .lens-btn.on{background:var(--accent);color:#1a1a2e;border-color:var(--accent);box-shadow:0 0 12px rgba(255,214,0,0.25)}
 .lens-btn:hover:not(.on){background:var(--surface2);color:var(--text2)}
+/* KONFLIKT-DETEKTOR */
+.kd-btn{position:fixed;top:116px;left:268px;z-index:600;background:var(--surface);border:1px solid rgba(220,38,38,0.35);border-radius:20px;padding:8px 14px;font-size:11px;font-weight:700;color:#ef4444;cursor:pointer;box-shadow:var(--sh);display:flex;align-items:center;gap:6px;transition:all .15s}
+.kd-btn:hover{background:rgba(220,38,38,0.08)}
+.kd-btn .kd-count{background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:800}
+.kd-panel{position:fixed;top:160px;left:268px;z-index:600;width:280px;max-height:calc(100vh - 220px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);padding:14px;display:none}
+.kd-panel.open{display:block}
+.kd-panel::-webkit-scrollbar{width:4px}.kd-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.kd-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kd-chain{margin-bottom:12px}
+.kd-chain-hdr{font-size:10px;font-weight:800;padding:5px 8px;border-radius:6px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.kd-chain1-hdr{background:rgba(220,38,38,0.1);color:#dc2626;border:1px solid rgba(220,38,38,0.2)}
+.kd-chain2-hdr{background:rgba(234,179,8,0.1);color:#ca8a04;border:1px solid rgba(234,179,8,0.2)}
+.kd-item{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .12s;margin-bottom:3px;border:1px solid transparent}
+.kd-item:hover{background:var(--surface2)}
+.kd-item.c1{border-color:rgba(220,38,38,0.15)}
+.kd-item.c2{border-color:rgba(234,179,8,0.15)}
+.kd-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px;animation:kdpulse 1.6s ease-in-out infinite}
+.kd-dot.c1{background:#ef4444;box-shadow:0 0 0 0 rgba(239,68,68,0.4)}
+.kd-dot.c2{background:#eab308;box-shadow:0 0 0 0 rgba(234,179,8,0.4)}
+@keyframes kdpulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0.5)}60%{transform:scale(1.1);box-shadow:0 0 0 6px rgba(239,68,68,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.kd-item.c2 .kd-dot{animation-name:kdpulse2}
+@keyframes kdpulse2{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(234,179,8,0.5)}60%{transform:scale(1.1);box-shadow:0 0 0 6px rgba(234,179,8,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(234,179,8,0)}}
+.kd-name{font-size:11px;font-weight:700;flex:1}
+.kd-score{font-size:9px;color:var(--muted);margin-top:2px;line-height:1.5}
+.kd-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.kd-tag{font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px}
+.kd-tag.red{background:rgba(220,38,38,0.12);color:#dc2626;border:1px solid rgba(220,38,38,0.2)}
+.kd-tag.yellow{background:rgba(234,179,8,0.1);color:#ca8a04;border:1px solid rgba(234,179,8,0.2)}
+.kd-empty{font-size:10px;color:var(--muted);text-align:center;padding:16px 0;font-style:italic}
+.kd-legend{font-size:8px;color:var(--muted);padding:8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);margin-top:8px;line-height:1.6}
+
 /* Social KPI grid */
 .social-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
 .skpi{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;position:relative}
@@ -316,6 +347,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <button class="layer-btn" onclick="toggleLayerPanel()">
   🗺️ Karten-Layer <span class="lcount" id="layerCount">0</span>
 </button>
+
+<!-- KONFLIKT-DETEKTOR -->
+<button class="kd-btn" id="kdBtn" onclick="toggleKDPanel()">
+  ⚡ Konflikt-Detektor <span class="kd-count" id="kdCount">0</span>
+</button>
+<div class="kd-panel" id="kdPanel">
+  <div class="kd-title">⚡ Palantir — Konfliktketten</div>
+  <div id="kdChain1" class="kd-chain"></div>
+  <div id="kdChain2" class="kd-chain"></div>
+  <div class="kd-legend">
+    <b style="color:#ef4444">● Kette 1 — Brennpunkt:</b> LST ≥+2,5°C UND SGB-II ≥25% UND Kinderarmut ≥30%<br>
+    <b style="color:#ca8a04">● Kette 2 — Gentrifizierungsrisiko:</b> Klima-Score ≥55 UND Sozial-Score ≤45 UND Migration ≥35%
+  </div>
+</div>
 <div class="layer-panel" id="layerPanel">
   <div class="lp-title">Straßen-Layer ein/ausschalten</div>
   <div style="font-size:9px;color:var(--muted);margin-bottom:8px;padding:5px 7px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
@@ -831,6 +876,155 @@ function lensScore(d){
 }
 
 // ══════════════════════════════════════════════════════════════
+// KONFLIKT-DETEKTOR — Palantir Ketten
+// ══════════════════════════════════════════════════════════════
+let kdPanelOpen = false;
+let kdMarkerLayer = null;
+
+// Kette 1: Triple-Burden Brennpunkt
+// Bedingung: lst_delta ≥ 2.5 AND sgb2 ≥ 25 AND kinderarmut ≥ 30
+function isKette1(d){
+  return (d.lst_delta!=null && d.lst_delta >= 2.5) &&
+         (d.sgb2!=null && d.sgb2 >= 25) &&
+         (d.kinderarmut!=null && d.kinderarmut >= 30);
+}
+
+// Kette 2: Gentrifizierungsrisiko
+// Bedingung: climateScore ≥ 55 AND socialScore ≤ 45 AND mig ≥ 35
+function isKette2(d){
+  return climateScore(d) >= 55 &&
+         socialScore(d) <= 45 &&
+         (d.mig!=null && d.mig >= 35);
+}
+
+function getKonflikte(){
+  const cfg = CITY_CFG[city];
+  const k1=[], k2=[];
+  Object.entries(cfg.data).forEach(([name,d])=>{
+    if(isKette1(d)) k1.push({name,d});
+    if(isKette2(d)) k2.push({name,d});
+  });
+  // Sort by severity
+  k1.sort((a,b)=>b.d.lst_delta-a.d.lst_delta);
+  k2.sort((a,b)=>socialScore(a.d)-socialScore(b.d));
+  return {k1,k2};
+}
+
+function renderKDPanel(){
+  const {k1,k2} = getKonflikte();
+  const total = k1.length + k2.length;
+  document.getElementById('kdCount').textContent = total;
+
+  // Kette 1
+  const c1El = document.getElementById('kdChain1');
+  c1El.innerHTML = `<div class="kd-chain-hdr kd-chain1-hdr">🔴 Kette 1 — Brennpunkte (${k1.length})</div>` +
+    (k1.length===0 ? `<div class="kd-empty">Keine aktiven Brennpunkte</div>` :
+    k1.map(({name,d})=>`
+      <div class="kd-item c1" onclick="openDrawer('${name}',CITY_CFG[city].data['${name}'])">
+        <div class="kd-dot c1"></div>
+        <div>
+          <div class="kd-name">${name}</div>
+          <div class="kd-score">LST +${d.lst_delta}°C · SGB-II ${d.sgb2}% · Armut ${d.kinderarmut}%</div>
+          <div class="kd-tags">
+            <span class="kd-tag red">🌡 +${d.lst_delta}°C Hitze</span>
+            <span class="kd-tag red">💶 ${d.sgb2}% SGB-II</span>
+            <span class="kd-tag red">👶 ${d.kinderarmut}% Kinderarmut</span>
+          </div>
+        </div>
+      </div>`).join(''));
+
+  // Kette 2
+  const c2El = document.getElementById('kdChain2');
+  c2El.innerHTML = `<div class="kd-chain-hdr kd-chain2-hdr">🟡 Kette 2 — Gentrifizierungsrisiko (${k2.length})</div>` +
+    (k2.length===0 ? `<div class="kd-empty">Kein Gentrifizierungsrisiko erkannt</div>` :
+    k2.map(({name,d})=>`
+      <div class="kd-item c2" onclick="openDrawer('${name}',CITY_CFG[city].data['${name}'])">
+        <div class="kd-dot c2"></div>
+        <div>
+          <div class="kd-name">${name}</div>
+          <div class="kd-score">Klima ${climateScore(d)} · Sozial ${socialScore(d)} · Mig ${d.mig}%</div>
+          <div class="kd-tags">
+            <span class="kd-tag yellow">🌡 Klima ${climateScore(d)}/100</span>
+            <span class="kd-tag yellow">👥 Mig ${d.mig}%</span>
+            <span class="kd-tag yellow">📉 Sozial ${socialScore(d)}</span>
+          </div>
+        </div>
+      </div>`).join(''));
+}
+
+function renderKDMarkers(){
+  if(kdMarkerLayer){ map.removeLayer(kdMarkerLayer); kdMarkerLayer=null; }
+  if(!kdPanelOpen) return;
+  const {k1,k2} = getKonflikte();
+  const cfg = CITY_CFG[city];
+  const group = L.layerGroup();
+
+  // Helper: finde Mittelpunkt eines Stadtteils aus geoFeatures
+  function districtCenter(name){
+    const f = geoFeatures.find(feat=>{
+      const raw = feat.properties[cfg.nameProp]||'';
+      return raw===name || raw.includes(name) || name.includes(raw);
+    });
+    if(!f) return null;
+    try{
+      const layer = L.geoJSON(f);
+      return layer.getBounds().getCenter();
+    }catch(e){ return null; }
+  }
+
+  // Kette 1 — rote pulsierende Ringe
+  k1.forEach(({name,d})=>{
+    const c = districtCenter(name);
+    if(!c) return;
+    // Äußerer pulsierender Kreis
+    const outer = L.circleMarker(c, {
+      radius:22, color:'#ef4444', weight:2.5,
+      fillColor:'rgba(220,38,38,0.08)', fillOpacity:1,
+      className:'kd-pulse-ring'
+    }).addTo(group);
+    // Inneres Icon
+    const icon = L.divIcon({
+      html:`<div style="background:#ef4444;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;box-shadow:0 0 0 4px rgba(239,68,68,0.3);border:2px solid #fff">⚡</div>`,
+      iconSize:[24,24], iconAnchor:[12,12], className:''
+    });
+    L.marker(c, {icon})
+      .bindTooltip(`<b>🔴 Kette 1 — Brennpunkt</b><br><b>${name}</b><br>LST +${d.lst_delta}°C · SGB-II ${d.sgb2}% · Kinderarmut ${d.kinderarmut}%`,{sticky:true})
+      .on('click',()=>openDrawer(name,d))
+      .addTo(group);
+  });
+
+  // Kette 2 — gelbe Warndreiecke
+  k2.forEach(({name,d})=>{
+    const c = districtCenter(name);
+    if(!c) return;
+    const outer = L.circleMarker(c, {
+      radius:20, color:'#eab308', weight:2,
+      fillColor:'rgba(234,179,8,0.08)', fillOpacity:1
+    }).addTo(group);
+    const icon = L.divIcon({
+      html:`<div style="background:#eab308;color:#1a1a2e;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;box-shadow:0 0 0 4px rgba(234,179,8,0.3);border:2px solid #fff">⚠</div>`,
+      iconSize:[22,22], iconAnchor:[11,11], className:''
+    });
+    L.marker(c, {icon})
+      .bindTooltip(`<b>🟡 Kette 2 — Gentrifizierungsrisiko</b><br><b>${name}</b><br>Klima ${climateScore(d)} · Sozial ${socialScore(d)} · Mig ${d.mig}%`,{sticky:true})
+      .on('click',()=>openDrawer(name,d))
+      .addTo(group);
+  });
+
+  group.addTo(map);
+  kdMarkerLayer = group;
+}
+
+function toggleKDPanel(){
+  kdPanelOpen = !kdPanelOpen;
+  document.getElementById('kdPanel').classList.toggle('open', kdPanelOpen);
+  document.getElementById('kdBtn').style.borderColor = kdPanelOpen ? '#ef4444' : 'rgba(220,38,38,0.35)';
+  document.getElementById('kdBtn').style.background = kdPanelOpen ? 'rgba(220,38,38,0.08)' : 'var(--surface)';
+  if(kdPanelOpen){ renderKDPanel(); renderKDMarkers(); }
+  else { if(kdMarkerLayer){ map.removeLayer(kdMarkerLayer); kdMarkerLayer=null; } }
+}
+
+// ══════════════════════════════════════════════════════════════
 // MAP
 // ══════════════════════════════════════════════════════════════
 function initMap(){
@@ -873,6 +1067,10 @@ function loadCity(c){
       });
       if(!geoFeatures.length)geoFeatures=data.features.slice(0,50);
       renderMap();renderList();renderStats();
+      // Initialise Konflikt-Detektor count badge (panel stays closed)
+      const {k1,k2}=getKonflikte();
+      document.getElementById('kdCount').textContent=k1.length+k2.length;
+      if(kdPanelOpen){renderKDPanel();renderKDMarkers();}
       map.setView(cfg.center,cfg.zoom);
       document.getElementById('loader').style.display='none';
     })
