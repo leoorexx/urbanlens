@@ -8,13 +8,13 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{
-  --bg:#f5f3ee;--surface:#252830;--surface2:rgba(255,255,255,0.07);
-  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
-  --text:#f0f4ff;--text2:#a0aec0;--muted:#636d85;
-  --accent:#FFD600;--al:rgba(255,214,0,0.13);
+  --bg:#f5f3ee;--surface:#ffffff;--surface2:rgba(0,0,0,0.03);
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.12);
+  --text:#1a1a2e;--text2:#374151;--muted:#9ca3af;
+  --accent:#FFD600;--al:rgba(255,214,0,0.12);
   --r1:#ef4444;--r2:#f97316;--r3:#eab308;--r4:#22c55e;--r5:#16a34a;
-  --sh:0 4px 24px rgba(0,0,0,0.4),0 1px 8px rgba(0,0,0,0.28);
-  --shl:0 8px 48px rgba(0,0,0,0.5),0 2px 16px rgba(0,0,0,0.35);
+  --sh:0 4px 24px rgba(0,0,0,0.08),0 1px 8px rgba(0,0,0,0.05);
+  --shl:0 8px 32px rgba(0,0,0,0.12),0 2px 12px rgba(0,0,0,0.07);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
@@ -81,7 +81,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .right.open{transform:translateX(0)}
 .dhead{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)}
 .dtop{display:flex;align-items:flex-start;justify-content:space-between}
-.dcity{font-size:9px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em}
+.dcity{font-size:9px;font-weight:700;color:#FFD600;text-transform:uppercase;letter-spacing:.08em;background:#1a1a2e;padding:2px 8px;border-radius:10px;display:inline-block}
 .dclose{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--muted);cursor:pointer;line-height:1.4}
 .dname{font-size:20px;font-weight:800;margin-top:4px;letter-spacing:-.5px}
 .dsrow{display:flex;align-items:center;gap:12px;margin-top:10px}
@@ -137,7 +137,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fsplit{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
 .fs{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 8px;text-align:center}
 .fsv{font-size:13px;font-weight:800}.fsl{font-size:8px;color:var(--muted);margin-top:1px}
-.furl{font-size:9px;color:var(--accent);margin-top:6px;text-decoration:none;display:block}
+.furl{font-size:9px;color:#1a1a2e;margin-top:6px;text-decoration:underline;text-underline-offset:2px;display:block;font-weight:600}
 .dlbox{background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.2);border-radius:9px;padding:10px 12px;margin-bottom:10px}
 .dlt{font-size:11px;font-weight:700;color:#92400e}.dls{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.5}
 
@@ -182,12 +182,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ltxt{font-size:13px;color:var(--muted)}
 
 /* Leaflet */
-.leaflet-tooltip{background:#1e2028;border:1px solid rgba(255,255,255,0.12);color:#f0f4ff;font-size:11px;font-weight:600;padding:5px 10px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
-.leaflet-tooltip-top::before{border-top-color:#1e2028}
+.leaflet-tooltip{background:#fff;border:1px solid rgba(0,0,0,0.1);color:#1a1a2e;font-size:11px;font-weight:600;padding:5px 10px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.leaflet-tooltip-top::before{border-top-color:#fff}
 .leaflet-control-zoom{border:none!important;box-shadow:none!important}
-.leaflet-control-zoom a{background:#252830!important;color:#f0f4ff!important;border:1px solid rgba(255,255,255,0.12)!important;margin-bottom:4px!important;border-radius:8px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+.leaflet-control-zoom a{background:#fff!important;color:#1a1a2e!important;border:1px solid rgba(0,0,0,0.1)!important;margin-bottom:4px!important;border-radius:8px!important;display:flex!important;align-items:center!important;justify-content:center!important}
 /* WIND & RUNWAY INDICATOR */
-.wind-pill{position:fixed;top:70px;right:10px;z-index:700;background:#252830;border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:#f0f4ff;display:flex;align-items:center;gap:6px;box-shadow:var(--sh);cursor:pointer}
+.wind-pill{position:fixed;top:70px;right:10px;z-index:700;background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:#1a1a2e;display:flex;align-items:center;gap:6px;box-shadow:var(--sh);cursor:pointer}
 .wind-arrow{font-size:16px;transition:transform .5s}
 .wind-rwy{font-size:9px;color:var(--muted);font-weight:500}
 .wind-popup{position:fixed;top:112px;right:10px;z-index:700;width:240px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl);padding:14px;display:none}
@@ -212,8 +212,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .kd-title{font-size:11px;font-weight:800;color:var(--text);letter-spacing:.02em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .kd-chain{margin-bottom:12px}
 .kd-chain-hdr{font-size:11px;font-weight:800;padding:6px 10px;border-radius:7px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.kd-chain1-hdr{background:rgba(220,38,38,0.14);color:#fca5a5;border:1px solid rgba(220,38,38,0.3)}
-.kd-chain2-hdr{background:rgba(234,179,8,0.12);color:#fde68a;border:1px solid rgba(234,179,8,0.3)}
+.kd-chain1-hdr{background:rgba(220,38,38,0.08);color:#dc2626;border:1px solid rgba(220,38,38,0.2)}
+.kd-chain2-hdr{background:rgba(234,179,8,0.1);color:#92400e;border:1px solid rgba(234,179,8,0.25)}
 .kd-item{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .12s;margin-bottom:3px;border:1px solid transparent}
 .kd-item:hover{background:var(--surface2)}
 .kd-item.c1{border-color:rgba(220,38,38,0.15)}
@@ -229,9 +229,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .kd-impact{font-size:9px;color:var(--accent);margin-top:4px;font-weight:600}
 .kd-numbers{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
 .kd-num{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px}
-.kd-num.red{background:rgba(220,38,38,0.15);color:#fca5a5;border:1px solid rgba(220,38,38,0.3)}
-.kd-num.yellow{background:rgba(234,179,8,0.12);color:#fde68a;border:1px solid rgba(234,179,8,0.3)}
-.kd-action{display:inline-block;margin-top:6px;font-size:9px;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.kd-num.red{background:rgba(220,38,38,0.08);color:#dc2626;border:1px solid rgba(220,38,38,0.2)}
+.kd-num.yellow{background:rgba(234,179,8,0.1);color:#92400e;border:1px solid rgba(234,179,8,0.25)}
+.kd-action{display:inline-block;margin-top:6px;font-size:9px;color:#1a1a2e;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .kd-empty{font-size:10px;color:var(--text2);text-align:center;padding:14px 0;font-style:italic;opacity:0.7}
 .kd-divider{height:1px;background:var(--border);margin:10px 0}
 
@@ -265,14 +265,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sz-card.vt .sz-score-big{color:#22c55e}
 .sz-score-lbl{font-size:8px;color:var(--muted);margin-top:2px}
 .sz-bar-wrap{margin-bottom:10px}
-.sz-bar-track{height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;margin-top:3px}
+.sz-bar-track{height:8px;background:rgba(0,0,0,0.06);border-radius:4px;overflow:hidden;margin-top:3px}
 .sz-bar-fill{height:100%;border-radius:4px;transition:width .8s ease}
 .sz-bar-label{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:3px}
 .sz-desc{font-size:10px;color:var(--text2);line-height:1.6;margin-bottom:8px}
 .sz-measures{font-size:9px;color:var(--text2);line-height:1.7}
 .sz-measures b{color:var(--text)}
 .sz-cost{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.sz-cost-item{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid var(--border2);color:var(--text2)}
+.sz-cost-item{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,0.04);border:1px solid var(--border2);color:var(--text2)}
 .sz-arrow{font-size:11px;margin:4px 0;color:var(--muted);text-align:center}
 .sz-delta{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:20px;margin-left:6px}
 
@@ -367,7 +367,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <span class="wind-rwy" id="windRwy">RWY?</span>
 </div>
 <div class="wind-popup" id="windPopup">
-  <div style="font-size:11px;font-weight:800;margin-bottom:8px;color:var(--accent)">🌬️ Live Wind — Frankfurt Flughafen</div>
+  <div style="font-size:11px;font-weight:800;margin-bottom:8px;color:#1a1a2e">🌬️ Live Wind — Frankfurt Flughafen</div>
   <div class="wind-row"><span class="wind-label">Windrichtung</span><span class="wind-val" id="wpDir">—</span></div>
   <div class="wind-row"><span class="wind-label">Windstärke</span><span class="wind-val" id="wpSpeed">—</span></div>
   <div class="wind-row"><span class="wind-label">Böen</span><span class="wind-val" id="wpGusts">—</span></div>
@@ -417,7 +417,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </button>
 <div class="kd-panel" id="kdPanel">
   <div class="kd-title">🔍 Automatische Stadtdiagnose</div>
-  <div style="font-size:9px;color:var(--text2);margin-bottom:10px;line-height:1.5;padding:6px 8px;background:rgba(255,255,255,0.05);border-radius:7px;border:1px solid var(--border2)">
+  <div style="font-size:9px;color:var(--text2);margin-bottom:10px;line-height:1.5;padding:6px 8px;background:rgba(0,0,0,0.03);border-radius:7px;border:1px solid var(--border2)">
     Klick auf einen Stadtteil → Details + Maßnahmen öffnen sich rechts.<br>
     <span style="color:var(--accent)">Straßen-Layer einschalten</span> um zu sehen wo genau im Viertel das Problem liegt.
   </div>
@@ -2556,7 +2556,7 @@ function openDrawer(name,d){
         </div>
         <div style="font-size:9px;color:var(--text2);line-height:1.5;margin-bottom:6px">${m.desc}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid var(--border2);color:var(--text2)">💰 ${fmt(m.kosten)}</span>
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(0,0,0,0.04);border:1px solid var(--border2);color:var(--text2)">💰 ${fmt(m.kosten)}</span>
           <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);color:#22c55e">📈 ROI ${fmt(m.roi)}</span>
           <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);color:#a78bfa">${m.foerder[0]?.pct||'?'}% förderbar</span>
         </div>
