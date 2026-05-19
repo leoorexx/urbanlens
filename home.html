@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanLens — Klimaanalysen für nachhaltige Städte</title>
+<style>
+:root{
+  --bg:#f9f8f5;--surface:#252830;--text:#0f1117;--text2:#4b5563;
+  --muted:#9ca3af;--accent:#FFD600;--border:#e5e7eb;
+  --r1:#ef4444;--g1:#22c55e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:var(--text);overflow-x:hidden}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;height:60px;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 40px;gap:16px}
+.logo{font-size:18px;font-weight:900;color:#0f1117;letter-spacing:-.5px;text-decoration:none}
+.logo span{color:#0f1117}
+.logo-tag{font-size:10px;font-weight:600;background:#0f1117;color:var(--accent);padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle}
+.nav-links{display:flex;gap:4px;margin-left:24px}
+.nav-link{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);text-decoration:none;transition:all .15s}
+.nav-link:hover{background:#f3f4f6;color:var(--text)}
+.nav-link.cta{background:#0f1117;color:var(--accent);margin-left:8px}
+.nav-link.cta:hover{background:#1e2028}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* HERO */
+.hero{padding:140px 40px 80px;max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;color:#15803d;margin-bottom:20px}
+.hero-tag::before{content:"●";color:#22c55e;font-size:8px}
+.hero h1{font-size:48px;font-weight:900;line-height:1.08;letter-spacing:-1.5px;color:#0f1117;margin-bottom:20px}
+.hero h1 .hl{color:transparent;background:linear-gradient(135deg,#FFD600,#f59e0b);-webkit-background-clip:text;background-clip:text}
+.hero p{font-size:16px;color:var(--text2);line-height:1.7;margin-bottom:32px;max-width:480px}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-primary{padding:14px 28px;background:#0f1117;color:var(--accent);border-radius:10px;font-size:13px;font-weight:800;text-decoration:none;letter-spacing:.02em;transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{background:#252830;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,0.15)}
+.btn-sec{padding:14px 28px;background:#fff;color:#0f1117;border:2px solid #e5e7eb;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-sec:hover{border-color:#0f1117;transform:translateY(-1px)}
+.hero-visual{background:#252830;border-radius:20px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.2),0 4px 16px rgba(0,0,0,0.1);position:relative;aspect-ratio:4/3}
+.hero-visual iframe{width:100%;height:100%;border:none;pointer-events:none}
+.hero-visual-overlay{position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(37,40,48,0.95));display:flex;align-items:center;gap:10px}
+.hvo-dot{width:8px;height:8px;background:#22c55e;border-radius:50%;animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hvo-text{font-size:11px;font-weight:700;color:#f0f4ff}
+
+/* STATS */
+.stats-bar{background:#0f1117;padding:28px 40px}
+.stats-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:24px;text-align:center}
+.stat-n{font-size:30px;font-weight:900;color:var(--accent)}
+.stat-l{font-size:11px;color:#9ca3af;margin-top:4px;font-weight:500}
+
+/* SECTION */
+.section{padding:80px 40px;max-width:1200px;margin:0 auto}
+.section-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);background:#0f1117;display:inline-block;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+.section h2{font-size:36px;font-weight:900;letter-spacing:-.8px;color:#0f1117;margin-bottom:14px}
+.section .lead{font-size:16px;color:var(--text2);line-height:1.7;max-width:600px;margin-bottom:48px}
+
+/* PRODUCTS */
+.prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px}
+.prod-card{border-radius:16px;overflow:hidden;border:1.5px solid var(--border);background:#fff;transition:all .2s;cursor:pointer;position:relative}
+.prod-card:hover{border-color:#0f1117;transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,0.1)}
+.prod-card.featured{border-color:#0f1117;box-shadow:0 8px 32px rgba(0,0,0,0.08)}
+.prod-img{height:180px;background:#f3f4f6;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:56px}
+.prod-img.heat{background:linear-gradient(135deg,#fef3c7,#fde68a,#fbbf24,#f59e0b)}
+.prod-img.klima{background:linear-gradient(135deg,#d1fae5,#6ee7b7,#34d399,#059669)}
+.prod-img.adapt{background:linear-gradient(135deg,#dbeafe,#93c5fd,#3b82f6,#1d4ed8)}
+.prod-img.custom{background:linear-gradient(135deg,#f3e8ff,#d8b4fe,#a855f7,#7c3aed)}
+.prod-badge{position:absolute;bottom:10px;left:10px;font-size:9px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(255,255,255,0.9);color:#0f1117}
+.prod-body{padding:18px}
+.prod-name{font-size:15px;font-weight:800;color:#0f1117;margin-bottom:6px}
+.prod-desc{font-size:11px;color:var(--text2);line-height:1.6}
+.prod-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.ptag{font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;background:#f3f4f6;color:#6b7280}
+
+/* FEATURES */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px}
+.feat-card{background:#0f1117;border-radius:16px;padding:28px;position:relative;overflow:hidden}
+.feat-card::before{content:'';position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;opacity:0.06;background:var(--accent);transform:translate(30px,-30px)}
+.feat-icon{font-size:36px;margin-bottom:14px;display:block}
+.feat-title{font-size:18px;font-weight:800;color:#f0f4ff;margin-bottom:8px}
+.feat-desc{font-size:12px;color:#9ca3af;line-height:1.7}
+.feat-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.fpill{font-size:9px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(255,255,255,0.06);color:#a0aec0;border:1px solid rgba(255,255,255,0.08)}
+.fpill.gold{background:rgba(255,214,0,0.1);color:var(--accent);border-color:rgba(255,214,0,0.2)}
+
+/* HOW IT WORKS */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:8px}
+.step{text-align:center;padding:32px 24px}
+.step-num{width:48px;height:48px;background:#0f1117;color:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;margin:0 auto 16px}
+.step h3{font-size:16px;font-weight:800;color:#0f1117;margin-bottom:8px}
+.step p{font-size:12px;color:var(--text2);line-height:1.7}
+.step-connector{display:flex;align-items:center;padding-top:32px;color:#e5e7eb;font-size:24px}
+
+/* TECH */
+.tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+.tech-card{border:1.5px solid var(--border);border-radius:14px;padding:22px}
+.tech-icon{font-size:28px;margin-bottom:10px}
+.tech-title{font-size:13px;font-weight:800;color:#0f1117;margin-bottom:6px}
+.tech-desc{font-size:11px;color:var(--text2);line-height:1.65}
+.tech-src{font-size:9px;color:var(--muted);margin-top:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+
+/* COMPARISON */
+.comp-wrap{border:1.5px solid var(--border);border-radius:16px;overflow:hidden;margin-top:8px}
+.comp-head{display:grid;grid-template-columns:1fr 1fr 1fr;background:#f9fafb;border-bottom:1px solid var(--border)}
+.ch{padding:14px 20px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
+.ch.us{background:#0f1117;color:var(--accent)}
+.comp-row{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border)}
+.comp-row:last-child{border:none}
+.cc{padding:14px 20px;font-size:12px;color:var(--text)}
+.cc.us{background:rgba(255,214,0,0.04);font-weight:600}
+.cc.feat{font-weight:600;color:#0f1117}
+.check{color:#22c55e;font-weight:700}
+.cross{color:#ef4444}
+.part{color:#eab308}
+
+/* PRICING */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:8px}
+.price-card{border:1.5px solid var(--border);border-radius:16px;padding:28px;background:#fff;transition:all .2s}
+.price-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,0.08)}
+.price-card.featured{border-color:#0f1117;background:#0f1117}
+.price-card.featured .price-name{color:#f0f4ff}
+.price-card.featured .price-amount{color:var(--accent)}
+.price-card.featured .price-desc{color:#9ca3af}
+.price-card.featured .price-feat{color:#a0aec0;border-color:rgba(255,255,255,0.08)}
+.price-card.featured .price-cta{background:var(--accent);color:#0f1117}
+.price-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px}
+.price-amount{font-size:36px;font-weight:900;letter-spacing:-1px;color:#0f1117}
+.price-amount small{font-size:14px;font-weight:400;color:var(--muted)}
+.price-desc{font-size:12px;color:var(--text2);margin:8px 0 20px;line-height:1.6}
+.price-feats{margin-bottom:24px}
+.price-feat{font-size:12px;padding:8px 0;border-bottom:1px solid var(--border);color:var(--text2);display:flex;align-items:center;gap:8px}
+.price-feat::before{content:"✓";color:#22c55e;font-weight:700;flex-shrink:0}
+.price-cta{display:block;text-align:center;padding:12px;background:#0f1117;color:var(--accent);border-radius:10px;font-size:12px;font-weight:800;text-decoration:none;transition:all .15s;letter-spacing:.03em}
+.price-cta:hover{background:#252830}
+
+/* CTA BLOCK */
+.cta-block{background:#0f1117;border-radius:24px;padding:60px;text-align:center;margin:80px 40px}
+.cta-block h2{font-size:38px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:14px}
+.cta-block p{font-size:15px;color:#9ca3af;margin-bottom:32px;line-height:1.7}
+.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.cta-primary{padding:15px 32px;background:var(--accent);color:#0f1117;border-radius:12px;font-size:14px;font-weight:800;text-decoration:none;letter-spacing:.02em;transition:all .15s}
+.cta-primary:hover{background:#fbbf24;transform:translateY(-2px);box-shadow:0 8px 32px rgba(255,214,0,0.3)}
+.cta-sec{padding:15px 32px;background:rgba(255,255,255,0.06);color:#f0f4ff;border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;font-size:14px;font-weight:700;text-decoration:none;transition:all .15s}
+.cta-sec:hover{background:rgba(255,255,255,0.1)}
+
+/* FOOTER */
+.footer{background:#0a0b0d;padding:40px;text-align:center}
+.footer-logo{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:12px}
+.footer-logo span{color:var(--accent)}
+.footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.footer-link{font-size:12px;color:#6b7280;text-decoration:none;transition:color .15s}
+.footer-link:hover{color:#f0f4ff}
+.footer-copy{font-size:11px;color:#4b5563;line-height:1.8}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);max-width:1200px;margin:0 auto}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="logo" href="home.html">Urban<span>Lens</span><span class="logo-tag">Beta</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="#produkte">Produkte</a>
+    <a class="nav-link" href="#features">Features</a>
+    <a class="nav-link" href="#technologie">Technologie</a>
+    <a class="nav-link" href="#preise">Preise</a>
+    <a class="nav-link" href="index.html" target="_blank">🗺 Live-Demo</a>
+    <a class="nav-link" href="dashboard.html" target="_blank">📊 Dashboard</a>
+  </div>
+  <div class="nav-r">
+    <a class="nav-link cta" href="mailto:kontakt@urbanlens.de">Stadtanalyse anfragen →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div style="max-width:1280px;margin:0 auto">
+<div class="hero">
+  <div>
+    <div class="hero-tag">Open Data · Satellitendaten · KI-gestützte Analyse</div>
+    <h1>Klimaanalysen<br>für die<br><span class="hl">nachhaltige Stadt</span></h1>
+    <p>UrbanLens liefert Kommunen automatisierte Klimaschutzkonzepte, Hitzeaktionspläne und Klimaanpassungsstrategien — auf Basis offizieller Satellitendaten, OpenStreetMap und Zensus 2022. Schneller, günstiger und skalierbarer als klassische Gutachten.</p>
+    <div class="hero-btns">
+      <a class="btn-primary" href="index.html" target="_blank">🗺 Live-Demo starten</a>
+      <a class="btn-sec" href="mailto:kontakt@urbanlens.de">Stadtanalyse anfragen</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <iframe src="index.html" title="UrbanLens App Demo" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+    <div class="hero-visual-overlay">
+      <div class="hvo-dot"></div>
+      <div class="hvo-text">Frankfurt — 46 Stadtteile · Echtzeit-Analyse · Open Data Live</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div><div class="stat-n">46</div><div class="stat-l">Frankfurter Stadtteile</div></div>
+    <div><div class="stat-n">117</div><div class="stat-l">Indikatoren im NICE Score</div></div>
+    <div><div class="stat-n">15</div><div class="stat-l">Maßnahmen mit ROI-Beleg</div></div>
+    <div><div class="stat-n">25</div><div class="stat-l">EU/Bund/Land Förderprogramme</div></div>
+    <div><div class="stat-n">80%</div><div class="stat-l">Ø EU-Förderquote (ERDF)</div></div>
+  </div>
+</div>
+
+<!-- PRODUKTE -->
+<div class="section" id="produkte">
+  <div class="section-tag">Produkte</div>
+  <h2>Was wir für Ihre Kommune leisten</h2>
+  <p class="lead">Von der gesetzlich geforderten Klimaplanung bis zur strategischen Transformation — UrbanLens automatisiert was Gutachter Monate kosten.</p>
+  <div class="prod-grid">
+    <div class="prod-card">
+      <div class="prod-img klima">🌍</div>
+      <div class="prod-body">
+        <div class="prod-name">Klimaschutzkonzept</div>
+        <div class="prod-desc">Datenbasiertes Klimaschutzkonzept inkl. Emissionsinventar, Sektoren-CO₂-Bilanz und messbarer Reduktionspfade — EU-förderkonform nach KSG 2024.</div>
+        <div class="prod-tags"><span class="ptag">KSG-konform</span><span class="ptag">CO₂-Bilanz</span><span class="ptag">Förderfähig</span></div>
+      </div>
+    </div>
+    <div class="prod-card">
+      <div class="prod-img adapt">🏙️</div>
+      <div class="prod-body">
+        <div class="prod-name">Klimaanpassungsplan</div>
+        <div class="prod-desc">Risikoanalyse für Hitze, Starkregen und Überflutung auf Stadtteil- und Straßenzugsebene. Priorisierte Maßnahmen mit ROI-Kalkulation.</div>
+        <div class="prod-tags"><span class="ptag">IPCC-Szenarien</span><span class="ptag">HQ100</span><span class="ptag">DAS-förderbar</span></div>
+      </div>
+    </div>
+    <div class="prod-card featured">
+      <div class="prod-img heat">🌡️</div>
+      <div style="position:absolute;top:14px;right:14px;background:#FFD600;color:#0f1117;font-size:9px;font-weight:800;padding:3px 9px;border-radius:10px">Bestseller</div>
+      <div class="prod-body">
+        <div class="prod-name">Hitzeaktionsplan</div>
+        <div class="prod-desc">Identifikation urbaner Hitzeinseln auf Straßenzugsebene via Copernicus LST-Daten. Versiegelungsanalyse, Vulnerabilität, Kühlmaßnahmen — mit Prioritätskarte.</div>
+        <div class="prod-tags"><span class="ptag">Copernicus</span><span class="ptag">Straßenebene</span><span class="ptag">Prioritätskarte</span></div>
+      </div>
+    </div>
+    <div class="prod-card">
+      <div class="prod-img custom">⚙️</div>
+      <div class="prod-body">
+        <div class="prod-name">Individuelles Projekt</div>
+        <div class="prod-desc">Maßgeschneiderte Analyse für Ihre spezifische Fragestellung: Grünflächenkataster, NDVI-Analyse, Feuchtestress, Lärmkartierung oder EU-Antragsunterlagen.</div>
+        <div class="prod-tags"><span class="ptag">Auf Anfrage</span><span class="ptag">EUI-fähig</span><span class="ptag">White-Label</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<div class="section" id="features">
+  <div class="section-tag">Analysemodule</div>
+  <h2>Satellitendaten auf Straßenebene</h2>
+  <p class="lead">Hochauflösende Erdbeobachtung trifft auf amtliche Messdaten und soziale Indikatoren — für eine Analyse, die Planungsämter wirklich nutzen können.</p>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <span class="feat-icon">🌡️</span>
+      <div class="feat-title">Identifikation von Hitzeinseln</div>
+      <div class="feat-desc">Mithilfe des Copernicus Urban Heat Island Service (UHI) und HLNUG Hot/Coldspot-Daten identifiziert UrbanLens urbane Hitzeinseln auf Quartiers- und Straßenzugsebene. Die räumlich differenzierte Analyse zeigt, wo thermische Belastungen auftreten und welche Faktoren — Versiegelung, Bebauungsdichte, Grünanteil — diese beeinflussen. Auf dieser Grundlage können Maßnahmen wie Begrünung, Entsiegelung, Verschattung oder Anpassungen in der Stadtgestaltung priorisiert werden.</div>
+      <div class="feat-pills">
+        <span class="fpill gold">Copernicus UHI</span>
+        <span class="fpill">HLNUG amtlich</span>
+        <span class="fpill">100m Auflösung</span>
+        <span class="fpill">LST-Delta</span>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">🌳</span>
+      <div class="feat-title">Grünflächenkataster</div>
+      <div class="feat-desc">UrbanLens erstellt digitale Grünflächenkataster, die vorhandene Grünstrukturen systematisch erfassen und räumlich einordnen. Die Daten liefern einen umfassenden Überblick über Verteilung, Größe und Typen kommunaler Grünflächen — aus OpenStreetMap, Copernicus Land Service (CLMS) und amtlichem Stadtbaumlaster. Potenziale für Aufwertung, Neuanlage oder Vernetzung werden sichtbar gemacht und Maßnahmen datenbasiert geplant.</div>
+      <div class="feat-pills">
+        <span class="fpill gold">OSM + CLMS</span>
+        <span class="fpill">Baumkataster</span>
+        <span class="fpill">NDVI-Index</span>
+        <span class="fpill">Biotopverbund</span>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">🛰️</span>
+      <div class="feat-title">Vegetationszustand & NDVI</div>
+      <div class="feat-desc">UrbanLens analysiert den Zustand und die Vitalität urbaner Vegetation mithilfe von Sentinel-2 Satellitendaten. NDVI-Auswertungen ermöglichen eine verlässliche Bewertung der Vegetationsdichte und -gesundheit. So lassen sich vegetationsarme oder gestresste Flächen ebenso identifizieren wie gesunde, leistungsfähige Grünstrukturen — als Grundlage für Bewässerungsstrategien, Pflegepriorisierungen und gezielte Aufwertung.</div>
+      <div class="feat-pills">
+        <span class="fpill gold">Sentinel-2</span>
+        <span class="fpill">NDVI</span>
+        <span class="fpill">Saisonal</span>
+        <span class="fpill">10m Auflösung</span>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">💧</span>
+      <div class="feat-title">Feuchtestress & Überflutung</div>
+      <div class="feat-desc">Satelliten-gestützte Analyse des Feuchtestresses von Vegetations- und Bodenflächen im Stadtgebiet — ergänzt durch amtliche HQ100-Hochwassergefahrenkarten (HLNUG). Die Auswertung zeigt, welche Flächen unter Wasserdefizit oder Überflutungsrisiko leiden. Kommunen erhalten Entscheidungsgrundlagen für Bewässerungssteuerung, Schwammstadt-Maßnahmen und Risikovorsorge.</div>
+      <div class="feat-pills">
+        <span class="fpill gold">HLNUG HQ100</span>
+        <span class="fpill">EU Floods Dir.</span>
+        <span class="fpill">Schwammstadt</span>
+        <span class="fpill">MNDWI</span>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">👥</span>
+      <div class="feat-title">Soziale Klimavulnerabilität</div>
+      <div class="feat-desc">Klimafolgen treffen nicht alle gleich. UrbanLens verknüpft physische Klimadaten (Hitze, Lärm, Überflutung) mit sozialen Indikatoren (SGB-II-Quote, Kinderarmut, Migrationshintergrund, Wahlbeteiligung) zu einem integrierten Vulnerabilitäts-Index. Damit werden Stadtteile identifiziert, die gleichzeitig von Klimawandel und sozialer Benachteiligung betroffen sind — Grundlage für gerechte Klimapolitik.</div>
+      <div class="feat-pills">
+        <span class="fpill gold">Zensus 2022</span>
+        <span class="fpill">SGB-II</span>
+        <span class="fpill">BA-Statistik</span>
+        <span class="fpill">Klimagerechtigkeit</span>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">📊</span>
+      <div class="feat-title">Klimapfade & Szenarioanalyse</div>
+      <div class="feat-desc">Wie entwickelt sich Ihre Stadt bei +1,5°C, +2,5°C oder +3,5°C globaler Erwärmung? UrbanLens berechnet für jeden Stadtteil drei Entwicklungspfade bis 2050 — basierend auf DWD-Klimaprojektionen (RCP 2.6/4.5/8.5), IAB-Armutsforschung und IPCC AR6. Maßnahmen werden in Szenarien eingepreist, Förderprogramme automatisch zugeordnet. Das Ergebnis: eine klare Entscheidungsgrundlage für Ihren Stadtrat.</div>
+      <div class="feat-pills">
+        <span class="fpill gold">IPCC AR6</span>
+        <span class="fpill">DWD RCP 4.5</span>
+        <span class="fpill">2025–2050</span>
+        <span class="fpill">3 Szenarien</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<div class="section">
+  <div class="section-tag">Prozess</div>
+  <h2>In 3 Schritten zur Klimaanalyse</h2>
+  <p class="lead">Kein aufwändiges Datenprojekt — UrbanLens arbeitet auf Basis öffentlicher Daten und liefert innerhalb von Wochen, nicht Monaten.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Stadtgebiet definieren</h3>
+      <p>Sie geben Ihre Gemeinde oder Ihren Landkreis an. UrbanLens lädt automatisch alle relevanten Stadtteile, Geodaten und amtlichen Indikatoren — aus Copernicus, OSM, Zensus 2022 und Geoportal Hessen.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Analyse & Diagnose</h3>
+      <p>Der NICE Score berechnet für jeden Stadtteil 117 Indikatoren in 8 Dimensionen: Klimagerechtigkeit, Gesundheit, Mobilität, Bildung, Wohnen, Demokratie, Ökosystem, Resilienz. Risikoradar erkennt automatisch Brennpunkte.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Bericht & Förderung</h3>
+      <p>Sie erhalten strukturierte Handlungsempfehlungen mit ROI-Kalkulation, passenden Förderprogrammen (EU/Bund/Land) und fertige Unterlagen für EUI Call 4, DAS, ERDF. Eigenanteil typisch 20–30%.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- TECHNOLOGIE -->
+<div class="section" id="technologie">
+  <div class="section-tag">Technologie & Daten</div>
+  <h2>Echte Daten. Amtliche Quellen.</h2>
+  <p class="lead">UrbanLens arbeitet ausschließlich mit verifizierten, öffentlichen und amtlichen Datenquellen — keine Schätzwerte, keine Blackbox.</p>
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-icon">🛰️</div>
+      <div class="tech-title">Copernicus Earth Observation</div>
+      <div class="tech-desc">Sentinel-2 (10m, NDVI, Vegetation), Urban Heat Island Service, Urban Atlas 2018, Land Surface Temperature. ESA/EU-finanziert, kostenlos und täglich aktuell.</div>
+      <div class="tech-src">ESA · EU Copernicus Programme · 2025</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🗺️</div>
+      <div class="tech-title">Amtliche Geodaten</div>
+      <div class="tech-desc">Geoportal Hessen WFS: LST Hot/Coldspots, LCZ-Klimazonen, HQ100-Hochwassergefahrenkarten (HLNUG). Datenlizenz Deutschland 2.0. 100m Rasterauflösung.</div>
+      <div class="tech-src">HLNUG · Geoportal Hessen · RP Darmstadt</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🏘️</div>
+      <div class="tech-title">OpenStreetMap & GTFS</div>
+      <div class="tech-desc">Radwege, Parks, Schulen, Ärzte, Community Places, Bänke, Fußwege — live über Overpass API. ÖPNV-Takt aus RMV GTFS-Feeds. Tägliche Aktualität.</div>
+      <div class="tech-src">OpenStreetMap Contributors · RMV GTFS</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">📊</div>
+      <div class="tech-title">Sozialstatistik</div>
+      <div class="tech-desc">SGB-II-Quote, Kinderarmut, Medianeinkommen, Arbeitslosigkeit, Abiturquote, Wahlbeteiligung, Migrationshintergrund. Zensus 2022, BA-Statistik, Frankfurter Stadtmonitoring.</div>
+      <div class="tech-src">Destatis · BA · Statistikportal FFM · Zensus 2022</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">🌡️</div>
+      <div class="tech-title">Klimaprojektionen</div>
+      <div class="tech-desc">DWD Klimaatlas: Regionale Projektionen RCP 2.6/4.5/8.5 für den Rhein-Main-Raum. IPCC AR6 Szenarien SSP1-1.9 bis SSP5-8.5. UBA Methodik Klimakosten MK 4.0 (2026).</div>
+      <div class="tech-src">DWD Klimaatlas · IPCC AR6 · UBA MK 4.0</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-icon">💶</div>
+      <div class="tech-title">Fördermittel-Datenbank</div>
+      <div class="tech-desc">25 Förderprogramme: EU (ERDF, LIFE, ESF+, AMIF, CEF, Horizont Europe), Bund (BBSR, GVFG, DAS, Klimaschutzprogramm), Land Hessen, KfW — mit aktuellen Konditionen und Deadlines.</div>
+      <div class="tech-src">EU-Kommission · BBSR · KfW · HA Hessen</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- VERGLEICH -->
+<div class="section">
+  <div class="section-tag">Warum UrbanLens</div>
+  <h2>Automatisiert statt manuell</h2>
+  <p class="lead">Klassische Klimagutachter liefern nach 6–18 Monaten ein PDF. UrbanLens liefert interaktive Analysen in Wochen — und hält sie aktuell.</p>
+  <div class="comp-wrap">
+    <div class="comp-head">
+      <div class="ch cc feat">Kriterium</div>
+      <div class="ch cc">Klassisches Gutachten</div>
+      <div class="ch cc us">UrbanLens</div>
+    </div>
+    <div class="comp-row">
+      <div class="cc feat">Lieferzeit</div>
+      <div class="cc">6–18 Monate</div>
+      <div class="cc us"><span class="check">✓</span> 2–6 Wochen</div>
+    </div>
+    <div class="comp-row">
+      <div class="cc feat">Kosten</div>
+      <div class="cc">50.000–300.000 €</div>
+      <div class="cc us"><span class="check">✓</span> Ab 4.900 €</div>
+    </div>
+    <div class="comp-row">
+      <div class="cc feat">Aktualität</div>
+      <div class="cc">Einmalige Momentaufnahme</div>
+      <div class="cc us"><span class="check">✓</span> Kontinuierlich aktuell</div>
+    </div>
+    <div class="comp-row">
+      <div class="cc feat">Straßenebene</div>
+      <div class="cc"><span class="part">◑</span> Selten enthalten</div>
+      <div class="cc us"><span class="check">✓</span> Standard (100m Raster)</div>
+    </div>
+    <div class="comp-row">
+      <div class="cc feat">Förderantrag-ready</div>
+      <div class="cc"><span class="part">◑</span> Extra beauftragt</div>
+      <div class="cc us"><span class="check">✓</span> Integriert (25 Programme)</div>
+    </div>
+    <div class="comp-row">
+      <div class="cc feat">Szenarioanalyse</div>
+      <div class="cc"><span class="cross">✗</span> Meist nicht enthalten</div>
+      <div class="cc us"><span class="check">✓</span> 3 Klimapfade bis 2050</div>
+    </div>
+    <div class="comp-row">
+      <div class="cc feat">Interaktive Karte</div>
+      <div class="cc"><span class="cross">✗</span> Statisches PDF</div>
+      <div class="cc us"><span class="check">✓</span> Live-Dashboard + Export</div>
+    </div>
+    <div class="comp-row">
+      <div class="cc feat">Datenquellen</div>
+      <div class="cc"><span class="part">◑</span> Proprietär/intransparent</div>
+      <div class="cc us"><span class="check">✓</span> 100% amtlich & nachvollziehbar</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- PREISE -->
+<div class="section" id="preise">
+  <div class="section-tag">Preise</div>
+  <h2>Transparent. Förderbar. Skalierbar.</h2>
+  <p class="lead">Alle Pakete sind als Projektleistung konzipiert und zu 50–80% über EU/Bund-Programme förderbar. Eigenanteil typisch 1.000–15.000 €.</p>
+  <div class="price-grid">
+    <div class="price-card">
+      <div class="price-name">Einstieg</div>
+      <div class="price-amount">4.900 <small>€</small></div>
+      <div class="price-desc">Für kleinere Kommunen und erste Klimaanalyse. Inklusive Basisauswertung und Maßnahmenempfehlungen.</div>
+      <div class="price-feats">
+        <div class="price-feat">NICE Score für alle Stadtteile</div>
+        <div class="price-feat">Hitzeinseln & LST-Analyse</div>
+        <div class="price-feat">5 priorisierte Maßnahmen</div>
+        <div class="price-feat">Förderprogramm-Übersicht</div>
+        <div class="price-feat">Interaktive Karte (12 Monate)</div>
+      </div>
+      <a class="price-cta" href="mailto:kontakt@urbanlens.de?subject=Einstieg-Paket anfragen">Anfragen</a>
+    </div>
+    <div class="price-card featured">
+      <div class="price-name">Hitzeaktionsplan</div>
+      <div class="price-amount" style="color:var(--accent)">12.900 <small style="color:#9ca3af">€</small></div>
+      <div class="price-desc">Vollständiger kommunaler Hitzeaktionsplan nach WHO/BBSR-Standard. Förderbar über DAS (70%) und ERDF (80%).</div>
+      <div class="price-feats">
+        <div class="price-feat">Alles aus Einstieg</div>
+        <div class="price-feat">Copernicus LST + Versiegelung</div>
+        <div class="price-feat">Straßenzugs-Prioritätskarte</div>
+        <div class="price-feat">Szenarioanalyse 1,5/2,5/3,5°C</div>
+        <div class="price-feat">Soziale Vulnerabilität</div>
+        <div class="price-feat">Förderantrag-Unterlagen EUI/DAS</div>
+        <div class="price-feat">Dashboard (24 Monate)</div>
+      </div>
+      <a class="price-cta" href="mailto:kontakt@urbanlens.de?subject=Hitzeaktionsplan anfragen">Jetzt anfragen</a>
+    </div>
+    <div class="price-card">
+      <div class="price-name">Vollpaket</div>
+      <div class="price-amount">auf Anfrage</div>
+      <div class="price-desc">Klimaschutzkonzept + Klimaanpassungsplan + Hitzeaktionsplan + jährliche Updates. Für Städte ab 50.000 EW.</div>
+      <div class="price-feats">
+        <div class="price-feat">Alles aus Hitzeaktionsplan</div>
+        <div class="price-feat">Klimaschutzkonzept (KSG-konform)</div>
+        <div class="price-feat">Grünflächenkataster + NDVI</div>
+        <div class="price-feat">Feuchtestress & Überflutung</div>
+        <div class="price-feat">Jährliche Datenaktualisierung</div>
+        <div class="price-feat">White-Label-Option</div>
+        <div class="price-feat">Stadtrats-Präsentation</div>
+      </div>
+      <a class="price-cta" href="mailto:kontakt@urbanlens.de?subject=Vollpaket anfragen">Gespräch vereinbaren</a>
+    </div>
+  </div>
+  <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:20px">Alle Preise zzgl. MwSt. · Typische Förderquote 70–80% → Eigenanteil 1.000–4.000 € · Unverbindliches Angebot auf Anfrage</p>
+</div>
+
+<!-- CTA -->
+<div style="max-width:1200px;margin:0 auto;padding:0 20px">
+<div class="cta-block">
+  <h2>Bereit für die Klimaanalyse<br>Ihrer Stadt?</h2>
+  <p>Frankfurt wurde analysiert. Utrecht auch. Ihre Stadt könnte als nächstes folgen.<br>Kostenlose Erstberatung — wir zeigen Ihnen innerhalb von 30 Minuten was UrbanLens für Ihre Kommune leisten kann.</p>
+  <div class="cta-btns">
+    <a class="cta-primary" href="index.html" target="_blank">🗺 Live-Demo Frankfurt</a>
+    <a class="cta-primary" href="dashboard.html" target="_blank">📊 Klimapfade 2050</a>
+    <a class="cta-sec" href="mailto:kontakt@urbanlens.de">Erstberatung anfragen →</a>
+  </div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-logo">Urban<span>Lens</span></div>
+  <div class="footer-links">
+    <a class="footer-link" href="index.html">Karte</a>
+    <a class="footer-link" href="dashboard.html">Dashboard</a>
+    <a class="footer-link" href="#produkte">Produkte</a>
+    <a class="footer-link" href="#preise">Preise</a>
+    <a class="footer-link" href="mailto:kontakt@urbanlens.de">Kontakt</a>
+    <a class="footer-link" href="#">Impressum</a>
+    <a class="footer-link" href="#">Datenschutz</a>
+  </div>
+  <div class="footer-copy">
+    © 2026 UrbanLens · Open Source · Daten: Copernicus, OpenStreetMap, HLNUG, Zensus 2022, DWD · Datenlizenz Deutschland 2.0<br>
+    Alle Analysen basieren auf öffentlich zugänglichen, amtlichen Datenquellen. Kein Ersatz für formale Gutachten.
+  </div>
+</div>
+
+</body>
+</html>
