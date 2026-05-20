@@ -26,14 +26,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .layer-btn-3d.active{display:flex}
 .layer-btn-3d:hover{background:var(--surface2)}
 .layer-panel-3d-pos{top:116px!important;left:10px!important}
-.mode-bar-3d{position:fixed;top:54px;left:0;right:0;z-index:1010;display:none;align-items:center;justify-content:center;padding:5px 12px;gap:3px;overflow-x:auto;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,0.07)}
+.mode-bar-3d{position:fixed;top:54px;left:0;right:0;z-index:1010;display:none;align-items:center;justify-content:center;padding:7px 16px;gap:4px;overflow-x:auto;background:#1a1a2e;backdrop-filter:blur(8px);border-bottom:2px solid rgba(255,214,0,0.3)}
 .mode-bar-3d.active{display:flex}
-.mode-btn-3d{padding:5px 13px;border-radius:14px;font-size:11px;font-weight:700;border:none;cursor:pointer;transition:all .15s;color:#6b7280;background:transparent;white-space:nowrap;flex-shrink:0}
-.mode-btn-3d.on{background:#1a1a2e;color:#FFD600}
-.mode-btn-3d:hover:not(.on){background:rgba(0,0,0,0.07);color:#1a1a2e}
-.panel3d{position:fixed;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1);z-index:1005;top:108px;left:10px;width:272px;padding:15px;max-height:calc(100vh - 128px);overflow-y:auto;scrollbar-width:thin;display:none}
+.mode-btn-3d{padding:6px 14px;border-radius:14px;font-size:11px;font-weight:700;border:1.5px solid rgba(255,255,255,0.1);cursor:pointer;transition:all .15s;color:rgba(255,255,255,0.55);background:transparent;white-space:nowrap;flex-shrink:0}
+.mode-btn-3d.on{background:#FFD600;color:#1a1a2e;border-color:#FFD600}
+.mode-btn-3d:hover:not(.on){background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2)}
+.panel3d{position:fixed;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1);z-index:1005;top:112px;left:10px;width:272px;padding:15px;max-height:calc(100vh - 132px);overflow-y:auto;scrollbar-width:thin;display:none}
 .panel3d.active{display:block}
-.info3d{position:fixed;top:108px;right:10px;width:290px;padding:15px;display:none;max-height:calc(100vh - 128px);overflow-y:auto;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1);z-index:1005}
+.info3d{position:fixed;top:112px;right:10px;width:290px;padding:15px;display:none;max-height:calc(100vh - 128px);overflow-y:auto;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.1);z-index:1005}
 .tree-bar-3d{position:fixed;bottom:20px;left:10px;width:272px;z-index:1005;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:10px 14px;display:none;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
 .tree-bar-3d.active{display:flex}
 .toggle-sw3d{width:36px;height:20px;border-radius:10px;background:rgba(0,0,0,0.12);border:none;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
@@ -426,14 +426,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <!-- 3D MODE BAR -->
 <div class="mode-bar-3d" id="modeBar3d">
-  <button class="mode-btn-3d on" data-mode3d="co2">💨 CO₂ 3D</button>
+  <span style="font-size:10px;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:.08em;margin-right:6px;white-space:nowrap">3D Szenario</span>
+  <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin-right:6px"></div>
+  <button class="mode-btn-3d on" data-mode3d="co2">💨 CO₂-Gebäude</button>
   <button class="mode-btn-3d" data-mode3d="bi">🌡️ Hitze × Bäume</button>
-  <button class="mode-btn-3d" data-mode3d="footway">🚶 Gehwegqualität</button>
-  <button class="mode-btn-3d" data-mode3d="flight">✈️ Fluglärm-Korridor</button>
   <button class="mode-btn-3d" data-mode3d="flood">🌊 Flut-Risiko</button>
-  <button class="mode-btn-3d" data-mode3d="bike">🚲 Bike-Lücken</button>
-  <button class="mode-btn-3d" data-mode3d="bench">🪑 Bänke-Dichte</button>
-  <button class="mode-btn-3d" onclick="toggle3DView()" style="margin-left:8px;background:rgba(220,38,38,0.1);color:#dc2626;border:1px solid rgba(220,38,38,0.2)">✕ 3D schließen</button>
+  <button class="mode-btn-3d" data-mode3d="footway">🚶 Gehwegqualität</button>
+  <button class="mode-btn-3d" data-mode3d="flight">✈️ Fluglärm</button>
+  <button class="mode-btn-3d" data-mode3d="bike">🚲 Radwege</button>
+  <button class="mode-btn-3d" data-mode3d="bench">🪑 Bänke</button>
+  <div style="width:1px;height:20px;background:rgba(0,0,0,0.1);margin:0 6px"></div>
+  <button onclick="toggle3DView()" style="padding:5px 12px;border-radius:14px;font-size:11px;font-weight:700;border:1.5px solid rgba(220,38,38,0.25);cursor:pointer;background:rgba(220,38,38,0.08);color:#dc2626;white-space:nowrap">✕ 2D</button>
 </div>
 
 <!-- 3D LEFT PANELS -->
@@ -629,11 +632,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="ltoggle" id="tog-flight_noise"></button>
     <span class="lname">✈️ Fluglärm-Zonen FRA</span>
     <span class="lstatus" id="st-flight_noise"></span>
-  </div>
-  <div class="lrow" onclick="toggleLayer('co2')">
-    <button class="ltoggle" id="tog-co2"></button>
-    <span class="lname">💨 CO₂-Intensität Gebäude</span>
-    <span class="lstatus" id="st-co2"></span>
   </div>
 
   <div class="lp-section">🚲 Mobilität (OSM Overpass)</div>
@@ -3422,6 +3420,8 @@ const FLOOD_RISK_RANK3D = {low:0,medium:1,high:2,critical:3};
 const MODE_PITCH3D = {co2:52,bi:52,footway:0,flight:0,flood:20,bike:0,bench:0};
 
 let map3d = null, map3dReady = false, is3dActive = false;
+// Auto-activate 3D on first load
+window.addEventListener('load', () => setTimeout(toggle3DView, 200));
 let currentMode3d = "co2", totalCO2_3d = 0, currentReno3d = 0, trees3dOn = false;
 let dataLoaded3d = {}, currentFloodFilter3d = "all";
 
