@@ -64,6 +64,36 @@ enum Commands {
     },
     /// Print a score summary table to stdout
     Summary,
+
+    // ── Green Space Registry Lens ────────────────────────────────────────────
+
+    /// Grünflächenkataster — GeoJSON
+    GreenScore {
+        #[arg(short, long, default_value = "green_registry_ffm.geojson")]
+        output: PathBuf,
+    },
+    /// Potenzialflächen — GeoJSON
+    GreenPotential {
+        #[arg(short, long, default_value = "green_potential_ffm.geojson")]
+        output: PathBuf,
+    },
+    /// Stadtbäume — GeoJSON
+    GreenTrees {
+        #[arg(short, long, default_value = "green_trees_ffm.geojson")]
+        output: PathBuf,
+    },
+    /// Green Best Scenario — GeoJSON
+    GreenScenario {
+        #[arg(short, long, default_value = "green_scenario_ffm.geojson")]
+        output: PathBuf,
+    },
+    /// Grünflächen — CSV Export
+    GreenCsv {
+        #[arg(short, long, default_value = "green_registry_ffm.csv")]
+        output: PathBuf,
+    },
+    /// Grünflächen Zusammenfassung
+    GreenSummary,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,6 +141,72 @@ fn main() -> Result<()> {
         }
         Commands::Summary => {
             print_summary(&cells);
+        }
+
+        // ── Green Space Registry Lens ────────────────────────────────────────
+        Commands::GreenScore { output } => {
+            let spaces = urbanlens_core::green_spaces::demo::build_frankfurt_green_demo();
+            let json = urbanlens_core::export::geojson::green_spaces_to_geojson(&spaces)?;
+            std::fs::write(&output, json)?;
+            eprintln!("✓ Green Registry GeoJSON → {}", output.display());
+            print_green_summary(&spaces);
+        }
+        Commands::GreenPotential { output } => {
+            let areas = urbanlens_core::green_spaces::demo::build_frankfurt_potential_areas();
+            let json = urbanlens_core::export::geojson::potential_areas_to_geojson(&areas)?;
+            std::fs::write(&output, json)?;
+            eprintln!("✓ Potential Areas GeoJSON → {}", output.display());
+        }
+        Commands::GreenTrees { output } => {
+            let trees = urbanlens_core::green_spaces::demo::build_frankfurt_tree_demo();
+            let json = urbanlens_core::export::geojson::trees_to_geojson(&trees)?;
+            std::fs::write(&output, json)?;
+            eprintln!("✓ Trees GeoJSON → {}", output.display());
+        }
+        Commands::GreenScenario { output } => {
+            use urbanlens_core::green_spaces::scenario::compute_green_scenario;
+            let spaces = urbanlens_core::green_spaces::demo::build_frankfurt_green_demo();
+            let features: Vec<serde_json::Value> = spaces
+                .iter()
+                .filter_map(|s| {
+                    compute_green_scenario(s).ok().map(|sc| {
+                        serde_json::json!({
+                            "type": "Feature",
+                            "geometry": s.geometry.clone().unwrap_or(serde_json::json!({
+                                "type": "Point",
+                                "coordinates": [s.lon, s.lat]
+                            })),
+                            "properties": {
+                                "id": sc.object_id,
+                                "name": sc.object_name,
+                                "current_priority_score": sc.current_priority_score,
+                                "projected_priority_score": sc.projected_priority_score,
+                                "estimated_cooling_celsius": sc.estimated_cooling_celsius,
+                                "estimated_co2_sequestration_kg_yr": sc.estimated_co2_sequestration_kg_yr,
+                                "estimated_risk_reduction_pct": sc.estimated_risk_reduction_pct,
+                                "top_intervention": sc.ranked_interventions.first()
+                                    .map(|r| format!("{} {}", r.intervention.emoji(), r.intervention.label()))
+                                    .unwrap_or_default(),
+                                "rationale": sc.rationale,
+                                "methodology_note": sc.methodology_note,
+                            }
+                        })
+                    })
+                })
+                .collect();
+            let fc = serde_json::json!({"type": "FeatureCollection", "features": features});
+            std::fs::write(&output, serde_json::to_string_pretty(&fc)?)?;
+            eprintln!("✓ Green Scenario GeoJSON → {}", output.display());
+        }
+        Commands::GreenCsv { output } => {
+            let spaces = urbanlens_core::green_spaces::demo::build_frankfurt_green_demo();
+            let csv = urbanlens_core::export::csv::green_spaces_to_csv(&spaces)?;
+            std::fs::write(&output, csv)?;
+            eprintln!("✓ Green CSV → {}", output.display());
+        }
+        Commands::GreenSummary => {
+            let spaces = urbanlens_core::green_spaces::demo::build_frankfurt_green_demo();
+            print_green_summary(&spaces);
         }
     }
 

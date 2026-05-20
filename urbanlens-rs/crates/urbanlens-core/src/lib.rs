@@ -23,6 +23,7 @@
 //!   index.html / map3d.html JavaScript)
 
 pub mod heat_islands;
+pub mod green_spaces;
 pub mod export;
 pub mod demo;
 

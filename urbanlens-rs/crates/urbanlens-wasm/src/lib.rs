@@ -44,6 +44,8 @@
 
 use wasm_bindgen::prelude::*;
 
+pub mod green;
+
 use urbanlens_core::demo::{build_frankfurt_demo, make_bahnhofsviertel};
 use urbanlens_core::export::geojson::cells_to_geojson;
 use urbanlens_core::heat_islands::geospatial::StadtteilRecord;

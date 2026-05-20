@@ -82,6 +82,116 @@ fn cell_to_feature(cell: &HeatIslandCell) -> Value {
     })
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Green Space exports
+// ─────────────────────────────────────────────────────────────────────────────
+
+use crate::green_spaces::data_model::{GreenSpaceObject, PotentialArea, TreeObject};
+
+/// Convert green spaces to a GeoJSON FeatureCollection.
+pub fn green_spaces_to_geojson(spaces: &[GreenSpaceObject]) -> Result<String> {
+    let features: Vec<serde_json::Value> = spaces
+        .iter()
+        .map(|s| {
+            serde_json::json!({
+                "type": "Feature",
+                "geometry": s.geometry.clone().unwrap_or(serde_json::json!({
+                    "type": "Point",
+                    "coordinates": [s.lon, s.lat]
+                })),
+                "properties": {
+                    "id": s.id,
+                    "name": s.name,
+                    "type": s.space_type.label(),
+                    "emoji": s.space_type.emoji(),
+                    "area_m2": s.area_m2,
+                    "ndvi": s.ndvi,
+                    "tree_cover_pct": s.tree_cover_pct,
+                    "imperviousness_pct": s.imperviousness_pct,
+                    "upgrade_priority_score": s.upgrade_priority_score,
+                    "quality_label": s.quality_label(),
+                    "quality_color": s.quality_color(),
+                    "green_coverage_score": s.green_coverage_score,
+                    "tree_cover_score": s.tree_cover_score,
+                    "accessibility_score": s.accessibility_score,
+                    "cooling_potential_score": s.cooling_potential_score,
+                    "biodiversity_potential_score": s.biodiversity_potential_score,
+                    "connectivity_score": s.connectivity_score,
+                    "is_priority": s.is_priority(),
+                    "interventions": s.recommended_interventions.iter()
+                        .map(|i| format!("{} {}", i.emoji(), i.label()))
+                        .collect::<Vec<_>>(),
+                    "methodology_note": s.methodology_note,
+                }
+            })
+        })
+        .collect();
+    serde_json::to_string_pretty(&serde_json::json!({
+        "type": "FeatureCollection",
+        "features": features,
+    }))
+    .map_err(Into::into)
+}
+
+/// Convert potential areas to a GeoJSON FeatureCollection.
+pub fn potential_areas_to_geojson(areas: &[PotentialArea]) -> Result<String> {
+    let features: Vec<serde_json::Value> = areas
+        .iter()
+        .map(|a| {
+            serde_json::json!({
+                "type": "Feature",
+                "geometry": a.geometry.clone().unwrap_or(serde_json::json!(null)),
+                "properties": {
+                    "id": a.id,
+                    "name": a.name,
+                    "area_m2": a.area_m2,
+                    "current_type": a.current_type,
+                    "intervention": format!("{} {}", a.intervention.emoji(), a.intervention.label()),
+                    "feasibility": a.feasibility.label(),
+                    "estimated_cooling_celsius": a.estimated_cooling_celsius,
+                    "estimated_co2_sequestration_kg_yr": a.estimated_co2_sequestration_kg_yr,
+                    "priority_score": a.priority_score,
+                    "rationale": a.rationale,
+                }
+            })
+        })
+        .collect();
+    serde_json::to_string_pretty(&serde_json::json!({
+        "type": "FeatureCollection",
+        "features": features,
+    }))
+    .map_err(Into::into)
+}
+
+/// Convert trees to a GeoJSON FeatureCollection.
+pub fn trees_to_geojson(trees: &[TreeObject]) -> Result<String> {
+    let features: Vec<serde_json::Value> = trees
+        .iter()
+        .map(|t| {
+            serde_json::json!({
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": [t.lon, t.lat]},
+                "properties": {
+                    "id": t.id,
+                    "species": t.species,
+                    "height_m": t.height_m,
+                    "crown_diameter_m": t.crown_diameter_m,
+                    "age_class": t.age_class.label(),
+                    "condition": t.condition.label(),
+                    "shade_area_m2": t.shade_area_m2,
+                    "co2_stored_kg": t.co2_stored_kg,
+                    "cooling_score": t.cooling_score,
+                }
+            })
+        })
+        .collect();
+    serde_json::to_string_pretty(&serde_json::json!({
+        "type": "FeatureCollection",
+        "features": features,
+    }))
+    .map_err(Into::into)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -63,6 +63,46 @@ pub fn cells_to_csv(cells: &[HeatIslandCell]) -> Result<String> {
     Ok(out)
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Green Space CSV export
+// ─────────────────────────────────────────────────────────────────────────────
+
+use crate::green_spaces::data_model::GreenSpaceObject;
+
+/// Export green spaces to CSV (headers + rows).
+pub fn green_spaces_to_csv(spaces: &[GreenSpaceObject]) -> Result<String> {
+    let mut out = String::from(
+        "id,name,type,area_m2,lat,lon,ndvi,tree_cover_pct,imperviousness_pct,\
+        upgrade_priority_score,quality_label,green_coverage_score,tree_cover_score,\
+        accessibility_score,cooling_potential_score,biodiversity_potential_score,\
+        connectivity_score,is_priority\n",
+    );
+    for s in spaces {
+        out.push_str(&format!(
+            "{},{},{},{:.1},{:.6},{:.6},{:.3},{:.1},{:.1},{:.1},{},{:.1},{:.1},{:.1},{:.1},{:.1},{:.1},{}\n",
+            s.id,
+            s.name,
+            s.space_type.label(),
+            s.area_m2,
+            s.lat,
+            s.lon,
+            s.ndvi,
+            s.tree_cover_pct,
+            s.imperviousness_pct,
+            s.upgrade_priority_score,
+            s.quality_label(),
+            s.green_coverage_score,
+            s.tree_cover_score,
+            s.accessibility_score,
+            s.cooling_potential_score,
+            s.biodiversity_potential_score,
+            s.connectivity_score,
+            s.is_priority(),
+        ));
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
