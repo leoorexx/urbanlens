@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type maplibregl from "maplibre-gl";
+import maplibregl from "maplibre-gl";
 import { useStore } from "../../store";
 
 const CENTER: [number, number] = [8.6821, 50.1109];
@@ -34,30 +34,21 @@ function floodColor(r: string | null) {
 
 export function MapCanvas() {
   const mapEl  = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
 
-  const colorMode  = useStore((s) => s.colorMode);
-  const layers     = useStore((s) => s.layers);
-  const mapMode    = useStore((s) => s.mapMode);
-  const playing    = useStore((s) => s.playing);
-  const setSelected  = useStore((s) => s.setSelected);
-  const setMapReady  = useStore((s) => s.setMapReady);
-  const setMinutes   = useStore((s) => s.setMinutes);
+  const colorMode   = useStore((s) => s.colorMode);
+  const layers      = useStore((s) => s.layers);
+  const mapMode     = useStore((s) => s.mapMode);
+  const playing     = useStore((s) => s.playing);
+  const setSelected = useStore((s) => s.setSelected);
+  const setMapReady = useStore((s) => s.setMapReady);
+  const setMinutes  = useStore((s) => s.setMinutes);
 
   /* ── Init ──────────────────────────────────────────────────────────────── */
   useEffect(() => {
     if (!mapEl.current) return;
 
-    // Access CDN global at runtime (not module-eval time)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mgl = (window as any).maplibregl as typeof maplibregl;
-    if (!mgl) {
-      console.error("MapLibre GL nicht geladen — CDN-Verbindung prüfen");
-      return;
-    }
-
-    const map = new mgl.Map({
+    const map = new maplibregl.Map({
       container: mapEl.current,
       style: {
         version: 8,
@@ -75,24 +66,21 @@ export function MapCanvas() {
           },
         },
         layers: [{ id: "carto-tiles", type: "raster", source: "carto" }],
-      },
+      } as maplibregl.StyleSpecification,
       center: CENTER,
       zoom: 14,
       pitch: 55,
       bearing: -20,
       maxPitch: 85,
-      antialias: true,
     });
 
     mapRef.current = map;
-
-    map.once("load", () => { map.resize(); });
+    map.once("load", () => map.resize());
 
     map.on("load", async () => {
       /* Buildings */
       try {
         const raw = await fetch(`${BASE}data/co2_buildings_ffm.geojson`).then(r => r.json());
-
         raw.features = raw.features.map((f: any) => {
           const p  = f.properties ?? {};
           const hc = (p.heat_class as HeatClass) ?? "low";
@@ -123,7 +111,7 @@ export function MapCanvas() {
           },
         });
 
-        map.on("click", "buildings-3d", (e: any) => {
+        map.on("click", "buildings-3d", (e) => {
           const f = e.features?.[0];
           if (!f) return;
           setSelected({ props: f.properties as Record<string, any>, lngLat: [e.lngLat.lng, e.lngLat.lat] });
