@@ -145,7 +145,8 @@ export function MapCanvas() {
 
         /* Load buildings */
         try {
-          const raw = await fetch("/data/co2_buildings_ffm.geojson").then(r => r.json());
+          const base = import.meta.env.BASE_URL;
+          const raw = await fetch(`${base}data/co2_buildings_ffm.geojson`).then(r => r.json());
           bldRef.current = raw.features.map((f: any, i: number) => {
             const p  = f.properties ?? {};
             const gc = greenClass(p.green_dist_m);
@@ -166,7 +167,7 @@ export function MapCanvas() {
 
         /* Load trees */
         try {
-          const tj = await fetch("/data/trees_ffm.geojson").then(r => r.json());
+          const tj = await fetch(`${base}data/trees_ffm.geojson`).then(r => r.json());
           treeRef.current = tj.features.map((f: any) => ({
             pos: f.geometry.coordinates as [number, number],
           }));
