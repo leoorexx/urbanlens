@@ -1,29 +1,10 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useStore } from "../../store";
-import type { ColorMode } from "../../store";
 
 const CENTER: [number, number] = [8.6821, 50.1109];
+const BASE = import.meta.env.BASE_URL;
 
-type RGB  = [number, number, number];
-type RGBA = [number, number, number, number];
-
-function hexToRgb(hex: string): RGB {
-  return [
-    parseInt(hex.slice(1, 3), 16),
-    parseInt(hex.slice(3, 5), 16),
-    parseInt(hex.slice(5, 7), 16),
-  ];
-}
-
-function lerpRgba(a: RGB, b: RGB, t: number, alpha = 220): RGBA {
-  return [
-    Math.round(a[0] + (b[0] - a[0]) * t),
-    Math.round(a[1] + (b[1] - a[1]) * t),
-    Math.round(a[2] + (b[2] - a[2]) * t),
-    alpha,
-  ];
-}
-
+/* ── Color helpers ────────────────────────────────────────────────────────── */
 type HeatClass  = "low" | "mid" | "high";
 type GreenClass = "close" | "mid" | "far";
 
@@ -33,42 +14,31 @@ const BIVARIATE: Record<HeatClass, Record<GreenClass, string>> = {
   high: { close: "#5C3A8C", mid: "#B5476B", far: "#8B0000" },
 };
 
-const HEIGHT_BY_TYPE: Record<string, number> = {
-  allotment_house: 3, shed: 3, garage: 3, hut: 3, roof: 4,
-  house: 8, detached: 9, semidetached_house: 9, terrace: 10, bungalow: 5,
-  train_station: 18, public: 16, civic: 16, parking: 8, garages: 4,
-  apartments: 14, residential: 10, commercial: 12, retail: 6,
-  office: 16, industrial: 8, warehouse: 8, school: 10, hospital: 16,
-};
-
-const heightFor = (t?: string) => (t && HEIGHT_BY_TYPE[t]) || 10;
-
 function greenClass(d?: number): GreenClass {
   return d == null ? "far" : d < 50 ? "close" : d < 150 ? "mid" : "far";
 }
 
-function getBuildingColor(d: any, mode: ColorMode): RGBA {
-  if (mode === "heat") {
-    const rgb = hexToRgb(d.biColor);
-    return [...rgb, 210] as RGBA;
-  }
-  if (mode === "flood") {
-    if (!d.floodRisk) return [180, 185, 195, 60];
-    const risk: Record<string, number> = { critical: 0, high: 0.33, medium: 0.66, low: 1 };
-    return lerpRgba([127, 29, 29], [251, 191, 36], risk[d.floodRisk] ?? 0.5);
-  }
-  // co2 (default)
-  return lerpRgba([30, 58, 138], [127, 29, 29], Math.min(d.co2 / 180, 1));
+function co2Color(co2: number): string {
+  if (co2 < 30)  return "#1e3a8a";
+  if (co2 < 60)  return "#3b82f6";
+  if (co2 < 100) return "#fbbf24";
+  if (co2 < 140) return "#f97316";
+  return "#7f1d1d";
 }
 
+function floodColor(risk: string | null): string {
+  if (!risk) return "#94a3b8";
+  if (risk === "critical") return "#7f1d1d";
+  if (risk === "high")     return "#ef4444";
+  if (risk === "medium")   return "#f97316";
+  return "#fbbf24";
+}
+
+/* ── MapCanvas ────────────────────────────────────────────────────────────── */
 export function MapCanvas() {
-  const mapEl = useRef<HTMLDivElement>(null);
-  const mapRef      = useRef<any>(null);
-  const overlayRef  = useRef<any>(null);
-  const sunLightRef = useRef<any>(null);
-  const deckCtx     = useRef<{ PolygonLayer: any; ScatterplotLayer: any } | null>(null);
-  const bldRef      = useRef<any[]>([]);
-  const treeRef     = useRef<{ pos: [number, number] }[]>([]);
+  const mapEl   = useRef<HTMLDivElement>(null);
+  const mapRef  = useRef<any>(null);
+  const mglRef  = useRef<any>(null);
 
   const colorMode  = useStore((s) => s.colorMode);
   const layers     = useStore((s) => s.layers);
@@ -89,117 +59,164 @@ export function MapCanvas() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doy, minutes]);
 
-  /* ── Init (once) ──────────────────────────────────────────────────────── */
+  /* ── One-time map init ───────────────────────────────────────────────── */
   useEffect(() => {
     if (!mapEl.current) return;
     let dead = false;
 
-    (async () => {
-      const [{ default: mgl }, deckMapbox, deckCore, deckLayers] = await Promise.all([
-        import("maplibre-gl"),
-        import("@deck.gl/mapbox"),
-        import("@deck.gl/core"),
-        import("@deck.gl/layers"),
-      ]);
-      if (dead) return;
-
-      const { MapboxOverlay }                                      = deckMapbox;
-      const { _SunLight: SunLight, AmbientLight, LightingEffect } = deckCore as any;
-      const { PolygonLayer, ScatterplotLayer }                     = deckLayers;
-      deckCtx.current = { PolygonLayer, ScatterplotLayer };
+    import("maplibre-gl").then(({ default: mgl }) => {
+      if (dead || !mapEl.current) return;
+      mglRef.current = mgl;
 
       const map = new mgl.Map({
-        container: mapEl.current!,
+        container: mapEl.current,
         style: {
           version: 8,
           glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-          sources: { carto: {
-            type: "raster",
-            tiles: [
-              "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-              "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-            ],
-            tileSize: 256, attribution: "© OpenStreetMap © CARTO",
-          }},
-          layers: [{ id: "carto", type: "raster", source: "carto" }],
+          sources: {
+            carto: {
+              type: "raster",
+              tiles: [
+                "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+                "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+                "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+              ],
+              tileSize: 256,
+              attribution: "© OpenStreetMap © CARTO",
+            },
+          },
+          layers: [{ id: "carto-tiles", type: "raster", source: "carto" }],
         } as any,
-        center: CENTER, zoom: 14, pitch: 55, bearing: -20, maxPitch: 80,
-        ...({ antialias: true } as any),
-      });
+        center: CENTER,
+        zoom: 14,
+        pitch: 55,
+        bearing: -20,
+        maxPitch: 80,
+        antialias: true,
+      } as any);
+
       mapRef.current = map;
 
       map.on("load", async () => {
         if (dead) return;
 
-        const sunLight = new SunLight({
-          timestamp: currentDate.getTime(),
-          color: [255, 235, 205], intensity: 1.8, _shadow: true,
-        });
-        const ambient  = new AmbientLight({ color: [200, 220, 255], intensity: 0.7 });
-        const lighting = new LightingEffect({ sunLight, ambient });
-        sunLightRef.current = sunLight;
-
-        const overlay = new MapboxOverlay({ interleaved: true, effects: [lighting], layers: [] });
-        map.addControl(overlay as any);
-        overlayRef.current = overlay;
-
-        const base = import.meta.env.BASE_URL;
-
         /* Load buildings */
         try {
-          const raw = await fetch(`${base}data/co2_buildings_ffm.geojson`).then(r => r.json());
-          bldRef.current = raw.features.map((f: any, i: number) => {
-            const p  = f.properties ?? {};
+          const geojson = await fetch(`${BASE}data/co2_buildings_ffm.geojson`).then(r => r.json());
+
+          /* Add per-feature color properties */
+          geojson.features = geojson.features.map((f: any) => {
+            const p = f.properties ?? {};
             const gc = greenClass(p.green_dist_m);
             const hc = (p.heat_class as HeatClass) ?? "low";
-            const geom = f.geometry;
-            const polys = geom.type === "Polygon" ? [geom.coordinates]
-              : geom.type === "MultiPolygon" ? geom.coordinates : [];
             return {
-              id: i, polys,
-              height:    heightFor(p.building),
-              co2:       p.co2_kg_m2 ?? 0,
-              biColor:   BIVARIATE[hc]?.[gc] ?? "#888888",
-              floodRisk: p.flood_risk ?? null,
-              props: p,
+              ...f,
+              properties: {
+                ...p,
+                _co2Color:   co2Color(p.co2_kg_m2 ?? 0),
+                _heatColor:  BIVARIATE[hc]?.[gc] ?? "#888888",
+                _floodColor: floodColor(p.flood_risk ?? null),
+                _height:     p.height ?? p.building_levels ? (p.building_levels * 3.2) : 10,
+              },
             };
           });
-        } catch { /* graceful */ }
+
+          map.addSource("buildings", { type: "geojson", data: geojson });
+
+          map.addLayer({
+            id: "buildings-3d",
+            type: "fill-extrusion",
+            source: "buildings",
+            paint: {
+              "fill-extrusion-color": ["get", "_co2Color"],
+              "fill-extrusion-height": ["get", "_height"],
+              "fill-extrusion-base": 0,
+              "fill-extrusion-opacity": 0.85,
+            },
+          });
+
+          /* Click handler */
+          map.on("click", "buildings-3d", (e: any) => {
+            const f = e.features?.[0];
+            if (!f) return;
+            setSelected({
+              props: f.properties,
+              lngLat: [e.lngLat.lng, e.lngLat.lat],
+            });
+          });
+
+          map.on("mouseenter", "buildings-3d", () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "buildings-3d", () => {
+            map.getCanvas().style.cursor = "";
+          });
+        } catch (e) {
+          console.warn("Buildings failed to load:", e);
+        }
 
         /* Load trees */
         try {
-          const tj = await fetch(`${base}data/trees_ffm.geojson`).then(r => r.json());
-          treeRef.current = tj.features.map((f: any) => ({
-            pos: f.geometry.coordinates as [number, number],
-          }));
-        } catch { /* optional */ }
+          const trees = await fetch(`${BASE}data/trees_ffm.geojson`).then(r => r.json());
+          map.addSource("trees", { type: "geojson", data: trees });
+          map.addLayer({
+            id: "trees-circles",
+            type: "circle",
+            source: "trees",
+            paint: {
+              "circle-radius": 3,
+              "circle-color": "#34d399",
+              "circle-opacity": 0.7,
+            },
+          });
+          map.setLayoutProperty("trees-circles", "visibility", "visible");
+        } catch (e) {
+          console.warn("Trees failed to load:", e);
+        }
 
-        redraw();
         setMapReady(true);
       });
-    })();
+    });
 
-    return () => { dead = true; mapRef.current?.remove(); mapRef.current = null; };
+    return () => {
+      dead = true;
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ── Sun on time change ───────────────────────────────────────────────── */
+  /* ── Color mode → update building paint ──────────────────────────────── */
   useEffect(() => {
-    if (!sunLightRef.current || !overlayRef.current) return;
-    sunLightRef.current.timestamp = currentDate.getTime();
-    redraw();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDate]);
+    const map = mapRef.current;
+    if (!map || !map.getLayer("buildings-3d")) return;
 
-  /* ── Redraw on layer/color change ─────────────────────────────────────── */
-  useEffect(() => { redraw(); }, [colorMode, layers]); // eslint-disable-line
+    const colorProp =
+      colorMode === "heat"  ? "_heatColor"  :
+      colorMode === "flood" ? "_floodColor" : "_co2Color";
+
+    map.setPaintProperty("buildings-3d", "fill-extrusion-color", ["get", colorProp]);
+  }, [colorMode]);
+
+  /* ── Layer visibility ─────────────────────────────────────────────────── */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (map.getLayer("buildings-3d")) {
+      map.setLayoutProperty("buildings-3d",    "visibility", layers.has("buildings") ? "visible" : "none");
+    }
+    if (map.getLayer("trees-circles")) {
+      map.setLayoutProperty("trees-circles", "visibility", layers.has("trees") ? "visible" : "none");
+    }
+  }, [layers]);
 
   /* ── Map mode transitions ─────────────────────────────────────────────── */
   useEffect(() => {
-    if (!mapRef.current) return;
-    if (mapMode === "2d")     mapRef.current.easeTo({ pitch: 0,  zoom: 13, bearing: 0,   duration: 700 });
-    else if (mapMode === "3d") mapRef.current.easeTo({ pitch: 55, zoom: 14, bearing: -20, duration: 700 });
-    else                       mapRef.current.easeTo({ pitch: 72, zoom: 17, bearing: 0,   duration: 900 });
+    const map = mapRef.current;
+    if (!map) return;
+    if (mapMode === "2d")     map.easeTo({ pitch: 0,  zoom: 13, bearing: 0,   duration: 700 });
+    else if (mapMode === "3d") map.easeTo({ pitch: 55, zoom: 14, bearing: -20, duration: 700 });
+    else                       map.easeTo({ pitch: 72, zoom: 17, bearing: 0,   duration: 900 });
   }, [mapMode]);
 
   /* ── Autoplay ─────────────────────────────────────────────────────────── */
@@ -212,52 +229,20 @@ export function MapCanvas() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing]);
 
-  function redraw() {
-    const ov  = overlayRef.current;
-    const ctx = deckCtx.current;
-    if (!ov || !ctx) return;
-
-    const { PolygonLayer, ScatterplotLayer } = ctx;
-    const store  = useStore.getState();
-    const mode   = store.colorMode;
-    const active = store.layers;
-    const deckLayers: any[] = [];
-
-    if (active.has("buildings")) {
-      deckLayers.push(new PolygonLayer({
-        id: "buildings",
-        data: bldRef.current,
-        extruded: true,
-        getPolygon:   (d: any) => d.polys[0]?.[0] ?? [],
-        getElevation: (d: any) => d.height,
-        getFillColor: (d: any) => getBuildingColor(d, mode),
-        material: { ambient: 0.5, diffuse: 0.9, shininess: 12 },
-        pickable: true,
-        autoHighlight: true,
-        highlightColor: [255, 214, 0, 80],
-        onClick: (info: any) => {
-          setSelected(info.object
-            ? { props: info.object.props, lngLat: [info.coordinate?.[0] ?? 0, info.coordinate?.[1] ?? 0] }
-            : null
-          );
-        },
-        updateTriggers: { getFillColor: [mode] },
-      }));
-    }
-
-    if (active.has("trees") && treeRef.current.length > 0) {
-      deckLayers.push(new ScatterplotLayer({
-        id: "trees",
-        data: treeRef.current,
-        getPosition: (d: any) => d.pos,
-        getRadius: 4, radiusUnits: "meters",
-        getFillColor: [52, 211, 153, 200],
-        stroked: false, pickable: false,
-      }));
-    }
-
-    ov.setProps({ layers: deckLayers });
-  }
+  /* ── Light direction from sun ─────────────────────────────────────────── */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    import("suncalc").then(m => {
+      const sc  = (m as any).default ?? m;
+      const pos = sc.getPosition(currentDate, 50.1109, 8.6821);
+      const az  = (pos.azimuth * 180) / Math.PI + 180;
+      const alt = Math.max((pos.altitude * 180) / Math.PI, 5);
+      try {
+        map.setLight({ anchor: "map", position: [1.5, az, alt], intensity: 0.35 });
+      } catch { /* ignore */ }
+    });
+  }, [currentDate]);
 
   return <div ref={mapEl} className="absolute inset-0" />;
 }
