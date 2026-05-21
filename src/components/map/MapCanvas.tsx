@@ -2,10 +2,6 @@ import { useEffect, useRef } from "react";
 import type maplibregl from "maplibre-gl";
 import { useStore } from "../../store";
 
-// Load MapLibre from CDN (avoids ES module bundling issues)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mgl = (window as any).maplibregl as typeof maplibregl;
-
 const CENTER: [number, number] = [8.6821, 50.1109];
 const BASE = import.meta.env.BASE_URL;
 
@@ -38,7 +34,8 @@ function floodColor(r: string | null) {
 
 export function MapCanvas() {
   const mapEl  = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapRef = useRef<any>(null);
 
   const colorMode  = useStore((s) => s.colorMode);
   const layers     = useStore((s) => s.layers);
@@ -52,14 +49,22 @@ export function MapCanvas() {
   useEffect(() => {
     if (!mapEl.current) return;
 
+    // Access CDN global at runtime (not module-eval time)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mgl = (window as any).maplibregl as typeof maplibregl;
+    if (!mgl) {
+      console.error("MapLibre GL nicht geladen — CDN-Verbindung prüfen");
+      return;
+    }
+
     const map = new mgl.Map({
       container: mapEl.current,
       style: {
-        version: 8 as const,
+        version: 8,
         glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
         sources: {
           carto: {
-            type: "raster" as const,
+            type: "raster",
             tiles: [
               "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
               "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
@@ -69,14 +74,14 @@ export function MapCanvas() {
             attribution: "© OpenStreetMap © CARTO",
           },
         },
-        layers: [{ id: "carto-tiles", type: "raster" as const, source: "carto" }],
+        layers: [{ id: "carto-tiles", type: "raster", source: "carto" }],
       },
       center: CENTER,
       zoom: 14,
       pitch: 55,
       bearing: -20,
       maxPitch: 85,
-      ...({ antialias: true } as object),
+      antialias: true,
     });
 
     mapRef.current = map;
@@ -121,7 +126,7 @@ export function MapCanvas() {
         map.on("click", "buildings-3d", (e: any) => {
           const f = e.features?.[0];
           if (!f) return;
-          setSelected({ props: f.properties as Record<string,any>, lngLat: [e.lngLat.lng, e.lngLat.lat] });
+          setSelected({ props: f.properties as Record<string, any>, lngLat: [e.lngLat.lng, e.lngLat.lat] });
         });
         map.on("mouseenter", "buildings-3d", () => { map.getCanvas().style.cursor = "pointer"; });
         map.on("mouseleave", "buildings-3d", () => { map.getCanvas().style.cursor = ""; });
