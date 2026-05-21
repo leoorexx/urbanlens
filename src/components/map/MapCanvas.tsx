@@ -143,9 +143,10 @@ export function MapCanvas() {
         map.addControl(overlay as any);
         overlayRef.current = overlay;
 
+        const base = import.meta.env.BASE_URL;
+
         /* Load buildings */
         try {
-          const base = import.meta.env.BASE_URL;
           const raw = await fetch(`${base}data/co2_buildings_ffm.geojson`).then(r => r.json());
           bldRef.current = raw.features.map((f: any, i: number) => {
             const p  = f.properties ?? {};
