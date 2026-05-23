@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import maplibregl from "maplibre-gl";
 import { useStore } from "../../store";
 
 const CENTER: [number, number] = [8.6821, 50.1109];
@@ -32,9 +31,12 @@ function floodColor(r: string | null) {
   return "#fbbf24";
 }
 
+/* global maplibregl injected by CDN script in index.html */
+declare const maplibregl: any;
+
 export function MapCanvas() {
   const mapEl  = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
+  const mapRef = useRef<any>(null);
 
   const colorMode   = useStore((s) => s.colorMode);
   const layers      = useStore((s) => s.layers);
@@ -66,12 +68,13 @@ export function MapCanvas() {
           },
         },
         layers: [{ id: "carto-tiles", type: "raster", source: "carto" }],
-      } as maplibregl.StyleSpecification,
+      },
       center: CENTER,
       zoom: 14,
       pitch: 55,
       bearing: -20,
       maxPitch: 85,
+      antialias: true,
     });
 
     mapRef.current = map;
@@ -111,10 +114,10 @@ export function MapCanvas() {
           },
         });
 
-        map.on("click", "buildings-3d", (e) => {
+        map.on("click", "buildings-3d", (e: any) => {
           const f = e.features?.[0];
           if (!f) return;
-          setSelected({ props: f.properties as Record<string, any>, lngLat: [e.lngLat.lng, e.lngLat.lat] });
+          setSelected({ props: f.properties, lngLat: [e.lngLat.lng, e.lngLat.lat] });
         });
         map.on("mouseenter", "buildings-3d", () => { map.getCanvas().style.cursor = "pointer"; });
         map.on("mouseleave", "buildings-3d", () => { map.getCanvas().style.cursor = ""; });
