@@ -1,0 +1,8 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[8.6701,50.1075]},"properties":{"id":"pa_bahnhof_parking","name":"Parkplatz Kaiserstraße — Entsiegelung","area_m2":2400,"current_type":"Parkplatz","intervention":"⛏ Entsiegelung","feasibility":"Mittel","estimated_cooling_celsius":0.6,"estimated_co2_sequestration_kg_yr":480,"priority_score":82,"rationale":"Dichtbebaute Innenstadt, hohe LST, direkter Nutzen für 9.800 Anwohner."}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[8.6834,50.1322]},"properties":{"id":"pa_nordend_roof","name":"Gründach Nordend-Ost","area_m2":3200,"current_type":"Flachdach","intervention":"🏠 Dachbegrünung","feasibility":"Hoch","estimated_cooling_celsius":0.8,"estimated_co2_sequestration_kg_yr":48,"priority_score":74,"rationale":"Dichtes Gründerzeit-Quartier ohne Grün. 50% Förderung verfügbar."}},
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[8.6882,50.1002]},"properties":{"id":"pa_sachsenhausen_corridor","name":"Grünkorridor Sachsenhausen–Ostpark","area_m2":8500,"current_type":"Brache / Restflächen","intervention":"🔗 Grünkorridor anlegen","feasibility":"Gering","estimated_cooling_celsius":1.2,"estimated_co2_sequestration_kg_yr":1700,"priority_score":68,"rationale":"Verbindet isolierte Grünflächen — Biodiversitätskorridor fehlt."}}
+  ]
+}
