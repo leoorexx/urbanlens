@@ -1,15 +1,478 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>UrbanLens · Frankfurt</title>
-    <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
-    <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UrbanLens · Frankfurt</title>
+  <link href="https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f4; color: #1c1917; }
+    #map { position: absolute; inset: 0; }
+
+    .panel {
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      border: 1px solid rgba(0,0,0,0.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    #topbar {
+      position: absolute; top: 16px; left: 16px; right: 16px;
+      z-index: 10; display: flex; gap: 12px; align-items: flex-start; pointer-events: none;
+    }
+    #logo { padding: 12px 16px; pointer-events: auto; }
+    #logo-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    #logo-title span { color: #f59e0b; }
+    #logo-sub { font-size: 10px; color: #a8a29e; margin-top: 2px; }
+    #dash-btn {
+      background: #1c1917; color: #fbbf24; border: none; border-radius: 8px;
+      padding: 4px 10px; font-size: 10px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+    }
+    #dash-btn:hover { background: #44403c; }
+
+    #modes { padding: 6px; pointer-events: auto; display: flex; gap: 4px; }
+    .mode-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 12px; border: none; cursor: pointer;
+      font-size: 12px; font-weight: 600; transition: all 0.15s; background: transparent; color: #78716c;
+    }
+    .mode-btn:hover { background: #f5f5f4; color: #1c1917; }
+    .mode-btn.active { background: #1c1917; color: #fbbf24; }
+
+    #legend { position: absolute; left: 16px; top: 88px; z-index: 10; width: 224px; padding: 16px; }
+    #legend h3 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #a8a29e; margin-bottom: 4px; }
+    #legend p { font-size: 11px; color: #78716c; line-height: 1.5; margin-bottom: 10px; }
+    .grad-bar { height: 8px; border-radius: 99px; margin-bottom: 4px; }
+    .grad-labels { display: flex; justify-content: space-between; font-size: 9px; color: #a8a29e; margin-bottom: 8px; }
+    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #57534e; margin-bottom: 4px; }
+    .legend-dot { width: 20px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+    .warn-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+    .warn-box b { font-size: 10px; color: #dc2626; display: block; margin-bottom: 2px; }
+    .warn-box p { font-size: 10px; color: #ef4444; margin: 0; }
+    .bivariate { display: grid; grid-template-columns: auto repeat(3, 1fr); gap: 3px; margin-top: 8px; font-size: 9px; }
+    .bv-cell { height: 22px; border-radius: 4px; }
+    .bv-label { color: #a8a29e; display: flex; align-items: center; justify-content: flex-end; padding-right: 4px; }
+    .bv-header { color: #a8a29e; text-align: center; }
+    .trees-toggle { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #57534e; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e7e5e4; cursor: pointer; }
+    .trees-toggle input { accent-color: #10b981; }
+
+    #info-panel { position: absolute; right: 16px; top: 88px; z-index: 10; width: 270px; padding: 16px; display: none; }
+    #info-panel.open { display: block; }
+    #info-close { position: absolute; top: 10px; right: 10px; background: none; border: none; cursor: pointer; font-size: 14px; color: #a8a29e; padding: 4px 8px; border-radius: 8px; }
+    #info-close:hover { background: #f5f5f4; }
+    #info-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #a8a29e; }
+    #info-name { font-size: 13px; font-weight: 600; margin-top: 2px; text-transform: capitalize; }
+    #info-rows { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .info-row { border-bottom: 1px solid #f5f5f4; padding-bottom: 5px; }
+    .info-k { font-size: 10px; color: #a8a29e; }
+    .info-v { font-size: 11px; font-family: ui-monospace, monospace; text-align: right; color: #1c1917; }
+    #info-warn { display: none; margin-top: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 10px 12px; }
+    #info-warn b { font-size: 10px; color: #dc2626; display: block; }
+    #info-warn p { font-size: 10px; color: #ef4444; margin: 2px 0 0; }
+
+    #timeline { position: absolute; bottom: 16px; left: 16px; right: 16px; z-index: 10; padding: 16px; }
+    .tl-row { display: flex; align-items: center; gap: 12px; }
+    .tl-row + .tl-row { margin-top: 10px; }
+    .play-btn {
+      width: 36px; height: 36px; border-radius: 50%; background: #1c1917; color: #fff; border: none; cursor: pointer;
+      display: grid; place-items: center; flex-shrink: 0; transition: background 0.15s;
+    }
+    .play-btn:hover { background: #44403c; }
+    .icon-btn { width: 36px; height: 36px; border-radius: 50%; background: #f5f5f4; color: #78716c; display: grid; place-items: center; flex-shrink: 0; }
+    .slider-wrap { flex: 1; min-width: 0; }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: #a8a29e; margin-bottom: 2px; }
+    input[type=range] { width: 100%; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 99px; background: #e7e5e4; outline: none; cursor: pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #f59e0b; cursor: pointer; }
+    input[type=range].green::-webkit-slider-thumb { background: #10b981; }
+    .now-btn { background: none; border: 1px solid #e7e5e4; border-radius: 10px; padding: 6px 12px; font-size: 11px; font-weight: 500; color: #57534e; cursor: pointer; flex-shrink: 0; }
+    .now-btn:hover { background: #f5f5f4; }
+    .date-display { font-size: 11px; font-family: ui-monospace, monospace; color: #a8a29e; flex-shrink: 0; }
+
+    #loader { position: absolute; inset: 0; z-index: 30; background: rgba(245,245,244,0.85); backdrop-filter: blur(6px); display: grid; place-items: center; }
+    #loader-box { background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 8px 40px rgba(0,0,0,0.12); text-align: center; }
+    #loader-title { font-size: 18px; font-weight: 700; }
+    #loader-title span { color: #f59e0b; }
+    #loader-bar { width: 180px; height: 4px; background: #f5f5f4; border-radius: 99px; overflow: hidden; margin: 12px auto; }
+    #loader-fill { width: 50%; height: 100%; background: #f59e0b; border-radius: 99px; animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    #loader p { font-size: 11px; color: #a8a29e; }
+
+    #dashboard { position: absolute; inset: 0; z-index: 40; background: #f5f5f4; overflow-y: auto; display: none; }
+    #dashboard.open { display: block; }
+    .db-inner { max-width: 900px; margin: 0 auto; padding: 0 24px 64px; }
+    .db-header { display: flex; align-items: center; justify-content: space-between; padding: 32px 0 24px; border-bottom: 1px solid #e7e5e4; margin-bottom: 24px; }
+    .db-header h1 { font-size: 22px; font-weight: 700; }
+    .db-header p { font-size: 11px; color: #a8a29e; margin-top: 2px; }
+    .db-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #a8a29e; margin-bottom: 4px; }
+    .back-btn { background: #fff; border: 1px solid #e7e5e4; border-radius: 12px; padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer; color: #57534e; flex-shrink: 0; }
+    .back-btn:hover { background: #f5f5f4; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .kpi { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 16px; padding: 18px; }
+    .kpi .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #a8a29e; }
+    .kpi .kpi-val { font-size: 26px; font-weight: 700; line-height: 1; margin-top: 8px; }
+    .kpi .kpi-sub { font-size: 10px; color: #a8a29e; margin-top: 4px; }
+    .db-section { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+    .db-section h2 { font-size: 15px; font-weight: 700; }
+    .db-section .desc { font-size: 11px; color: #a8a29e; margin: 3px 0 20px; }
+    .bar-chart { display: flex; flex-direction: column; gap: 7px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .bar-name { font-size: 10px; color: #57534e; width: 100px; flex-shrink: 0; text-align: right; }
+    .bar-track { flex: 1; height: 14px; background: #f5f5f4; border-radius: 99px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 99px; }
+    .bar-val { font-size: 10px; color: #a8a29e; width: 50px; flex-shrink: 0; font-family: ui-monospace, monospace; }
+    .pie-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; margin-top: 8px; }
+    .callout { border: 1px solid #fecaca; background: #fef2f2; border-radius: 16px; padding: 24px; margin-bottom: 20px; display: flex; gap: 16px; }
+    .callout-icon { font-size: 28px; }
+    .callout h3 { font-size: 13px; font-weight: 700; color: #7f1d1d; margin-bottom: 10px; }
+    .callout-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .callout-grid b { font-size: 13px; color: #b91c1c; display: block; }
+    .callout-grid span { font-size: 11px; color: #dc2626; }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="panel" id="logo">
+    <div id="logo-title">
+      Urban<span>Lens</span>
+      <span style="font-size:11px;font-weight:400;color:#a8a29e">Frankfurt</span>
+      <button id="dash-btn">Dashboard →</button>
+    </div>
+    <div id="logo-sub"><span id="time-display">--:--</span> · <span id="date-display">---</span></div>
+  </div>
+  <div class="panel" id="modes">
+    <button class="mode-btn active" data-mode="co2">🌡 <span>Klimakrise</span></button>
+    <button class="mode-btn" data-mode="heat">🌿 <span>Hitze &amp; Grün</span></button>
+    <button class="mode-btn" data-mode="flood">🌊 <span>Überflutung</span></button>
+    <button class="mode-btn" data-mode="green">👁 <span>Straßenebene</span></button>
+  </div>
+</div>
+
+<!-- LEFT LEGEND -->
+<div class="panel" id="legend"></div>
+
+<!-- BUILDING INFO -->
+<div class="panel" id="info-panel">
+  <button id="info-close">✕</button>
+  <div id="info-title">Gebäude</div>
+  <div id="info-name">—</div>
+  <div id="info-rows"></div>
+  <div id="info-warn"><b>Hoher Sanierungsbedarf</b><p>BEG-Förderung verfügbar · über Frankfurter Schnitt (62 kg/m²)</p></div>
+</div>
+
+<!-- TIMELINE -->
+<div class="panel" id="timeline">
+  <div class="tl-row">
+    <button class="play-btn" id="play-btn">
+      <svg id="play-icon" width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 1L9 5L2 9Z"/></svg>
+      <svg id="pause-icon" width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style="display:none"><rect x="1" y="1" width="3" height="8"/><rect x="6" y="1" width="3" height="8"/></svg>
+    </button>
+    <div class="slider-wrap">
+      <div class="slider-labels"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+      <input type="range" id="time-slider" min="0" max="1439" step="15" value="720" />
+    </div>
+    <button class="now-btn" id="now-btn">Jetzt</button>
+  </div>
+  <div class="tl-row">
+    <div class="icon-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>
+      </svg>
+    </div>
+    <div class="slider-wrap">
+      <div class="slider-labels"><span>Jan</span><span>Apr</span><span>Jul</span><span>Okt</span><span>Dez</span></div>
+      <input type="range" id="date-slider" min="1" max="365" step="1" value="143" class="green" />
+    </div>
+    <div class="date-display" id="date-iso">—</div>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div id="loader-box">
+    <div id="loader-title">Urban<span>Lens</span></div>
+    <div id="loader-bar"><div id="loader-fill"></div></div>
+    <p>Lade Frankfurt · 8k Gebäude · 22k Bäume</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="db-inner">
+    <div class="db-header">
+      <div>
+        <div class="db-label">UrbanLens · Frankfurt am Main</div>
+        <h1>Klimarisiko-Dashboard</h1>
+        <p>8.400 Gebäude · Open Data FFM · Sentinel-3 LST · HWGK Hessen · Stand 2024</p>
+      </div>
+      <button class="back-btn" id="back-btn">🗺 Zur Karte</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Analysiert</div><div class="kpi-val" style="color:#6366f1">8.400</div><div class="kpi-sub">Frankfurter Innenstadt</div></div>
+      <div class="kpi"><div class="kpi-label">Ø CO₂-Belastung</div><div class="kpi-val" style="color:#f97316">62 <small style="font-size:14px;color:#a8a29e">kg/m²</small></div><div class="kpi-sub">Frankfurter Schnitt 2024</div></div>
+      <div class="kpi"><div class="kpi-label">Hitzetote bis 2050</div><div class="kpi-val" style="color:#ef4444">340</div><div class="kpi-sub">ohne Klimamaßnahmen</div></div>
+      <div class="kpi"><div class="kpi-label">Flutschäden bis 2050</div><div class="kpi-val" style="color:#3b82f6">€2,3Mrd</div><div class="kpi-sub">HQ100-Szenario</div></div>
+    </div>
+    <div class="db-section">
+      <h2>CO₂-Emissionen nach Stadtteil</h2>
+      <p class="desc">Durchschnittliche CO₂-Belastung in kg/m²·Jahr</p>
+      <div class="bar-chart">
+        <div class="bar-row"><div class="bar-name">Sachsenhausen</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#7f1d1d"></div></div><div class="bar-val">118 kg</div></div>
+        <div class="bar-row"><div class="bar-name">Bornheim</div><div class="bar-track"><div class="bar-fill" style="width:95%;background:#ef4444"></div></div><div class="bar-val">112 kg</div></div>
+        <div class="bar-row"><div class="bar-name">Gallusviertel</div><div class="bar-track"><div class="bar-fill" style="width:88%;background:#f97316"></div></div><div class="bar-val">104 kg</div></div>
+        <div class="bar-row"><div class="bar-name">Rödelheim</div><div class="bar-track"><div class="bar-fill" style="width:75%;background:#fbbf24"></div></div><div class="bar-val">89 kg</div></div>
+        <div class="bar-row"><div class="bar-name">Bockenheim</div><div class="bar-track"><div class="bar-fill" style="width:63%;background:#fbbf24"></div></div><div class="bar-val">74 kg</div></div>
+        <div class="bar-row"><div class="bar-name">Nordend</div><div class="bar-track"><div class="bar-fill" style="width:44%;background:#3b82f6"></div></div><div class="bar-val">52 kg</div></div>
+        <div class="bar-row"><div class="bar-name">Westend</div><div class="bar-track"><div class="bar-fill" style="width:32%;background:#1e3a8a"></div></div><div class="bar-val">38 kg</div></div>
+      </div>
+    </div>
+    <div class="db-section">
+      <h2>Hitzebelastung × Grünversorgung</h2>
+      <p class="desc">Bivariate Analyse: thermische Belastung kombiniert mit Grünabstand</p>
+      <div class="pie-wrap">
+        <canvas id="pie-canvas" width="220" height="220"></canvas>
+        <div>
+          <div class="legend-row"><div class="legend-dot" style="background:#7FB069"></div>Kühl + Grün nah (1.840)</div>
+          <div class="legend-row"><div class="legend-dot" style="background:#F4E1B5"></div>Kühl + Grün fern (920)</div>
+          <div class="legend-row"><div class="legend-dot" style="background:#5C3A8C"></div>Heiß + Grün nah (1.240)</div>
+          <div class="legend-row"><div class="legend-dot" style="background:#B5476B"></div>Heiß + Grün mittel (2.180)</div>
+          <div class="legend-row"><div class="legend-dot" style="background:#8B0000"></div>Heiß + Grün fern (2.220)</div>
+        </div>
+      </div>
+    </div>
+    <div class="db-section">
+      <h2>Überflutungsrisiko (HQ100)</h2>
+      <p class="desc">Gebäude im 100-jährlichen Hochwasserbereich — HWGK Hessen</p>
+      <div class="bar-chart">
+        <div class="bar-row"><div class="bar-name">Kritisch</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#7f1d1d"></div></div><div class="bar-val">140</div></div>
+        <div class="bar-row"><div class="bar-name">Hoch</div><div class="bar-track"><div class="bar-fill" style="width:5%;background:#ef4444"></div></div><div class="bar-val">320</div></div>
+        <div class="bar-row"><div class="bar-name">Mittel</div><div class="bar-track"><div class="bar-fill" style="width:9%;background:#f97316"></div></div><div class="bar-val">580</div></div>
+        <div class="bar-row"><div class="bar-name">Gering</div><div class="bar-track"><div class="bar-fill" style="width:15%;background:#fbbf24"></div></div><div class="bar-val">960</div></div>
+        <div class="bar-row"><div class="bar-name">Kein Risiko</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#e5e7eb"></div></div><div class="bar-val">6.400</div></div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-icon">⚠</div>
+      <div>
+        <h3>Kosten des Nichtstuns bis 2050</h3>
+        <div class="callout-grid">
+          <div><b>+3,8 °C</b><span>mittlere Temperaturerhöhung Frankfurt</span></div>
+          <div><b>340 Hitzetote/Jahr</b><span>ohne Klimaanpassungsmaßnahmen</span></div>
+          <div><b>NICE-Score −28 Pkt.</b><span>mehrere Stadtteile nicht mehr sanierbar</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE = location.pathname.replace(/\/[^/]*$/, '/');
+const BIVARIATE = {
+  low:  { close:"#7FB069", mid:"#C9D6B5", far:"#F4E1B5" },
+  mid:  { close:"#8B7AB8", mid:"#C99BB0", far:"#D97757" },
+  high: { close:"#5C3A8C", mid:"#B5476B", far:"#8B0000" },
+};
+function greenClass(d) { return d==null?"far":d<50?"close":d<150?"mid":"far"; }
+function co2Color(v) {
+  if(v<30) return "#1e3a8a"; if(v<60) return "#3b82f6";
+  if(v<100) return "#fbbf24"; if(v<140) return "#f97316"; return "#7f1d1d";
+}
+function floodColor(r) {
+  if(!r) return "#94a3b8";
+  if(r==="critical") return "#7f1d1d"; if(r==="high") return "#ef4444";
+  if(r==="medium") return "#f97316"; return "#fbbf24";
+}
+
+/* MAP */
+const map = new maplibregl.Map({
+  container: "map",
+  style: {
+    version: 8,
+    glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    sources: { carto: {
+      type: "raster",
+      tiles: [
+        "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+      ],
+      tileSize: 256, attribution: "© OpenStreetMap © CARTO",
+    }},
+    layers: [{ id:"carto-tiles", type:"raster", source:"carto" }],
+  },
+  center: [8.6821, 50.1109], zoom: 14, pitch: 55, bearing: -20, maxPitch: 85, antialias: true,
+});
+
+map.once("load", () => map.resize());
+map.on("load", async () => {
+  try {
+    const raw = await fetch(BASE + "data/co2_buildings_ffm.geojson").then(r=>r.json());
+    raw.features = raw.features.map(f => {
+      const p = f.properties||{};
+      const hc = p.heat_class||"low";
+      const gc = greenClass(p.green_dist_m);
+      const lvl = p.building_levels ? Number(p.building_levels)*3.2 : null;
+      return { ...f, properties: { ...p,
+        _co2Color: co2Color(p.co2_kg_m2||0),
+        _heatColor: (BIVARIATE[hc]||{})[gc]||"#888",
+        _floodColor: floodColor(p.flood_risk||null),
+        _height: lvl||10,
+      }};
+    });
+    map.addSource("buildings", { type:"geojson", data:raw });
+    map.addLayer({ id:"buildings-3d", type:"fill-extrusion", source:"buildings",
+      paint: {
+        "fill-extrusion-color":   ["get","_co2Color"],
+        "fill-extrusion-height":  ["get","_height"],
+        "fill-extrusion-base":    0,
+        "fill-extrusion-opacity": 0.9,
+      },
+    });
+    map.on("click","buildings-3d", e => {
+      const f = e.features&&e.features[0]; if(!f) return;
+      showInfo(f.properties);
+    });
+    map.on("mouseenter","buildings-3d",()=>{ map.getCanvas().style.cursor="pointer"; });
+    map.on("mouseleave","buildings-3d",()=>{ map.getCanvas().style.cursor=""; });
+  } catch(e) { console.error("Buildings:",e); }
+
+  try {
+    const trees = await fetch(BASE + "data/trees_ffm.geojson").then(r=>r.json());
+    map.addSource("trees", { type:"geojson", data:trees });
+    map.addLayer({ id:"trees-layer", type:"circle", source:"trees",
+      layout: { visibility:"none" },
+      paint: { "circle-radius":3, "circle-color":"#34d399", "circle-opacity":0.75 },
+    });
+  } catch(e) { console.warn("Trees:",e); }
+
+  document.getElementById("loader").style.display="none";
+  updateLegend();
+});
+
+/* MODES */
+let mode = "co2";
+const MODES = {
+  co2:   { emoji:"🌡", label:"Klimakrise",   desc:"CO₂-Emissionen nach Gebäude" },
+  heat:  { emoji:"🌿", label:"Hitze & Grün", desc:"Thermische Hotspots × Baumabstand" },
+  flood: { emoji:"🌊", label:"Überflutung",  desc:"Gebäude im HQ100-Risikobereich" },
+  green: { emoji:"👁",  label:"Straßenebene", desc:"Fußgänger-Perspektive 70°" },
+};
+document.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    mode = btn.dataset.mode;
+    document.querySelectorAll(".mode-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    if(map.getLayer("buildings-3d")) {
+      const prop = mode==="heat"?"_heatColor":mode==="flood"?"_floodColor":"_co2Color";
+      map.setPaintProperty("buildings-3d","fill-extrusion-color",["get",prop]);
+    }
+    if(mode==="green") map.easeTo({pitch:72,zoom:17,bearing:0,duration:900});
+    else               map.easeTo({pitch:55,zoom:14,bearing:-20,duration:700});
+    updateLegend();
+  });
+});
+
+function updateLegend() {
+  const el = document.getElementById("legend");
+  const m = MODES[mode];
+  let html = `<h3>${m.emoji} ${m.label}</h3><p>${m.desc}</p>`;
+  if(mode==="co2") {
+    html += `<div class="grad-bar" style="background:linear-gradient(90deg,#1e3a8a,#3b82f6,#fbbf24,#f97316,#7f1d1d)"></div>
+    <div class="grad-labels"><span>0</span><span>60</span><span>100</span><span>140</span><span>180+</span></div>
+    <p style="margin-bottom:6px">kg CO₂/m² · Baujahr + EPC-Hessen</p>
+    <div class="warn-box"><b>⚠ Ohne Maßnahmen 2050</b><p>+3,8°C · 340 Hitzetote/Jahr<br>€2,3 Mrd. Flutschäden</p></div>`;
+  } else if(mode==="heat") {
+    html += `<div class="bivariate"><div></div>
+    <div class="bv-header">nah</div><div class="bv-header">mittel</div><div class="bv-header">fern</div>`;
+    [["high","heiß"],["mid","mittel"],["low","kühl"]].forEach(([h,l])=>{
+      html += `<div class="bv-label">${l}</div>`;
+      ["close","mid","far"].forEach(g=>{ html+=`<div class="bv-cell" style="background:${BIVARIATE[h][g]}"></div>`; });
+    });
+    html += `</div>`;
+  } else if(mode==="flood") {
+    html += [["#7f1d1d","Kritisch — HQ50"],["#ef4444","Hoch — HQ100"],["#f97316","Mittel"],["#fbbf24","Gering"]]
+      .map(([c,l])=>`<div class="legend-row"><div class="legend-dot" style="background:${c}"></div>${l}</div>`).join("");
+  } else {
+    html += `<p>Fußgänger-Perspektive 72° Neigung.<br>Scroll zum Zoomen, Drag zum Drehen.</p>`;
+  }
+  html += `<label class="trees-toggle"><input type="checkbox" id="trees-cb"> 🌳 Straßenbäume (22k)</label>`;
+  el.innerHTML = html;
+  document.getElementById("trees-cb").addEventListener("change", e=>{
+    if(map.getLayer("trees-layer"))
+      map.setLayoutProperty("trees-layer","visibility",e.target.checked?"visible":"none");
+  });
+}
+
+/* BUILDING INFO */
+function showInfo(p) {
+  document.getElementById("info-name").textContent = (p.building||"Unbekannt").replace(/_/g," ");
+  document.getElementById("info-rows").innerHTML = [
+    ["CO₂ kg/m²",  p.co2_kg_m2!=null?Number(p.co2_kg_m2).toFixed(1):"—"],
+    ["CO₂-Klasse", p.co2_class||"—"],
+    ["Δ LST",      p.lst_delta!=null?p.lst_delta+" K":"—"],
+    ["Hitzeklasse",p.heat_class||"—"],
+    ["Grün-Abst.", p.green_dist_m!=null?p.green_dist_m+" m":"—"],
+    ["Flutrisiko", p.flood_risk||"—"],
+  ].map(([k,v])=>`<div class="info-row"><div class="info-k">${k}</div><div class="info-v">${v}</div></div>`).join("");
+  document.getElementById("info-warn").style.display = Number(p.co2_kg_m2)>100?"block":"none";
+  document.getElementById("info-panel").classList.add("open");
+}
+document.getElementById("info-close").addEventListener("click",()=>{ document.getElementById("info-panel").classList.remove("open"); });
+
+/* TIMELINE */
+const pad = n => String(n).padStart(2,"0");
+const timeSlider = document.getElementById("time-slider");
+const dateSlider = document.getElementById("date-slider");
+function updateTime() {
+  const m = parseInt(timeSlider.value);
+  document.getElementById("time-display").textContent = `${pad(Math.floor(m/60))}:${pad(m%60)}`;
+}
+function updateDate() {
+  const doy = parseInt(dateSlider.value);
+  const d = new Date(new Date().getFullYear(),0,1); d.setDate(doy);
+  document.getElementById("date-iso").textContent = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  document.getElementById("date-display").textContent = d.toLocaleDateString("de-DE",{day:"2-digit",month:"long"});
+}
+const now = new Date();
+timeSlider.value = now.getHours()*60+now.getMinutes();
+dateSlider.value = Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
+updateTime(); updateDate();
+timeSlider.addEventListener("input",updateTime);
+dateSlider.addEventListener("input",updateDate);
+document.getElementById("now-btn").addEventListener("click",()=>{
+  const n=new Date(); timeSlider.value=n.getHours()*60+n.getMinutes();
+  dateSlider.value=Math.floor((n-new Date(n.getFullYear(),0,0))/86400000);
+  updateTime(); updateDate();
+});
+let playing=false, playInterval=null;
+document.getElementById("play-btn").addEventListener("click",()=>{
+  playing=!playing;
+  document.getElementById("play-icon").style.display = playing?"none":"";
+  document.getElementById("pause-icon").style.display = playing?"":"none";
+  if(playing) { playInterval=setInterval(()=>{ timeSlider.value=(parseInt(timeSlider.value)+15)%1440; updateTime(); },100); }
+  else clearInterval(playInterval);
+});
+
+/* DASHBOARD */
+document.getElementById("dash-btn").addEventListener("click",()=>{ document.getElementById("dashboard").classList.add("open"); drawPie(); });
+document.getElementById("back-btn").addEventListener("click",()=>{ document.getElementById("dashboard").classList.remove("open"); });
+let pieDrawn=false;
+function drawPie() {
+  if(pieDrawn) return; pieDrawn=true;
+  const c=document.getElementById("pie-canvas"), ctx=c.getContext("2d");
+  const data=[{v:1840,c:"#7FB069"},{v:920,c:"#F4E1B5"},{v:1240,c:"#5C3A8C"},{v:2180,c:"#B5476B"},{v:2220,c:"#8B0000"}];
+  const total=data.reduce((s,d)=>s+d.v,0);
+  let angle=-Math.PI/2;
+  data.forEach(d=>{ const sl=(d.v/total)*Math.PI*2; ctx.beginPath(); ctx.moveTo(110,110); ctx.arc(110,110,100,angle,angle+sl); ctx.closePath(); ctx.fillStyle=d.c; ctx.fill(); angle+=sl; });
+  ctx.beginPath(); ctx.arc(110,110,48,0,Math.PI*2); ctx.fillStyle="#fff"; ctx.fill();
+}
+</script>
+</body>
 </html>
