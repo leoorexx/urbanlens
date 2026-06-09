@@ -826,16 +826,19 @@ function loadCity(c){
         return known.some(k=>n===k||n.includes(k)||k.includes(n));
       });
       if(!geoFeatures.length) geoFeatures=data.features.slice(0,50);
-      renderMap();renderList();renderStats();
-      map.setView(cfg.center,cfg.zoom);
+      try{renderMap();}catch(e){console.warn('renderMap',e);}
+      try{renderList();}catch(e){console.warn('renderList',e);}
+      try{renderStats();}catch(e){console.warn('renderStats',e);}
+      try{map.setView(cfg.center,cfg.zoom);}catch(e){}
       document.getElementById('loader').style.display='none';
     })
     .catch(()=>{
       clearTimeout(timeout);
       // Fallback: Stadtteile als einfache Kreise aus NICE Score Daten anzeigen
       geoFeatures=[];
-      renderList();renderStats();
-      map.setView(cfg.center,cfg.zoom);
+      try{renderList();}catch(e){console.warn('renderList',e);}
+      try{renderStats();}catch(e){console.warn('renderStats',e);}
+      try{map.setView(cfg.center,cfg.zoom);}catch(e){}
       document.getElementById('loader').style.display='none';
       // Hinweis anzeigen
       if(c==='utr'){
@@ -2559,6 +2562,8 @@ setTimeout(()=>{
 setTimeout(preloadCriticalData, 3000);
 
 initMap();
+// Notfall-Fallback: Loader nach 10s immer ausblenden
+setTimeout(()=>{ const l=document.getElementById('loader'); if(l) l.style.display='none'; }, 10000);
 
 // Event delegation for list clicks — city-safe, no string interpolation
 document.getElementById('stList').addEventListener('click',e=>{
