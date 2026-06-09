@@ -524,6 +524,11 @@ document.addEventListener('mouseout', e => {
 // ══════════════════════════════════════════════════════════════
 // CITY DATA
 // ══════════════════════════════════════════════════════════════
+// Base path for data files — works both locally and on GitHub Pages
+const DATA_BASE = location.hostname==='localhost'||location.hostname==='127.0.0.1'
+  ? 'data/layers'
+  : '/urbanlens/data/layers';
+
 const CITY_CFG={
   ffm:{
     name:"Frankfurt am Main",center:[50.1109,8.6821],zoom:12,
@@ -941,8 +946,7 @@ function loadLocal(filename, id, statusEl, onData){
     onData(dataCache[filename]);
     return;
   }
-  const _dataBase = location.hostname==='localhost'||location.hostname==='127.0.0.1' ? 'data/layers' : '/urbanlens/data/layers';
-  fetch(`${_dataBase}/${filename}`)
+  fetch(`${DATA_BASE}/${filename}`)
     .then(r=>{if(!r.ok)throw Error('not found');return r.json();})
     .then(geojson=>{
       dataCache[filename]=geojson; // Im Cache speichern
@@ -971,7 +975,7 @@ function preloadCriticalData(){
   ];
   files.forEach(f=>{
     if(!dataCache[f]){
-      fetch(`${_dataBase}/${f}`)
+      fetch(`${DATA_BASE}/${f}`)
         .then(r=>r.ok?r.json():null)
         .then(d=>{if(d)dataCache[f]=d;})
         .catch(()=>{});
