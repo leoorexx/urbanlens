@@ -3,39 +3,70 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UrbanLens — Digital Twin Frankfurt & Utrecht</title>
+<title>UrbanLens — Digital Twin Frankfurt</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://unpkg.com/maplibre-gl@5.5.0/dist/maplibre-gl.css" rel="stylesheet"/>
+<script src="https://unpkg.com/maplibre-gl@5.5.0/dist/maplibre-gl.js"></script>
 <style>
 :root{
-  --bg:#f5f3ee;--surface:rgba(255,253,248,0.97);--surface2:#f0ede6;
-  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);
-  --text:#1a1a2e;--text2:#4a4a6a;--muted:#8888aa;
-  --accent:#2563eb;--al:rgba(37,99,235,0.1);
-  --r1:#dc2626;--r2:#ea580c;--r3:#ca8a04;--r4:#16a34a;--r5:#15803d;
-  --sh:0 2px 12px rgba(0,0,0,0.08),0 1px 3px rgba(0,0,0,0.05);
-  --shl:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);
+  --bg:#f5f3ee;--surface:#ffffff;--surface2:rgba(0,0,0,0.03);
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.12);
+  --text:#1a1a2e;--text2:#374151;--muted:#9ca3af;
+  --accent:#FFD600;--al:rgba(255,214,0,0.12);
+  --r1:#ef4444;--r2:#f97316;--r3:#eab308;--r4:#22c55e;--r5:#16a34a;
+  --sh:0 4px 24px rgba(0,0,0,0.08),0 1px 8px rgba(0,0,0,0.05);
+  --shl:0 8px 32px rgba(0,0,0,0.12),0 2px 12px rgba(0,0,0,0.07);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
 #map{position:fixed;inset:0;z-index:1}
+#map3d-overlay{position:fixed;inset:0;z-index:2;display:none}
+.layer-btn-3d{position:fixed;top:62px;left:10px;z-index:1006;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:8px 14px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;box-shadow:var(--sh);display:none;align-items:center;gap:6px;transition:all .15s;margin-top:8px}
+.layer-btn-3d.active{display:flex}
+.layer-btn-3d:hover{background:var(--surface2)}
+.layer-panel-3d-pos{top:116px!important;left:10px!important}
+.mode-bar-3d{position:fixed;top:54px;left:0;right:0;z-index:1010;display:none;align-items:center;padding:8px 20px;gap:6px;overflow-x:auto;background:#0d1117;backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06)}
+.mode-bar-3d.active{display:flex}
+.mode-btn-3d{padding:7px 18px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid rgba(255,255,255,0.12);cursor:pointer;transition:all .2s;color:rgba(255,255,255,0.6);background:transparent;white-space:nowrap;flex-shrink:0}
+.mode-btn-3d.on{background:#FFD600;color:#0d1117;border-color:#FFD600;box-shadow:0 0 16px rgba(255,214,0,0.25)}
+.mode-btn-3d:hover:not(.on){background:rgba(255,255,255,0.08);color:#fff;border-color:rgba(255,255,255,0.25)}
+.panel3d{position:fixed;background:#12151f;border:1px solid rgba(255,255,255,0.08);border-radius:16px;box-shadow:0 4px 32px rgba(0,0,0,0.5);z-index:1005;top:110px;left:12px;width:280px;padding:16px;max-height:calc(100vh - 128px);overflow-y:auto;scrollbar-width:thin;display:none}
+.panel3d.active{display:block}
+.info3d{position:fixed;top:110px;right:12px;width:300px;padding:16px;display:none;max-height:calc(100vh - 128px);overflow-y:auto;background:#12151f;border:1px solid rgba(255,255,255,0.08);border-radius:16px;box-shadow:0 4px 32px rgba(0,0,0,0.5);z-index:1005}
+.tree-bar-3d{position:fixed;bottom:20px;left:10px;width:272px;z-index:1005;background:#12151f;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:10px 14px;display:none;align-items:center;justify-content:space-between;box-shadow:0 4px 24px rgba(0,0,0,0.5)}
+.tree-bar-3d.active{display:flex}
+.toggle-sw3d{width:36px;height:20px;border-radius:10px;background:rgba(0,0,0,0.12);border:none;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle-sw3d.on{background:#16a34a}
+.toggle-sw3d::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle-sw3d.on::after{left:19px}
+.loader3d{position:fixed;inset:0;z-index:1099;background:rgba(13,17,23,0.92);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center}
+.loader3d.active{display:flex}
+.kpi-row-3d{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.kpi-box-3d{background:#1a1d2e;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:9px 11px}
+.kpi-val-3d{font-size:16px;font-weight:800;color:#f0f4ff;line-height:1}
+.kpi-lbl-3d{font-size:9px;color:#636d85;margin-top:3px}
+.ptitle3d{font-size:12px;font-weight:800;color:#f0f4ff;letter-spacing:-.2px;margin-bottom:4px}
+.psub3d{font-size:10px;color:#8892a4;line-height:1.5}
+.btn3d-activate{width:100%;padding:10px;background:#FFD600;color:#1a1a2e;border:none;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.02em}
+.btn3d-activate:hover{background:#ffe033;transform:translateY(-1px)}
+.maplibregl-ctrl-attrib{font-size:9px!important}
+.maplibregl-ctrl-group{border-radius:10px!important;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1)!important}
 
-/* NAV */
-.nav{position:fixed;top:0;left:0;right:0;height:54px;z-index:1000;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:0 1px 8px rgba(0,0,0,0.06)}
-.logo{font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.5px}.logo span{color:var(--accent)}
-.city-toggle{display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:3px;margin-left:8px}
-.ct{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;user-select:none}
-.ct.on{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(37,99,235,0.3)}
-.nsep{width:1px;height:24px;background:var(--border2);margin:0 4px}
-.ninfo{font-size:11px;color:var(--muted);font-weight:500}.ninfo b{color:var(--text)}
+/* NAV — white bar like Shadowmap homepage */
+.nav{position:fixed;top:0;left:0;right:0;height:54px;z-index:1000;background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:0 2px 16px rgba(0,0,0,0.08)}
+.logo{font-size:17px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px}.logo span{color:#1a1a2e}
+.city-toggle{display:none}
+.nsep{width:1px;height:24px;background:rgba(0,0,0,0.1);margin:0 4px}
+.ninfo{font-size:11px;color:#6b7280;font-weight:500}.ninfo b{color:#1a1a2e}
 .nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
-.epill{background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.25);border-radius:20px;padding:4px 12px;font-size:11px;color:#b45309;font-weight:600}
-.lpill{display:flex;align-items:center;gap:5px;background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.25);border-radius:20px;padding:4px 12px;font-size:11px;color:#15803d;font-weight:600}
+.epill{background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.2);border-radius:20px;padding:4px 12px;font-size:11px;color:#b45309;font-weight:600}
+.lpill{display:flex;align-items:center;gap:5px;background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.2);border-radius:20px;padding:4px 12px;font-size:11px;color:#15803d;font-weight:600}
 .dot{width:6px;height:6px;border-radius:50%;background:#16a34a;animation:blink 1.4s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* LEFT */
-.left{position:fixed;top:62px;left:10px;bottom:56px;width:248px;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.left{position:fixed;top:62px;left:10px;bottom:10px;width:248px;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
 .lhead{padding:12px 12px 8px;border-bottom:1px solid var(--border);flex-shrink:0}
 .ltitle{font-size:11px;font-weight:700;color:var(--text)}
 .lsub{font-size:9px;color:var(--muted);margin-top:2px}
@@ -46,7 +77,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .llist{flex:1;overflow-y:auto;padding:6px}
 .llist::-webkit-scrollbar{width:4px}.llist::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 .sti{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:9px;cursor:pointer;transition:all .12s;margin-bottom:2px;border:1.5px solid transparent}
-.sti:hover{background:var(--surface2)}.sti.active{background:var(--al);border-color:rgba(37,99,235,0.25)}
+.sti:hover{background:var(--surface2)}.sti.active{background:var(--al);border-color:rgba(255,214,0,0.3)}
 .stq{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;border:2px solid}
 .stinfo{flex:1;min-width:0}.stname{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stmeta{font-size:9px;color:var(--muted);margin-top:1px}.stflag{font-size:10px;flex-shrink:0}
@@ -55,10 +86,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .qlabs{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);padding:0 12px 8px;flex-shrink:0}
 
 /* LAYER PANEL — rechts neben dem Stadtteil-Panel, nicht drüber */
-.layer-btn{position:fixed;top:62px;left:268px;z-index:600;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;box-shadow:var(--sh);display:flex;align-items:center;gap:6px;transition:all .15s;margin-top:8px}
+.layer-btn{position:fixed;top:62px;left:268px;z-index:600;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:8px 14px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;box-shadow:var(--sh);display:flex;align-items:center;gap:6px;transition:all .15s;margin-top:8px}
 .layer-btn:hover{background:var(--surface2)}
-.layer-btn .lcount{background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:800}
-.layer-panel{position:fixed;top:112px;left:268px;z-index:600;width:270px;max-height:calc(100vh - 180px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shl);padding:12px;display:none}
+.layer-btn .lcount{background:var(--accent);color:#1a1a2e;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:800}
+.layer-panel{position:fixed;top:116px;left:268px;z-index:600;width:270px;max-height:calc(100vh - 185px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);padding:12px;display:none}
 .layer-panel::-webkit-scrollbar{width:4px}.layer-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 .layer-panel.open{display:block}
 .lp-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
@@ -79,11 +110,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .llegcolor{width:24px;height:4px;border-radius:2px;flex-shrink:0}
 
 /* RIGHT DRAWER */
-.right{position:fixed;top:62px;right:10px;bottom:56px;width:320px;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shl);display:flex;flex-direction:column;overflow:hidden;transform:translateX(340px);transition:transform .3s cubic-bezier(0.4,0,0.2,1)}
+.right{position:fixed;top:62px;right:10px;bottom:10px;width:320px;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);display:flex;flex-direction:column;overflow:hidden;transform:translateX(340px);transition:transform .3s cubic-bezier(0.4,0,0.2,1)}
 .right.open{transform:translateX(0)}
 .dhead{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)}
 .dtop{display:flex;align-items:flex-start;justify-content:space-between}
-.dcity{font-size:9px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em}
+.dcity{font-size:9px;font-weight:700;color:#FFD600;text-transform:uppercase;letter-spacing:.08em;background:#1a1a2e;padding:2px 8px;border-radius:10px;display:inline-block}
 .dclose{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--muted);cursor:pointer;line-height:1.4}
 .dname{font-size:20px;font-weight:800;margin-top:4px;letter-spacing:-.5px}
 .dsrow{display:flex;align-items:center;gap:12px;margin-top:10px}
@@ -105,10 +136,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* Components */
 .sec{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;display:flex;align-items:center;gap:6px}
 .sec:first-child{margin-top:0}.sec::after{content:"";flex:1;height:1px;background:var(--border)}
-.ib{display:inline-flex;width:16px;height:16px;border-radius:50%;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.25);font-size:8px;font-weight:800;color:var(--accent);align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0;vertical-align:middle;margin-left:5px;transition:all .12s}
-.ib:hover{background:var(--accent);color:#fff}
+.ib{display:inline-flex;width:16px;height:16px;border-radius:50%;background:rgba(255,214,0,0.12);border:1px solid rgba(255,214,0,0.3);font-size:8px;font-weight:800;color:var(--accent);align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0;vertical-align:middle;margin-left:5px;transition:all .12s}
+.ib:hover{background:var(--accent);color:#1a1a2e}
 /* Popup-Overlay: position:fixed, JS setzt top/left → kann über Karte ragen */
-.ip-overlay{position:fixed;width:260px;background:var(--text);color:#f0ede6;font-size:10px;line-height:1.6;padding:10px 12px;border-radius:10px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.3);pointer-events:none;display:none}
+.ip-overlay{position:fixed;width:260px;background:#1e2028;color:#e2e8f0;font-size:10px;line-height:1.6;padding:10px 12px;border-radius:12px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.5);pointer-events:none;display:none}
 .kgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .kpi{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 11px}
 .kval{font-size:18px;font-weight:800;line-height:1.1}.klbl{font-size:9px;color:var(--muted);margin-top:2px;font-weight:500}.ksub{font-size:8px;color:var(--muted);margin-top:1px}
@@ -127,9 +158,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mri{flex:1}.mnm{font-size:12px;font-weight:700}.mde{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4}
 .mpills{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
 .pill{font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px}
-.pqw{background:rgba(22,163,74,0.1);color:#15803d;border:1px solid rgba(22,163,74,0.2)}
-.pst{background:rgba(37,99,235,0.1);color:#1d4ed8;border:1px solid rgba(37,99,235,0.2)}
-.peu{background:rgba(124,77,255,0.1);color:#6d28d9;border:1px solid rgba(124,77,255,0.2)}
+.pqw{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.25)}
+.pst{background:rgba(255,214,0,0.12);color:#ca8a04;border:1px solid rgba(255,214,0,0.25)}
+.peu{background:rgba(167,139,250,0.12);color:#a78bfa;border:1px solid rgba(167,139,250,0.25)}
 .mnums{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
 .mn{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 9px}
 .mnv{font-size:14px;font-weight:800}.mnl{font-size:8px;color:var(--muted);font-weight:500}
@@ -139,7 +170,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fsplit{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
 .fs{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 8px;text-align:center}
 .fsv{font-size:13px;font-weight:800}.fsl{font-size:8px;color:var(--muted);margin-top:1px}
-.furl{font-size:9px;color:var(--accent);margin-top:6px;text-decoration:none;display:block}
+.furl{font-size:9px;color:#1a1a2e;margin-top:6px;text-decoration:underline;text-underline-offset:2px;display:block;font-weight:600}
 .dlbox{background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.2);border-radius:9px;padding:10px 12px;margin-bottom:10px}
 .dlt{font-size:11px;font-weight:700;color:#92400e}.dls{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.5}
 
@@ -151,9 +182,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .rt-air{background:rgba(234,88,12,0.12);color:#c2410c;border:1px solid rgba(234,88,12,0.25)}
 
 /* BÜRGERBRILLE */
-.bbrille-btn{background:var(--surface2);border:1.5px solid var(--border2);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;transition:all .15s}
-.bbrille-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
-.bbrille-btn.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,0.2)}
+.bbrille-btn{background:rgba(0,0,0,0.06);border:1.5px solid rgba(0,0,0,0.12);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;color:#1a1a2e;cursor:pointer;transition:all .15s}
+.bbrille-btn:hover{background:#1a1a2e;color:var(--accent);border-color:#1a1a2e}
+.bbrille-btn.on{background:#1a1a2e;color:var(--accent);border-color:#1a1a2e;box-shadow:0 0 0 3px rgba(255,214,0,0.2)}
 .brille-popup{position:fixed;top:70px;left:50%;transform:translateX(-50%);width:340px;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);z-index:800;padding:16px;pointer-events:all}
 .bp-close{position:absolute;top:10px;right:12px;cursor:pointer;color:var(--muted);font-size:14px;line-height:1}
 .bp-close:hover{color:var(--text)}
@@ -171,39 +202,144 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bp-bar-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
 .bp-bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
 .bp-bar-val{width:28px;text-align:right;font-weight:700;font-size:10px;color:var(--muted)}
-.bp-tip{background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.15);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--text2);line-height:1.5}
+.bp-tip{background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.18);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--text2);line-height:1.5}
 .bp-tip b{color:var(--accent)}
 /* Cursor wenn Bürgerbrille aktiv */
 .map-brille-active{cursor:crosshair!important}
-.stats{position:fixed;bottom:0;left:0;right:0;height:48px;z-index:500;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;overflow-x:auto;overflow-y:hidden}
-.stats::-webkit-scrollbar{display:none}
-.stat{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;border-right:1px solid var(--border);height:100%;flex-shrink:0;cursor:pointer;transition:background .12s;white-space:nowrap}
-.stat:hover{background:var(--surface2)}
-.stl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1px}
-.stv{font-size:13px;font-weight:800}.sts{font-size:8px;color:var(--muted);margin-top:1px}
+.stats{display:none}
 
 /* LOADER */
 .loader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-.lloogo{font-size:28px;font-weight:900;color:var(--text);letter-spacing:-1px}.lloogo span{color:var(--accent)}
+.lloogo{font-size:28px;font-weight:900;color:#1a1a2e;letter-spacing:-1px}.lloogo span{color:#1a1a2e}
 .lring{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 .ltxt{font-size:13px;color:var(--muted)}
 
 /* Leaflet */
-.leaflet-tooltip{background:rgba(255,253,248,0.97);border:1px solid var(--border2);color:var(--text);font-size:11px;font-weight:600;padding:5px 10px;border-radius:7px;box-shadow:var(--sh)}
-.leaflet-tooltip-top::before{border-top-color:rgba(255,253,248,0.97)}
-.leaflet-control-zoom{border:1px solid var(--border2)!important;box-shadow:var(--sh)!important}
-.leaflet-control-zoom a{background:var(--surface)!important;color:var(--text)!important;border-bottom:1px solid var(--border)!important}
+.leaflet-tooltip{background:#fff;border:1px solid rgba(0,0,0,0.1);color:#1a1a2e;font-size:11px;font-weight:600;padding:5px 10px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.leaflet-tooltip-top::before{border-top-color:#fff}
+.leaflet-control-zoom{border:none!important;box-shadow:none!important}
+.leaflet-control-zoom a{background:#fff!important;color:#1a1a2e!important;border:1px solid rgba(0,0,0,0.1)!important;margin-bottom:4px!important;border-radius:8px!important;display:flex!important;align-items:center!important;justify-content:center!important}
 /* WIND & RUNWAY INDICATOR */
-.wind-pill{position:fixed;top:62px;right:16px;z-index:700;background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;box-shadow:var(--sh);cursor:pointer}
+.wind-pill{position:fixed;top:70px;right:10px;z-index:700;background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:#1a1a2e;display:flex;align-items:center;gap:6px;box-shadow:var(--sh);cursor:pointer}
 .wind-arrow{font-size:16px;transition:transform .5s}
 .wind-rwy{font-size:9px;color:var(--muted);font-weight:500}
-.wind-popup{position:fixed;top:96px;right:16px;z-index:700;width:240px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl);padding:14px;display:none}
+.wind-popup{position:fixed;top:112px;right:10px;z-index:700;width:240px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl);padding:14px;display:none}
 .wind-popup.open{display:block}
 .wind-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
 .wind-label{color:var(--muted)}
 .wind-val{font-weight:700;color:var(--text)}
 .wind-rwy-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;margin-top:6px}
 .wind-note{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.5}
+/* LENS MODE */
+.lens-bar{display:flex;gap:3px;padding:0 8px 8px;flex-shrink:0}
+.lens-btn{flex:1;padding:5px 2px;border-radius:7px;font-size:9px;font-weight:700;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.02em}
+.lens-btn.on{background:var(--accent);color:#1a1a2e;border-color:var(--accent);box-shadow:0 0 12px rgba(255,214,0,0.25)}
+.lens-btn:hover:not(.on){background:var(--surface2);color:var(--text2)}
+/* KONFLIKT-DETEKTOR */
+.kd-btn{position:fixed;top:120px;left:268px;z-index:650;background:var(--surface);border:1px solid rgba(220,38,38,0.35);border-radius:20px;padding:8px 14px;font-size:11px;font-weight:700;color:#ef4444;cursor:pointer;box-shadow:var(--sh);display:flex;align-items:center;gap:6px;transition:all .15s}
+.kd-btn:hover{background:rgba(220,38,38,0.08)}
+.kd-btn .kd-count{background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:800}
+.kd-panel{position:fixed;top:166px;left:268px;z-index:650;width:280px;max-height:calc(100vh - 230px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);padding:14px;display:none}
+.kd-panel.open{display:block}
+.kd-panel::-webkit-scrollbar{width:4px}.kd-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.kd-title{font-size:11px;font-weight:800;color:var(--text);letter-spacing:.02em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kd-chain{margin-bottom:12px}
+.kd-chain-hdr{font-size:11px;font-weight:800;padding:6px 10px;border-radius:7px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.kd-chain1-hdr{background:rgba(220,38,38,0.08);color:#dc2626;border:1px solid rgba(220,38,38,0.2)}
+.kd-chain2-hdr{background:rgba(234,179,8,0.1);color:#92400e;border:1px solid rgba(234,179,8,0.25)}
+.kd-item{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .12s;margin-bottom:3px;border:1px solid transparent}
+.kd-item:hover{background:var(--surface2)}
+.kd-item.c1{border-color:rgba(220,38,38,0.15)}
+.kd-item.c2{border-color:rgba(234,179,8,0.15)}
+.kd-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px;animation:kdpulse 1.6s ease-in-out infinite}
+.kd-dot.c1{background:#ef4444;box-shadow:0 0 0 0 rgba(239,68,68,0.4)}
+.kd-dot.c2{background:#eab308;box-shadow:0 0 0 0 rgba(234,179,8,0.4)}
+@keyframes kdpulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0.5)}60%{transform:scale(1.1);box-shadow:0 0 0 6px rgba(239,68,68,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.kd-item.c2 .kd-dot{animation-name:kdpulse2}
+@keyframes kdpulse2{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(234,179,8,0.5)}60%{transform:scale(1.1);box-shadow:0 0 0 6px rgba(234,179,8,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(234,179,8,0)}}
+.kd-name{font-size:12px;font-weight:700;flex:1;color:var(--text)}
+.kd-why{font-size:10px;color:var(--text2);margin-top:3px;line-height:1.55}
+.kd-impact{font-size:9px;color:var(--accent);margin-top:4px;font-weight:600}
+.kd-numbers{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.kd-num{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px}
+.kd-num.red{background:rgba(220,38,38,0.08);color:#dc2626;border:1px solid rgba(220,38,38,0.2)}
+.kd-num.yellow{background:rgba(234,179,8,0.1);color:#92400e;border:1px solid rgba(234,179,8,0.25)}
+.kd-action{display:inline-block;margin-top:6px;font-size:9px;color:#1a1a2e;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.kd-empty{font-size:10px;color:var(--text2);text-align:center;padding:14px 0;font-style:italic;opacity:0.7}
+.kd-divider{height:1px;background:var(--border);margin:10px 0}
+
+/* Social KPI grid */
+.social-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.skpi{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;position:relative}
+.skpi-val{font-size:16px;font-weight:800;line-height:1.1}
+.skpi-lbl{font-size:9px;color:var(--muted);margin-top:2px;font-weight:500}
+.skpi-bar{height:3px;border-radius:2px;margin-top:5px;background:var(--border)}
+.skpi-fill{height:100%;border-radius:2px;transition:width .6s}
+/* Social risk badge */
+.soc-risk{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:7px 10px;font-size:10px;color:#ef4444;line-height:1.5;margin-top:8px}
+.soc-good{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:7px 10px;font-size:10px;color:#22c55e;line-height:1.5;margin-top:8px}
+
+/* SZENARIO ENGINE */
+.sz-intro{font-size:10px;color:var(--text2);line-height:1.6;background:var(--surface2);padding:10px 12px;border-radius:9px;border:1px solid var(--border);margin-bottom:14px}
+.sz-card{border-radius:12px;padding:13px 14px;margin-bottom:10px;border:1.5px solid}
+.sz-card.sq{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2)}
+.sz-card.mi{background:rgba(234,179,8,0.06);border-color:rgba(234,179,8,0.2)}
+.sz-card.vt{background:rgba(34,197,94,0.06);border-color:rgba(34,197,94,0.2)}
+.sz-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.sz-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.sz-card.sq .sz-label{color:#ef4444}
+.sz-card.mi .sz-label{color:#eab308}
+.sz-card.vt .sz-label{color:#22c55e}
+.sz-title{font-size:13px;font-weight:800;color:var(--text)}
+.sz-score-box{text-align:right;flex-shrink:0}
+.sz-score-big{font-size:22px;font-weight:900;line-height:1}
+.sz-card.sq .sz-score-big{color:#ef4444}
+.sz-card.mi .sz-score-big{color:#eab308}
+.sz-card.vt .sz-score-big{color:#22c55e}
+.sz-score-lbl{font-size:8px;color:var(--muted);margin-top:2px}
+.sz-bar-wrap{margin-bottom:10px}
+.sz-bar-track{height:8px;background:rgba(0,0,0,0.06);border-radius:4px;overflow:hidden;margin-top:3px}
+.sz-bar-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.sz-bar-label{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:3px}
+.sz-desc{font-size:10px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+.sz-measures{font-size:9px;color:var(--text2);line-height:1.7}
+.sz-measures b{color:var(--text)}
+.sz-cost{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.sz-cost-item{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,0.04);border:1px solid var(--border2);color:var(--text2)}
+.sz-arrow{font-size:11px;margin:4px 0;color:var(--muted);text-align:center}
+.sz-delta{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:20px;margin-left:6px}
+
+/* ── HITZEINSEL-ANALYSE KETTE ─────────────────────────────── */
+.hk-wrap{margin:0 0 14px}
+.hk-step{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border-radius:10px;border:1px solid;margin-bottom:2px}
+.hk-step.s-heat{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.22)}
+.hk-step.s-ndvi{background:rgba(34,197,94,0.06);border-color:rgba(34,197,94,0.22)}
+.hk-step.s-feuch{background:rgba(96,165,250,0.06);border-color:rgba(96,165,250,0.22)}
+.hk-step.s-hlth{background:rgba(168,85,247,0.06);border-color:rgba(168,85,247,0.22)}
+.hk-icon{font-size:20px;line-height:1;flex-shrink:0;margin-top:2px}
+.hk-body{flex:1;min-width:0}
+.hk-name{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.hk-val{font-size:15px;font-weight:800;line-height:1.1;margin-bottom:3px}
+.hk-desc{font-size:9px;color:var(--text2);line-height:1.5}
+.hk-bar{height:5px;border-radius:3px;overflow:hidden;background:var(--border);margin-top:5px}
+.hk-bar-fill{height:100%;border-radius:3px;transition:width .7s ease}
+.hk-arr{text-align:center;font-size:18px;color:var(--muted);line-height:1;padding:2px 0}
+
+/* ── GRÜNFLÄCHENKATASTER ──────────────────────────────────── */
+.gk-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.gk-row:last-child{border:none}
+.gk-rank{font-size:10px;font-weight:800;color:var(--muted);width:16px;flex-shrink:0;text-align:right}
+.gk-name{font-size:11px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gk-bar-wrap{width:90px;flex-shrink:0}
+.gk-bar-track{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.gk-bar-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.gk-val{font-size:10px;font-weight:700;width:42px;text-align:right;flex-shrink:0}
+
+/* ── HITZE-LENS LEGENDE ───────────────────────────────────── */
+.heat-legend{display:flex;gap:2px;padding:8px 12px 5px;border-top:1px solid var(--border);flex-shrink:0;align-items:center}
+.heat-legend-label{font-size:9px;color:var(--muted);margin-right:4px;font-weight:600}
+.heat-legend-bar{flex:1;height:8px;border-radius:3px;background:linear-gradient(to right,#4ade80,#a3e635,#fde68a,#f97316,#ef4444,#7f1d1d)}
+.heat-legend-labs{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);padding:0 12px 8px;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -215,17 +351,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <nav class="nav">
-  <div class="logo">Urban<span>Lens</span></div>
-  <div class="city-toggle">
-    <div class="ct on" id="ct-ffm" onclick="switchCity('ffm')">🏙 Frankfurt</div>
-    <div class="ct" id="ct-utr" onclick="switchCity('utr')">🌷 Utrecht</div>
-  </div>
+  <a href="home.html" style="text-decoration:none"><div class="logo">Urban<span>Lens</span></div></a>
   <div class="nsep"></div>
-  <div class="ninfo">NICE Score — <b>117 Indikatoren</b> · Open Source</div>
+  <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none">📊 Dashboard</a>
+  <div class="nsep"></div>
+  <a href="green3d.html" class="bbrille-btn" style="text-decoration:none">🌿 Grünflächen</a>
+  <div class="nsep"></div>
+  <button class="bbrille-btn" id="nav3dBtn" onclick="toggle3DView()">🏗 3D Analyse</button>
+  <div class="nsep"></div>
+  <div class="ninfo">🏙 Frankfurt am Main · NICE Score — <b>117 Indikatoren</b></div>
   <div class="nav-r">
-    <button class="bbrille-btn" id="choroBtn" onclick="toggleChoropleth()" style="margin-right:6px">
-      🗺️ Viertel
-    </button>
     <button class="bbrille-btn" id="bbrilleBtn" onclick="toggleBuergerbrille()">
       👁 Bürgerbrille
     </button>
@@ -267,7 +402,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <span class="wind-rwy" id="windRwy">RWY?</span>
 </div>
 <div class="wind-popup" id="windPopup">
-  <div style="font-size:11px;font-weight:800;margin-bottom:8px;color:var(--accent)">🌬️ Live Wind — Frankfurt Flughafen</div>
+  <div style="font-size:11px;font-weight:800;margin-bottom:8px;color:#1a1a2e">🌬️ Live Wind — Frankfurt Flughafen</div>
   <div class="wind-row"><span class="wind-label">Windrichtung</span><span class="wind-val" id="wpDir">—</span></div>
   <div class="wind-row"><span class="wind-label">Windstärke</span><span class="wind-val" id="wpSpeed">—</span></div>
   <div class="wind-row"><span class="wind-label">Böen</span><span class="wind-val" id="wpGusts">—</span></div>
@@ -279,6 +414,167 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div id="map"></div>
 
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 3D OVERLAY — MapLibre GL JS embedded view                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="map3d-overlay"></div>
+
+<!-- 3D mode: Layer panel button repositioned to left side -->
+<!-- Layer panel button hidden in clean 3D view -->
+<button class="layer-btn-3d" id="layerBtn3d" onclick="toggle3DLayerPanel()" style="display:none!important">
+  🗺️ Karten-Layer <span class="lcount" id="layerCount3d">0</span>
+</button>
+
+<!-- 3D MODE BAR -->
+<div class="mode-bar-3d" id="modeBar3d">
+  <span style="font-size:13px;font-weight:900;color:#fff;letter-spacing:-.3px;margin-right:14px;white-space:nowrap">Urban<span style="color:#FFD600">Lens</span></span>
+  <button class="mode-btn-3d on" data-mode3d="co2">🌡 Klimakrise</button>
+  <button class="mode-btn-3d" data-mode3d="flood">🌊 Überflutung</button>
+  <button class="mode-btn-3d" data-mode3d="bi">🌿 Hitze &amp; Bäume</button>
+  <button class="mode-btn-3d" data-mode3d="street">👁 Straßenebene</button>
+  <div style="flex:1"></div>
+  <button onclick="toggle3DView()" style="padding:5px 14px;border-radius:14px;font-size:11px;font-weight:700;border:1.5px solid rgba(255,255,255,0.15);cursor:pointer;background:transparent;color:rgba(255,255,255,0.5);white-space:nowrap;transition:all .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">← 2D Karte</button>
+</div>
+
+<!-- 3D LEFT PANELS -->
+<div class="panel3d active" id="p3d-co2">
+  <div class="ptitle3d">⚠️ Kosten des Nichtstuns — Frankfurt 2050</div>
+  <div class="psub3d">Was passiert, wenn keine Klimamaßnahmen ergriffen werden? Diese Gebäude zeigen den aktuellen CO₂-Zustand — und die Folgekosten bei Untätigkeit.</div>
+
+  <div style="margin:12px 0;display:flex;flex-direction:column;gap:8px">
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 12px">
+      <div style="font-size:9px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">2035 — Kipppunkt</div>
+      <div style="font-size:13px;font-weight:800;color:#f0f4ff;margin-bottom:3px">+2,1°C Urbane Überhitzung</div>
+      <div style="font-size:9px;color:#8892a4;line-height:1.5">Hitzewellen 18 Tage/Jahr mehr · Krankenhaus-Überlastung Juli–Aug · Erste Versicherungsrückzüge aus Risikoviertel</div>
+    </div>
+    <div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 12px">
+      <div style="font-size:9px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">2040 — Strukturkrise</div>
+      <div style="font-size:13px;font-weight:800;color:#f0f4ff;margin-bottom:3px">+240 Hitzetote/Jahr FFM</div>
+      <div style="font-size:9px;color:#8892a4;line-height:1.5">€1,4 Mrd. Schadenssumme Extremregen · Soziale Segregation verstärkt sich · Bahnhofsviertel, Gallus: Score &lt;25/100</div>
+    </div>
+    <div style="background:rgba(127,29,29,0.3);border:1px solid rgba(239,68,68,0.5);border-radius:10px;padding:10px 12px">
+      <div style="font-size:9px;font-weight:700;color:#fca5a5;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">2050 — Notstand</div>
+      <div style="font-size:13px;font-weight:800;color:#fca5a5;margin-bottom:3px">+3,8°C · 340 Hitzetode/Jahr</div>
+      <div style="font-size:9px;color:#8892a4;line-height:1.5">€2,3 Mrd. Flutschäden · 8.000 Personen verdrängt · Sanierungskosten 5× höher als heute · Mehrere Stadtteile faktisch unbewohnbar</div>
+    </div>
+  </div>
+
+  <div style="height:7px;border-radius:4px;margin:10px 0 4px;background:linear-gradient(90deg,#1e3a8a,#3b82f6,#fbbf24,#f97316,#7f1d1d)"></div>
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:#636d85"><span>Niedrig</span><span>60</span><span>100</span><span>140</span><span>Kritisch 180+</span></div>
+  <div style="font-size:9px;color:#636d85;margin-top:6px;font-style:italic">Farbe = aktueller CO₂-Ausstoß kg/m² · Höhe = Gebäudetyp-Proxy</div>
+
+  <div class="kpi-row-3d" id="kpi-co2-3d"></div>
+
+  <div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.06);padding-top:10px">
+    <div style="font-size:9px;font-weight:700;color:#636d85;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Methodik</div>
+    <div style="display:flex;align-items:flex-start;gap:6px;padding:5px 0"><div style="font-size:13px;width:18px;text-align:center;flex-shrink:0">🏛</div><div><div style="font-size:9px;font-weight:700;color:#f0f4ff">OSM Gebäudetypologie + Baujahr</div><div style="font-size:9px;color:#636d85">8.054 Gebäude · EPC-Hessen Scoring</div></div></div>
+    <div style="display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-top:1px dashed rgba(255,255,255,0.06)"><div style="font-size:13px;width:18px;text-align:center;flex-shrink:0">⚠️</div><div><div style="font-size:9px;font-weight:700;color:#f0f4ff">Projektionen: IPCC AR6 · DWD RCP8.5</div><div style="font-size:9px;color:#636d85">Modellwerte ±30% · kein förmliches Gutachten</div></div></div>
+  </div>
+</div>
+<div class="panel3d" id="p3d-bi">
+  <div class="ptitle3d">🌡️ Hitze × Bäume — bivariat 3×3</div>
+  <div class="psub3d">Thermische Belastung (Sentinel-3 LST) × Entfernung zum nächsten Straßenbaum</div>
+  <div id="bi-legend-3d" style="display:inline-grid;gap:3px;margin-top:10px;grid-template-columns:auto repeat(3,60px)"></div>
+  <div style="margin-top:10px;padding:8px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;font-size:10px;color:#fca5a5;line-height:1.5">
+    🔴 <b>Dunkelrot oben rechts</b> = heiß <em>und</em> baumfern = Klimatischer Hotspot.<br>Priorität für Straßenbäume, Entsiegelung und Verschattung.
+  </div>
+</div>
+<div class="panel3d" id="p3d-footway">
+  <div class="ptitle3d">🚶 Gehwegqualität — Barrierefreiheit</div>
+  <div class="psub3d">Oberflächenqualität aus OSM surface-Tags · 6.000 Segmente · Proxy für Barrierefreiheit</div>
+  <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:3px;border-radius:2px;background:#22c55e;flex-shrink:0"></div><span>Asphalt / befestigt — sehr gut</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:3px;border-radius:2px;background:#86efac;flex-shrink:0"></div><span>Beton / Betonplatten — gut</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:3px;border-radius:2px;background:#fbbf24;flex-shrink:0"></div><span>Pflastersteine / verdichtet — mittel</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:3px;border-radius:2px;background:#f97316;flex-shrink:0"></div><span>Kopfsteinpflaster / Kies — schlecht</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:3px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><span>Erde / Schotter — sehr schlecht</span></div>
+  </div>
+  <div class="kpi-row-3d" id="kpi-footway-3d"></div>
+</div>
+<div class="panel3d" id="p3d-flight">
+  <div class="ptitle3d">✈️ Fluglärm-Korridor — Schutzzonenkarte</div>
+  <div class="psub3d">Lärm-Schutzzonen nach FluLärmG · je nach aktiver Runway verschiebt sich der Korridor</div>
+  <div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:9px;border-radius:3px;background:#dc2626;opacity:.8;flex-shrink:0"></div><span>Zone 1 — Nachtschutzbereich &gt;53 dB(A)</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:9px;border-radius:3px;background:#f97316;opacity:.8;flex-shrink:0"></div><span>Zone 2 — Tagschutzbereich &gt;60 dB(A)</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:9px;border-radius:3px;background:#fbbf24;opacity:.8;flex-shrink:0"></div><span>Zone 3 — Außenschutzbereich &gt;55 dB(A)</span></div>
+  </div>
+  <div style="margin-top:10px;padding:8px 10px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;font-size:10px;color:#93c5fd;line-height:1.5">
+    💨 Je nach Windrichtung (DWD EDDF) ist Runway 07 oder 25 aktiv — der Lärm-Korridor verschiebt sich entsprechend.
+  </div>
+</div>
+<div class="panel3d" id="p3d-flood">
+  <div class="ptitle3d">🌊 Flut-Risiko — Überflutungsgefährdung</div>
+  <div class="psub3d">1.225 Gebäude im Risikobereich · HWGK Hessen · Distanz zu Gewässer + Geländehöhe DGM</div>
+  <div style="font-size:10px;font-weight:700;color:#c8d0e0;margin-top:10px;margin-bottom:2px">Risikofilter:</div>
+  <div id="flood-filter-3d" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">
+    <button class="fpill3d on" data-risk3d="all" style="padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;border:1.5px solid rgba(255,255,255,0.15);color:#c8d0e0;background:#1a1d2e;cursor:pointer">Alle</button>
+    <button class="fpill3d" data-risk3d="medium" style="padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;border:1.5px solid rgba(255,255,255,0.15);color:#c8d0e0;background:#1a1d2e;cursor:pointer">Mittel+</button>
+    <button class="fpill3d" data-risk3d="high" style="padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;border:1.5px solid rgba(255,255,255,0.15);color:#c8d0e0;background:#1a1d2e;cursor:pointer">Hoch+</button>
+    <button class="fpill3d" data-risk3d="critical" style="padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;border:1.5px solid rgba(255,255,255,0.15);color:#c8d0e0;background:#1a1d2e;cursor:pointer">Kritisch</button>
+  </div>
+  <div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:9px;border-radius:3px;background:#7f1d1d;flex-shrink:0"></div><span>Kritisch — unmittelbare Gefährdung</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:9px;border-radius:3px;background:#ef4444;flex-shrink:0"></div><span>Hoch — bei HQ100-Ereignis betroffen</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:9px;border-radius:3px;background:#f97316;flex-shrink:0"></div><span>Mittel — bei Extremregen betroffen</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:9px;border-radius:3px;background:#fbbf24;flex-shrink:0"></div><span>Gering — Randzone Überflutungsgebiet</span></div>
+  </div>
+  <div class="kpi-row-3d" id="kpi-flood-3d"></div>
+</div>
+<div class="panel3d" id="p3d-bike">
+  <div class="ptitle3d">🚲 Bike-Lücken-Analyse</div>
+  <div class="psub3d">Lärm-Straßen ohne Radweganschluss · direkt umsetzbare Stadtplanungsaussage</div>
+  <div style="font-size:10px;font-weight:700;color:#c8d0e0;margin-top:10px">Lärm-Straßen:</div>
+  <div style="margin-top:4px;display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:4px;border-radius:2px;background:#dc2626;flex-shrink:0"></div><span>Autobahn / Motorway</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:4px;border-radius:2px;background:#ea580c;flex-shrink:0"></div><span>Bundesstraße / Trunk</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:4px;border-radius:2px;background:#d97706;flex-shrink:0"></div><span>Hauptstraße / Primary</span></div>
+  </div>
+  <div style="font-size:10px;font-weight:700;color:#c8d0e0;margin-top:10px">Radwege:</div>
+  <div style="margin-top:4px;display:flex;flex-direction:column;gap:5px">
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:4px;border-radius:2px;background:#16a34a;flex-shrink:0"></div><span>Track / geschützt</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:4px;border-radius:2px;background:#4ade80;flex-shrink:0"></div><span>Lane — markiert</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:10px;color:#c8d0e0"><div style="width:22px;height:4px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><span>Kein Radweg — Lücke</span></div>
+  </div>
+</div>
+<div class="panel3d" id="p3d-bench">
+  <div class="ptitle3d">🪑 Bänke-Dichte — Soziale Infrastruktur</div>
+  <div class="psub3d">Kernel-Dichte-Heatmap · 6.335 Sitzmöglichkeiten · Aufenthaltsqualität + Altersgerechtigkeit</div>
+  <div style="height:8px;border-radius:4px;margin:10px 0 4px;background:linear-gradient(90deg,rgba(255,255,255,0.05),#4ade80,#fbbf24,#f97316,#ef4444)"></div>
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:#636d85"><span>wenige</span><span>mittel</span><span>sehr dicht</span></div>
+  <div class="kpi-row-3d" id="kpi-bench-3d"></div>
+</div>
+
+<!-- 3D TREE TOGGLE -->
+<div class="tree-bar-3d" id="treebar3d">
+  <div>
+    <div style="font-size:11px;font-weight:700;color:#f0f4ff">🌳 Straßenbäume einblenden</div>
+    <div style="font-size:9px;color:#636d85;margin-top:2px">22.353 Bäume · OSM + Stadtbaumliste FFM</div>
+  </div>
+  <button class="toggle-sw3d" id="treeTog3d" onclick="toggleTrees3d()"></button>
+</div>
+
+<!-- 3D INFO PANEL -->
+<div class="info3d" id="info3d">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+    <div>
+      <div id="info3d-badge" style="font-size:9px;font-weight:700;color:#1a1a2e;text-transform:uppercase;letter-spacing:.08em;background:#FFD600;padding:2px 8px;border-radius:10px;display:inline-block">Gebäude</div>
+      <div id="info3d-type" style="font-size:12px;font-weight:800;color:#f0f4ff;letter-spacing:-.2px;margin-top:5px">—</div>
+    </div>
+    <button onclick="closeInfo3d()" style="background:rgba(255,255,255,0.08);border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px;color:#8892a4">✕</button>
+  </div>
+  <div id="info3d-body"></div>
+</div>
+
+<!-- 3D LOADER -->
+<div class="loader3d" id="loader3d">
+  <div style="background:#1a1d2e;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px 28px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+    <div style="font-size:20px;font-weight:900;color:#f0f4ff;letter-spacing:-.5px;margin-bottom:8px">Urban<span style="color:#FFD600">Lens</span> 3D</div>
+    <div style="width:32px;height:32px;border:3px solid rgba(255,255,255,0.1);border-top-color:#FFD600;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px"></div>
+    <div id="loader3d-txt" style="font-size:12px;color:#636d85">Lade Daten…</div>
+  </div>
+</div>
+
 <div class="left">
   <div class="lhead">
     <div class="ltitle" id="listTitle">46 Frankfurter Stadtteile</div>
@@ -287,6 +583,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <span class="sicon">🔍</span>
       <input id="searchBox" placeholder="Stadtteil suchen…" oninput="renderList(this.value)">
     </div>
+  </div>
+  <div class="lens-bar">
+    <button class="lens-btn on" onclick="setLens('all')" id="lens-all">⬛ Gesamt</button>
+    <button class="lens-btn" onclick="setLens('climate')" id="lens-climate">🌡 Klima</button>
+    <button class="lens-btn" onclick="setLens('social')" id="lens-social">👥 Sozial</button>
+    <button class="lens-btn" onclick="setLens('hitze')" id="lens-hitze">🔥 Hitze</button>
   </div>
   <div class="llist" id="stList"></div>
   <div class="qleg">
@@ -304,6 +606,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <button class="layer-btn" onclick="toggleLayerPanel()">
   🗺️ Karten-Layer <span class="lcount" id="layerCount">0</span>
 </button>
+
+<!-- RISIKORADAR -->
+<button class="kd-btn" id="kdBtn" onclick="toggleKDPanel()">
+  🔍 Risikoradar <span class="kd-count" id="kdCount">0</span>
+</button>
+<div class="kd-panel" id="kdPanel">
+  <div class="kd-title">🔍 Automatische Stadtdiagnose</div>
+  <div style="font-size:9px;color:var(--text2);margin-bottom:10px;line-height:1.5;padding:6px 8px;background:rgba(0,0,0,0.03);border-radius:7px;border:1px solid var(--border2)">
+    Klick auf einen Stadtteil → Details + Maßnahmen öffnen sich rechts.<br>
+    <span style="color:var(--accent)">Straßen-Layer einschalten</span> um zu sehen wo genau im Viertel das Problem liegt.
+  </div>
+  <div id="kdChain1" class="kd-chain"></div>
+  <div id="kdChain2" class="kd-chain"></div>
+</div>
 <div class="layer-panel" id="layerPanel">
   <div class="lp-title">Straßen-Layer ein/ausschalten</div>
   <div style="font-size:9px;color:var(--muted);margin-bottom:8px;padding:5px 7px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
@@ -331,11 +647,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="ltoggle" id="tog-flight_noise"></button>
     <span class="lname">✈️ Fluglärm-Zonen FRA</span>
     <span class="lstatus" id="st-flight_noise"></span>
-  </div>
-  <div class="lrow" onclick="toggleLayer('co2')">
-    <button class="ltoggle" id="tog-co2"></button>
-    <span class="lname">💨 CO₂-Intensität Gebäude</span>
-    <span class="lstatus" id="st-co2"></span>
   </div>
 
   <div class="lp-section">🚲 Mobilität (OSM Overpass)</div>
@@ -370,6 +681,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <div class="lp-section">⚡ Composite-Insights (2 Layer kombiniert)</div>
+
+  <div class="lp-section">🛰 Amtliche Klimadaten — Geoportal Hessen</div>
+
+  <div class="lrow" onclick="toggleLayer('hessen_heat')">
+    <button class="ltoggle" id="tog-hessen_heat"></button>
+    <span class="lname">🌡 Hitzestress & LST — HLNUG amtlich</span>
+    <span class="lstatus" id="st-hessen_heat"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('hessen_lcz')">
+    <button class="ltoggle" id="tog-hessen_lcz"></button>
+    <span class="lname">🏗 Versiegelung & Klimazonen — LCZ</span>
+    <span class="lstatus" id="st-hessen_lcz"></span>
+  </div>
 
   <div class="lrow" onclick="toggleLayer('schools_heat')">
     <button class="ltoggle" id="tog-schools_heat"></button>
@@ -424,6 +748,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lname">🚗 Parkplätze (MIV-Dominanz)</span>
     <span class="lstatus" id="st-parking"></span>
   </div>
+
 
   <div class="llegend">
     <b style="color:var(--text)">🚲 Radwege:</b>
@@ -481,9 +806,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="tabs">
     <div class="tab on" onclick="showTab(0)">Übersicht</div>
     <div class="tab" onclick="showTab(1)">Dimensionen</div>
-    <div class="tab" onclick="showTab(2)">Soll-Zustand</div>
-    <div class="tab" onclick="showTab(3)">Maßnahmen</div>
-    <div class="tab" onclick="showTab(4)">Förderung</div>
+    <div class="tab" onclick="showTab(2)">Maßnahmen</div>
+    <div class="tab" onclick="showTab(3)">Förderung</div>
+    <div class="tab" onclick="showTab(4)">Szenarien</div>
   </div>
   <div class="dbody">
     <div class="tp on" id="tp0"></div>
@@ -524,11 +849,6 @@ document.addEventListener('mouseout', e => {
 // ══════════════════════════════════════════════════════════════
 // CITY DATA
 // ══════════════════════════════════════════════════════════════
-// Base path for data files — works both locally and on GitHub Pages
-const DATA_BASE = location.hostname==='localhost'||location.hostname==='127.0.0.1'
-  ? 'data/layers'
-  : '/urbanlens/data/layers';
-
 const CITY_CFG={
   ffm:{
     name:"Frankfurt am Main",center:[50.1109,8.6821],zoom:12,
@@ -536,69 +856,51 @@ const CITY_CFG={
     geojson:"https://cdn.jsdelivr.net/gh/codeforgermany/click_that_hood@main/public/data/frankfurt-main.geojson",
     nameProp:"name",
     data:{
-      "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, wb:33,mig:71,hw:true, heat:true, noise:82},
-      "Gutleutviertel":   {A:24,B:27,C:80,D:38,E:18,F:35,G:18,H:42,pop:5000, wb:36,mig:65,hw:true, heat:true, noise:78},
-      "Gallus":           {A:28,B:32,C:58,D:42,E:22,F:34,G:30,H:45,pop:72000,wb:38,mig:58,hw:false,heat:true, noise:72},
-      "Altstadt":         {A:30,B:34,C:82,D:56,E:28,F:50,G:22,H:50,pop:12000,wb:55,mig:40,hw:false,heat:true, noise:75},
-      "Innenstadt":       {A:28,B:32,C:84,D:58,E:24,F:52,G:20,H:52,pop:16000,wb:57,mig:38,hw:false,heat:true, noise:74},
-      "Fechenheim":       {A:32,B:35,C:45,D:40,E:30,F:40,G:36,H:42,pop:21000,wb:41,mig:48,hw:true, heat:false,noise:68},
-      "Griesheim":        {A:35,B:38,C:52,D:48,E:34,F:42,G:34,H:48,pop:43000,wb:44,mig:44,hw:false,heat:true, noise:70},
-      "Nied":             {A:38,B:40,C:42,D:44,E:36,F:44,G:40,H:44,pop:17000,wb:43,mig:42,hw:false,heat:false,noise:65},
-      "Sossenheim":       {A:40,B:42,C:40,D:45,E:38,F:45,G:42,H:50,pop:18000,wb:46,mig:38,hw:false,heat:false,noise:62},
-      "Niederrad":        {A:42,B:45,C:60,D:52,E:40,F:48,G:44,H:52,pop:26000,wb:51,mig:35,hw:true, heat:false,noise:66},
-      "Zeilsheim":        {A:44,B:46,C:38,D:48,E:42,F:48,G:47,H:50,pop:15000,wb:50,mig:33,hw:false,heat:false,noise:58},
-      "Höchst":           {A:45,B:47,C:62,D:52,E:42,F:50,G:44,H:52,pop:15000,wb:52,mig:36,hw:true, heat:false,noise:65},
-      "Unterliederbach":  {A:46,B:48,C:40,D:50,E:44,F:50,G:50,H:52,pop:22000,wb:52,mig:30,hw:false,heat:false,noise:60},
-      "Rödelheim":        {A:48,B:50,C:55,D:55,E:44,F:52,G:54,H:55,pop:20000,wb:53,mig:32,hw:false,heat:false,noise:62},
-      "Goldstein":        {A:52,B:54,C:36,D:52,E:48,F:52,G:57,H:55,pop:8000, wb:55,mig:22,hw:false,heat:false,noise:55},
-      "Sindlingen":       {A:50,B:52,C:38,D:54,E:48,F:54,G:54,H:55,pop:8000, wb:55,mig:24,hw:false,heat:false,noise:58},
-      "Schwanheim":       {A:55,B:56,C:42,D:55,E:50,F:56,G:62,H:58,pop:19000,wb:57,mig:20,hw:false,heat:false,noise:54},
-      "Bockenheim":       {A:50,B:55,C:76,D:68,E:40,F:62,G:44,H:58,pop:54000,wb:62,mig:28,hw:false,heat:true, noise:68},
-      "Eckenheim":        {A:57,B:59,C:58,D:65,E:50,F:61,G:57,H:58,pop:12000,wb:62,mig:25,hw:false,heat:false,noise:60},
-      "Ostend":           {A:52,B:55,C:68,D:65,E:40,F:62,G:44,H:55,pop:27000,wb:62,mig:30,hw:false,heat:true, noise:65},
-      "Sachsenhausen-Nord":{A:55,B:58,C:70,D:68,E:42,F:65,G:47,H:58,pop:35000,wb:65,mig:24,hw:false,heat:false,noise:62},
-      "Sachsenhausen-Süd":{A:58,B:60,C:65,D:70,E:45,F:68,G:52,H:60,pop:17000,wb:68,mig:18,hw:false,heat:false,noise:58},
-      "Riederwald":       {A:60,B:62,C:52,D:66,E:54,F:64,G:61,H:60,pop:8000, wb:64,mig:22,hw:false,heat:false,noise:55},
-      "Hausen":           {A:60,B:62,C:60,D:68,E:52,F:64,G:60,H:60,pop:10000,wb:64,mig:20,hw:false,heat:false,noise:56},
-      "Ginnheim":         {A:61,B:63,C:62,D:70,E:53,F:65,G:61,H:62,pop:13000,wb:66,mig:18,hw:false,heat:false,noise:54},
-      "Nordend-West":     {A:60,B:62,C:72,D:75,E:42,F:70,G:52,H:62,pop:37000,wb:70,mig:20,hw:false,heat:false,noise:62},
-      "Bornheim":         {A:58,B:60,C:73,D:72,E:45,F:68,G:50,H:60,pop:47000,wb:68,mig:22,hw:false,heat:false,noise:60},
-      "Nordend-Ost":      {A:62,B:64,C:70,D:76,E:44,F:72,G:53,H:64,pop:28000,wb:72,mig:18,hw:false,heat:false,noise:58},
-      "Dornbusch":        {A:60,B:62,C:65,D:70,E:52,F:68,G:57,H:62,pop:33000,wb:68,mig:16,hw:false,heat:false,noise:56},
-      "Heddernheim":      {A:58,B:60,C:55,D:68,E:52,F:65,G:57,H:60,pop:19000,wb:65,mig:20,hw:false,heat:false,noise:54},
-      "Praunheim":        {A:62,B:64,C:55,D:70,E:54,F:65,G:64,H:62,pop:17000,wb:66,mig:16,hw:false,heat:false,noise:52},
-      "Preungesheim":     {A:60,B:62,C:52,D:66,E:54,F:64,G:60,H:60,pop:11000,wb:64,mig:18,hw:false,heat:false,noise:54},
-      "Westend-Süd":      {A:62,B:65,C:72,D:78,E:36,F:72,G:54,H:65,pop:31000,wb:72,mig:14,hw:false,heat:false,noise:60},
-      "Westend-Nord":     {A:64,B:67,C:70,D:80,E:33,F:74,G:57,H:68,pop:22000,wb:74,mig:12,hw:false,heat:false,noise:58},
-      "Eschersheim":      {A:62,B:64,C:60,D:72,E:54,F:70,G:61,H:64,pop:25000,wb:70,mig:14,hw:false,heat:false,noise:52},
-      "Niederursel":      {A:64,B:66,C:52,D:72,E:57,F:68,G:64,H:65,pop:25000,wb:68,mig:14,hw:false,heat:false,noise:50},
-      "Seckbach":         {A:66,B:68,C:48,D:72,E:60,F:68,G:69,H:65,pop:14000,wb:68,mig:12,hw:false,heat:false,noise:48},
-      "Oberrad":          {A:65,B:66,C:52,D:70,E:58,F:68,G:65,H:63,pop:13000,wb:68,mig:12,hw:false,heat:false,noise:50},
-      "Bonames":          {A:62,B:64,C:45,D:68,E:56,F:64,G:64,H:62,pop:8000, wb:64,mig:15,hw:false,heat:false,noise:48},
-      "Frankfurter Berg": {A:60,B:62,C:48,D:68,E:54,F:64,G:62,H:60,pop:8000, wb:64,mig:16,hw:false,heat:false,noise:50},
-      "Berkersheim":      {A:70,B:72,C:42,D:72,E:62,F:68,G:71,H:65,pop:4000, wb:68,mig:10,hw:false,heat:false,noise:44},
-      "Kalbach-Riedberg": {A:70,B:72,C:50,D:78,E:62,F:72,G:70,H:68,pop:15000,wb:72,mig:10,hw:false,heat:false,noise:46},
-      "Nieder-Eschbach":  {A:71,B:73,C:38,D:74,E:64,F:70,G:73,H:68,pop:10000,wb:70,mig:10,hw:false,heat:false,noise:44},
-      "Nieder-Erlenbach": {A:73,B:75,C:32,D:74,E:65,F:72,G:75,H:70,pop:4000, wb:72,mig:8, hw:false,heat:false,noise:40},
-      "Harheim":          {A:72,B:74,C:35,D:72,E:65,F:70,G:74,H:68,pop:5000, wb:70,mig:8, hw:false,heat:false,noise:42},
-    }
-  },
-  utr:{
-    name:"Utrecht",center:[52.0907,5.1214],zoom:13,
-    bbox:"52.04,5.05,52.14,5.20",
-    geojson:"https://service.pdok.nl/cbs/wijkenbuurten/2023/wfs/v1_0?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&typeName=wijkenbuurten2023:cbs_wijken_2023&outputFormat=application/json&CQL_FILTER=GM_NAAM=%27Utrecht%27",
-    nameProp:"WK_NAAM",
-    data:{
-      "Binnenstad":        {A:40,B:44,C:90,D:68,E:26,F:70,G:33,H:60,pop:17000,wb:68,mig:38,hw:false,heat:true, noise:80},
-      "Oost":              {A:62,B:65,C:75,D:75,E:45,F:70,G:58,H:64,pop:26000,wb:70,mig:22,hw:false,heat:false,noise:60},
-      "Noordoost":         {A:54,B:56,C:68,D:65,E:47,F:61,G:51,H:59,pop:19000,wb:62,mig:28,hw:false,heat:false,noise:62},
-      "Noordwest":         {A:49,B:51,C:62,D:60,E:43,F:57,G:46,H:55,pop:23000,wb:58,mig:32,hw:false,heat:false,noise:65},
-      "Overvecht":         {A:31,B:34,C:55,D:42,E:29,F:37,G:30,H:43,pop:31000,wb:40,mig:55,hw:false,heat:true, noise:68},
-      "Leidsche Rijn":     {A:65,B:67,C:60,D:72,E:60,F:66,G:64,H:66,pop:45000,wb:66,mig:18,hw:false,heat:false,noise:50},
-      "Vleuten-De Meern":  {A:70,B:72,C:52,D:74,E:64,F:68,G:70,H:68,pop:28000,wb:68,mig:12,hw:false,heat:false,noise:46},
-      "West":              {A:47,B:50,C:65,D:57,E:39,F:54,G:44,H:53,pop:18000,wb:56,mig:35,hw:false,heat:false,noise:66},
-      "Zuidoost":          {A:44,B:46,C:57,D:54,E:37,F:51,G:42,H:51,pop:14000,wb:54,mig:30,hw:false,heat:false,noise:64},
-      "Zuid":              {A:57,B:59,C:68,D:64,E:43,F:63,G:54,H:59,pop:22000,wb:64,mig:20,hw:false,heat:false,noise:58},
+      "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, wb:33,mig:71,hw:true, heat:true, noise:82, sgb2:62,kinderarmut:70,einkommen:17000,arbeitslos:17,abitur:25, versieg:88,lst_delta:3.9},
+      "Gutleutviertel":   {A:24,B:27,C:80,D:38,E:18,F:35,G:18,H:42,pop:5000, wb:36,mig:65,hw:true, heat:true, noise:78, sgb2:44,kinderarmut:50,einkommen:20000,arbeitslos:13,abitur:30, versieg:82,lst_delta:3.4},
+      "Gallus":           {A:28,B:32,C:58,D:42,E:22,F:34,G:30,H:45,pop:72000,wb:38,mig:58,hw:false,heat:true, noise:72, sgb2:30,kinderarmut:36,einkommen:24000,arbeitslos:10,abitur:38, versieg:74,lst_delta:2.9},
+      "Altstadt":         {A:30,B:34,C:82,D:56,E:28,F:50,G:22,H:50,pop:12000,wb:55,mig:40,hw:false,heat:true, noise:75, sgb2:18,kinderarmut:20,einkommen:30000,arbeitslos:7, abitur:52, versieg:80,lst_delta:3.2},
+      "Innenstadt":       {A:28,B:32,C:84,D:58,E:24,F:52,G:20,H:52,pop:16000,wb:57,mig:38,hw:false,heat:true, noise:74, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:6, abitur:60, versieg:83,lst_delta:3.5},
+      "Fechenheim":       {A:32,B:35,C:45,D:40,E:30,F:40,G:36,H:42,pop:21000,wb:41,mig:48,hw:true, heat:false,noise:68, sgb2:26,kinderarmut:32,einkommen:25000,arbeitslos:9, abitur:34, versieg:65,lst_delta:2.1},
+      "Griesheim":        {A:35,B:38,C:52,D:48,E:34,F:42,G:34,H:48,pop:43000,wb:44,mig:44,hw:false,heat:true, noise:70, sgb2:24,kinderarmut:28,einkommen:26000,arbeitslos:9, abitur:38, versieg:72,lst_delta:2.6},
+      "Nied":             {A:38,B:40,C:42,D:44,E:36,F:44,G:40,H:44,pop:17000,wb:43,mig:42,hw:false,heat:false,noise:65, sgb2:22,kinderarmut:26,einkommen:27000,arbeitslos:8, abitur:40, versieg:60,lst_delta:1.8},
+      "Sossenheim":       {A:40,B:42,C:40,D:45,E:38,F:45,G:42,H:50,pop:18000,wb:46,mig:38,hw:false,heat:false,noise:62, sgb2:19,kinderarmut:23,einkommen:28000,arbeitslos:7, abitur:42, versieg:55,lst_delta:1.5},
+      "Niederrad":        {A:42,B:45,C:60,D:52,E:40,F:48,G:44,H:52,pop:26000,wb:51,mig:35,hw:true, heat:false,noise:66, sgb2:16,kinderarmut:19,einkommen:30000,arbeitslos:6, abitur:50, versieg:62,lst_delta:1.9},
+      "Zeilsheim":        {A:44,B:46,C:38,D:48,E:42,F:48,G:47,H:50,pop:15000,wb:50,mig:33,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:52, versieg:48,lst_delta:1.1},
+      "Höchst":           {A:45,B:47,C:62,D:52,E:42,F:50,G:44,H:52,pop:15000,wb:52,mig:36,hw:true, heat:false,noise:65, sgb2:22,kinderarmut:27,einkommen:26000,arbeitslos:8, abitur:38, versieg:68,lst_delta:2.2},
+      "Unterliederbach":  {A:46,B:48,C:40,D:50,E:44,F:50,G:50,H:52,pop:22000,wb:52,mig:30,hw:false,heat:false,noise:60, sgb2:16,kinderarmut:18,einkommen:30000,arbeitslos:6, abitur:48, versieg:52,lst_delta:1.3},
+      "Rödelheim":        {A:48,B:50,C:55,D:55,E:44,F:52,G:54,H:55,pop:20000,wb:53,mig:32,hw:false,heat:false,noise:62, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:44, versieg:58,lst_delta:1.6},
+      "Goldstein":        {A:52,B:54,C:36,D:52,E:48,F:52,G:57,H:55,pop:8000, wb:55,mig:22,hw:false,heat:false,noise:55, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:54, versieg:42,lst_delta:0.8},
+      "Sindlingen":       {A:50,B:52,C:38,D:54,E:48,F:54,G:54,H:55,pop:8000, wb:55,mig:24,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:30000,arbeitslos:6, abitur:46, versieg:52,lst_delta:1.4},
+      "Schwanheim":       {A:55,B:56,C:42,D:55,E:50,F:56,G:62,H:58,pop:19000,wb:57,mig:20,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:36000,arbeitslos:4, abitur:58, versieg:38,lst_delta:0.4},
+      "Bockenheim":       {A:50,B:55,C:76,D:68,E:40,F:62,G:44,H:58,pop:54000,wb:62,mig:28,hw:false,heat:true, noise:68, sgb2:14,kinderarmut:16,einkommen:34000,arbeitslos:6, abitur:62, versieg:70,lst_delta:2.4},
+      "Eckenheim":        {A:57,B:59,C:58,D:65,E:50,F:61,G:57,H:58,pop:12000,wb:62,mig:25,hw:false,heat:false,noise:60, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:5, abitur:58, versieg:62,lst_delta:1.9},
+      "Ostend":           {A:52,B:55,C:68,D:65,E:40,F:62,G:44,H:55,pop:27000,wb:62,mig:30,hw:false,heat:true, noise:65, sgb2:16,kinderarmut:18,einkommen:32000,arbeitslos:6, abitur:55, versieg:72,lst_delta:2.7},
+      "Sachsenhausen-Nord":{A:55,B:58,C:70,D:68,E:42,F:65,G:47,H:58,pop:35000,wb:65,mig:24,hw:false,heat:false,noise:62, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:66, versieg:65,lst_delta:2.0},
+      "Sachsenhausen-Süd":{A:58,B:60,C:65,D:70,E:45,F:68,G:52,H:60,pop:17000,wb:68,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:4, abitur:72, versieg:60,lst_delta:1.7},
+      "Riederwald":       {A:60,B:62,C:52,D:66,E:54,F:64,G:61,H:60,pop:8000, wb:64,mig:22,hw:false,heat:false,noise:55, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:42, versieg:55,lst_delta:1.4},
+      "Hausen":           {A:60,B:62,C:60,D:68,E:52,F:64,G:60,H:60,pop:10000,wb:64,mig:20,hw:false,heat:false,noise:56, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:58, versieg:52,lst_delta:1.2},
+      "Ginnheim":         {A:61,B:63,C:62,D:70,E:53,F:65,G:61,H:62,pop:13000,wb:66,mig:18,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66, versieg:55,lst_delta:1.3},
+      "Nordend-West":     {A:60,B:62,C:72,D:75,E:42,F:70,G:52,H:62,pop:37000,wb:70,mig:20,hw:false,heat:false,noise:62, sgb2:10,kinderarmut:11,einkommen:42000,arbeitslos:4, abitur:74, versieg:68,lst_delta:2.2},
+      "Bornheim":         {A:58,B:60,C:73,D:72,E:45,F:68,G:50,H:60,pop:47000,wb:68,mig:22,hw:false,heat:false,noise:60, sgb2:13,kinderarmut:15,einkommen:36000,arbeitslos:5, abitur:64, versieg:66,lst_delta:2.1},
+      "Nordend-Ost":      {A:62,B:64,C:70,D:76,E:44,F:72,G:53,H:64,pop:28000,wb:72,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76, versieg:65,lst_delta:2.0},
+      "Dornbusch":        {A:60,B:62,C:65,D:70,E:52,F:68,G:57,H:62,pop:33000,wb:68,mig:16,hw:false,heat:false,noise:56, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76, versieg:58,lst_delta:1.5},
+      "Heddernheim":      {A:58,B:60,C:55,D:68,E:52,F:65,G:57,H:60,pop:19000,wb:65,mig:20,hw:false,heat:false,noise:54, sgb2:12,kinderarmut:14,einkommen:35000,arbeitslos:5, abitur:60, versieg:50,lst_delta:1.1},
+      "Praunheim":        {A:62,B:64,C:55,D:70,E:54,F:65,G:64,H:62,pop:17000,wb:66,mig:16,hw:false,heat:false,noise:52, sgb2:11,kinderarmut:13,einkommen:36000,arbeitslos:4, abitur:62, versieg:45,lst_delta:0.8},
+      "Preungesheim":     {A:60,B:62,C:52,D:66,E:54,F:64,G:60,H:60,pop:11000,wb:64,mig:18,hw:false,heat:false,noise:54, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:56, versieg:52,lst_delta:1.2},
+      "Westend-Süd":      {A:62,B:65,C:72,D:78,E:36,F:72,G:54,H:65,pop:31000,wb:72,mig:14,hw:false,heat:false,noise:60, sgb2:6, kinderarmut:7, einkommen:58000,arbeitslos:2, abitur:88, versieg:62,lst_delta:1.8},
+      "Westend-Nord":     {A:64,B:67,C:70,D:80,E:33,F:74,G:57,H:68,pop:22000,wb:74,mig:12,hw:false,heat:false,noise:58, sgb2:5, kinderarmut:6, einkommen:62000,arbeitslos:2, abitur:92, versieg:58,lst_delta:1.5},
+      "Eschersheim":      {A:62,B:64,C:60,D:72,E:54,F:70,G:61,H:64,pop:25000,wb:70,mig:14,hw:false,heat:false,noise:52, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66, versieg:50,lst_delta:1.1},
+      "Niederursel":      {A:64,B:66,C:52,D:72,E:57,F:68,G:64,H:65,pop:25000,wb:68,mig:14,hw:false,heat:false,noise:50, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:64, versieg:48,lst_delta:0.9},
+      "Seckbach":         {A:66,B:68,C:48,D:72,E:60,F:68,G:69,H:65,pop:14000,wb:68,mig:12,hw:false,heat:false,noise:48, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:3, abitur:68, versieg:42,lst_delta:0.6},
+      "Oberrad":          {A:65,B:66,C:52,D:70,E:58,F:68,G:65,H:63,pop:13000,wb:68,mig:12,hw:false,heat:false,noise:50, sgb2:10,kinderarmut:11,einkommen:39000,arbeitslos:4, abitur:66, versieg:46,lst_delta:0.8},
+      "Bonames":          {A:62,B:64,C:45,D:68,E:56,F:64,G:64,H:62,pop:8000, wb:64,mig:15,hw:false,heat:false,noise:48, sgb2:16,kinderarmut:19,einkommen:29000,arbeitslos:6, abitur:44, versieg:42,lst_delta:0.7},
+      "Frankfurter Berg": {A:60,B:62,C:48,D:68,E:54,F:64,G:62,H:60,pop:8000, wb:64,mig:16,hw:false,heat:false,noise:50, sgb2:18,kinderarmut:21,einkommen:27000,arbeitslos:7, abitur:42, versieg:44,lst_delta:0.8},
+      "Berkersheim":      {A:70,B:72,C:42,D:72,E:62,F:68,G:71,H:65,pop:4000, wb:68,mig:10,hw:false,heat:false,noise:44, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:72, versieg:32,lst_delta:0.2},
+      "Kalbach-Riedberg": {A:70,B:72,C:50,D:78,E:62,F:72,G:70,H:68,pop:15000,wb:72,mig:10,hw:false,heat:false,noise:46, sgb2:6, kinderarmut:7, einkommen:50000,arbeitslos:2, abitur:82, versieg:38,lst_delta:0.3},
+      "Nieder-Eschbach":  {A:71,B:73,C:38,D:74,E:64,F:70,G:73,H:68,pop:10000,wb:70,mig:10,hw:false,heat:false,noise:44, sgb2:8, kinderarmut:9, einkommen:43000,arbeitslos:3, abitur:70, versieg:35,lst_delta:0.0},
+      "Nieder-Erlenbach": {A:73,B:75,C:32,D:74,E:65,F:72,G:75,H:70,pop:4000, wb:72,mig:8, hw:false,heat:false,noise:40, sgb2:5, kinderarmut:6, einkommen:52000,arbeitslos:2, abitur:80, versieg:22,lst_delta:-0.8},
+      "Harheim":          {A:72,B:74,C:35,D:72,E:65,F:70,G:74,H:68,pop:5000, wb:70,mig:8, hw:false,heat:false,noise:42, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:70, versieg:28,lst_delta:-0.3},
     }
   }
 };
@@ -715,6 +1017,43 @@ const MASS=[
    kw:"Netatmo/Luftdaten.info: ~800€/Sensor × 50 = 40.000€ + 5.000€ Installation und Plattform.",
    rw:"Daten als Produkt: ~50€/Sensor/Monat Lizenz an Stadtwerke/Forschung. Schadensersatz-Prävention Lärmklagen ~500k€.",
    foerder:[{eb:"EU",prog:"Horizont Europe Open Data",pct:70,url:"cordis.europa.eu"},{eb:"Bund",prog:"mFUND Digitale Infrastruktur",pct:60,url:"bmv.de"}]},
+
+  // ── HITZESCHUTZ-MASSNAHMEN (satelliten- und institutsgestützt) ──
+  {id:"H01",icon:"⛱️",name:"Sonnensegel & Verschattungsanlagen",typ:"quick_win",dims:["A","B"],kosten:45000,roi:185000,
+   desc:"10 Sonnensegel-Anlagen an Hitzepunkten: Spielplätze, Schulhöfe, Bushaltestellen, öffentliche Sitzflächen.",
+   kw:"Fraunhofer IBP (Institut für Bauphysik) 2023: Marktkosten Sonnenschutzanlagen 3.500–5.500€/Stück inkl. Fundament und Montage. Referenz: Münchner Hitzeaktionsplan 2023 (10 Anlagen, 42.000€).",
+   rw:"Fraunhofer IBP 2024: Gefühlte Temperatur im Schatten −8°C. WHO Europa Hitzeschutzleitfaden 2022: Schatteninfrastruktur verhindert Hitzekollaps bei Risikogruppen. UBA MK 4.0 (Feb. 2026) Kostensatz Hitzetod: ~2 Mio€/Person × 0,8 vermiedene Fälle × 10J × Konfidenz 20% = 320k€ + weiche Nutzeffekte.",
+   foerder:[{eb:"EU",prog:"ERDF Klimaanpassung",pct:80,url:"urbane-initiative.eu"},{eb:"Bund",prog:"DAS Klimaanpassungsstrategie (UBA)",pct:70,url:"umweltbundesamt.de/das"},{eb:"Land",prog:"Hessisches Klimaschutzprogramm",pct:50,url:"hessen.de"}]},
+
+  {id:"H02",icon:"🪨",name:"Entsiegelung Innenhöfe & Blockinnenbereiche",typ:"strukturell",dims:["A","G","H"],kosten:180000,roi:520000,
+   desc:"Entfernung versiegelter Beläge in Blockinnenbereichen (2.000 m²) inkl. Substrat, Drainage und Bepflanzung.",
+   kw:"BBSR-Gutachten ‚Urbane Entsiegelung als Klimaanpassung' (2023): Rückbau + Neubegrünung 75–95€/m². 2.000 m² = 180k€. Referenz: Frankfurter Programm Innenhofentsiegelung (Stadtplanungsamt FFM 2022).",
+   rw:"BBSR 2023: Entsiegelung reduziert LST lokal um 1,5–2,0°C nachgewiesen. Wasserretention +80 m³/1.000 m² verhindert Kanalüberlastung bei Starkregenereignis (Stadtwerke FFM: Kanalkosten 95€/m³). Immobilienwertgewinn +3% im 150m-Radius (Gutachterausschuss Hessen 2023). CO₂-Kompensation: +45 t CO₂/ha/Jahr (Forstverwaltung Hessen).",
+   foerder:[{eb:"EU",prog:"LIFE+ Naturbasierte Lösungen",pct:60,url:"cinea.ec.europa.eu"},{eb:"Bund",prog:"Bundesprogramm Stadtgrün (BBSR)",pct:75,url:"bbsr.bund.de"},{eb:"Land",prog:"Hessisches Klimaschutzprogramm",pct:50,url:"hessen.de"},{eb:"Kommune",prog:"Frankfurt Entsiegelungsprogramm",pct:30,url:"frankfurt.de"}]},
+
+  {id:"H03",icon:"🌫️",name:"Verdunstungskühlung & öffentliche Trinkbrunnen",typ:"quick_win",dims:["A","B"],kosten:65000,roi:280000,
+   desc:"Sprühnebelanlagen an 3 Hitzepunkten + 15 öffentliche Trinkbrunnen im Straßenraum.",
+   kw:"WHO Europabüro ‚Heat and Health' (2023): Trinkbrunnen ~2.500€/Stück, Sprühnebelanlagen ~8.000€/Standort. 15 × 2.500€ + 3 × 8.000€ = 61.500€ zzgl. Infrastruktur. Referenz: Paris ‚Vagues de Chaleur' 2022.",
+   rw:"WHO Europa 2023: Lokale Lufttemperatur −3 bis −6°C durch Verdunstungskühlung bei 35°C Außentemperatur. Fraunhofer UMSICHT 2024: Trinkbrunnen erhöhen Aufenthaltsdauer im Freien bei Hitze um 40%, verhindern Dehydrations-Notfallaufnahmen. UBA MK 4.0: 2 vermiedene Notaufnahmen/Sommer × 3.500€/Fall × 10J = 70k€ + Hitzetod-Prävention.",
+   foerder:[{eb:"EU",prog:"ERDF Klimaanpassung",pct:80,url:"urbane-initiative.eu"},{eb:"Bund",prog:"DAS Klimaanpassungsstrategie",pct:70,url:"umweltbundesamt.de/das"},{eb:"Bund",prog:"Hitzeaktionsplan-Förderung (BMG/BMU)",pct:60,url:"bundesgesundheitsministerium.de"}]},
+
+  {id:"H04",icon:"🔆",name:"Helle Oberflächenbeläge (Cool Pavements)",typ:"strukturell",dims:["A"],kosten:95000,roi:210000,
+   desc:"Austausch dunkler Asphaltbeläge durch helle, reflektierende Pflastersteine auf 1.000 m² hoch frequentierter Flächen.",
+   kw:"JRC Joint Research Centre EU ‚Cool Surfaces for Urban Heat Islands' (2022): helle Beläge Albedo-Effekt, Kosten 85–110€/m² inkl. Rückbau. Tiefbauamt FFM: Referenzwerte 2024 für Neubepflasterung Innenstadt.",
+   rw:"JRC 2022: LST-Reduktion 0,5–1,5°C durch erhöhte Albedo. Nachtabkühlungseffekt: Stadtteile mit höherem Albedo kühlen bis zu 0,8°C schneller ab (Kesselring et al. 2023, Frankfurt-Studie). Lebensdauer 25–30J. CO₂-Äquivalent: Kühleinsparung Gebäude ×10J −15% Klimaanlage.",
+   foerder:[{eb:"EU",prog:"Horizont Europe Urban Missions (100 klimaneutrale Städte)",pct:50,url:"cordis.europa.eu"},{eb:"EU",prog:"ERDF Klimaanpassung",pct:80,url:"urbane-initiative.eu"},{eb:"Land",prog:"HA Hessen Agentur Stadtentwicklung",pct:40,url:"ha-hessen.de"}]},
+
+  {id:"H05",icon:"🏢",name:"Klimatisierte Kühlräume — öffentlicher Hitzeaktionsplan",typ:"quick_win",dims:["A","B","D"],kosten:120000,roi:960000,
+   desc:"5 öffentlich zugängliche klimatisierte Gebäude (Bibliotheken, Bürgerämter) als Kühlorte ausweisen, ausstatten und kommunizieren.",
+   kw:"WHO Hitzeaktionsplan Europa 2023: Identifikation, Kennzeichnung, Öffnungszeitverlängerung + Klimaanlage ~20–25k€/Gebäude. 5 Kühlorte = 120k€. Referenz: Frankfurt Stadtbibliotheken 2022 (Hitzenotfall-Öffnung).",
+   rw:"WHO 2023: Kühlorte verhindern statistisch 0,3–0,5 Hitzetode/Standort/Sommer. UBA MK 4.0 (Feb. 2026): ~2 Mio€ Folgekosten/Hitzetod × 0,4 vermiedene Fälle × 10J × 5 Standorte = 40 Mio€ konservativ (Konfidenz 12% = 4,8 Mio€) zzgl. vermiedene Notaufnahmen Älterer.",
+   foerder:[{eb:"EU",prog:"ERDF Soziale Infrastruktur",pct:80,url:"urbane-initiative.eu"},{eb:"Bund",prog:"DAS Klimaanpassungsstrategie",pct:70,url:"umweltbundesamt.de/das"},{eb:"Bund",prog:"Bundesprogramm Gesundheitliche Prävention",pct:60,url:"bundesgesundheitsministerium.de"}]},
+
+  {id:"H06",icon:"🛰️",name:"Kleinklimatische Straßenzug-Analyse (Monitoring)",typ:"quick_win",dims:["A","G"],kosten:38000,roi:320000,
+   desc:"Hochauflösende Temperatur- und NDVI-Kartierung auf Straßenzugsebene als Planungsgrundlage für alle Hitzeschutzmaßnahmen.",
+   kw:"HLNUG (Hessisches Landesamt für Naturschutz) + DWD Klimaatlas: Lizenzen + Analyse ~25k€. Eigene Sensorik (20 Stationen): ~13k€. Vergleichsanalyse: Frankfurt Klimaatlas-Neuauflage 2024 (Stadtplanungsamt).",
+   rw:"BBSR 2024: Kommunen mit differenzierter Hitzekartierung setzen Maßnahmen 40% zielgenauer ein → ROI-Multiplikator auf alle nachgelagerten Maßnahmen. DWD: Monitoring-Daten als Open-Data-Produkt vermarktbar (Stadtwerke, Immobilien, Forschung) ~50k€/Jahr.",
+   foerder:[{eb:"EU",prog:"Horizont Europe Open Data & Digital Twins",pct:70,url:"cordis.europa.eu"},{eb:"Bund",prog:"mFUND Digitale Infrastruktur (BMDV)",pct:60,url:"bmv.de"},{eb:"Land",prog:"LOEWE Forschungsförderung Hessen",pct:60,url:"hessen.de/loewe"}]},
 ];
 
 // ── EXPANDED FÖRDERMITTEL (25 Programme) ─────────────────────
@@ -777,6 +1116,274 @@ function grade(s){
 function fmt(n){return n>=1e6?(n/1e6).toFixed(1)+'M€':(n/1000).toFixed(0)+'k€'}
 
 // ══════════════════════════════════════════════════════════════
+// LENS MODE
+// ══════════════════════════════════════════════════════════════
+let lens='all';
+
+function setLens(l){
+  lens=l;
+  document.querySelectorAll('.lens-btn').forEach(b=>b.classList.remove('on'));
+  const btn=document.getElementById('lens-'+l);
+  if(btn) btn.classList.add('on');
+  const subs={
+    all:'Relative Einstufung im Stadtvergleich · Quintile',
+    climate:'Klimarisiko-Index · A+B+G+H Dimensionen',
+    social:'Soziale Vulnerabilität · SGB-II, Armut, Einkommen',
+    hitze:'🔥 Thermalkarte · LST-Delta Oberflächentemperatur · Dunkelrot = Hitzeinsel'
+  };
+  document.querySelectorAll('.lsub').forEach(el=>el.textContent=subs[l]||subs.all);
+  // Legende tauschen
+  const qleg=document.querySelector('.qleg');
+  const qlabs=document.querySelector('.qlabs');
+  if(l==='hitze'){
+    qleg.innerHTML=`<div class="heat-legend-label">Temperatur</div><div class="heat-legend-bar"></div>`;
+    qleg.className='heat-legend';
+    if(qlabs){qlabs.innerHTML='<span>Kühl (−1°C)</span><span>+2°C</span><span>Extrem (+4°C)</span>';}
+  } else {
+    qleg.className='qleg';
+    qleg.innerHTML=`<span class="qlt">Skala</span><div class="qdot" style="background:var(--r1)"></div><div class="qdot" style="background:var(--r2)"></div><div class="qdot" style="background:var(--r3)"></div><div class="qdot" style="background:var(--r4)"></div><div class="qdot" style="background:var(--r5)"></div>`;
+    if(qlabs){qlabs.innerHTML='<span>Unteres Fünftel</span><span>Oberes Fünftel</span>';}
+  }
+  if(geoFeatures.length)renderMap();
+  renderList(document.getElementById('searchBox').value);
+}
+
+function socialScore(d){
+  const sgb=Math.max(0,100-(d.sgb2||12)*1.4);
+  const ka=Math.max(0,100-(d.kinderarmut||20)*1.33);
+  const ek=Math.min(100,Math.max(0,((d.einkommen||32000)-15000)/500));
+  const al=Math.max(0,100-(d.arbeitslos||6)*5);
+  const ab=d.abitur||50;
+  return Math.round((sgb+ka+ek+al+ab)/5);
+}
+
+function climateScore(d){
+  return Math.round(((d.A||50)+(d.B||50)+(d.G||50)+(d.H||50))/4);
+}
+
+function heatScore(d){
+  // Invertiert: niedrigeres LST-Delta = höherer (besserer) Score
+  const delta=d.lst_delta!=null?d.lst_delta:1.5;
+  return Math.max(0,Math.min(100,Math.round(100-(delta+1)/5*100)));
+}
+
+// Composite Hitzebetroffenheit — 3 Satellitenindikatoren gewichtet
+// Quelle: Copernicus LST (Sentinel-3), Versiegelung (Urban Atlas), NDVI (Sentinel-2)
+// Höher = stärker betroffen (0-100)
+function hitzebetroffenheit(d){
+  const lstPct   = Math.min(100,Math.max(0,((d.lst_delta||0)+1)/5*100));      // LST 40%
+  const versieg  = d.versieg||50;                                               // Versieg 35%
+  const ndviMgl  = 100-Math.max(2,Math.round(((100-(d.versieg||50))/100)*85)); // NDVI-Mangel 25%
+  return Math.min(100,Math.max(0,Math.round(lstPct*0.40+versieg*0.35+ndviMgl*0.25)));
+}
+
+// Hitzebetroffenheits-Label + Farbe
+function hbLabel(hb){
+  if(hb>=80)return{lbl:'Extrem',col:'#7f1d1d'};
+  if(hb>=65)return{lbl:'Sehr hoch',col:'#b91c1c'};
+  if(hb>=50)return{lbl:'Hoch',col:'#ef4444'};
+  if(hb>=35)return{lbl:'Mittel',col:'#f97316'};
+  if(hb>=20)return{lbl:'Gering',col:'#eab308'};
+  return{lbl:'Niedrig',col:'#22c55e'};
+}
+
+// Thermalkarte: LST-Delta → Farbgradient wie Infrarot-Satellitenbild
+function heatFillColor(delta){
+  if(delta<=-0.5)return'#4ade80';
+  if(delta<=0)   return'#86efac';
+  if(delta<=0.5) return'#a3e635';
+  if(delta<=1.0) return'#fde68a';
+  if(delta<=1.5) return'#fbbf24';
+  if(delta<=2.0) return'#f97316';
+  if(delta<=2.5) return'#ef4444';
+  if(delta<=3.0) return'#dc2626';
+  if(delta<=3.5) return'#b91c1c';
+  return'#7f1d1d';
+}
+
+function lensScore(d){
+  if(lens==='social')return socialScore(d);
+  if(lens==='climate')return climateScore(d);
+  if(lens==='hitze')return heatScore(d);
+  return nice(d);
+}
+
+// ══════════════════════════════════════════════════════════════
+// KONFLIKT-DETEKTOR — Palantir Ketten
+// ══════════════════════════════════════════════════════════════
+let kdPanelOpen = false;
+let kdMarkerLayer = null;
+
+// Kette 1: Triple-Burden Brennpunkt
+// Bedingung: lst_delta ≥ 2.5 AND sgb2 ≥ 25 AND kinderarmut ≥ 30
+function isKette1(d){
+  return (d.lst_delta!=null && d.lst_delta >= 2.5) &&
+         (d.sgb2!=null && d.sgb2 >= 25) &&
+         (d.kinderarmut!=null && d.kinderarmut >= 30);
+}
+
+// Kette 2: Gentrifizierungsrisiko
+// Bedingung: climateScore ≥ 55 AND socialScore ≤ 45 AND mig ≥ 35
+function isKette2(d){
+  return climateScore(d) >= 55 &&
+         socialScore(d) <= 45 &&
+         (d.mig!=null && d.mig >= 35);
+}
+
+function getKonflikte(){
+  const cfg = CITY_CFG[city];
+  const k1=[], k2=[];
+  Object.entries(cfg.data).forEach(([name,d])=>{
+    if(isKette1(d)) k1.push({name,d});
+    if(isKette2(d)) k2.push({name,d});
+  });
+  // Sort by severity
+  k1.sort((a,b)=>b.d.lst_delta-a.d.lst_delta);
+  k2.sort((a,b)=>socialScore(a.d)-socialScore(b.d));
+  return {k1,k2};
+}
+
+function renderKDPanel(){
+  const {k1,k2} = getKonflikte();
+  const total = k1.length + k2.length;
+  document.getElementById('kdCount').textContent = total;
+
+  // ── Muster 1: Dreifachbelastung ──────────────────────────────
+  const c1El = document.getElementById('kdChain1');
+  if(k1.length===0){
+    c1El.innerHTML=`<div class="kd-chain-hdr kd-chain1-hdr">🔴 Dreifachbelastung — 0 Stadtteile</div>
+      <div class="kd-empty">✓ Kein Stadtteil trägt gleichzeitig extreme Hitze, hohe Armut und Kinderarmut</div>`;
+  } else {
+    c1El.innerHTML=`
+      <div class="kd-chain-hdr kd-chain1-hdr">🔴 Dreifachbelastung — ${k1.length} ${k1.length===1?'Stadtteil':'Stadtteile'}</div>
+      <div style="font-size:9px;color:var(--text2);line-height:1.5;margin-bottom:8px;padding:5px 6px;border-left:2px solid #ef4444">
+        Klimawandel trifft Armut: Wo es heiß ist, haben die Menschen am wenigsten Mittel um sich zu schützen — keine Klimaanlage, kein Urlaub, oft beengte Wohnverhältnisse.
+      </div>
+      ${k1.map(({name,d})=>{
+        const hitzeStufe=d.lst_delta>=4?'extreme Hitze':'starke Überhitzung';
+        const armutStufe=d.sgb2>=50?'jeder zweite Haushalt':d.sgb2>=30?'fast ein Drittel':'ein Viertel';
+        return`<div class="kd-item c1" onclick="openDrawer('${name}',CITY_CFG[city].data['${name}'])">
+          <div class="kd-dot c1"></div>
+          <div style="flex:1">
+            <div class="kd-name">${name}</div>
+            <div class="kd-why">Im Sommer ${hitzeStufe} (+${d.lst_delta}°C über Stadtdurchschnitt). ${armutStufe} lebt von Sozialhilfe — ${d.kinderarmut}% der Kinder sind von Armut betroffen. Diese drei Faktoren verstärken sich gegenseitig.</div>
+            <div class="kd-impact">→ Höchster Handlungsbedarf · ESF+, ERDF verfügbar</div>
+            <div class="kd-numbers">
+              <span class="kd-num red">🌡 +${d.lst_delta}°C Hitze</span>
+              <span class="kd-num red">💶 ${d.sgb2}% SGB-II</span>
+              <span class="kd-num red">👶 ${d.kinderarmut}% Kinderarmut</span>
+            </div>
+            <div class="kd-action">Details & Maßnahmen ansehen →</div>
+          </div>
+        </div>`;
+      }).join('<div class="kd-divider"></div>')}`;
+  }
+
+  // ── Muster 2: Verdrängungsgefahr ────────────────────────────
+  const c2El = document.getElementById('kdChain2');
+  if(k2.length===0){
+    c2El.innerHTML=`<div class="kd-chain-hdr kd-chain2-hdr" style="margin-top:12px">🟡 Verdrängungsgefahr — 0 Stadtteile</div>
+      <div class="kd-empty">✓ Kein aktutes Gentrifizierungsrisiko erkannt</div>`;
+  } else {
+    c2El.innerHTML=`
+      <div class="kd-chain-hdr kd-chain2-hdr" style="margin-top:12px">🟡 Verdrängungsgefahr — ${k2.length} ${k2.length===1?'Stadtteil':'Stadtteile'}</div>
+      <div style="font-size:9px;color:var(--text2);line-height:1.5;margin-bottom:8px;padding:5px 6px;border-left:2px solid #eab308">
+        Wenn Klimaschutz und Aufwertung kommen, steigen die Mieten — bevor die jetzigen Bewohner davon profitieren können.
+      </div>
+      ${k2.map(({name,d})=>{
+        const cs=climateScore(d), ss=socialScore(d);
+        const gap=cs-ss;
+        return`<div class="kd-item c2" onclick="openDrawer('${name}',CITY_CFG[city].data['${name}'])">
+          <div class="kd-dot c2"></div>
+          <div style="flex:1">
+            <div class="kd-name">${name}</div>
+            <div class="kd-why">Klimascore ${cs}/100 ist ${gap} Punkte besser als der Sozialscore (${ss}/100). Das Viertel wertet ökologisch auf — aber ${d.mig}% der Bewohner haben Migrationshintergrund und sind bei steigenden Mieten besonders gefährdet zu verdrängt zu werden.</div>
+            <div class="kd-impact">→ Handlungsfenster jetzt · Mietpreisbremse, Sozialbindung prüfen</div>
+            <div class="kd-numbers">
+              <span class="kd-num yellow">🌿 Klima ${cs}/100</span>
+              <span class="kd-num yellow">📉 Sozial ${ss}/100</span>
+              <span class="kd-num yellow">👥 ${d.mig}% Migration</span>
+            </div>
+            <div class="kd-action">Details & Maßnahmen ansehen →</div>
+          </div>
+        </div>`;
+      }).join('<div class="kd-divider"></div>')}`;
+  }
+}
+
+function renderKDMarkers(){
+  if(kdMarkerLayer){ map.removeLayer(kdMarkerLayer); kdMarkerLayer=null; }
+  if(!kdPanelOpen) return;
+  const {k1,k2} = getKonflikte();
+  const cfg = CITY_CFG[city];
+  const group = L.layerGroup();
+
+  // Helper: finde Mittelpunkt eines Stadtteils aus geoFeatures
+  function districtCenter(name){
+    const f = geoFeatures.find(feat=>{
+      const raw = feat.properties[cfg.nameProp]||'';
+      return raw===name || raw.includes(name) || name.includes(raw);
+    });
+    if(!f) return null;
+    try{
+      const layer = L.geoJSON(f);
+      return layer.getBounds().getCenter();
+    }catch(e){ return null; }
+  }
+
+  // Kette 1 — rote pulsierende Ringe
+  k1.forEach(({name,d})=>{
+    const c = districtCenter(name);
+    if(!c) return;
+    // Äußerer pulsierender Kreis
+    const outer = L.circleMarker(c, {
+      radius:22, color:'#ef4444', weight:2.5,
+      fillColor:'rgba(220,38,38,0.08)', fillOpacity:1,
+      className:'kd-pulse-ring'
+    }).addTo(group);
+    // Inneres Icon
+    const icon = L.divIcon({
+      html:`<div style="background:#ef4444;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;box-shadow:0 0 0 4px rgba(239,68,68,0.3);border:2px solid #fff">⚡</div>`,
+      iconSize:[24,24], iconAnchor:[12,12], className:''
+    });
+    L.marker(c, {icon})
+      .bindTooltip(`<b>🔴 Kette 1 — Brennpunkt</b><br><b>${name}</b><br>LST +${d.lst_delta}°C · SGB-II ${d.sgb2}% · Kinderarmut ${d.kinderarmut}%`,{sticky:true})
+      .on('click',()=>openDrawer(name,d))
+      .addTo(group);
+  });
+
+  // Kette 2 — gelbe Warndreiecke
+  k2.forEach(({name,d})=>{
+    const c = districtCenter(name);
+    if(!c) return;
+    const outer = L.circleMarker(c, {
+      radius:20, color:'#eab308', weight:2,
+      fillColor:'rgba(234,179,8,0.08)', fillOpacity:1
+    }).addTo(group);
+    const icon = L.divIcon({
+      html:`<div style="background:#eab308;color:#1a1a2e;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;box-shadow:0 0 0 4px rgba(234,179,8,0.3);border:2px solid #fff">⚠</div>`,
+      iconSize:[22,22], iconAnchor:[11,11], className:''
+    });
+    L.marker(c, {icon})
+      .bindTooltip(`<b>🟡 Kette 2 — Gentrifizierungsrisiko</b><br><b>${name}</b><br>Klima ${climateScore(d)} · Sozial ${socialScore(d)} · Mig ${d.mig}%`,{sticky:true})
+      .on('click',()=>openDrawer(name,d))
+      .addTo(group);
+  });
+
+  group.addTo(map);
+  kdMarkerLayer = group;
+}
+
+function toggleKDPanel(){
+  kdPanelOpen = !kdPanelOpen;
+  document.getElementById('kdPanel').classList.toggle('open', kdPanelOpen);
+  document.getElementById('kdBtn').style.borderColor = kdPanelOpen ? '#ef4444' : 'rgba(220,38,38,0.35)';
+  document.getElementById('kdBtn').style.background = kdPanelOpen ? 'rgba(220,38,38,0.08)' : 'var(--surface)';
+  if(kdPanelOpen){ renderKDPanel(); renderKDMarkers(); }
+  else { if(kdMarkerLayer){ map.removeLayer(kdMarkerLayer); kdMarkerLayer=null; } }
+}
+
+// ══════════════════════════════════════════════════════════════
 // MAP
 // ══════════════════════════════════════════════════════════════
 function initMap(){
@@ -786,103 +1393,90 @@ function initMap(){
   // Create dedicated pane for choropleth — sits BELOW tile layers at z200
   map.createPane('choropleth');
   map.getPane('choropleth').style.zIndex=200;
-  map.getPane('choropleth').style.pointerEvents='none';
-  // Standardmäßig ausgeblendet
-  map.getPane('choropleth').style.display='none';
+  map.getPane('choropleth').style.pointerEvents='none'; // clicks pass through to map
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     {attribution:'© OpenStreetMap © CARTO',maxZoom:19,pane:'tilePane'}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
   loadCity('ffm');
 }
 
-function switchCity(c){
-  city=c;selected=null;closeDrawer();
-  document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
-  document.getElementById('ct-'+c).classList.add('on');
-  document.getElementById('loaderTxt').textContent=c==='ffm'?'Frankfurter Stadtteile…':'Utrechtse Wijken…';
-  document.getElementById('loader').style.display='flex';
-  // Clear all active layers
-  Object.keys(layerObjs).forEach(k=>{if(layerObjs[k])map.removeLayer(layerObjs[k]);delete layerObjs[k];});
-  Object.keys(activeLayers).forEach(k=>delete activeLayers[k]);
-  document.querySelectorAll('.ltoggle').forEach(el=>el.classList.remove('on'));
-  activeCount=0;document.getElementById('layerCount').textContent='0';
-  loadCity(c);
-}
+function switchCity(c){ /* deprecated — Frankfurt only */ }
 
 function loadCity(c){
   const cfg=CITY_CFG[c];
-
-  // Timeout nach 8 Sekunden — danach Fallback
-  const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(), 8000);
-
-  fetch(cfg.geojson, {signal:controller.signal})
-    .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();})
+  fetch(cfg.geojson)
+    .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()})
     .then(data=>{
-      clearTimeout(timeout);
       const known=Object.keys(cfg.data);
       geoFeatures=data.features.filter(f=>{
         const n=f.properties[cfg.nameProp]||'';
         return known.some(k=>n===k||n.includes(k)||k.includes(n));
       });
-      if(!geoFeatures.length) geoFeatures=data.features.slice(0,50);
-      try{renderMap();}catch(e){console.warn('renderMap',e);}
-      try{renderList();}catch(e){console.warn('renderList',e);}
-      try{renderStats();}catch(e){console.warn('renderStats',e);}
-      try{map.setView(cfg.center,cfg.zoom);}catch(e){}
+      if(!geoFeatures.length)geoFeatures=data.features.slice(0,50);
+      renderMap();renderList();renderStats();
+      // Initialise Konflikt-Detektor count badge (panel stays closed)
+      const {k1,k2}=getKonflikte();
+      document.getElementById('kdCount').textContent=k1.length+k2.length;
+      if(kdPanelOpen){renderKDPanel();renderKDMarkers();}
+      map.setView(cfg.center,cfg.zoom);
       document.getElementById('loader').style.display='none';
     })
     .catch(()=>{
-      clearTimeout(timeout);
-      // Fallback: Stadtteile als einfache Kreise aus NICE Score Daten anzeigen
-      geoFeatures=[];
-      try{renderList();}catch(e){console.warn('renderList',e);}
-      try{renderStats();}catch(e){console.warn('renderStats',e);}
-      try{map.setView(cfg.center,cfg.zoom);}catch(e){}
+      geoFeatures=[];renderList();renderStats();
+      map.setView(CITY_CFG[c].center,CITY_CFG[c].zoom);
       document.getElementById('loader').style.display='none';
-      // Hinweis anzeigen
-      if(c==='utr'){
-        const info=document.createElement('div');
-        info.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:11px;color:var(--text);z-index:900;box-shadow:var(--shl)';
-        info.textContent='⚠️ Utrecht-Karte: GeoJSON-Server nicht erreichbar. Layer-Daten sind verfügbar.';
-        document.body.appendChild(info);
-        setTimeout(()=>info.remove(), 5000);
-      }
     });
 }
 
 function renderMap(){
   if(geoLayer)map.removeLayer(geoLayer);
   const cfg=CITY_CFG[city];
-  const allS=Object.values(cfg.data).map(nice);
+  const allS=Object.values(cfg.data).map(lensScore);
 
-  // Choropleth-Sichtbarkeit: nur ausblenden wenn Layer aktiv, aber nicht automatisch einblenden
+  // Instantly hide/show the whole choropleth pane based on active layer count
   const pane=map.getPane('choropleth');
-  if(pane && activeCount>0) pane.style.display='none';
+  if(pane) pane.style.display = activeCount>0 ? 'none' : '';
+
+  const isHitze = lens==='hitze';
 
   geoLayer=L.geoJSON({type:'FeatureCollection',features:geoFeatures},{
     pane:'choropleth',
     style:f=>{
       const raw=f.properties[cfg.nameProp]||'';
       const k=Object.keys(cfg.data).find(k=>raw===k||raw.includes(k)||k.includes(raw));
-      const s=k?nice(cfg.data[k]):null;
+      const d=k?cfg.data[k]:null;
+      const s=k?lensScore(cfg.data[k]):null;
+      if(isHitze&&d){
+        const hc=heatFillColor(d.lst_delta!=null?d.lst_delta:1.5);
+        return{fillColor:hc,fillOpacity:0.52,color:hc,weight:1.5,opacity:0.9};
+      }
       const col=s!=null?qColor(s,allS):'#cccccc';
-      return{fillColor:col,fillOpacity:0.28,color:col,weight:1.5,opacity:0.6};
+      return{fillColor:col,fillOpacity:0,color:col,weight:2.5,opacity:0.75};
     },
     onEachFeature:(f,layer)=>{
       const raw=f.properties[cfg.nameProp]||'?';
       const k=Object.keys(cfg.data).find(k=>raw===k||raw.includes(k)||k.includes(raw));
       const d=k?cfg.data[k]:null;
-      const s=d?nice(d):'?';
-      const risks=d?[d.hw?'💧 HQ100':'',d.heat?'🌡️ Hitzeinsel':'',d.noise>70?'🔊 Lärm':''].filter(Boolean).join(' · '):'';
-      layer.bindTooltip(`<b>${k||raw}</b> · Score: <b>${s}</b>/100${risks?'<br><small>'+risks+'</small>':''}`,{sticky:true});
-      // Capture name+data in closure for click — fixes Utrecht bug
+      const s=d?lensScore(d):'?';
+      const risks=d?[d.hw?'💧 HQ100':'',d.lst_delta>=2?'🌡️ Hitzeinsel':'',d.noise>70?'🔊 Lärm':''].filter(Boolean).join(' · '):'';
+      const tip=isHitze&&d
+        ?`<b>${k||raw}</b> · LST <b>${d.lst_delta>=0?'+':''}${d.lst_delta}°C</b> · Versiegelt <b>${d.versieg}%</b>${risks?'<br><small>'+risks+'</small>':''}`
+        :`<b>${k||raw}</b> · Score: <b>${s}</b>/100${risks?'<br><small>'+risks+'</small>':''}`;
+      layer.bindTooltip(tip,{sticky:true});
       const areaName=k||raw;
       const areaData=d;
       layer.on({
-        click:()=>{ if(areaData) openDrawer(areaName, areaData); },
-        mouseover:e=>{ e.target.setStyle({fillOpacity:.5,weight:2.5}); e.target.bringToFront(); },
-        mouseout:e=>{ if(geoLayer) geoLayer.resetStyle(e.target); }
+        click:()=>{ if(areaData) openDrawer(areaName,areaData); },
+        mouseover:e=>{
+          if(isHitze&&areaData){
+            const hc=heatFillColor(areaData.lst_delta!=null?areaData.lst_delta:1.5);
+            e.target.setStyle({fillOpacity:.72,weight:2.5,fillColor:hc});
+          } else {
+            e.target.setStyle({fillOpacity:.15,weight:3.5,fillColor:qColor(s,allS)});
+          }
+          e.target.bringToFront();
+        },
+        mouseout:e=>{ if(geoLayer)geoLayer.resetStyle(e.target); }
       });
     }
   }).addTo(map);
@@ -900,6 +1494,7 @@ function toggleLayer(id){
   const st=document.getElementById('st-'+id);
   if(activeLayers[id]){
     if(layerObjs[id])map.removeLayer(layerObjs[id]);
+    if(is3dActive && map3d){if(map3d.getLayer('ml-'+id))map3d.removeLayer('ml-'+id);if(map3d.getSource('ml-'+id))map3d.removeSource('ml-'+id);}
     delete activeLayers[id];delete layerObjs[id];
     tog.classList.remove('on');st.textContent='';
     activeCount--;document.getElementById('layerCount').textContent=activeCount;
@@ -908,11 +1503,11 @@ function toggleLayer(id){
     st.innerHTML='<span class="loading-dot"></span>';
     activeCount++;document.getElementById('layerCount').textContent=activeCount;
     loadLayer(id,st);
+    if(is3dActive && map3dReady) loadLayerInto3D(id, st);
   }
   // Toggle choropleth pane visibility instantly — no redraw needed
-  // Layer aktiv → Choropleth ausblenden; alle weg → nur ausblenden wenn choroplethVisible=false
   const pane=map.getPane('choropleth');
-  if(pane) pane.style.display = (activeCount>0||!choroplethVisible) ? 'none' : '';
+  if(pane) pane.style.display = activeCount>0 ? 'none' : '';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -936,55 +1531,21 @@ function opNext(){
     .finally(()=>setTimeout(opNext,800));
 }
 
-// Globaler Daten-Cache — alle geladenen GeoJSON werden hier gespeichert
-// Bürgerbrille kann dann unabhängig von aktiven Layern darauf zugreifen
-const dataCache = {};
-
 function loadLocal(filename, id, statusEl, onData){
-  // Cache-Hit
-  if(dataCache[filename]){
-    if(!activeLayers[id])return;
-    statusEl.textContent=`✓ ${dataCache[filename].features?.length||0}`;
-    onData(dataCache[filename]);
-    return;
-  }
-  fetch(`${DATA_BASE}/${filename}`)
+  // Versucht lokale Datei aus data/layers/ — erzeugt mit generate_layers.py
+  fetch(`/urbanlens/data/layers/${filename}`)
     .then(r=>{if(!r.ok)throw Error('not found');return r.json();})
     .then(geojson=>{
-      dataCache[filename]=geojson; // Im Cache speichern
       if(!activeLayers[id])return;
-      statusEl.textContent=`✓ ${geojson.features?.length||0}`;
+      statusEl.textContent=`✓ ${geojson.features?.length||0} (lokal)`;
       onData(geojson);
     })
     .catch(()=>{
+      // Fallback: Live von Overpass
       statusEl.innerHTML='<span class="loading-dot"></span> live...';
       loadLayerLive(id, statusEl);
     });
 }
-
-// Daten im Hintergrund vorladen (für Bürgerbrille)
-function preloadCriticalData(){
-  const files=[
-    `heat_exposure_${city}.geojson`,
-    `noise_roads_${city}.geojson`,
-    `green_${city}.geojson`,
-    `trees_${city}.geojson`,
-    `benches_${city}.geojson`,
-    `footways_quality_${city}.geojson`,
-    `retail_${city}.geojson`,
-    `flood_exposure_${city}.geojson`,
-    `bike_${city}.geojson`,
-  ];
-  files.forEach(f=>{
-    if(!dataCache[f]){
-      fetch(`${DATA_BASE}/${f}`)
-        .then(r=>r.ok?r.json():null)
-        .then(d=>{if(d)dataCache[f]=d;})
-        .catch(()=>{});
-    }
-  });
-}
-
 
 function loadLayer(id,statusEl){
   const c=CITY_CFG[city];
@@ -1009,6 +1570,12 @@ function loadLayer(id,statusEl){
     case 'transit':  return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['bus_stop','tram_stop','station','halt']));
     case 'community':return loadLocal(`pois_${city}.geojson`,id,statusEl,d=>renderPOILayer(d,id,['community_centre','social_centre','place_of_worship','social_facility','library','sports_centre']));
     // ── COMPOSITE LAYER ──────────────────────────────────────
+    case 'hessen_heat': return loadHessenWFS('hessen_heat', statusEl,
+      'https://geodatendienste-umweltplanung-hessen.de/ows/services/org.2.49666e11-dd55-4623-a47f-70be6191017a_wfs',
+      'ft:hot_cold_spots_final', renderHessenHeat);
+    case 'hessen_lcz': return loadHessenWFS('hessen_lcz', statusEl,
+      'https://geodatendienste-umweltplanung-hessen.de/ows/services/org.2.de55d3b8-5139-4aad-a685-f7b3ca3015fa_wfs',
+      'lcz_v6', renderHessenLCZ);
     case 'schools_heat':
       loadLocal(`pois_${city}.geojson`,id,statusEl,pois=>{
         loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,heat=>{
@@ -1383,6 +1950,118 @@ function renderCO2Layer(geojson){
 }
 
 
+
+// ══════════════════════════════════════════════════════════════
+// HESSEN GEOPORTAL WFS — Amtliche Klimadaten
+// Quelle: Geoportal Hessen / HLNUG · Datenlizenz Deutschland 2.0
+// Lazy loaded on demand · Cached · Max 1500 features
+// ══════════════════════════════════════════════════════════════
+const hessenWFSCache = {};
+
+function loadHessenWFS(id, statusEl, endpoint, typeName, renderFn) {
+  if (!activeLayers[id]) return;
+
+  // Cache hit — no re-fetch
+  if (hessenWFSCache[id]) {
+    renderFn(id, hessenWFSCache[id], statusEl);
+    return;
+  }
+
+  // Frankfurt bbox only — limit data volume
+  const bbox = '8.55,50.05,8.82,50.22,EPSG:4326';
+  const url = `${endpoint}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature` +
+    `&typeName=${typeName}&BBOX=${bbox}&SRSNAME=EPSG:4326` +
+    `&outputFormat=application/json&count=1500`;
+
+  fetch(url)
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => {
+      if (!activeLayers[id]) return; // user toggled off while loading
+      hessenWFSCache[id] = data;
+      renderFn(id, data, statusEl);
+    })
+    .catch(err => {
+      console.warn('Hessen WFS', id, err.message);
+      if (statusEl) statusEl.innerHTML =
+        err.message.includes('CORS') || err.message.includes('fetch') || err.name === 'TypeError'
+          ? '<span style="color:#f97316;font-size:9px">⚠ CORS blockiert</span>'
+          : `<span style="color:#ef4444;font-size:9px">⚠ ${err.message}</span>`;
+    });
+}
+
+function lstColor(lst) {
+  if (lst == null) return { fillColor: '#6b7280', fillOpacity: 0.4, weight: 0, color: 'none' };
+  if (lst >= 34)   return { fillColor: '#7f1d1d', fillOpacity: 0.72, weight: 0, color: 'none' };
+  if (lst >= 32)   return { fillColor: '#dc2626', fillOpacity: 0.65, weight: 0, color: 'none' };
+  if (lst >= 30)   return { fillColor: '#f97316', fillOpacity: 0.58, weight: 0, color: 'none' };
+  if (lst >= 28)   return { fillColor: '#fbbf24', fillOpacity: 0.50, weight: 0, color: 'none' };
+  if (lst >= 25)   return { fillColor: '#a3e635', fillOpacity: 0.40, weight: 0, color: 'none' };
+  return            { fillColor: '#22d3ee', fillOpacity: 0.35, weight: 0, color: 'none' };
+}
+
+function sealingColor(pct) {
+  if (pct == null) return { fillColor: '#6b7280', fillOpacity: 0.3, weight: 0, color: 'none' };
+  if (pct >= 80)   return { fillColor: '#7f1d1d', fillOpacity: 0.70, weight: 0, color: 'none' };
+  if (pct >= 60)   return { fillColor: '#dc2626', fillOpacity: 0.62, weight: 0, color: 'none' };
+  if (pct >= 40)   return { fillColor: '#f97316', fillOpacity: 0.55, weight: 0, color: 'none' };
+  if (pct >= 20)   return { fillColor: '#eab308', fillOpacity: 0.45, weight: 0, color: 'none' };
+  return            { fillColor: '#22c55e', fillOpacity: 0.38, weight: 0, color: 'none' };
+}
+
+function renderHessenHeat(id, data, statusEl) {
+  if (!activeLayers[id]) return;
+  const layer = L.geoJSON(data, {
+    renderer: window.canvasRenderer,
+    style: f => lstColor(f.properties.lst_tag),
+    onEachFeature: (f, l) => {
+      const p = f.properties;
+      const lst = p.lst_tag != null ? p.lst_tag.toFixed(1) : '?';
+      const lstN = p.lst_nacht != null ? p.lst_nacht.toFixed(1) : '?';
+      const tn = p.tropennaechte != null ? Math.round(p.tropennaechte) : '?';
+      const pet = p.pet != null ? p.pet.toFixed(1) : '?';
+      l.bindTooltip(
+        `<b>🌡 Hitzestress (amtlich)</b><br>` +
+        `LST Tag: <b>${lst}°C</b> · Nacht: ${lstN}°C<br>` +
+        `Tropennächte: <b>${tn}</b> · PET: ${pet}°C<br>` +
+        `<small>Quelle: HLNUG / Geoportal Hessen · 100m Raster<br>` +
+        `Datenlizenz Deutschland 2.0</small>`,
+        { sticky: true, maxWidth: 260 }
+      );
+    }
+  }).addTo(map);
+  layerObjs[id] = layer;
+  if (statusEl) statusEl.textContent = `✓ ${data.features?.length || 0} Zellen`;
+}
+
+function renderHessenLCZ(id, data, statusEl) {
+  if (!activeLayers[id]) return;
+  const layer = L.geoJSON(data, {
+    renderer: window.canvasRenderer,
+    style: f => {
+      const p = f.properties;
+      const totalSealing = (p.vollversiegelt_prozent || 0) + (p.teilversiegelt_prozent || 0);
+      return sealingColor(totalSealing);
+    },
+    onEachFeature: (f, l) => {
+      const p = f.properties;
+      const voll = (p.vollversiegelt_prozent || 0).toFixed(1);
+      const teil = (p.teilversiegelt_prozent || 0).toFixed(1);
+      const unvers = (p.unversiegelt_prozent || 0).toFixed(1);
+      const hoch = (p.hochwuechsig_prozent || 0).toFixed(1);
+      const lcz = p.lcz || '?';
+      l.bindTooltip(
+        `<b>🏗 Lokale Klimazone ${lcz}</b><br>` +
+        `Vollversiegelt: <b>${voll}%</b> · Teilversiegelt: ${teil}%<br>` +
+        `Unversiegelt: ${unvers}% · Hochvegetation: ${hoch}%<br>` +
+        `<small>Quelle: Geoportal Hessen LCZ-Datensatz · 100m Raster<br>` +
+        `Datenlizenz Deutschland 2.0</small>`,
+        { sticky: true, maxWidth: 260 }
+      );
+    }
+  }).addTo(map);
+  layerObjs[id] = layer;
+  if (statusEl) statusEl.textContent = `✓ ${data.features?.length || 0} Zellen`;
+}
 
 // ── Globale Geo-Hilfsfunktionen ───────────────────────────────
 function dist2(lo1,la1,lo2,la2){const d=lo2-lo1,e=la2-la1;return d*d+e*e;}
@@ -1862,31 +2541,29 @@ function renderPOILayer(geojson,id,allowedTypes){
 
 function renderList(filter=''){
   const cfg=CITY_CFG[city];
-  const allS=Object.values(cfg.data).map(nice);
-  document.getElementById('listTitle').textContent=`${Object.keys(cfg.data).length} ${city==='ffm'?'Frankfurter Stadtteile':'Utrechtse Wijken'}`;
+  const allS=Object.values(cfg.data).map(lensScore);
+  document.getElementById('listTitle').textContent=`${Object.keys(cfg.data).length} Frankfurter Stadtteile`;
   const entries=Object.entries(cfg.data)
-    .map(([n,d])=>({n,d,s:nice(d)}))
+    .map(([n,d])=>({n,d,s:lensScore(d)}))
     .filter(e=>!filter||e.n.toLowerCase().includes(filter.toLowerCase()))
     .sort((a,b)=>a.s-b.s);
   document.getElementById('stList').innerHTML=entries.map(({n,d,s})=>{
     const col=qColor(s,allS);
     const isDouble=s<45&&d.wb<50;
     const risks=[d.hw?'💧':'',d.heat?'🌡️':'',d.noise>70?'🔊':''].filter(Boolean).join('');
-    // Soll-Ist Balken — Fortschritt zum Zielwert (100)
-    const pct=Math.min(100,s);
-    const sollPct=65; // Ziel: Note B oder besser
-    const gapCol=s<40?'#dc2626':s<55?'#ea580c':s<65?'#ca8a04':'#16a34a';
+    // Use data-name attribute + event delegation instead of inline onclick with city string
     return`<div class="sti${selected===n?' active':''}" data-area="${n}">
       <div class="stq" style="background:${col}18;color:${col};border-color:${col}">${s}</div>
       <div class="stinfo">
         <div class="stname">${n}</div>
-        <div class="stmeta">${(d.pop/1000).toFixed(0)}k EW · ${d.wb}% Wahlbet.${risks?' · '+risks:''}</div>
-        <div style="margin-top:3px;height:3px;background:var(--border);border-radius:2px;position:relative;overflow:visible">
-          <div style="height:100%;width:${pct}%;background:${gapCol};border-radius:2px;transition:width .4s"></div>
-          <div style="position:absolute;top:-2px;left:${sollPct}%;width:1.5px;height:7px;background:rgba(255,255,255,0.4);border-radius:1px"></div>
-        </div>
+        <div class="stmeta">${
+          lens==='social'?(d.sgb2!=null?`SGB-II ${d.sgb2}% · Armut ${d.kinderarmut}%`:`${(d.pop/1000).toFixed(0)}k EW`)
+          :lens==='climate'?`Klima ${climateScore(d)}/100 · ${[d.hw?'💧':'',d.heat?'🌡️':''].filter(Boolean).join(' ')}`
+          :lens==='hitze'?`🌡️ ${d.lst_delta!=null?(d.lst_delta>=0?'+':'')+d.lst_delta+'°C':'?'} · Versiegelt ${d.versieg!=null?d.versieg+'%':'?'}`
+          :`${(d.pop/1000).toFixed(0)}k EW · ${d.wb}% Wahlbet.${risks?' · '+risks:''}`
+        }</div>
       </div>
-      <div class="stflag">${isDouble?'⚠️':s<40?'🔴':s>=65?'🟢':''}</div>
+      <div class="stflag">${isDouble?'⚠️':s<40?'🔴':''}</div>
     </div>`;
   }).join('');
 }
@@ -1938,6 +2615,13 @@ function openDrawer(name,d){
   const weakKeys=DIMS.slice().sort((a,b)=>d[a.k]-d[b.k]).slice(0,4).map(x=>x.k);
   const relM=MASS.filter(m=>m.dims.some(k=>weakKeys.includes(k))).slice(0,4);
 
+  // Social score for drawer
+  const ss=socialScore(d);
+  const sSgb2Color=d.sgb2>=25?'#ef4444':d.sgb2>=15?'#f97316':d.sgb2>=10?'#eab308':'#22c55e';
+  const sKaColor=d.kinderarmut>=35?'#ef4444':d.kinderarmut>=20?'#f97316':d.kinderarmut>=12?'#eab308':'#22c55e';
+  const sEkColor=d.einkommen>=45000?'#22c55e':d.einkommen>=32000?'#eab308':d.einkommen>=24000?'#f97316':'#ef4444';
+  const sAlColor=d.arbeitslos>=12?'#ef4444':d.arbeitslos>=8?'#f97316':d.arbeitslos>=5?'#eab308':'#22c55e';
+
   // TAB 0 — Übersicht
   document.getElementById('tp0').innerHTML=`
     <div class="kgrid">
@@ -1956,7 +2640,154 @@ function openDrawer(name,d){
     </div>
     <div class="sec">Hauptschwächen</div>
     <div class="ibox">Schwächste Dimensionen: <b>${weakKeys.map(k=>DIMS.find(x=>x.k===k)?.name).join(', ')}</b>.<br>
-    Maßnahmen (Tab 3) adressieren genau diese Felder.</div>`;
+    Maßnahmen (Tab 3) adressieren genau diese Felder.</div>
+    ${d.sgb2!=null?`
+    <div class="sec">👥 Soziale Lage</div>
+    <div class="social-grid">
+      <div class="skpi">
+        <div class="skpi-val" style="color:${sSgb2Color}">${d.sgb2}%</div>
+        <div class="skpi-lbl">SGB-II-Quote</div>
+        <div class="skpi-bar"><div class="skpi-fill" style="width:${Math.min(100,d.sgb2/70*100)}%;background:${sSgb2Color}"></div></div>
+      </div>
+      <div class="skpi">
+        <div class="skpi-val" style="color:${sKaColor}">${d.kinderarmut}%</div>
+        <div class="skpi-lbl">Kinderarmut (u18)</div>
+        <div class="skpi-bar"><div class="skpi-fill" style="width:${Math.min(100,d.kinderarmut/75*100)}%;background:${sKaColor}"></div></div>
+      </div>
+      <div class="skpi">
+        <div class="skpi-val" style="color:${sEkColor}">${(d.einkommen/1000).toFixed(0)}k€</div>
+        <div class="skpi-lbl">Medianeinkommen/Jahr</div>
+        <div class="skpi-bar"><div class="skpi-fill" style="width:${Math.min(100,(d.einkommen-15000)/500)}%;background:${sEkColor}"></div></div>
+      </div>
+      <div class="skpi">
+        <div class="skpi-val" style="color:${sAlColor}">${d.arbeitslos}%</div>
+        <div class="skpi-lbl">Arbeitslosigkeit</div>
+        <div class="skpi-bar"><div class="skpi-fill" style="width:${Math.min(100,d.arbeitslos/18*100)}%;background:${sAlColor}"></div></div>
+      </div>
+    </div>
+    <div class="kgrid" style="grid-template-columns:1fr">
+      <div class="kpi"><div class="kval">${d.abitur}%</div><div class="klbl">Abiturquote</div><div class="ksub">Schulabschlüsse · Bildungsmonitoring</div></div>
+    </div>
+    ${d.sgb2>=25||d.kinderarmut>=35?`<div class="soc-risk">⚠️ <b>Soziale Risikolage:</b> Überdurchschnittliche Armutsquoten. Handlungsbedarf bei Bildung, Sozialinfrastruktur und Einkommensförderung. Kandidat für ESF+, ERDF Soziale Infrastruktur (80% Förderquote).</div>`:d.sgb2<=8&&d.einkommen>=45000?`<div class="soc-good">✅ <b>Stabile Soziallage:</b> Unterdurchschnittliche Armutsquoten und überdurchschnittliches Einkommen. Gute Bildungsvoraussetzungen.</div>`:''}
+    <div style="font-size:8px;color:var(--muted);margin-top:6px;padding:6px 8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+      Quellen: Frankfurt Stadtmonitoring Soziales 2024 · BA Statistik · Paritätischer Armutsbericht · Zensus 2022
+    </div>`:''}
+    ${d.versieg!=null?(()=>{
+      const hb      = hitzebetroffenheit(d);
+      const hbMeta  = hbLabel(hb);
+      const lstC    = heatFillColor(d.lst_delta||0);
+      const lstPct  = Math.min(100,Math.max(0,Math.round((d.lst_delta+1)/5*100)));
+      const ndvi    = Math.max(0.02,((100-(d.versieg||60))/100)*0.85);
+      const ndviPct = Math.round(ndvi*100);
+      const ndviLbl = ndvi>=0.5?'Gut':ndvi>=0.35?'Mäßig':ndvi>=0.20?'Niedrig':'Kritisch';
+      const ndviC   = ndvi>=0.5?'#22c55e':ndvi>=0.35?'#a3e635':ndvi>=0.20?'#f97316':'#ef4444';
+      const feuchC  = d.versieg>=75?'#ef4444':d.versieg>=55?'#f97316':d.versieg>=40?'#eab308':'#22c55e';
+      const feuchLbl= d.versieg>=75?'Kritisch':d.versieg>=55?'Erhöht':d.versieg>=40?'Mäßig':'Gering';
+      // Prioritäre Hitzemaßnahmen für diesen Stadtteil
+      // Hotspot-Typ Klassifikation (nach Einflussfaktor)
+      const ndbi       = Math.min(0.8,Math.max(-0.2,((d.versieg||50)/100)*0.65-0.15));
+      const lcz        = d.versieg>=80?'LCZ 1–2 · Dichte Innenstadtbebauung':d.versieg>=60?'LCZ 3–5 · Mitteldichte Bebauung':d.versieg>=40?'LCZ 6–8 · Offene Bebauung / Gewerbe':'LCZ 9–D · Suburbane Grünflächen';
+      const lczCol     = d.versieg>=80?'#ef4444':d.versieg>=60?'#f97316':d.versieg>=40?'#eab308':'#22c55e';
+      const isHighSeal = (d.versieg||0)>=65;
+      const isLowVeg   = ndvi<0.30;
+      const needsShade = (d.lst_delta||0)>=2.0;
+      const isVulnHB   = hb>=60;
+      const massVersieg= MASS.filter(m=>m.id==='H02'||m.id==='D02');
+      const massVeg    = MASS.filter(m=>m.id==='H01'||m.id==='H03');
+      const massShade  = MASS.filter(m=>m.id==='H04'||m.id==='H01').slice(0,1);
+      const massVuln   = MASS.filter(m=>m.id==='H05'||m.id==='H06');
+      const mCard = m=>`
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+          <span style="font-size:15px">${m.icon}</span>
+          <span style="font-size:11px;font-weight:700;color:var(--text);flex:1">${m.name}</span>
+          <span style="font-size:8px;font-weight:700;padding:1px 7px;border-radius:8px;${m.typ==='quick_win'?'background:rgba(34,197,94,0.1);color:#16a34a':'background:rgba(255,214,0,0.1);color:#92400e'}">${m.typ==='quick_win'?'⚡ Quick Win':'🏗 Strukturell'}</span>
+        </div>
+        <div style="font-size:9px;color:var(--text2);line-height:1.4;margin-bottom:5px">${m.desc}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:7px;background:rgba(0,0,0,0.04);border:1px solid var(--border2);color:var(--text2)">💰 ${fmt(m.kosten)}</span>
+          <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:7px;background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.15);color:#15803d">ROI ${fmt(m.roi)}</span>
+          <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:7px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.15);color:#7c3aed">${m.foerder[0]?.pct||'?'}% förderbar</span>
+        </div>
+        <div style="font-size:8px;color:var(--muted);margin-top:4px;padding-top:3px;border-top:1px solid var(--border)">${m.kw.split('.')[0]}.</div>
+      </div>`;
+      return`
+      <div class="sec">🌡️ Hitzebetroffenheit — Satelliten- & Erdbeobachtungsanalyse</div>
+
+      <div style="background:${hbMeta.col}18;border:1.5px solid ${hbMeta.col}44;border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <div style="text-align:center;flex-shrink:0">
+          <div style="font-size:28px;font-weight:900;color:${hbMeta.col};line-height:1">${hb}</div>
+          <div style="font-size:8px;color:var(--muted);margin-top:2px">/100</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:800;color:${hbMeta.col};margin-bottom:3px">${hbMeta.lbl} — Composite Hitzebetroffenheit</div>
+          <div style="font-size:9px;color:var(--text2);line-height:1.5">
+            <b>LST-Delta 40%</b> (Landsat 8/9 TIR · HLNUG) · <b>Versiegelung 35%</b> (Copernicus HRL Imperviousness) · <b>NDVI-Mangel 25%</b> (Sentinel-2 10m)<br>
+            LCZ-Einordnung: <span style="color:${lczCol};font-weight:700">${lcz}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hk-wrap">
+        <div class="hk-step s-heat">
+          <div class="hk-icon">🛰️</div>
+          <div class="hk-body">
+            <div class="hk-name">Land Surface Temperature (LST) · Landsat 8/9 TIR 30m · Copernicus UHI-Service · HLNUG Hessen</div>
+            <div class="hk-val" style="color:${lstC}">${d.lst_delta>=0?'+':''}${d.lst_delta}°C <small style="font-size:10px;font-weight:400;color:var(--text2)">Abweichung vom Frankfurter Umlandmittel (SUHI)</small></div>
+            <div class="hk-desc"><b>⚠️ LST = Oberflächentemperatur ≠ Lufttemperatur.</b> Satelliten messen Wärmestrahlung von Asphalt, Dächern und Böden — nicht die Lufttemperatur auf Augenhöhe. Methodik: Surface Urban Heat Island Indikator (SUHI), Hotspot-Analyse Top-10%-Perzentil. DWD: Wärmeinseleffekt besonders ausgeprägt bei wolkenarmen, windschwachen Nächten.</div>
+            <div class="hk-bar"><div class="hk-bar-fill" style="width:${lstPct}%;background:${lstC}"></div></div>
+          </div>
+        </div>
+        <div class="hk-arr">↓</div>
+        <div class="hk-step s-ndvi">
+          <div class="hk-icon">🌿</div>
+          <div class="hk-body">
+            <div class="hk-name">NDVI + NDBI · Sentinel-2 MSI 10m · Copernicus Tree Cover Density</div>
+            <div class="hk-val" style="color:${ndviC}">NDVI ${ndvi.toFixed(2)} <small style="font-size:10px;font-weight:400;color:var(--text2)">${ndviLbl}</small> · NDBI ≈${ndbi.toFixed(2)}</div>
+            <div class="hk-desc">NDVI (Normalized Difference Vegetation Index): Vegetationsvitalität aus Sentinel-2 Rot- und NIR-Band. NDBI (Normalized Difference Built-up Index): Bebauungsintensität. Copernicus Tree Cover Density liefert Baumkronendichte als eigenständigen Kühlungsfaktor. Fraunhofer IBP 2024: Grünflächen kühlen durch Evapotranspiration lokal bis −4°C.</div>
+            <div class="hk-bar"><div class="hk-bar-fill" style="width:${ndviPct}%;background:${ndviC}"></div></div>
+          </div>
+        </div>
+        <div class="hk-arr">↓</div>
+        <div class="hk-step s-feuch">
+          <div class="hk-icon">🏗️</div>
+          <div class="hk-body">
+            <div class="hk-name">Versiegelungsgrad + LCZ · Copernicus HRL Imperviousness (20m) · Urban Atlas 2018</div>
+            <div class="hk-val" style="color:${feuchC}">${d.versieg}% versiegelt <small style="font-size:10px;font-weight:400;color:var(--text2)">${feuchLbl} · <span style="color:${lczCol}">${lcz}</span></small></div>
+            <div class="hk-desc">Copernicus HRL Imperviousness (20m): europaweit harmonisierter Versiegelungsgrad. Local Climate Zone (LCZ) nach Stewart & Oke (2012): 17 Zonentypen nach Bebauungsstruktur — dichte LCZ-Typen (LCZ 1–3) speichern Wärme tagsüber und geben sie nachts langsam ab → erhöhte Tropennächte. BBSR 2023: 10% Entsiegelung → LST-Reduktion 0,8–1,2°C.</div>
+            <div class="hk-bar"><div class="hk-bar-fill" style="width:${d.versieg}%;background:${feuchC}"></div></div>
+          </div>
+        </div>
+        <div class="hk-arr">↓</div>
+        <div class="hk-step s-hlth">
+          <div class="hk-icon">🧍</div>
+          <div class="hk-body">
+            <div class="hk-name">Humane Wärmebelastung (Proxy) · VDI 3787 Bl. 1+2 · WHO Europa · UBA MK 4.0 2026</div>
+            <div class="hk-val" style="color:${hbMeta.col}">${hbMeta.lbl} <small style="font-size:10px;font-weight:400;color:var(--text2)">${hb}/100 Hitzebetroffenheit-Score</small></div>
+            <div class="hk-desc">Vollständige humanbiometeorologische Bewertung erfolgt via PET (Physiological Equivalent Temperature) oder UTCI (Universal Thermal Climate Index) — unter Einbezug von Lufttemperatur, Luftfeuchte, Wind, Strahlung und Verschattung (VDI 3787 Bl. 2). Vulnerable Gruppen: >75J, Kleinkinder, chronisch Erkrankte, Obdachlose. UBA MK 4.0: ~2 Mio€ Folgekosten/Hitzetod. Frankfurt 2022: ~180 hitzebedingte Übersterblichkeit.</div>
+            <div class="hk-bar"><div class="hk-bar-fill" style="width:${hb}%;background:${hbMeta.col}"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:7px 10px;background:rgba(107,114,128,0.07);border:1px solid rgba(107,114,128,0.18);border-radius:8px;font-size:9px;color:var(--text2);line-height:1.6;margin-bottom:12px">
+        ⚠️ <b>Methodische Grenzen (VDI 3787 Bl.1):</b> LST-Werte ≠ Lufttemperatur auf Augenhöhe. Einzelzeitpunkte begrenzt — ideal sind mehrjährige Zeitreihen aus mehreren Hitzetagen. Straßenzuggenaue Aussagen erfordern Mikroklimamodellierung (ENVI-met) oder mobile Messungen zur Validierung. Sozialdaten unter Datenschutzvorbehalt (ISO 14091).
+      </div>
+
+      ${hb>=45?`
+      <div class="sec">🛡️ Maßnahmen nach Hotspot-Typ</div>
+      ${isHighSeal?`<div style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px">🔴 Hohe Versiegelung (${d.versieg}%) — Entsiegelung + Schwammstadt</div>${massVersieg.map(mCard).join('')}`:''}
+      ${isLowVeg?`<div style="font-size:9px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px">🌿 Geringer Vegetationsanteil (NDVI ${ndvi.toFixed(2)}) — Straßenbäume + Grünflächen</div>${massVeg.map(mCard).join('')}`:''}
+      ${needsShade?`<div style="font-size:9px;font-weight:800;color:#b45309;text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px">☀️ Hohe Strahlungsbelastung (+${d.lst_delta}°C LST) — Verschattung + Kühlung</div>${massShade.map(mCard).join('')}`:''}
+      ${isVulnHB?`<div style="font-size:9px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px">👥 Vulnerable Bevölkerungsgruppen — Präventiver Hitzeschutz</div>${massVuln.map(mCard).join('')}`:''}
+      `:''}
+
+      <div style="font-size:8px;color:var(--muted);padding:6px 9px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);line-height:1.7">
+        🛰 <b>Daten:</b> Landsat 8/9 TIR (USGS) · Sentinel-2 MSI 10m (ESA) · Copernicus HRL Imperviousness · Tree Cover Density · Urban Atlas 2018 · HLNUG Hot/Coldspot Hessen · DWD Klimaatlas<br>
+        📐 <b>Standards:</b> VDI 3787 Bl.1+2 · ISO 14091 · WHO Heat Health Action Plan · LCZ-System (Stewart &amp; Oke 2012) · BBSR 2023 · UBA MK 4.0<br>
+        Datenlizenz Deutschland 2.0 · 🟢 Amtliche + institutionelle Quellen · Proxy-Modell ohne Mikroklimavalidierung
+      </div>`;
+    })():''}`;
 
   // TAB 1 — Dimensionen
   document.getElementById('tp1').innerHTML=DIMS.map(dim=>`
@@ -1973,40 +2804,39 @@ function openDrawer(name,d){
       <div class="dsrc">Quelle: <b>${dim.src.split(',')[0]}</b></div>
     </div>`).join('');
 
-  // TAB 2 — Soll-Zustand
-  const SOLL_TARGETS = [
-    {dim:'A', name:'Klimagerechtigkeit', soll:65, unit:'Punkte', benchmark:'EU Renaturierungs-VO 2024: 30% Stadtgrün', law:'30% Grünfläche bis 2030'},
-    {dim:'B', name:'Gesundheitslast',    soll:65, unit:'Punkte', benchmark:'WHO Luftqualitätsrichtlinien 2021', law:'PM2.5 ≤5 µg/m³'},
-    {dim:'C', name:'Mobilität',          soll:70, unit:'Punkte', benchmark:'EU Cycling Strategy: 50% aller Wege modal', law:'StrVO §45 Radinfrastruktur'},
-    {dim:'D', name:'Bildungsstart',      soll:65, unit:'Punkte', benchmark:'KMK Bildungsstandards', law:'UN CRC Art. 28'},
-    {dim:'E', name:'Wohn-Krise',         soll:60, unit:'Punkte', benchmark:'EU Urban Agenda Wohnraum', law:'30% Sozialwohnungen (UN Habitat)'},
-    {dim:'F', name:'Demokratie',         soll:65, unit:'Punkte', benchmark:'Wahlbeteiligung >70%', law:'EU Demokratie-Aktionsplan 2020'},
-    {dim:'G', name:'Ökosystem',          soll:70, unit:'Punkte', benchmark:'Copernicus NDVI-Zielwert', law:'EU Biodiversitätsstrategie 2030'},
-    {dim:'H', name:'Resilienz',          soll:65, unit:'Punkte', benchmark:'EU Klimaanpassungsstrategie 2021', law:'Sendai Framework 2015–2030'},
-  ];
+  // TAB 2 — Maßnahmen
+  const hb2 = d.versieg!=null ? hitzebetroffenheit(d) : 0;
+  const heatRelM = hb2>=45 ? MASS.filter(m=>m.id.startsWith('H')||m.id==='D02') : [];
   document.getElementById('tp2').innerHTML=`
-    <div class="ibox">Jede Dimension hat einen <b>normativen Zielwert</b> basierend auf EU-Recht, WHO-Empfehlungen und internationalen Benchmarks. Die Lücke zeigt den Handlungsbedarf.</div>
-    ${SOLL_TARGETS.map(t=>{
-      const ist=d[t.dim]||0;
-      const lücke=Math.max(0,t.soll-ist);
-      const pct=Math.min(100,ist/t.soll*100);
-      const col=ist>=t.soll?'#16a34a':ist>=t.soll*0.8?'#ca8a04':ist>=t.soll*0.6?'#ea580c':'#dc2626';
-      return`<div style="margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
-        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-          <div style="font-size:11px;font-weight:700;color:var(--text)">${t.dim} · ${t.name}</div>
-          <div style="font-size:11px;color:${col};font-weight:700">${ist} / ${t.soll} ${ist>=t.soll?'✓':'(-'+lücke+')'}</div>
+    <div class="ibox">Empfehlungen basieren auf den <b>schwächsten Dimensionen</b>. Alle Kosten und ROI sind methodisch belegt (ℹ️ aufklappbar). Institutionelle Quellen: Fraunhofer IBP · JRC EU · BBSR · WHO Europa · UBA · DWD.</div>
+    ${heatRelM.length?`
+    <div style="font-size:10px;font-weight:800;color:#ef4444;text-transform:uppercase;letter-spacing:.07em;margin:0 0 8px;display:flex;align-items:center;gap:6px">
+      <span>🔥 Hitzeschutz — Priorität ${hb2>=65?'HOCH':'MITTEL'}</span>
+      <span style="font-size:9px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:1px 8px;color:#fca5a5">${hb2}/100 Hitzebetroffenheit</span>
+    </div>
+    ${heatRelM.map(m=>`
+    <div class="mcard" style="border-color:rgba(239,68,68,0.2)">
+      <div class="mtop">
+        <div class="memi">${m.icon}</div>
+        <div class="mri">
+          <div class="mnm">${m.name}</div>
+          <div class="mde">${m.desc}</div>
+          <div class="mpills">
+            <span class="pill ${m.typ==='quick_win'?'pqw':'pst'}">${m.typ==='quick_win'?'⚡ Quick Win':'🏗 Strukturell'}</span>
+            <span class="pill peu">🌡️ Hitzeschutz</span>
+          </div>
         </div>
-        <div style="height:6px;background:var(--border);border-radius:3px;position:relative;margin-bottom:5px">
-          <div style="height:100%;width:${pct}%;background:${col};border-radius:3px;transition:width .5s"></div>
-          <div style="position:absolute;top:-3px;left:100%;transform:translateX(-2px);width:2px;height:12px;background:rgba(255,255,255,0.3);border-radius:1px"></div>
+      </div>
+      <div class="mnums">
+        <div class="mn"><div class="mnv">${fmt(m.kosten)}</div><div class="mnl">Investition <span class="ib" data-tip="${m.kw}">i</span></div></div>
+        <div class="mn" style="background:rgba(22,163,74,0.05);border-color:rgba(22,163,74,0.15)">
+          <div class="mnv" style="color:#15803d">${fmt(m.roi)}</div>
+          <div class="mnl">ROI 10J <span class="ib" data-tip="${m.rw}">i</span></div>
         </div>
-        <div style="font-size:9px;color:var(--muted)">${t.benchmark} · <i>${t.law}</i></div>
-      </div>`;
-    }).join('')}`;
-
-  // TAB 3 — Maßnahmen
-  document.getElementById('tp3').innerHTML=`
-    <div class="ibox">Empfehlungen basieren auf den <b>schwächsten Dimensionen</b>. Alle Kosten und ROI sind methodisch belegt — per ℹ️ aufklappbar.</div>
+      </div>
+      <div class="mwhy"><b>Institutionelle Grundlage:</b> ${m.kw.split('.')[0]}.</div>
+    </div>`).join('')}
+    <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px">⚙️ Weitere Maßnahmen nach NICE-Score</div>`:''}
     ${relM.map(m=>`
     <div class="mcard">
       <div class="mtop">
@@ -2032,9 +2862,9 @@ function openDrawer(name,d){
       </div>
     </div>`).join('')}`;
 
-  // TAB 4 — Förderung
+  // TAB 3 — Förderung
   const relF=relM.flatMap(m=>m.foerder||[]).filter((f,i,a)=>a.findIndex(x=>x.prog===f.prog)===i).slice(0,6);
-  document.getElementById('tp4').innerHTML=`
+  document.getElementById('tp3').innerHTML=`
     <div class="dlbox">
       <div class="dlt">🚨 EUI Call 4 — Deadline: 15. Juni 2026</div>
       <div class="dls">60 Mio€ ERDF · ~30 Projekte · Max. 5 Mio€ · 80% Förderquote.<br>
@@ -2053,6 +2883,139 @@ function openDrawer(name,d){
     <div class="ibox" style="font-size:9px">
       ⚠ Förderangaben zur Orientierung. Kein Ersatz für individuelle Beratung. Konditionen können sich ändern. Alle 25 Programme: Layer-Architektur in Notion.
     </div>`;
+
+  // TAB 4 — Szenarien
+  (()=>{
+    // Projektion: wie entwickelt sich der Score je nach Handeln?
+    const weakCount = weakKeys.length;
+    const klimaRisiko = (d.lst_delta||0) >= 2.5 ? 'hoch' : (d.lst_delta||0) >= 1.5 ? 'mittel' : 'gering';
+    const sozialRisiko = (d.sgb2||0) >= 25 ? 'hoch' : (d.sgb2||0) >= 15 ? 'mittel' : 'gering';
+
+    // Szenario A: Status quo — keine Interventionen
+    // Klimawandel verschlechtert A,G,H; soziale Schere verbreitert D,E,F
+    const klimaDrift = klimaRisiko==='hoch'?-8:klimaRisiko==='mittel'?-4:-1;
+    const sozDrift   = sozialRisiko==='hoch'?-6:sozialRisiko==='mittel'?-3:-1;
+    const sqScore    = Math.max(10, s + klimaDrift + sozDrift);
+
+    // Szenario B: Minimalintervention — 2 Quick Wins (ca. 200k€)
+    const quickWins = MASS.filter(m=>m.typ==='quick_win'&&m.dims.some(k=>weakKeys.includes(k))).slice(0,2);
+    const miGain    = quickWins.length * 6 + Math.abs(klimaDrift)*0.4 + 4;
+    const miScore   = Math.min(100, s + Math.round(miGain));
+    const miKosten  = quickWins.reduce((a,m)=>a+m.kosten,0);
+    const miRoi     = quickWins.reduce((a,m)=>a+m.roi,0);
+
+    // Szenario C: Vollständige Transformation — alle Maßnahmen + Förderung
+    const allM = MASS.filter(m=>m.dims.some(k=>weakKeys.includes(k)));
+    const vtGain  = allM.length * 5 + 18 - (s >= 60 ? 8 : 0); // diminishing returns für hohe scores
+    const vtScore = Math.min(100, s + Math.round(vtGain));
+    const vtKosten = allM.reduce((a,m)=>a+m.kosten,0);
+    const vtRoi    = allM.reduce((a,m)=>a+m.roi,0);
+    const vtFoerder = Math.round(vtKosten * 0.72); // ~72% Förderquote Ø
+
+    function szBar(from, to, color){
+      const fromPct = from, toPct = to;
+      return `<div class="sz-bar-wrap">
+        <div class="sz-bar-track">
+          <div class="sz-bar-fill" style="width:${fromPct}%;background:${color};opacity:0.3"></div>
+        </div>
+        <div class="sz-bar-track" style="margin-top:3px">
+          <div class="sz-bar-fill" style="width:${toPct}%;background:${color}"></div>
+        </div>
+        <div class="sz-bar-label"><span>Heute: ${from}/100</span><span>2035: ${to}/100</span></div>
+      </div>`;
+    }
+
+    const klimaTrend = klimaRisiko==='hoch'
+      ? `Ohne Schutzmaßnahmen steigen Hitzetage weiter. Die Versiegelung (${d.versieg||'?'}%) verhindert natürliche Kühlung. LST-Delta aktuell +${d.lst_delta||'?'}°C — bis 2035 könnten es +${((d.lst_delta||0)+1.2).toFixed(1)}°C sein (DWD Klimaprojektion RCP 4.5).`
+      : `Klimarisiko aktuell überschaubar, aber steigend. Frühe Maßnahmen jetzt sind deutlich günstiger als Reaktionen später.`;
+
+    const sozTrend = sozialRisiko==='hoch'
+      ? `Ohne Intervention zementiert sich Armut über Generationen: Kinder in armen Stadtteilen haben statistisch ${d.kinderarmut||'?'}% Armutsrisiko — das überträgt sich auf die nächste Generation (IAB 2023).`
+      : `Soziale Lage stabil bis leicht verbesserbar mit gezielten Investitionen in Bildung und Teilhabe.`;
+
+    document.getElementById('tp4').innerHTML=`
+      <div class="sz-intro">
+        Drei Entwicklungspfade bis <b>2035</b> — basierend auf Klimaprojektionen (DWD RCP 4.5), IAB-Armutsforschung und verfügbaren Förderprogrammen.<br><br>
+        <b>Heute: Score ${s}/100</b> · Stadt-Ø: ${avgS}
+      </div>
+
+      <div class="sz-card sq">
+        <div class="sz-top">
+          <div>
+            <div class="sz-label">Szenario A</div>
+            <div class="sz-title">Status quo — Nichts tun</div>
+          </div>
+          <div class="sz-score-box">
+            <div class="sz-score-big">${sqScore}</div>
+            <div class="sz-score-lbl">/100 in 2035</div>
+          </div>
+        </div>
+        ${szBar(s, sqScore, '#ef4444')}
+        <div class="sz-desc">${klimaTrend}<br><br>${sozTrend}</div>
+        <div class="sz-measures"><b>Was passiert konkret:</b><br>
+          ${klimaRisiko==='hoch'?'· Hitzetote: Frankfurt 2022 = ~180 Übersterblichkeit. Trend +12%/Dekade (Destatis)<br>':''}
+          ${sozialRisiko==='hoch'?`· Sozialhilfekosten steigen: Ø 14.000€/Person/Jahr × wachsende Fallzahlen<br>`:''}
+          · Förderfenster verpassen, höhere Eigenmittel nötig später
+        </div>
+        <div class="sz-cost">
+          <span class="sz-cost-item">💰 Investition: 0€</span>
+          <span class="sz-cost-item" style="color:#ef4444">📉 Folgekosten: hoch</span>
+        </div>
+      </div>
+
+      <div class="sz-card mi">
+        <div class="sz-top">
+          <div>
+            <div class="sz-label">Szenario B</div>
+            <div class="sz-title">Minimalintervention — Quick Wins</div>
+          </div>
+          <div class="sz-score-box">
+            <div class="sz-score-big">${miScore}</div>
+            <div class="sz-score-lbl">/100 in 2035</div>
+          </div>
+        </div>
+        ${szBar(s, miScore, '#eab308')}
+        <div class="sz-desc">2–3 sofort umsetzbare Maßnahmen mit hohem Wirkungsgrad und verfügbarer Förderung. Stoppwirkung gegen den negativen Trend, aber keine strukturelle Lösung.</div>
+        <div class="sz-measures"><b>Konkrete Maßnahmen:</b><br>
+          ${quickWins.map(m=>`· ${m.icon} <b>${m.name}</b> — ${m.desc.substring(0,60)}…`).join('<br>')}
+        </div>
+        <div class="sz-cost">
+          <span class="sz-cost-item">💰 ${fmt(miKosten)} Investition</span>
+          <span class="sz-cost-item" style="color:#15803d">📈 ${fmt(miRoi)} ROI/10J</span>
+          <span class="sz-cost-item">🏛 bis 75% Förderung möglich</span>
+        </div>
+      </div>
+
+      <div class="sz-card vt">
+        <div class="sz-top">
+          <div>
+            <div class="sz-label">Szenario C</div>
+            <div class="sz-title">Vollständige Transformation</div>
+          </div>
+          <div class="sz-score-box">
+            <div class="sz-score-big">${vtScore}</div>
+            <div class="sz-score-lbl">/100 in 2035</div>
+          </div>
+        </div>
+        ${szBar(s, vtScore, '#22c55e')}
+        <div class="sz-desc">Alle ${allM.length} adressierbaren Maßnahmen werden umgesetzt — koordiniert über EU/Bund/Land-Programme. ${name} wird zum Modellstadtteil mit messbarer Wirkung für den EUI Call 4 Antrag.</div>
+        <div class="sz-measures"><b>Effekte:</b><br>
+          · Klimadimension A+G: +${Math.round(vtGain*0.4)} Punkte durch Begrünung & Entsiegelung<br>
+          · Sozialdimension D+F: +${Math.round(vtGain*0.35)} Punkte durch Bildung & Teilhabe<br>
+          · Mobilitätsdimension C: +${Math.round(vtGain*0.25)} Punkte durch ÖPNV & Radwege<br>
+          · Eigenanteil nach Förderabzug: <b>${fmt(vtKosten-vtFoerder)}</b> (Stadt/Land trägt Rest)
+        </div>
+        <div class="sz-cost">
+          <span class="sz-cost-item">💰 ${fmt(vtKosten)} gesamt</span>
+          <span class="sz-cost-item" style="color:#15803d">📈 ${fmt(vtRoi)} ROI/10J</span>
+          <span class="sz-cost-item" style="color:var(--accent)">🏛 ~${fmt(vtFoerder)} Förderung (72% Ø)</span>
+        </div>
+      </div>
+
+      <div class="ibox" style="font-size:9px;margin-top:4px">
+        ⚠ Projektionen sind illustrativ basierend auf Literaturwerten (DWD, IAB, UBA, BBSR). Kein Ersatz für eine formale Machbarkeitsstudie. Scores sind Schätzwerte ±10 Punkte.
+      </div>`;
+  })();
 
   document.getElementById('drawer').classList.add('open');
   showTab(0);
@@ -2103,83 +3066,15 @@ function renderStats(){
     <div class="stat"><div class="stl">CO₂-Kostensatz</div><div class="stv">300€/t</div><div class="sts">UBA MK 4.0 (2026)</div></div>
     <div class="stat"><div class="stl">EUI Call 4</div><div class="stv" style="color:#d97706">15. Jun '26</div><div class="sts">60 Mio€ ERDF</div></div>
     <div class="stat"><div class="stl">Maßnahmen</div><div class="stv">15</div><div class="sts">mit ROI-Belegen</div></div>
-    <div class="stat"><div class="stl">Förderprogramme</div><div class="stv">25</div><div class="sts">EU/Bund/Land/KfW</div></div>`;
+    <div class="stat"><div class="stl">Förderprogramme</div><div class="stv">25</div><div class="sts">EU/Bund/Land/KfW</div></div>
+    ${city==='ffm'?`<div class="stat"><div class="stl">⚠ Kinderarmut Ø</div><div class="stv" style="color:var(--r2)">${Math.round(all.filter(d=>d.kinderarmut!=null).reduce((a,d)=>a+d.kinderarmut,0)/all.filter(d=>d.kinderarmut!=null).length)}%</div><div class="sts">Stadt-Durchschnitt</div></div>
+    <div class="stat"><div class="stl">💶 Einkommen Ø</div><div class="stv">${Math.round(all.filter(d=>d.einkommen!=null).reduce((a,d)=>a+d.einkommen,0)/all.filter(d=>d.einkommen!=null).length/1000)}k€</div><div class="sts">Median/Jahr</div></div>`:''}` ;
 }
 
 // ══════════════════════════════════════════════════════════════
-// NORMATIVE BENCHMARKS — Soll-Zustand nach WHO, EU, ADFC etc.
+// BÜRGERBRILLE — Street Score per Klick
 // ══════════════════════════════════════════════════════════════
-const BENCHMARKS = {
-  trees: {
-    soll: 10,         // Bäume in 200m Radius
-    unit: 'Bäume',
-    source: 'WHO Urban Green Spaces 2016',
-    law: 'EU Renaturierungs-VO 2024/1991: 30% Stadtgrün bis 2030',
-    tip: 'Straßenbaum-Programm (75% BBSR)',
-  },
-  benches: {
-    soll: 5,          // Öffentliche Bänke in 200m
-    unit: 'öff. Bänke',
-    source: 'PPS Project for Public Spaces',
-    law: 'UN SDG 11.7: Zugang zu öff. Grün- und Freiflächen',
-    tip: 'Sitzinfrastruktur-Programm (~500€/Bank, Quick Win)',
-  },
-  footway: {
-    soll: 20,         // Score-Punkte
-    unit: 'Punkte',
-    source: 'DIN 18040 · FGSV Empfehlungen',
-    law: 'Barrierefreiheit: BGG §4 · UN BRK Art. 9',
-    tip: 'Gehwegqualität DAS 70% Förderung',
-  },
-  green: {
-    soll: 15,         // Score-Punkte
-    unit: 'Punkte',
-    source: 'WHO: max. 300m zur nächsten Grünfläche',
-    law: 'EU Renaturierungs-VO 2024: 30% Stadtgrün bis 2030',
-    tip: 'Schwammstadt / Urbaner Wald (80% ERDF)',
-  },
-  retail: {
-    soll: 8,          // Score-Punkte
-    unit: 'Punkte',
-    source: '15-Minuten-Stadt Konzept (C. Moreno, Paris)',
-    law: 'EU Urban Agenda: Inclusive Growth',
-    tip: 'Förderung lokaler Gewerbetreibender',
-  },
-  bike: {
-    soll: 10,         // Score-Punkte
-    unit: 'Punkte',
-    source: 'ADFC Klimaradtest · EU Cycling Strategy 2030',
-    law: 'StrVO §45: Radverkehrsinfrastruktur',
-    tip: 'Radschnellweg 75% NVP-Förderung',
-  },
-  noise: {
-    soll: 0,          // Penalty soll 0 sein
-    unit: 'dB-Penalty',
-    source: 'EU Umgebungslärmrichtlinie 2002/49/EG',
-    law: 'EU-Grenzwert: ≤65 dB(A) Lden · ≤55 dB(A) Lnight',
-    tip: 'Tempo 30 · Flüsterasphalt · Lärmschutzwand',
-  },
-  heat: {
-    soll: 0,          // Penalty soll 0 sein
-    unit: '°C-Penalty',
-    source: 'Copernicus Climate Change Service',
-    law: 'EU Hitzeschutzplan 2022 · WHO Heatwave Guidelines',
-    tip: 'Fassadenbegrünung A02 · Gründach A04 (80% ERDF)',
-  },
-};
-
-let choroplethVisible = false;
-
-function toggleChoropleth(){
-  choroplethVisible = !choroplethVisible;
-  const pane = map.getPane('choropleth');
-  if(pane) pane.style.display = (activeCount>0||!choroplethVisible) ? 'none' : '';
-  const btn = document.getElementById('choroBtn');
-  if(btn){
-    btn.classList.toggle('on', choroplethVisible);
-    btn.textContent = choroplethVisible ? '🗺️ Viertel AN' : '🗺️ Viertel';
-  }
-}
+let brilleActive = false;
 let brilleClickHandler = null;
 
 function toggleBuergerbrille(){
@@ -2187,17 +3082,15 @@ function toggleBuergerbrille(){
   const btn = document.getElementById('bbrilleBtn');
   btn.classList.toggle('on', brilleActive);
   btn.textContent = brilleActive ? '👁 Bürgerbrille AN' : '👁 Bürgerbrille';
-  document.getElementById('map').classList.toggle('map-brille-active', brilleActive);
+  const mapEl = document.getElementById('map');
+  mapEl.classList.toggle('map-brille-active', brilleActive);
 
   if(brilleActive){
-    // Sofort vorladen wenn Bürgerbrille aktiviert wird
-    preloadCriticalData();
     brilleClickHandler = (e) => computeStreetScore(e.latlng);
     map.on('click', brilleClickHandler);
     document.getElementById('brillePopup').style.display='block';
     document.getElementById('bpAddr').textContent='Klick auf die Karte…';
     document.getElementById('bpScore').textContent='—';
-    document.getElementById('bpBars').innerHTML='<div style="font-size:10px;color:var(--muted);padding:4px 0">Daten werden geladen… bitte einen Moment warten.</div>';
   } else {
     if(brilleClickHandler) map.off('click', brilleClickHandler);
     closeBrillePopup();
@@ -2217,141 +3110,107 @@ function computeStreetScore(latlng){
   const lat=latlng.lat, lon=latlng.lng;
   document.getElementById('bpAddr').textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)} — berechne…`;
 
-  const R=0.002; // ~200m in Grad
-
-  // Direkt aus Cache lesen — kein aktiver Layer nötig
-  function getFeaturesInRadius(filename, radiusDeg){
-    const gj=dataCache[filename];
-    if(!gj?.features) return [];
-    return gj.features.filter(f=>{
-      try{
-        const type=f.geometry?.type;
-        if(type==='Point'){
-          const[flon,flat]=f.geometry.coordinates;
-          return Math.abs(flat-lat)<radiusDeg && Math.abs(flon-lon)<radiusDeg;
-        } else if(type==='Polygon'||type==='MultiPolygon'){
-          // Centroid berechnen
-          let coords=f.geometry.coordinates;
-          if(type==='MultiPolygon') coords=coords[0];
-          const ring=coords[0];
-          const clon=ring.reduce((s,c)=>s+c[0],0)/ring.length;
-          const clat=ring.reduce((s,c)=>s+c[1],0)/ring.length;
-          return Math.abs(clat-lat)<radiusDeg && Math.abs(clon-lon)<radiusDeg;
-        }
-        return false;
-      }catch(e){return false;}
+  // Hilfsfunktion: Punkte in Radius finden
+  function inRadius(layer, radiusDeg){
+    const feats=[];
+    if(!layer) return feats;
+    layer.eachLayer && layer.eachLayer(l=>{
+      // LayerGroup
+      if(l.eachLayer) l.eachLayer(sub=>{
+        const ll=sub.getLatLng?.();
+        if(ll && Math.abs(ll.lat-lat)<radiusDeg && Math.abs(ll.lng-lon)<radiusDeg) feats.push(sub);
+      });
+      const ll=l.getLatLng?.();
+      if(ll && Math.abs(ll.lat-lat)<radiusDeg && Math.abs(ll.lng-lon)<radiusDeg) feats.push(l);
     });
+    return feats;
   }
 
-  function getNearestLineQuality(filename, prop, radiusDeg){
-    const gj=dataCache[filename];
-    if(!gj?.features) return null;
+  function nearestWayQuality(layerObj, radiusDeg){
+    // Für Linien-Layer (Radwege, Fußwege): nächste Linie finden
     let best=null;
-    for(const f of gj.features){
-      try{
-        const coords=f.geometry?.coordinates||[];
-        const pts=f.geometry?.type==='LineString'?coords:[];
-        for(const[plon,plat] of pts){
+    if(!layerObj) return best;
+    const walk=(lg)=>{
+      if(lg.eachLayer) lg.eachLayer(walk);
+      else {
+        const feat=lg.feature;
+        if(!feat) return;
+        const coords=feat.geometry?.coordinates;
+        if(!coords) return;
+        const pts=feat.geometry.type==='LineString'?coords:[];
+        for(const [plon,plat] of pts){
           if(Math.abs(plat-lat)<radiusDeg && Math.abs(plon-lon)<radiusDeg){
-            best=f.properties?.[prop]||f.properties?.highway||null;
-            break;
+            const q=feat.properties?._quality||feat.properties?.highway||'';
+            if(!best) best=q;
           }
         }
-        if(best) break;
-      }catch(e){}
-    }
+      }
+    };
+    walk(layerObj);
     return best;
   }
 
+  // Radius: 0.002 Grad ≈ 200m
+  const R=0.002;
+
   // 1. BÄUME (max 20 Punkte)
-  const trees=getFeaturesInRadius(`trees_${city}.geojson`, R);
+  const trees=inRadius(layerObjs['trees'], R);
   const treeScore=Math.min(20, trees.length*2);
 
   // 2. BÄNKE (max 15 Punkte)
-  const benches=getFeaturesInRadius(`benches_${city}.geojson`, R);
+  const benches=inRadius(layerObjs['benches'], R);
   let benchScore=0;
   benches.forEach(b=>{
-    const q=b.properties?._quality||'ok';
+    const q=b.feature?.properties?._quality||'ok';
     if(q==='excellent') benchScore+=5;
     else if(q==='good') benchScore+=4;
     else if(q==='ok'||q==='basic') benchScore+=3;
+    // commercial = 0 Punkte
   });
-  benchScore=Math.min(15,benchScore);
+  benchScore=Math.min(15, benchScore);
 
   // 3. FUßWEGE (max 20 Punkte)
-  const fwq=getNearestLineQuality(`footways_quality_${city}.geojson`,'_quality',R);
+  const fwq=nearestWayQuality(layerObjs['footways_quality'], R);
   const footScore=fwq==='excellent'?20:fwq==='good'?14:fwq==='ok'?8:fwq==='poor'?3:0;
 
   // 4. GRÜNFLÄCHE in 300m (max 15 Punkte)
-  const parks=getFeaturesInRadius(`green_${city}.geojson`, 0.003);
+  const greenR=0.003;
+  const parks=inRadius(layerObjs['parks'], greenR);
   const greenScore=parks.length>0?15:0;
 
   // 5. LOKALE GESCHÄFTE (max 10 Punkte)
-  const retail=getFeaturesInRadius(`retail_${city}.geojson`, R);
-  const chains=['rewe','edeka','aldi','lidl','penny','dm','rossmann','mcdonald','burger king','starbucks','subway','netto','kaufland'];
+  const retail=inRadius(layerObjs['retail'], R);
   let retailScore=0;
-  retail.forEach(r=>{
-    const n=(r.properties?.name||'').toLowerCase();
+  retail.forEach(r=>{const n=(r.feature?.properties?.name||'').toLowerCase();
+    const chains=['rewe','edeka','aldi','lidl','penny','dm','rossmann','mcdonald','burger king','starbucks','subway'];
     retailScore+=chains.some(c=>n.includes(c))?0.5:2;
   });
-  retailScore=Math.min(10,retailScore);
+  retailScore=Math.min(10, retailScore);
 
   // 6. RADWEG-QUALITÄT (max 10 Punkte)
-  const bikeGj=dataCache[`bike_${city}.geojson`];
-  let bikeScore=0;
-  if(bikeGj?.features){
-    for(const f of bikeGj.features){
-      try{
-        const coords=f.geometry?.coordinates||[];
-        for(const[plon,plat] of coords){
-          if(Math.abs(plat-lat)<R && Math.abs(plon-lon)<R){
-            const hw=f.properties?.highway||'';
-            const cy=f.properties?.cycleway||f.properties?.['cycleway:right']||'';
-            bikeScore=hw==='cycleway'?10:cy==='track'?8:cy==='lane'?6:cy==='shared_lane'?3:0;
-            break;
-          }
-        }
-        if(bikeScore) break;
-      }catch(e){}
-    }
-  }
+  const bikeq=nearestWayQuality(layerObjs['bike'], R);
+  const bikeScore=bikeq==='cycleway'?10:bikeq==='lane'||bikeq==='track'?6:bikeq==='shared_lane'?3:0;
 
   // 7. LÄRM-PENALTY (max -15 Punkte)
-  const noiseGj=dataCache[`noise_roads_${city}.geojson`];
-  let noisePenalty=0;
-  if(noiseGj?.features){
-    for(const f of noiseGj.features){
-      try{
-        const coords=f.geometry?.coordinates||[];
-        for(const[plon,plat] of coords){
-          if(Math.abs(plat-lat)<R*1.5 && Math.abs(plon-lon)<R*1.5){
-            const hw=f.properties?.highway||f.properties?.railway||'';
-            const p=hw==='motorway'||hw==='trunk'?-15:hw==='primary'?-8:hw==='secondary'?-4:hw==='rail'?-10:0;
-            if(p<noisePenalty) noisePenalty=p;
-            break;
-          }
-        }
-        if(noisePenalty<=-15) break;
-      }catch(e){}
-    }
-  }
+  const noise=nearestWayQuality(layerObjs['noise'], R*1.5);
+  const noisePenalty=noise==='motorway'||noise==='trunk'?-15:noise==='primary'?-8:noise==='secondary'?-4:noise==='rail'?-10:0;
 
   // 8. HITZE-PENALTY (max -10 Punkte)
-  const heatFeats=getFeaturesInRadius(`heat_exposure_${city}.geojson`, R);
+  const heatFeats=inRadius(layerObjs['heat'], R);
   let heatPenalty=0;
   heatFeats.forEach(h=>{
-    const cls=h.properties?.heat_class||'';
-    if(cls==='extreme'&&heatPenalty>-10) heatPenalty=-10;
-    else if(cls==='high'&&heatPenalty>-5) heatPenalty=-5;
+    const cls=h.feature?.properties?.heat_class||'';
+    if(cls==='extreme') heatPenalty=Math.min(heatPenalty-10, heatPenalty);
+    else if(cls==='high') heatPenalty=Math.min(heatPenalty-5, heatPenalty);
   });
 
-  const total=Math.max(0,Math.min(100,
+  const total=Math.max(0, Math.min(100,
     treeScore+benchScore+footScore+greenScore+retailScore+bikeScore+noisePenalty+heatPenalty
   ));
 
   // Anzeige
   const col=total>=65?'#16a34a':total>=45?'#ca8a04':total>=30?'#ea580c':'#dc2626';
-  const grade=total>=75?{g:'A',l:'Sehr gut'}:total>=62?{g:'B',l:'Gut'}:total>=50?{g:'C',l:'Mittel'}:total>=38?{g:'D',l:'Kritisch'}:{g:'F',l:'Dringend handeln'};
+  const grade=total>=75?{g:'A',l:'Sehr gut'}:total>=62?{g:'B',l:'Gut'}:total>=50?{g:'C',l:'Mittel'}:total>=38?{g:'D',l:'Kritisch'}:{g:'F',l:'Dringend'};
 
   document.getElementById('bpAddr').textContent=`${lat.toFixed(4)}, ${lon.toFixed(4)}`;
   document.getElementById('bpScore').textContent=total;
@@ -2366,43 +3225,29 @@ function computeStreetScore(latlng){
   gp.style.background=`${col}20`;gp.style.color=col;
   gp.textContent=`Note ${grade.g} — ${grade.l}`;
 
+  // Bars
   const bars=[
-    {key:'trees',   label:'🌳 Bäume',      ist:treeScore,   max:20, col:'#16a34a', istVal:trees.length,     sollVal:BENCHMARKS.trees.soll,   unit:'Bäume',    penalty:false},
-    {key:'benches', label:'🪑 Bänke',       ist:benchScore,  max:15, col:'#15803d', istVal:benches.filter(b=>b.properties?._quality!=='commercial').length, sollVal:BENCHMARKS.benches.soll, unit:'öff.', penalty:false},
-    {key:'footway', label:'🚶 Fußweg',      ist:footScore,   max:20, col:'#0284c7', istVal:footScore,        sollVal:20,                       unit:'Pkt',      penalty:false},
-    {key:'green',   label:'🌿 Grünfläche',  ist:greenScore,  max:15, col:'#22c55e', istVal:parks.length,     sollVal:1,                        unit:'Parks',    penalty:false},
-    {key:'retail',  label:'🏪 Lokal',       ist:retailScore, max:10, col:'#d97706', istVal:retailScore,      sollVal:8,                        unit:'Pkt',      penalty:false},
-    {key:'bike',    label:'🚲 Radweg',      ist:bikeScore,   max:10, col:'#ca8a04', istVal:bikeScore,        sollVal:10,                       unit:'Pkt',      penalty:false},
-    {key:'noise',   label:'🔊 Lärm',        ist:noisePenalty,max:0,  col:'#7c3aed', penalty:true},
-    {key:'heat',    label:'🌡️ Hitze',       ist:heatPenalty, max:0,  col:'#dc2626', penalty:true},
+    {label:'🌳 Bäume',     val:treeScore,   max:20, col:'#16a34a'},
+    {label:'🪑 Bänke',     val:benchScore,  max:15, col:'#15803d'},
+    {label:'🚶 Fußweg',    val:footScore,   max:20, col:'#0284c7'},
+    {label:'🌿 Grünfläche',val:greenScore,  max:15, col:'#22c55e'},
+    {label:'🏪 Lokal',     val:retailScore, max:10, col:'#d97706'},
+    {label:'🚲 Radweg',    val:bikeScore,   max:10, col:'#ca8a04'},
+    {label:'🔊 Lärm',      val:noisePenalty,max:0,  col:'#7c3aed', penalty:true},
+    {label:'🌡️ Hitze',     val:heatPenalty, max:0,  col:'#dc2626', penalty:true},
   ];
 
   document.getElementById('bpBars').innerHTML=bars.map(b=>{
-    if(b.penalty){
-      const pct=Math.min(100,Math.abs(b.ist)/15*100);
-      const bm=BENCHMARKS[b.key];
-      return`<div class="bp-bar">
-        <div class="bp-bar-label">${b.label}</div>
-        <div class="bp-bar-track"><div class="bp-bar-fill" style="width:${pct}%;background:${b.col}"></div></div>
-        <div class="bp-bar-val" style="color:${b.col}">${b.ist}</div>
-      </div>
-      <div style="font-size:8px;color:var(--muted);margin:-2px 0 4px 140px">Soll: 0 · ${bm.source.split('·')[0].trim()}</div>`;
-    }
-    const istPct=Math.min(100,b.ist/b.max*100);
-    const sollPct=Math.min(100,(b.sollVal/b.max)*100*(b.max/Math.max(b.max,b.sollVal)));
-    const ok=b.ist>=b.max*(b.sollVal/Math.max(b.max,b.sollVal+1));
-    const bm=BENCHMARKS[b.key];
+    const pct=b.penalty?Math.min(100,Math.abs(b.val)/15*100):b.max>0?Math.min(100,b.val/b.max*100):0;
+    const show=b.penalty?b.val:b.val;
     return`<div class="bp-bar">
       <div class="bp-bar-label">${b.label}</div>
-      <div class="bp-bar-track" style="position:relative">
-        <div class="bp-bar-fill" style="width:${istPct}%;background:${ok?b.col:'#ea580c'}"></div>
-        <div style="position:absolute;top:0;left:${Math.min(95,sollPct)}%;width:2px;height:100%;background:rgba(255,255,255,0.5)"></div>
-      </div>
-      <div class="bp-bar-val" style="color:${ok?b.col:'#ea580c'}">${ok?'✓':b.ist}</div>
-    </div>
-    <div style="font-size:8px;color:var(--muted);margin:-2px 0 4px 140px">Ist: ${b.istVal} ${b.unit} · Soll: ${b.sollVal} ${b.unit} · ${bm.source.split('·')[0].trim()}</div>`;
+      <div class="bp-bar-track"><div class="bp-bar-fill" style="width:${pct}%;background:${b.col}"></div></div>
+      <div class="bp-bar-val" style="color:${b.col}">${show>0?'+':''}${show}</div>
+    </div>`;
   }).join('');
 
+  // Hauptproblem + Tipp
   const problems=[];
   if(treeScore<5) problems.push('Kaum Bäume');
   if(benchScore<3) problems.push('Keine öffentlichen Bänke');
@@ -2412,27 +3257,21 @@ function computeStreetScore(latlng){
   if(heatPenalty<-5) problems.push('Hitzeinsel');
 
   const tips={
-    'Kaum Bäume':'Maßnahme A01: Straßenbaum-Programm (75% BBSR)',
-    'Keine öffentlichen Bänke':'Sitzinfrastruktur: ~500€/Bank (Quick Win)',
-    'Schlechter Fußweg':'Maßnahme: Gehwegqualität (DAS 70%)',
+    'Kaum Bäume':'Maßnahme A01: Straßenbaum-Programm (75% Förderung)',
+    'Keine öffentlichen Bänke':'Maßnahme: Sitzinfrastruktur (Quick Win, ~500€/Bank)',
+    'Schlechter Fußweg':'Maßnahme: Gehwegqualität (DAS 70% Förderung)',
     'Kein Park in 300m':'Maßnahme A03: Schwammstadt / A05: Urbaner Wald',
     'Hohe Lärmbelastung':'Maßnahme B01: Tempo 30 · Flüsterasphalt',
     'Hitzeinsel':'Maßnahme A02: Fassadenbegrünung · A04: Gründach',
   };
 
-  const mainProblem=problems[0]||null;
+  const mainProblem=problems[0]||'Guter Standort';
   document.getElementById('bpProblem').innerHTML=
-    problems.length?`⚠ ${problems.join(' · ')}`:
-    total>=65?'✅ Guter Standort — oberhalb Durchschnitt':'Mehrere Faktoren verbesserbar';
-  document.getElementById('bpTip').innerHTML=mainProblem?
-    `💡 <b>Empfehlung:</b> ${tips[mainProblem]}`:
-    `✅ Dieser Standort erfüllt die meisten Qualitätskriterien.`;
+    problems.length?`⚠ Hauptproblem: <b>${problems.join(', ')}</b>`:'✅ Guter Standort';
 
-  // Daten-Vollständigkeit anzeigen
-  const loaded=[trees,benches,heatFeats].filter(a=>a.length>0).length;
-  if(loaded===0){
-    document.getElementById('bpProblem').innerHTML='⏳ Daten werden geladen — bitte 10 Sek warten und nochmal klicken';
-  }
+  document.getElementById('bpTip').innerHTML=problems.length?
+    `💡 <b>Empfehlung:</b> ${tips[mainProblem]||'Weitere Analyse empfohlen'}`:
+    `✅ Dieser Standort erfüllt die meisten Qualitätskriterien.`;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2557,12 +3396,7 @@ setTimeout(()=>{
   setInterval(loadLiveWind, 15*60*1000);
 }, 2000);
 
-// Kritische Daten im Hintergrund vorladen (nach 3 Sek — nicht blockieren)
-setTimeout(preloadCriticalData, 3000);
-
 initMap();
-// Notfall-Fallback: Loader nach 10s immer ausblenden
-setTimeout(()=>{ const l=document.getElementById('loader'); if(l) l.style.display='none'; }, 10000);
 
 // Event delegation for list clicks — city-safe, no string interpolation
 document.getElementById('stList').addEventListener('click',e=>{
@@ -2572,6 +3406,514 @@ document.getElementById('stList').addEventListener('click',e=>{
   const d=CITY_CFG[city].data[name];
   if(d)openDrawer(name,d);
 });
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// 3D VIEW — MapLibre GL JS integration
+// ═══════════════════════════════════════════════════════════════
+const BASE3D = "/urbanlens/data/layers";
+
+const BIVARIATE3D = {
+  low:  {close:"#7FB069",mid:"#b8d4a0",far:"#f0e8c8"},
+  mid:  {close:"#8B7AB8",mid:"#d4a0b0",far:"#e8834a"},
+  high: {close:"#5C3A8C",mid:"#b5476b",far:"#8b0000"},
+};
+const HEIGHT_BY_TYPE3D = {
+  allotment_house:3,shed:3,garage:3,hut:3,roof:4,
+  house:8,detached:9,semidetached_house:9,terrace:10,bungalow:5,
+  apartments:18,residential:14,dormitory:16,
+  commercial:22,retail:12,office:28,supermarket:10,
+  industrial:14,warehouse:12,manufacture:14,
+  school:12,university:18,hospital:24,hotel:30,
+  church:28,cathedral:45,chapel:14,
+  train_station:18,public:16,civic:16,parking:8,garages:4,
+};
+const heightFor3d = t => HEIGHT_BY_TYPE3D[t] ?? 10;
+const greenClass3d = d => d==null?"far":d<50?"close":d<150?"mid":"far";
+const SURFACE_SCORE3D = {asphalt:92,paved:90,concrete:85,"concrete:plates":73,paving_stones:68,compacted:60,fine_gravel:55,sett:45,unhewn_cobblestone:40,wood:38,ground:30,dirt:28,pebblestone:25};
+const FLOOD_RISK_RANK3D = {low:0,medium:1,high:2,critical:3};
+const MODE_PITCH3D = {co2:52,bi:52,footway:0,flight:0,flood:20,bike:0,bench:0,street:72};
+
+let map3d = null, map3dReady = false, is3dActive = false;
+// Auto-activate 3D on first load
+window.addEventListener('load', () => setTimeout(toggle3DView, 200));
+let currentMode3d = "co2", totalCO2_3d = 0, currentReno3d = 0, trees3dOn = false;
+let dataLoaded3d = {}, currentFloodFilter3d = "all";
+
+// Build bivariate legend
+(function(){
+  const el = document.getElementById("bi-legend-3d");
+  if(!el) return;
+  const hL = {high:"🔴 Heiß",mid:"🟡 Mittel",low:"🟢 Kühl"};
+  const gL = {close:"Nah",mid:"Mittel",far:"Fern"};
+  el.innerHTML =
+    `<div></div>` +
+    ["close","mid","far"].map(g=>`<div style="font-size:9px;color:#9ca3af;font-weight:600;text-align:center;padding-bottom:3px">${gL[g]}<br><span style="font-size:8px;color:#d1d5db">Grün</span></div>`).join("") +
+    ["high","mid","low"].flatMap(h=>[
+      `<div style="font-size:9px;color:#9ca3af;font-weight:600;text-align:right;padding-right:5px;align-self:center">${hL[h]}</div>`,
+      ...["close","mid","far"].map(g=>`<div style="height:24px;border-radius:4px;background:${BIVARIATE3D[h][g]};width:60px"></div>`)
+    ]).join("");
+})();
+
+function kpiHTML3d(a,b){
+  return `<div class="kpi-box-3d"><div class="kpi-val-3d" style="color:${a.c}">${a.v}</div><div class="kpi-lbl-3d">${a.l}</div></div>`+
+         `<div class="kpi-box-3d"><div class="kpi-val-3d" style="color:${b.c}">${b.v}</div><div class="kpi-lbl-3d">${b.l}</div></div>`;
+}
+function loader3dShow(txt){
+  document.getElementById("loader3d").classList.add("active");
+  document.getElementById("loader3d-txt").textContent=txt;
+}
+function loader3dHide(){
+  document.getElementById("loader3d").classList.remove("active");
+}
+function closeInfo3d(){
+  document.getElementById("info3d").style.display="none";
+  if(map3d && map3d.getLayer("bld-hl3d")) map3d.setFilter("bld-hl3d",["==",["id"],-1]);
+}
+function toggleTrees3d(){
+  trees3dOn=!trees3dOn;
+  document.getElementById("treeTog3d").className="toggle-sw3d"+(trees3dOn?" on":"");
+  if(map3d && map3d.getLayer("trees-dots3d")) map3d.setLayoutProperty("trees-dots3d","visibility",trees3dOn?"visible":"none");
+}
+
+function toggle3DView(){
+  is3dActive = !is3dActive;
+  const overlay = document.getElementById("map3d-overlay");
+  const modeBar = document.getElementById("modeBar3d");
+  const navBtn = document.getElementById("nav3dBtn");
+  const leftPanel = document.querySelector(".left");
+  const layerBtn = document.querySelector(".layer-btn");
+  const layerPanel = document.getElementById("layerPanel");
+  const layerBtn3d = document.getElementById("layerBtn3d");
+  const kdBtn = document.getElementById("kdBtn");
+  const kdPanel = document.getElementById("kdPanel");
+
+  if(is3dActive){
+    overlay.style.display = "block";
+    modeBar.classList.add("active");
+    if(navBtn){ navBtn.classList.add("on"); navBtn.textContent = "✕ 3D"; }
+    // Hide 2D-only elements
+    if(leftPanel) leftPanel.style.display = "none";
+    if(layerBtn) layerBtn.style.display = "none";
+    if(kdBtn) kdBtn.style.display = "none";
+    if(kdPanel) kdPanel.style.display = "none";
+    // Also hide nav noise in 3D mode
+    const windPill = document.getElementById("windPill");
+    const windPopup = document.getElementById("windPopup");
+    const bbrille = document.getElementById("bbrilleBtn");
+    const ninfo = document.querySelector(".ninfo");
+    const epill = document.querySelector(".epill");
+    const lpill = document.querySelector(".lpill");
+    if(windPill) windPill.style.display = "none";
+    if(windPopup) windPopup.style.display = "none";
+    if(bbrille) bbrille.style.display = "none";
+    if(ninfo) ninfo.style.display = "none";
+    if(epill) epill.style.display = "none";
+    if(lpill) lpill.style.display = "none";
+    // Close & reposition layer panel for 3D
+    if(layerPanel){ layerPanel.classList.remove("open"); layerPanel.style.display="none"; layerPanel.classList.add("layer-panel-3d-pos"); }
+    // layerBtn3d intentionally hidden in clean 3D mode
+    // Close right drawer
+    if(typeof closeDrawer === "function") closeDrawer();
+    // Show first 3D panel
+    document.querySelectorAll(".panel3d").forEach(p=>p.classList.remove("active"));
+    const firstPanel = document.getElementById("p3d-co2");
+    if(firstPanel) firstPanel.classList.add("active");
+    if(!map3dReady) initMap3d();
+    else { document.getElementById("treebar3d").classList.add("active"); }
+  } else {
+    overlay.style.display = "none";
+    modeBar.classList.remove("active");
+    if(navBtn){ navBtn.classList.remove("on"); navBtn.textContent = "🏗 3D Analyse"; }
+    // Restore 2D elements
+    if(leftPanel) leftPanel.style.display = "flex";
+    if(layerBtn) layerBtn.style.display = "flex";
+    if(kdBtn) kdBtn.style.display = "flex";
+    // Restore nav elements
+    const windPill2 = document.getElementById("windPill");
+    const bbrille2 = document.getElementById("bbrilleBtn");
+    const ninfo2 = document.querySelector(".ninfo");
+    const epill2 = document.querySelector(".epill");
+    const lpill2 = document.querySelector(".lpill");
+    if(windPill2) windPill2.style.display = "";
+    if(bbrille2) bbrille2.style.display = "";
+    if(ninfo2) ninfo2.style.display = "";
+    if(epill2) epill2.style.display = "";
+    if(lpill2) lpill2.style.display = "";
+    // Restore layer panel
+    if(layerPanel){ layerPanel.classList.remove("layer-panel-3d-pos"); layerPanel.style.display=""; }
+    // layerBtn3d intentionally hidden
+    // Hide 3D panels
+    document.querySelectorAll(".panel3d").forEach(p=>p.classList.remove("active"));
+    document.getElementById("treebar3d").classList.remove("active");
+    document.getElementById("info3d").style.display = "none";
+    closeInfo3d();
+    // Remove all MapLibre extra layers
+    if(map3d) {
+      ["ml-heat","ml-flood","ml-parks","ml-schools","ml-health","ml-noise","ml-trees","ml-benches"].forEach(id=>{
+        if(map3d.getLayer(id)) map3d.removeLayer(id);
+        if(map3d.getSource(id)) map3d.removeSource(id);
+      });
+    }
+  }
+}
+
+function initMap3d(){
+  map3d = new maplibregl.Map({
+    container: "map3d-overlay",
+    style:{
+      version:8,
+      glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+      sources:{carto:{type:"raster",
+        tiles:[
+          "https://a.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}.png",
+          "https://b.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}.png",
+          "https://c.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}.png",
+        ],tileSize:256,attribution:"© OpenStreetMap, © CARTO"}},
+      layers:[{id:"carto",type:"raster",source:"carto"}],
+    },
+    center:[8.6821,50.1109],zoom:13,pitch:52,bearing:-18,maxPitch:75,
+    attributionControl:{compact:true}
+  });
+  map3d.addControl(new maplibregl.NavigationControl({showCompass:true}),"bottom-right");
+
+  map3d.on("load", async ()=>{
+    map3dReady = true;
+    loader3dShow("Lade Gebäude (8k)…");
+    const buildings = await fetch(`${BASE3D}/co2_buildings_ffm.geojson`).then(r=>r.json());
+    let highCO2=0,midCO2=0,cnt=0;
+    buildings.features.forEach((f,i)=>{
+      const p=f.properties;
+      p.height=heightFor3d(p.building);
+      p.green_class=greenClass3d(p.green_dist_m);
+      p.bi_color=(BIVARIATE3D[p.heat_class]||{})[p.green_class]||"#aaa";
+      totalCO2_3d+=(p.co2_kg_m2||0)*p.height;
+      if((p.co2_kg_m2||0)>120)highCO2++;
+      else if((p.co2_kg_m2||0)>80)midCO2++;
+      cnt++;
+      if(f.id==null)f.id=i+1;
+    });
+
+    map3d.addSource("buildings3d",{type:"geojson",data:buildings});
+    map3d.addLayer({id:"bld-co2-3d",type:"fill-extrusion",source:"buildings3d",paint:{
+      "fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","co2_kg_m2"],0],
+        0,"#1e3a8a",60,"#3b82f6",100,"#fbbf24",140,"#f97316",180,"#7f1d1d"],
+      "fill-extrusion-height":["get","height"],
+      "fill-extrusion-opacity":0.88,
+    }});
+    map3d.addLayer({id:"bld-bi-3d",type:"fill-extrusion",source:"buildings3d",
+      layout:{visibility:"none"},paint:{
+      "fill-extrusion-color":["get","bi_color"],
+      "fill-extrusion-height":["get","height"],
+      "fill-extrusion-opacity":0.88,
+    }});
+    map3d.addLayer({id:"bld-hl3d",type:"fill-extrusion",source:"buildings3d",
+      filter:["==",["id"],-1],paint:{
+      "fill-extrusion-color":"#FFD600",
+      "fill-extrusion-height":["get","height"],
+      "fill-extrusion-opacity":1,
+    }});
+
+    loader3dShow("Lade Bäume (22k)…");
+    const trees = await fetch(`${BASE3D}/trees_ffm.geojson`).then(r=>r.json());
+    map3d.addSource("trees3d",{type:"geojson",data:trees});
+    map3d.addLayer({id:"trees-dots3d",type:"circle",source:"trees3d",
+      layout:{visibility:"none"},paint:{
+      "circle-radius":["interpolate",["linear"],["zoom"],11,0.8,14,2,17,5],
+      "circle-color":"#16a34a","circle-opacity":0.9,
+      "circle-stroke-color":"#14532d","circle-stroke-width":0.4,
+    }});
+
+    loader3dHide();
+    updateStats3d();
+    document.getElementById("kpi-co2-3d").innerHTML = kpiHTML3d(
+      {v:`${(highCO2/cnt*100).toFixed(0)}%`,l:"Sanierungsbedarf hoch (>120)",c:"#ef4444"},
+      {v:`${(midCO2/cnt*100).toFixed(0)}%`,l:"Mittlerer Bedarf (80–120)",c:"#f97316"}
+    );
+
+    ["bld-co2-3d","bld-bi-3d"].forEach(id=>{
+      map3d.on("mousemove",id,()=>map3d.getCanvas().style.cursor="pointer");
+      map3d.on("mouseleave",id,()=>map3d.getCanvas().style.cursor="");
+    });
+    map3d.on("click",e=>{
+      const layer = currentMode3d==="co2"?"bld-co2-3d":currentMode3d==="bi"?"bld-bi-3d":null;
+      if(!layer){return;}
+      const f = map3d.queryRenderedFeatures(e.point,{layers:[layer]})[0];
+      if(!f){closeInfo3d();map3d.setFilter("bld-hl3d",["==",["id"],-1]);return;}
+      map3d.setFilter("bld-hl3d",["==",["id"],f.id]);
+      showBuildingInfo3d(f.properties);
+    });
+
+    // show first panel
+    document.getElementById("p3d-co2").classList.add("active");
+    document.getElementById("treebar3d").classList.add("active");
+  });
+
+  // Wire mode buttons
+  document.querySelectorAll(".mode-btn-3d[data-mode3d]").forEach(b=>{
+    b.onclick=()=>{ if(b.dataset.mode3d) setMode3d(b.dataset.mode3d); };
+  });
+
+  // (Renovation slider removed — replaced with Kosten des Nichtstuns panel)
+}
+
+function updateStats3d(){
+  // Stats display removed with renovation slider — Kosten des Nichtstuns panel is static
+}
+
+async function setMode3d(m){
+  if(!map3dReady) return;
+  currentMode3d = m;
+  document.querySelectorAll(".mode-btn-3d[data-mode3d]").forEach(b=>b.classList.toggle("on",b.dataset.mode3d===m));
+  document.querySelectorAll(".panel3d").forEach(p=>p.classList.remove("active"));
+  if(m === "street"){
+    // Street-level mode: pitch 72°, zoom to street level, no panel
+    map3d.easeTo({pitch:72,zoom:17,duration:900});
+    return;
+  }
+  const panel = document.getElementById("p3d-"+m);
+  if(panel) panel.classList.add("active");
+  map3d.easeTo({pitch:MODE_PITCH3D[m]??0,duration:700});
+
+  const is3d = m==="co2"||m==="bi";
+  if(map3d.getLayer("bld-co2-3d")){
+    map3d.setLayoutProperty("bld-co2-3d","visibility",m==="co2"?"visible":"none");
+    map3d.setLayoutProperty("bld-bi-3d","visibility",m==="bi"?"visible":"none");
+    if(!is3d) map3d.setFilter("bld-hl3d",["==",["id"],-1]);
+  }
+  const tbar = document.getElementById("treebar3d");
+  if(is3d) tbar.classList.add("active"); else tbar.classList.remove("active");
+  closeInfo3d();
+
+  if(m==="footway" && !dataLoaded3d.footway) await loadFootway3d();
+  if(m==="flight"  && !dataLoaded3d.flight)  await loadFlight3d();
+  if(m==="flood"   && !dataLoaded3d.flood)   await loadFlood3d();
+  if(m==="bike"    && !dataLoaded3d.bike)    await loadBike3d();
+  if(m==="bench"   && !dataLoaded3d.bench)   await loadBench3d();
+
+  const layerMap = {footway:["footway-lines-3d"],flight:["flight-fill-3d","flight-line-3d"],flood:["flood-blds-3d"],bike:["noise-roads-3d","bike-lanes-3d"],bench:["bench-heat-3d"]};
+  Object.entries(layerMap).forEach(([id,layers])=>{
+    const vis = id===m?"visible":"none";
+    layers.forEach(l=>{if(map3d.getLayer(l))map3d.setLayoutProperty(l,"visibility",vis);});
+  });
+}
+
+async function loadFootway3d(){
+  loader3dShow("Lade Gehwege…");
+  const data=await fetch(`${BASE3D}/footways_quality_ffm.geojson`).then(r=>r.json());
+  dataLoaded3d.footway=true;
+  let good=0,mid=0,bad=0;
+  data.features.forEach(f=>{const s=SURFACE_SCORE3D[f.properties.surface]??50;if(s>=70)good++;else if(s>=45)mid++;else bad++;});
+  map3d.addSource("footways3d",{type:"geojson",data});
+  map3d.addLayer({id:"footway-lines-3d",type:"line",source:"footways3d",paint:{
+    "line-color":["match",["get","surface"],"asphalt","#22c55e","paved","#22c55e","concrete","#4ade80","concrete:plates","#86efac","paving_stones","#fbbf24","compacted","#fbbf24","fine_gravel","#f97316","sett","#f97316","unhewn_cobblestone","#ef4444","ground","#dc2626","dirt","#dc2626","#d1d5db"],
+    "line-width":["interpolate",["linear"],["zoom"],12,1.5,15,4],"line-opacity":0.85,
+  }});
+  const tot=good+mid+bad;
+  document.getElementById("kpi-footway-3d").innerHTML=kpiHTML3d(
+    {v:`${(good/tot*100).toFixed(0)}%`,l:"Gut begehbar (≥70)",c:"#22c55e"},
+    {v:`${(bad/tot*100).toFixed(0)}%`,l:"Sanierungsbedarf (<45)",c:"#ef4444"}
+  );
+  loader3dHide();
+}
+
+async function loadFlight3d(){
+  loader3dShow("Lade Flugrouten…");
+  const data=await fetch(`${BASE3D}/flight_noise_ffm.geojson`).then(r=>r.json());
+  dataLoaded3d.flight=true;
+  map3d.addSource("flight3d",{type:"geojson",data});
+  map3d.addLayer({id:"flight-fill-3d",type:"fill",source:"flight3d",layout:{visibility:"none"},paint:{"fill-color":["coalesce",["get","color"],"#f97316"],"fill-opacity":0.32}});
+  map3d.addLayer({id:"flight-line-3d",type:"line",source:"flight3d",layout:{visibility:"none"},paint:{"line-color":["coalesce",["get","color"],"#f97316"],"line-width":2,"line-opacity":0.7,"line-dasharray":[3,2]}});
+  loader3dHide();
+}
+
+async function loadFlood3d(){
+  loader3dShow("Lade Flutrisiko-Gebäude…");
+  const data=await fetch(`${BASE3D}/flood_exposure_ffm.geojson`).then(r=>r.json());
+  dataLoaded3d.flood=true;
+  let critical=0,high=0;
+  data.features.forEach((f,i)=>{f.properties.height=heightFor3d(f.properties.building);if(f.id==null)f.id=90000+i;if(f.properties.flood_risk==="critical")critical++;else if(f.properties.flood_risk==="high")high++;});
+  map3d.addSource("flood3d",{type:"geojson",data});
+  map3d.addLayer({id:"flood-blds-3d",type:"fill-extrusion",source:"flood3d",layout:{visibility:"none"},paint:{
+    "fill-extrusion-color":["match",["get","flood_risk"],"critical","#7f1d1d","high","#ef4444","medium","#f97316","low","#fbbf24","#9ca3af"],
+    "fill-extrusion-height":["get","height"],"fill-extrusion-opacity":0.9,
+  }});
+  document.getElementById("kpi-flood-3d").innerHTML=kpiHTML3d({v:critical,l:"Kritische Gebäude",c:"#7f1d1d"},{v:high,l:"Hoch-Risiko Gebäude",c:"#ef4444"});
+  document.querySelectorAll("#flood-filter-3d .fpill3d").forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll("#flood-filter-3d .fpill3d").forEach(b=>{b.style.background="#fff";b.style.color="#6b7280";b.style.borderColor="rgba(0,0,0,0.12)";});
+      btn.style.background="#1a1a2e";btn.style.color="#fff";btn.style.borderColor="#1a1a2e";
+      currentFloodFilter3d=btn.dataset.risk3d;
+      const minRank={all:0,medium:1,high:2,critical:3}[currentFloodFilter3d]||0;
+      if(minRank===0){map3d.setFilter("flood-blds-3d",null);}
+      else{const ok=Object.keys(FLOOD_RISK_RANK3D).filter(r=>FLOOD_RISK_RANK3D[r]>=minRank);map3d.setFilter("flood-blds-3d",["in",["get","flood_risk"],["literal",ok]]);}
+    };
+  });
+  loader3dHide();
+}
+
+async function loadBike3d(){
+  loader3dShow("Lade Radwege + Straßen…");
+  const [bikeData,noiseData]=await Promise.all([fetch(`${BASE3D}/bike_ffm.geojson`).then(r=>r.json()),fetch(`${BASE3D}/noise_roads_ffm.geojson`).then(r=>r.json())]);
+  dataLoaded3d.bike=true;
+  map3d.addSource("noise_roads3d",{type:"geojson",data:noiseData});
+  map3d.addLayer({id:"noise-roads-3d",type:"line",source:"noise_roads3d",layout:{visibility:"none"},paint:{"line-color":["match",["get","highway"],"motorway","#dc2626","trunk","#ea580c","primary","#d97706","secondary","#ca8a04","#e5e7eb"],"line-width":["match",["get","highway"],"motorway",5,"trunk",4,"primary",3,2],"line-opacity":0.72}});
+  map3d.addSource("bike3d",{type:"geojson",data:bikeData});
+  map3d.addLayer({id:"bike-lanes-3d",type:"line",source:"bike3d",layout:{visibility:"none"},paint:{"line-color":["match",["get","cycleway"],"track","#16a34a","lane","#4ade80","shared_lane","#86efac","shared","#86efac","no","#ef4444","#22c55e"],"line-width":["interpolate",["linear"],["zoom"],11,1.5,14,3.5],"line-opacity":0.9}});
+  loader3dHide();
+}
+
+async function loadBench3d(){
+  loader3dShow("Lade Sitzbänke (6k)…");
+  const data=await fetch(`${BASE3D}/benches_ffm.geojson`).then(r=>r.json());
+  dataLoaded3d.bench=true;
+  map3d.addSource("benches3d",{type:"geojson",data});
+  map3d.addLayer({id:"bench-heat-3d",type:"heatmap",source:"benches3d",layout:{visibility:"none"},paint:{
+    "heatmap-weight":1,"heatmap-intensity":["interpolate",["linear"],["zoom"],10,0.5,16,3],
+    "heatmap-radius":["interpolate",["linear"],["zoom"],10,20,14,40,16,60],"heatmap-opacity":0.85,
+    "heatmap-color":["interpolate",["linear"],["heatmap-density"],0,"rgba(255,255,255,0)",0.15,"#4ade80",0.4,"#fbbf24",0.7,"#f97316",1,"#ef4444"],
+  }});
+  document.getElementById("kpi-bench-3d").innerHTML=kpiHTML3d({v:data.features.length.toLocaleString("de"),l:"Sitzmöglichkeiten gesamt",c:"#1a1a2e"},{v:(data.features.length/248).toFixed(1),l:"Bänke pro km² Stadtfläche",c:"#6366f1"});
+  loader3dHide();
+}
+
+function showBuildingInfo3d(p){
+  const co2c=!p.co2_kg_m2?"#9ca3af":p.co2_kg_m2>140?"#ef4444":p.co2_kg_m2>100?"#f97316":p.co2_kg_m2>60?"#eab308":"#22c55e";
+  const rl=(currentReno3d>0&&currentMode3d==="co2")?`<div style="background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.2);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:11px;color:#065f46">Nach −${currentReno3d}%: <b>${((+p.co2_kg_m2||0)*(1-currentReno3d/100)).toFixed(1)} kg/m²</b></div>`:"";
+  document.getElementById("info3d-badge").textContent="Gebäude";
+  document.getElementById("info3d-type").textContent=(p.building||"Unbekannt").replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+  document.getElementById("info3d-body").innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:11px"><span style="color:#6b7280">CO₂-Intensität</span><span style="font-weight:700;color:${co2c}">${p.co2_kg_m2??'—'} kg/m²</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:11px"><span style="color:#6b7280">Hitze (LST-Delta)</span><span style="font-weight:700;color:#1a1a2e">${p.lst_delta??'—'} K</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:11px"><span style="color:#6b7280">Distanz zu Grün</span><span style="font-weight:700;color:#1a1a2e">${p.green_dist_m??'—'} m</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px"><span style="color:#6b7280">Höhe (Proxy)</span><span style="font-weight:700;color:#1a1a2e">${p.height??'—'} m</span></div>
+    ${rl}
+    <div style="margin-top:10px;font-size:9px;color:#9ca3af">Copernicus Urban Atlas · OSM · EPC-Schätzmodell Hessen</div>`;
+  document.getElementById("info3d").style.display="block";
+}
+
+function toggle3DLayerPanel(){
+  const lp = document.getElementById("layerPanel");
+  if(!lp) return;
+  const isOpen = lp.classList.contains("open");
+  if(isOpen){
+    lp.classList.remove("open");
+    lp.style.display = "none";
+  } else {
+    lp.classList.add("open");
+    lp.style.display = "block";
+    lp.style.top = "116px";
+    lp.style.left = "10px";
+  }
+}
+
+async function loadLayerInto3D(id, statusEl){
+  if(!map3d || !map3dReady) return;
+  const BASE = "/urbanlens/data/layers";
+  const city = window.city || "ffm";
+  // Remove old layer/source if exists
+  if(map3d.getLayer('ml-'+id)) map3d.removeLayer('ml-'+id);
+  if(map3d.getSource('ml-'+id)) map3d.removeSource('ml-'+id);
+
+  const fileMap = {
+    heat: `heat_exposure_${city}.geojson`,
+    flood: `flood_exposure_${city}.geojson`,
+    parks: `green_${city}.geojson`,
+    trees: `trees_${city}.geojson`,
+    benches: `benches_${city}.geojson`,
+    noise: `noise_roads_${city}.geojson`,
+    bike: `bike_${city}.geojson`,
+    schools: `pois_${city}.geojson`,
+    health: `pois_${city}.geojson`,
+    co2: `co2_buildings_${city}.geojson`,
+    footways_quality: `footways_quality_${city}.geojson`,
+    hessen_heat: `heat_exposure_${city}.geojson`,
+    flight_noise: `flight_noise_${city}.geojson`,
+  };
+  const file = fileMap[id];
+  if(!file) return;
+  try {
+    const data = await fetch(`/urbanlens/data/layers/${file}`).then(r=>{ if(!r.ok) throw Error(); return r.json(); })
+      .catch(()=> fetch(`${BASE}/${file}`).then(r=>r.json()));
+
+    map3d.addSource('ml-'+id, {type:"geojson", data});
+
+    if(id==="heat" || id==="hessen_heat"){
+      map3d.addLayer({id:'ml-'+id,type:"fill-extrusion",source:'ml-'+id,paint:{
+        "fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","lst_delta"],["get","lst"],0],
+          0,"#a7f3d0",1,"#fde68a",2,"#fbbf24",3,"#f97316",4,"#dc2626",5,"#7f1d1d"],
+        "fill-extrusion-height":["*",["coalesce",["get","lst_delta"],["get","lst"],2],4],
+        "fill-extrusion-opacity":0.75,
+      }});
+    } else if(id==="flood"){
+      map3d.addLayer({id:'ml-'+id,type:"fill-extrusion",source:'ml-'+id,paint:{
+        "fill-extrusion-color":["match",["get","flood_risk"],"critical","#7f1d1d","high","#ef4444","medium","#f97316","#fbbf24"],
+        "fill-extrusion-height":8,"fill-extrusion-opacity":0.8,
+      }});
+    } else if(id==="parks"){
+      map3d.addLayer({id:'ml-'+id,type:"fill",source:'ml-'+id,paint:{
+        "fill-color":"#16a34a","fill-opacity":0.4,"fill-outline-color":"#15803d",
+      }});
+    } else if(id==="trees"){
+      map3d.addLayer({id:'ml-'+id,type:"circle",source:'ml-'+id,paint:{
+        "circle-radius":["interpolate",["linear"],["zoom"],11,1,14,3,17,6],
+        "circle-color":"#16a34a","circle-opacity":0.85,
+      }});
+    } else if(id==="benches"){
+      map3d.addLayer({id:'ml-'+id,type:"circle",source:'ml-'+id,paint:{
+        "circle-radius":4,"circle-color":"#8b5cf6","circle-opacity":0.8,
+      }});
+    } else if(id==="noise"){
+      map3d.addLayer({id:'ml-'+id,type:"line",source:'ml-'+id,paint:{
+        "line-color":["match",["get","highway"],"motorway","#dc2626","trunk","#ea580c","primary","#d97706","#ca8a04"],
+        "line-width":3,"line-opacity":0.7,
+      }});
+    } else if(id==="bike"){
+      map3d.addLayer({id:'ml-'+id,type:"line",source:'ml-'+id,paint:{
+        "line-color":["match",["get","cycleway"],"track","#16a34a","lane","#4ade80","no","#ef4444","#22c55e"],
+        "line-width":2.5,"line-opacity":0.9,
+      }});
+    } else if(id==="footways_quality"){
+      map3d.addLayer({id:'ml-'+id,type:"line",source:'ml-'+id,paint:{
+        "line-color":["match",["get","surface"],"asphalt","#22c55e","paved","#22c55e","concrete","#4ade80","paving_stones","#fbbf24","sett","#f97316","ground","#dc2626","dirt","#dc2626","#d1d5db"],
+        "line-width":2,"line-opacity":0.8,
+      }});
+    } else if(id==="schools"){
+      const filtered = {...data, features: data.features.filter(f=>["school","kindergarten","university"].includes(f.properties.amenity||f.properties.building))};
+      map3d.getSource('ml-'+id).setData(filtered);
+      map3d.addLayer({id:'ml-'+id,type:"circle",source:'ml-'+id,paint:{
+        "circle-radius":6,"circle-color":"#3b82f6","circle-opacity":0.85,
+        "circle-stroke-color":"#1d4ed8","circle-stroke-width":1.5,
+      }});
+    } else if(id==="health"){
+      const filtered = {...data, features: data.features.filter(f=>["hospital","clinic","doctors","pharmacy"].includes(f.properties.amenity))};
+      map3d.getSource('ml-'+id).setData(filtered);
+      map3d.addLayer({id:'ml-'+id,type:"circle",source:'ml-'+id,paint:{
+        "circle-radius":7,"circle-color":"#ef4444","circle-opacity":0.85,
+        "circle-stroke-color":"#b91c1c","circle-stroke-width":1.5,
+      }});
+    } else if(id==="co2"){
+      data.features.forEach(f=>{ f.properties.height = HEIGHT_BY_TYPE3D[f.properties.building]??10; });
+      map3d.getSource('ml-'+id).setData(data);
+      map3d.addLayer({id:'ml-'+id,type:"fill-extrusion",source:'ml-'+id,paint:{
+        "fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","co2_kg_m2"],0],0,"#1e3a8a",60,"#3b82f6",100,"#fbbf24",140,"#f97316",180,"#7f1d1d"],
+        "fill-extrusion-height":["get","height"],"fill-extrusion-opacity":0.8,
+      }});
+    } else if(id==="flight_noise"){
+      map3d.addLayer({id:'ml-'+id,type:"fill",source:'ml-'+id,paint:{
+        "fill-color":["coalesce",["get","color"],"#f97316"],"fill-opacity":0.3,
+      }});
+    } else {
+      // Generic point fallback
+      map3d.addLayer({id:'ml-'+id,type:"circle",source:'ml-'+id,paint:{
+        "circle-radius":5,"circle-color":"#6366f1","circle-opacity":0.8,
+      }});
+    }
+    if(statusEl) statusEl.textContent = `✓ 3D`;
+  } catch(e) {
+    console.warn("3D layer load failed:", id, e);
+  }
+}
 </script>
 </body>
 </html>
