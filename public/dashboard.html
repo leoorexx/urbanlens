@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanLens Dashboard — Frankfurt</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f3ee;--surface:#fff;--surface2:#f0ede6;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#1a1a2e;--text2:#4a4a6a;--muted:#8888aa;
+  --accent:#2563eb;--yellow:#FFD600;
+  --r1:#dc2626;--r2:#ea580c;--r3:#ca8a04;--r4:#16a34a;--r5:#15803d;
+  --sh:0 2px 12px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04);
+  --shl:0 8px 32px rgba(0,0,0,0.10),0 2px 8px rgba(0,0,0,0.06);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;height:54px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 24px;box-shadow:var(--sh)}
+.logo{font-size:16px;font-weight:800;text-decoration:none;color:var(--text);letter-spacing:-.4px}
+.logo span{color:var(--accent)}
+.nav-pill{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;text-decoration:none;border:1.5px solid var(--border);color:var(--text2);transition:all .15s}
+.nav-pill:hover,.nav-pill.active{background:var(--text);color:#fff;border-color:var(--text)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.badge{background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.2);border-radius:20px;padding:4px 12px;font-size:10px;color:var(--accent);font-weight:700}
+
+/* PAGE */
+.page{max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+.section{margin-bottom:48px}
+.section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* HERO */
+.hero{background:var(--text);border-radius:20px;padding:32px 36px;margin-bottom:48px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.hero h1{font-size:28px;font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1.2}
+.hero h1 span{color:var(--yellow)}
+.hero p{font-size:13px;color:rgba(255,255,255,0.6);margin-top:8px;max-width:480px;line-height:1.6}
+.hero-stats{display:flex;gap:24px;flex-shrink:0}
+.hero-stat{text-align:center}
+.hero-stat .val{font-size:32px;font-weight:900;color:var(--yellow);line-height:1}
+.hero-stat .lbl{font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:48px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;box-shadow:var(--sh)}
+.kpi .val{font-size:26px;font-weight:900;line-height:1;color:var(--text)}
+.kpi .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:5px}
+.kpi .sub{font-size:9px;color:var(--muted);margin-top:3px}
+.kpi.warn .val{color:var(--r1)}
+.kpi.ok .val{color:var(--r4)}
+.kpi.accent .val{color:var(--accent)}
+
+/* NORMATIVER RAHMEN */
+.rahmen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.rahmen-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px;box-shadow:var(--sh)}
+.rahmen-icon{font-size:22px;margin-bottom:10px}
+.rahmen-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px}
+.rahmen-sub{font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.5}
+.rahmen-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px;color:var(--text2)}
+.rahmen-item:last-child{border-bottom:none;padding-bottom:0}
+.rahmen-item b{color:var(--text);font-weight:700;display:block;margin-bottom:1px}
+.rahmen-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px}
+
+/* DIMS LEGEND */
+.dims-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.dim-tag{padding:5px 11px;border-radius:20px;font-size:10px;font-weight:700;border:1.5px solid;cursor:pointer;transition:all .12s;opacity:.55}
+.dim-tag.on{opacity:1}
+
+/* TABLE */
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);overflow:hidden}
+.tbl-toolbar{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tbl-toolbar input,.tbl-toolbar select{padding:6px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;color:var(--text);background:#fff;outline:none;transition:border .15s}
+.tbl-toolbar input:focus,.tbl-toolbar select:focus{border-color:var(--accent)}
+.tbl-toolbar input{width:200px}
+.tbl-count{font-size:11px;color:var(--muted);margin-left:auto}
+table{width:100%;border-collapse:collapse}
+thead th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none}
+thead th:hover{color:var(--text)}
+thead th.sorted{color:var(--accent)}
+thead th .sort-arrow{font-size:9px;margin-left:3px;opacity:.5}
+thead th.sorted .sort-arrow{opacity:1}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(37,99,235,0.03)}
+td{padding:10px 14px;font-size:12px;color:var(--text)}
+td.name{font-weight:700;font-size:12px}
+td.muted{color:var(--muted)}
+.score-pill{display:inline-flex;align-items:center;justify-content:center;width:36px;height:22px;border-radius:6px;font-size:11px;font-weight:800;color:#fff}
+.dim-score{display:inline-block;width:28px;height:20px;border-radius:5px;font-size:10px;font-weight:700;color:#fff;text-align:center;line-height:20px}
+.risk-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700}
+
+/* MASS TABLE */
+.mass-row td{vertical-align:top}
+.mass-name{font-weight:700;color:var(--text)}
+.mass-desc{font-size:10px;color:var(--muted);margin-top:2px;max-width:320px;line-height:1.4}
+.mass-type{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700}
+.mass-type.quick_win{background:rgba(22,163,74,0.1);color:#15803d;border:1px solid rgba(22,163,74,0.25)}
+.mass-type.strukturell{background:rgba(37,99,235,0.08);color:var(--accent);border:1px solid rgba(37,99,235,0.2)}
+.foerder-pills{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.fpill{padding:2px 7px;border-radius:8px;font-size:9px;font-weight:700}
+.fpill.eu{background:rgba(37,99,235,0.1);color:var(--accent)}
+.fpill.bund{background:rgba(22,163,74,0.1);color:#15803d}
+.fpill.land{background:rgba(202,138,4,0.1);color:#92400e}
+.fpill.kfw{background:rgba(220,38,38,0.08);color:#b91c1c}
+.kosten-cell{white-space:nowrap}
+.roi-pos{color:var(--r4);font-weight:700}
+
+/* CITY SUMMARY */
+.city-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.city-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px;box-shadow:var(--sh)}
+.city-card h3{font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.bar-label{font-size:10px;color:var(--text2);width:110px;flex-shrink:0}
+.bar-track{flex:1;height:10px;background:var(--bg);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px}
+.bar-val{font-size:10px;font-weight:700;color:var(--text);width:32px;text-align:right;flex-shrink:0}
+
+/* DETAIL DRAWER */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;display:none;backdrop-filter:blur(2px)}
+.drawer{position:fixed;right:0;top:0;bottom:0;width:420px;background:#fff;z-index:201;box-shadow:-8px 0 48px rgba(0,0,0,0.15);overflow-y:auto;transform:translateX(100%);transition:transform .25s ease}
+.drawer.open{transform:translateX(0)}
+.drawer-head{padding:20px 22px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:1}
+.drawer-close{float:right;background:none;border:none;font-size:16px;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:6px}
+.drawer-close:hover{background:var(--bg)}
+.drawer-body{padding:20px 22px}
+.d-section{margin-bottom:20px}
+.d-section h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.d-kv{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--bg);font-size:12px}
+.d-kv span:first-child{color:var(--muted)}
+.d-kv span:last-child{font-weight:700;color:var(--text)}
+.d-score-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.d-score-item{text-align:center;background:var(--bg);border-radius:10px;padding:10px 6px}
+.d-score-val{font-size:20px;font-weight:900;line-height:1}
+.d-score-lbl{font-size:8px;color:var(--muted);margin-top:3px;text-transform:uppercase}
+.d-mass-item{background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.d-mass-name{font-size:12px;font-weight:700;color:var(--text)}
+.d-mass-meta{font-size:10px;color:var(--muted);margin-top:2px}
+.d-mass-foerder{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+
+@media(max-width:900px){
+  .kpi-row{grid-template-columns:repeat(3,1fr)}
+  .rahmen-grid{grid-template-columns:1fr}
+  .city-grid{grid-template-columns:1fr}
+  .hero{flex-direction:column}.hero-stats{gap:16px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="logo">Urban<span>Lens</span></a>
+  <a href="index.html" class="nav-pill">🗺 Zur Karte</a>
+  <a href="dashboard.html" class="nav-pill active">📊 Dashboard</a>
+  <div class="nav-r">
+    <div class="badge">Frankfurt am Main · 46 Stadtteile · NICE Score 2024</div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div>
+      <h1>Klimarisiko-Dashboard<br><span>Frankfurt am Main</span></h1>
+      <p>Normative Grundlage: EU Green Deal · SDG 11 · Frankfurter Klimaplan 2030 · NICE Score 117 Indikatoren in 8 Dimensionen. Ergebnisse, Maßnahmen und Förderprogramme für alle 46 Stadtteile.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val" id="h-avg">—</div><div class="lbl">Ø NICE Score</div></div>
+      <div class="hero-stat"><div class="val" id="h-crit">—</div><div class="lbl">Kritische Stadtteile</div></div>
+      <div class="hero-stat"><div class="val" id="h-mass">21</div><div class="lbl">Maßnahmenkatalog</div></div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- NORMATIVER RAHMEN -->
+  <div class="section">
+    <div class="section-title">⚖️ Normativer Rahmen</div>
+    <div class="rahmen-grid">
+      <div class="rahmen-card">
+        <div class="rahmen-icon">🇪🇺</div>
+        <div class="rahmen-title">EU-Klimaziele & SDGs</div>
+        <div class="rahmen-sub">Verbindliche EU-Rechtsrahmen und UN-Nachhaltigkeitsziele als Bewertungsgrundlage für alle NICE-Indikatoren.</div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU Green Deal — Klimaneutralität 2050</b>Verbindliches Ziel: -55% CO₂ bis 2030, Netto-Null bis 2050 (EU-Klimagesetz 2021/1119). Frankfurt: aktuell 62 kg CO₂/m² Gebäude.</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU Mission 100 Klimaneutrale Städte</b>Frankfurt Mitglied der EU Mission. Ziel: Klimaneutralität bis 2030 in Pilotstädten. Fördertopf: 360 Mio€ Horizont Europe.</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>SDG 11 — Nachhaltige Städte</b>Inklusive, sichere, widerstandsfähige und nachhaltige Städte bis 2030. Basis für Dimensionen C (Mobilität), F (Teilhabe), H (Resilienz).</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU Renaturierungs-VO 2024/1991</b>30% Grünfläche in Städten bis 2030. Direkte Grundlage für NICE-Dimension A (Klimagerechtigkeit) und G (Ökosystem).</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU Air Quality Directive 2024</b>PM2.5 ≤10 µg/m³ (ab 2030), NO2 ≤20 µg/m³. Grundlage NICE-Dimension B (Gesundheitslast).</div></div>
+      </div>
+      <div class="rahmen-card">
+        <div class="rahmen-icon">🏙️</div>
+        <div class="rahmen-title">Frankfurter Klimaplan</div>
+        <div class="rahmen-sub">Lokale politische Zielarchitektur, auf die UrbanLens-Maßnahmen direkt einzahlen.</div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Frankfurter Klimaplan 2030</b>Klimaneutralität bis 2035 (Beschluss Stadtverordnetenversammlung 2021). -90% THG ggü. 1990. Jährliches Monitoring erforderlich.</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Masterplan 100% Klimaschutz</b>Gesamtstrategie für Energie, Mobilität, Gebäude, Grün. 47 Leitprojekte — UrbanLens priorisiert nach Stadtteil-Score.</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Hessisches Klimaschutzgesetz (HKSG 2022)</b>Klimaneutralität Hessen bis 2045. Verpflichtung zur Erstellung kommunaler Klimaschutzkonzepte. Förderfähig über HA Hessen Agentur.</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Hitzeaktionsplan Frankfurt 2023</b>Pflicht: Kühlorte, Frühwarnsystem, Hitzetelefon. Grundlage für Maßnahmen H01–H06 (Hitzeschutz).</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Frankfurter Programm Aktive Mobilität</b>Radschnellwegausbau, ÖPNV-Takterhöhung, Schulstraßen. Direkte Deckung mit Maßnahmen B01–B04.</div></div>
+      </div>
+      <div class="rahmen-card">
+        <div class="rahmen-icon">💶</div>
+        <div class="rahmen-title">Förderkulisse</div>
+        <div class="rahmen-sub">Verfügbare Förderprogramme, die den Maßnahmenkatalog vollständig abdecken. Alle Maßnahmen sind mehrfach förderfähig.</div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU — ERDF + LIFE+ + ESF+</b>Europäischer Fonds für regionale Entwicklung: bis 80% Förderung für Klimaanpassung, Naturbasierte Lösungen, Soziale Infrastruktur. Programmzeitraum 2021–2027.</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU — EUI Innovative Actions Call 4</b>60 Mio€ ERDF für Urbane Innovationsstrategien. Deadline: 15. Juni 2026. Förderpct: bis 80%. Für integrierte Stadtteillösungen.</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Bund — BEG Effiziente Gebäude</b>35% Zuschuss (KfW) für Fassaden, Dächer, Dämmung. 150k€/WE Maximalförderung. Direkt für Gebäudesanierung in Hochrisiko-Stadtteilen.</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Bund — DAS Klimaanpassungsstrategie</b>BMUV-Förderprogramm: 70% Förderung für Hitzeaktionspläne, Grüninfrastruktur, Monitoring. Jahresbudget 2024: 180 Mio€.</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Land Hessen — Hessisches Klimaschutzprogramm</b>50% Förderung für kommunale Klimaschutzmaßnahmen. LOEWE-Forschungsförderung 60% für wissenschaftliche Begleitung.</div></div>
+        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>KfW — Kommunalkredit 0,6% p.a.</b>KfW 432 Energetische Stadtsanierung: 75% Zuschuss für integrierte Quartierskonzepte. EH40/EH55 für Klimafreundliches Bauen.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STADTÜBERSICHT -->
+  <div class="section">
+    <div class="section-title">📍 Stadtübersicht — Dimension-Ranking</div>
+    <div class="city-grid" id="cityGrid"></div>
+  </div>
+
+  <!-- STADTTEIL ERGEBNISSE -->
+  <div class="section">
+    <div class="section-title">🏘️ Ergebnisse je Stadtteil</div>
+    <div class="tbl-wrap">
+      <div class="tbl-toolbar">
+        <input id="searchStadt" placeholder="🔍 Stadtteil suchen…" oninput="filterTable()">
+        <select id="filterRisk" onchange="filterTable()">
+          <option value="">Alle Risikostufen</option>
+          <option value="krit">Kritisch (Score &lt;40)</option>
+          <option value="hoch">Hoch (Score 40–55)</option>
+          <option value="mittel">Mittel (Score 55–70)</option>
+          <option value="gut">Gut (Score &gt;70)</option>
+        </select>
+        <select id="sortCol" onchange="filterTable()">
+          <option value="nice">Sortierung: NICE Score</option>
+          <option value="A">Sortierung: Klimagerechtigkeit</option>
+          <option value="B">Sortierung: Gesundheit</option>
+          <option value="C">Sortierung: Mobilität</option>
+          <option value="F">Sortierung: Wahlbeteiligung</option>
+          <option value="sgb2">Sortierung: SGB-II-Quote</option>
+          <option value="einkommen">Sortierung: Einkommen</option>
+        </select>
+        <span class="tbl-count" id="tblCount"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="stadtTable">
+          <thead>
+            <tr>
+              <th>Stadtteil</th>
+              <th title="NICE Score gesamt">NICE</th>
+              <th title="Klimagerechtigkeit">🌡️ A</th>
+              <th title="Gesundheit">🫁 B</th>
+              <th title="Mobilität">🚲 C</th>
+              <th title="Bildung">📚 D</th>
+              <th title="Wohnen">🏠 E</th>
+              <th title="Demokratie">🗳️ F</th>
+              <th title="Ökosystem">🌳 G</th>
+              <th title="Resilienz">🛡️ H</th>
+              <th title="SGB-II-Quote">SGB-II</th>
+              <th title="Kinderarmut">Kinderarmt.</th>
+              <th title="Medianeinkommen">Einkommen</th>
+              <th title="Migration">Migration</th>
+              <th>Risiken</th>
+            </tr>
+          </thead>
+          <tbody id="stadtTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MASSNAHMEN -->
+  <div class="section">
+    <div class="section-title">🛠️ Maßnahmen je Stadtteil & Gesamtstadt</div>
+    <div class="tbl-wrap">
+      <div class="tbl-toolbar">
+        <input id="searchMass" placeholder="🔍 Maßnahme suchen…" oninput="filterMass()">
+        <select id="filterMassStadt" onchange="filterMass()">
+          <option value="">Alle Stadtteile</option>
+        </select>
+        <select id="filterMassDim" onchange="filterMass()">
+          <option value="">Alle Dimensionen</option>
+          <option value="A">🌡️ A — Klimagerechtigkeit</option>
+          <option value="B">🫁 B — Gesundheit</option>
+          <option value="C">🚲 C — Mobilität</option>
+          <option value="D">📚 D — Bildung</option>
+          <option value="E">🏠 E — Wohnen</option>
+          <option value="F">🗳️ F — Demokratie</option>
+          <option value="G">🌳 G — Ökosystem</option>
+          <option value="H">🛡️ H — Resilienz</option>
+        </select>
+        <select id="filterMassTyp" onchange="filterMass()">
+          <option value="">Alle Typen</option>
+          <option value="quick_win">Quick Win</option>
+          <option value="strukturell">Strukturell</option>
+        </select>
+        <span class="tbl-count" id="massTblCount"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="massTable">
+          <thead>
+            <tr>
+              <th>Maßnahme</th>
+              <th>Typ</th>
+              <th>Dimension</th>
+              <th>Prioritäre Stadtteile</th>
+              <th>Kosten</th>
+              <th>ROI</th>
+              <th>Förderung</th>
+            </tr>
+          </thead>
+          <tbody id="massTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DETAIL DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)" id="d-type">Stadtteil</div>
+    <div style="font-size:18px;font-weight:900;color:var(--text);margin-top:4px" id="d-name"></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:2px" id="d-sub"></div>
+  </div>
+  <div class="drawer-body" id="d-body"></div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const DISTRICTS = {
+  "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, wb:33,mig:71,hw:true, heat:true, noise:82, sgb2:62,kinderarmut:70,einkommen:17000,arbeitslos:17,abitur:25, versieg:88,lst_delta:3.9},
+  "Gutleutviertel":   {A:24,B:27,C:80,D:38,E:18,F:35,G:18,H:42,pop:5000, wb:36,mig:65,hw:true, heat:true, noise:78, sgb2:44,kinderarmut:50,einkommen:20000,arbeitslos:13,abitur:30, versieg:82,lst_delta:3.4},
+  "Gallus":           {A:28,B:32,C:58,D:42,E:22,F:34,G:30,H:45,pop:72000,wb:38,mig:58,hw:false,heat:true, noise:72, sgb2:30,kinderarmut:36,einkommen:24000,arbeitslos:10,abitur:38, versieg:74,lst_delta:2.9},
+  "Altstadt":         {A:30,B:34,C:82,D:56,E:28,F:50,G:22,H:50,pop:12000,wb:55,mig:40,hw:false,heat:true, noise:75, sgb2:18,kinderarmut:20,einkommen:30000,arbeitslos:7, abitur:52, versieg:80,lst_delta:3.2},
+  "Innenstadt":       {A:28,B:32,C:84,D:58,E:24,F:52,G:20,H:52,pop:16000,wb:57,mig:38,hw:false,heat:true, noise:74, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:6, abitur:60, versieg:83,lst_delta:3.5},
+  "Fechenheim":       {A:32,B:35,C:45,D:40,E:30,F:40,G:36,H:42,pop:21000,wb:41,mig:48,hw:true, heat:false,noise:68, sgb2:26,kinderarmut:32,einkommen:25000,arbeitslos:9, abitur:34, versieg:65,lst_delta:2.1},
+  "Griesheim":        {A:35,B:38,C:52,D:48,E:34,F:42,G:34,H:48,pop:43000,wb:44,mig:44,hw:false,heat:true, noise:70, sgb2:24,kinderarmut:28,einkommen:26000,arbeitslos:9, abitur:38, versieg:72,lst_delta:2.6},
+  "Nied":             {A:38,B:40,C:42,D:44,E:36,F:44,G:40,H:44,pop:17000,wb:43,mig:42,hw:false,heat:false,noise:65, sgb2:22,kinderarmut:26,einkommen:27000,arbeitslos:8, abitur:40, versieg:60,lst_delta:1.8},
+  "Sossenheim":       {A:40,B:42,C:40,D:45,E:38,F:45,G:42,H:50,pop:18000,wb:46,mig:38,hw:false,heat:false,noise:62, sgb2:19,kinderarmut:23,einkommen:28000,arbeitslos:7, abitur:42, versieg:55,lst_delta:1.5},
+  "Niederrad":        {A:42,B:45,C:60,D:52,E:40,F:48,G:44,H:52,pop:26000,wb:51,mig:35,hw:true, heat:false,noise:66, sgb2:16,kinderarmut:19,einkommen:30000,arbeitslos:6, abitur:50, versieg:62,lst_delta:1.9},
+  "Zeilsheim":        {A:44,B:46,C:38,D:48,E:42,F:48,G:47,H:50,pop:15000,wb:50,mig:33,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:52, versieg:48,lst_delta:1.1},
+  "Höchst":           {A:45,B:47,C:62,D:52,E:42,F:50,G:44,H:52,pop:15000,wb:52,mig:36,hw:true, heat:false,noise:65, sgb2:22,kinderarmut:27,einkommen:26000,arbeitslos:8, abitur:38, versieg:68,lst_delta:2.2},
+  "Unterliederbach":  {A:46,B:48,C:40,D:50,E:44,F:50,G:50,H:52,pop:22000,wb:52,mig:30,hw:false,heat:false,noise:60, sgb2:16,kinderarmut:18,einkommen:30000,arbeitslos:6, abitur:48, versieg:52,lst_delta:1.3},
+  "Rödelheim":        {A:48,B:50,C:55,D:55,E:44,F:52,G:54,H:55,pop:20000,wb:53,mig:32,hw:false,heat:false,noise:62, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:44, versieg:58,lst_delta:1.6},
+  "Goldstein":        {A:52,B:54,C:36,D:52,E:48,F:52,G:57,H:55,pop:8000, wb:55,mig:22,hw:false,heat:false,noise:55, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:54, versieg:42,lst_delta:0.8},
+  "Sindlingen":       {A:50,B:52,C:38,D:54,E:48,F:54,G:54,H:55,pop:8000, wb:55,mig:24,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:30000,arbeitslos:6, abitur:46, versieg:52,lst_delta:1.4},
+  "Schwanheim":       {A:55,B:56,C:42,D:55,E:50,F:56,G:62,H:58,pop:19000,wb:57,mig:20,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:36000,arbeitslos:4, abitur:58, versieg:38,lst_delta:0.4},
+  "Bockenheim":       {A:50,B:55,C:76,D:68,E:40,F:62,G:44,H:58,pop:54000,wb:62,mig:28,hw:false,heat:true, noise:68, sgb2:14,kinderarmut:16,einkommen:34000,arbeitslos:6, abitur:62, versieg:70,lst_delta:2.4},
+  "Eckenheim":        {A:57,B:59,C:58,D:65,E:50,F:61,G:57,H:58,pop:12000,wb:62,mig:25,hw:false,heat:false,noise:60, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:5, abitur:58, versieg:62,lst_delta:1.9},
+  "Ostend":           {A:52,B:55,C:68,D:65,E:40,F:62,G:44,H:55,pop:27000,wb:62,mig:30,hw:false,heat:true, noise:65, sgb2:16,kinderarmut:18,einkommen:32000,arbeitslos:6, abitur:55, versieg:72,lst_delta:2.7},
+  "Sachsenhausen-Nord":{A:55,B:58,C:70,D:68,E:42,F:65,G:47,H:58,pop:35000,wb:65,mig:24,hw:false,heat:false,noise:62, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:66, versieg:65,lst_delta:2.0},
+  "Sachsenhausen-Süd":{A:58,B:60,C:65,D:70,E:45,F:68,G:52,H:60,pop:17000,wb:68,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:4, abitur:72, versieg:60,lst_delta:1.7},
+  "Riederwald":       {A:60,B:62,C:52,D:66,E:54,F:64,G:61,H:60,pop:8000, wb:64,mig:22,hw:false,heat:false,noise:55, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:42, versieg:55,lst_delta:1.4},
+  "Hausen":           {A:60,B:62,C:60,D:68,E:52,F:64,G:60,H:60,pop:10000,wb:64,mig:20,hw:false,heat:false,noise:56, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:58, versieg:52,lst_delta:1.2},
+  "Ginnheim":         {A:61,B:63,C:62,D:70,E:53,F:65,G:61,H:62,pop:13000,wb:66,mig:18,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66, versieg:55,lst_delta:1.3},
+  "Nordend-West":     {A:60,B:62,C:72,D:75,E:42,F:70,G:52,H:62,pop:37000,wb:70,mig:20,hw:false,heat:false,noise:62, sgb2:10,kinderarmut:11,einkommen:42000,arbeitslos:4, abitur:74, versieg:68,lst_delta:2.2},
+  "Bornheim":         {A:58,B:60,C:73,D:72,E:45,F:68,G:50,H:60,pop:47000,wb:68,mig:22,hw:false,heat:false,noise:60, sgb2:13,kinderarmut:15,einkommen:36000,arbeitslos:5, abitur:64, versieg:66,lst_delta:2.1},
+  "Nordend-Ost":      {A:62,B:64,C:70,D:76,E:44,F:72,G:53,H:64,pop:28000,wb:72,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76, versieg:65,lst_delta:2.0},
+  "Dornbusch":        {A:60,B:62,C:65,D:70,E:52,F:68,G:57,H:62,pop:33000,wb:68,mig:16,hw:false,heat:false,noise:56, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76, versieg:58,lst_delta:1.5},
+  "Heddernheim":      {A:58,B:60,C:55,D:68,E:52,F:65,G:57,H:60,pop:19000,wb:65,mig:20,hw:false,heat:false,noise:54, sgb2:12,kinderarmut:14,einkommen:35000,arbeitslos:5, abitur:60, versieg:50,lst_delta:1.1},
+  "Praunheim":        {A:62,B:64,C:55,D:70,E:54,F:65,G:64,H:62,pop:17000,wb:66,mig:16,hw:false,heat:false,noise:52, sgb2:11,kinderarmut:13,einkommen:36000,arbeitslos:4, abitur:62, versieg:45,lst_delta:0.8},
+  "Preungesheim":     {A:60,B:62,C:52,D:66,E:54,F:64,G:60,H:60,pop:11000,wb:64,mig:18,hw:false,heat:false,noise:54, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:56, versieg:52,lst_delta:1.2},
+  "Westend-Süd":      {A:62,B:65,C:72,D:78,E:36,F:72,G:54,H:65,pop:31000,wb:72,mig:14,hw:false,heat:false,noise:60, sgb2:6, kinderarmut:7, einkommen:58000,arbeitslos:2, abitur:88, versieg:62,lst_delta:1.8},
+  "Westend-Nord":     {A:64,B:66,C:72,D:78,E:38,F:72,G:55,H:65,pop:17000,wb:74,mig:12,hw:false,heat:false,noise:58, sgb2:5, kinderarmut:6, einkommen:62000,arbeitslos:2, abitur:90, versieg:58,lst_delta:1.6},
+  "Harheim":          {A:70,B:68,C:35,D:65,E:62,F:62,G:75,H:68,pop:5000, wb:65,mig:8, hw:false,heat:false,noise:44, sgb2:6, kinderarmut:7, einkommen:38000,arbeitslos:3, abitur:52, versieg:28,lst_delta:0.2},
+  "Nieder-Erlenbach": {A:72,B:70,C:33,D:64,E:64,F:64,G:78,H:70,pop:5000, wb:66,mig:6, hw:false,heat:false,noise:42, sgb2:4, kinderarmut:5, einkommen:42000,arbeitslos:2, abitur:55, versieg:25,lst_delta:-0.1},
+  "Frankfurter Berg":  {A:55,B:57,C:50,D:63,E:50,F:62,G:56,H:60,pop:9000, wb:62,mig:18,hw:false,heat:false,noise:55, sgb2:14,kinderarmut:16,einkommen:31000,arbeitslos:5, abitur:52, versieg:55,lst_delta:1.3},
+  "Seckbach":         {A:62,B:64,C:48,D:67,E:55,F:64,G:66,H:62,pop:12000,wb:65,mig:16,hw:false,heat:false,noise:52, sgb2:11,kinderarmut:13,einkommen:34000,arbeitslos:4, abitur:58, versieg:45,lst_delta:0.9},
+  "Bergen-Enkheim":   {A:65,B:66,C:42,D:68,E:60,F:66,G:70,H:66,pop:17000,wb:67,mig:14,hw:false,heat:false,noise:50, sgb2:9, kinderarmut:10,einkommen:38000,arbeitslos:3, abitur:62, versieg:38,lst_delta:0.6},
+  "Bonames":          {A:60,B:60,C:40,D:62,E:55,F:58,G:65,H:60,pop:6000, wb:60,mig:20,hw:false,heat:false,noise:52, sgb2:16,kinderarmut:18,einkommen:28000,arbeitslos:6, abitur:44, versieg:42,lst_delta:1.0},
+  "Nieder-Eschbach":  {A:66,B:66,C:38,D:65,E:62,F:65,G:72,H:65,pop:14000,wb:66,mig:10,hw:false,heat:false,noise:48, sgb2:7, kinderarmut:8, einkommen:40000,arbeitslos:3, abitur:60, versieg:32,lst_delta:0.3},
+  "Kalbach-Riedberg":  {A:68,B:68,C:45,D:72,E:58,F:68,G:74,H:68,pop:16000,wb:70,mig:12,hw:false,heat:false,noise:46, sgb2:5, kinderarmut:6, einkommen:46000,arbeitslos:2, abitur:72, versieg:35,lst_delta:0.4},
+  "Nieder-Preungesheim":{A:58,B:60,C:48,D:64,E:52,F:62,G:58,H:60,pop:7000,wb:63,mig:19,hw:false,heat:false,noise:54, sgb2:13,kinderarmut:15,einkommen:30000,arbeitslos:5, abitur:50, versieg:52,lst_delta:1.2},
+  "Oberrad":          {A:62,B:63,C:55,D:66,E:55,F:65,G:64,H:62,pop:13000,wb:65,mig:16,hw:false,heat:false,noise:55, sgb2:10,kinderarmut:12,einkommen:35000,arbeitslos:4, abitur:60, versieg:50,lst_delta:1.0},
+  "Sachsenhausen":    {A:58,B:60,C:68,D:70,E:44,F:66,G:50,H:60,pop:32000,wb:66,mig:20,hw:false,heat:false,noise:60, sgb2:10,kinderarmut:12,einkommen:38000,arbeitslos:4, abitur:68, versieg:64,lst_delta:1.9},
+};
+
+const MASS = [
+  {id:"A01",icon:"🌳",name:"Straßenbaum-Programm",typ:"quick_win",dims:["A","G"],kosten:150000,roi:340000,desc:"50 Straßenbäume inkl. Pflanzgrube, Bewässerung, 5-Jahres-Pflege.",foerder:[{eb:"EU",prog:"LIFE+ Naturbasierte Lösungen",pct:60},{eb:"Bund",prog:"Bundesprogramm Stadtgrün",pct:75},{eb:"KfW",prog:"Kommunalkredit 0,6% p.a.",pct:null}]},
+  {id:"A02",icon:"🏗️",name:"Fassadenbegrünung",typ:"quick_win",dims:["A","G"],kosten:80000,roi:200000,desc:"Kletterpflanzen oder Modulbegrünung für 500m² Fassadenfläche.",foerder:[{eb:"Bund",prog:"BEG Einzelmaßnahmen",pct:35},{eb:"Land",prog:"Hessisches Klimaschutzprogramm",pct:40}]},
+  {id:"A03",icon:"💧",name:"Schwammstadt-Entsiegelung",typ:"strukturell",dims:["G","H"],kosten:200000,roi:450000,desc:"Versickerungsmulden, Retentionsflächen, Zisternen für 2.000m².",foerder:[{eb:"EU",prog:"ERDF Naturbasierte Lösungen",pct:80},{eb:"Bund",prog:"Blaues Band Programm",pct:75}]},
+  {id:"A04",icon:"☀️",name:"Gründächer Pflichtgebiete",typ:"strukturell",dims:["A","G","H"],kosten:120000,roi:280000,desc:"Begrünte Dächer auf 1.000m² in Risikogebieten.",foerder:[{eb:"Bund",prog:"BEG Einzelmaßnahmen",pct:20},{eb:"Kommune",prog:"Frankfurt Klimaschutzprogramm",pct:30}]},
+  {id:"A05",icon:"🌲",name:"Urbaner Wald (>0,5 ha)",typ:"strukturell",dims:["A","G"],kosten:350000,roi:800000,desc:"Anlage eines zusammenhängenden urbanen Waldstücks als Klimaschutzzelle.",foerder:[{eb:"EU",prog:"LIFE+ Biodiversität",pct:60},{eb:"Bund",prog:"Waldklimafonds (BMEL)",pct:80}]},
+  {id:"D02",icon:"❄️",name:"Kühlinseln Hitzeaktionsplan",typ:"quick_win",dims:["A","B"],kosten:200000,roi:2300000,desc:"Trinkbrunnen, Sprühnebler, beschattete Sitzflächen je Quartier.",foerder:[{eb:"EU",prog:"ERDF Klimaanpassung",pct:80},{eb:"Bund",prog:"DAS Klimaanpassungsstrategie",pct:70}]},
+  {id:"B01",icon:"🚦",name:"Tempo 30 Zonenerweiterung",typ:"quick_win",dims:["B","C"],kosten:15000,roi:320000,desc:"Beschilderung + Bodenmarkierungen für Tempo-30-Zonen.",foerder:[{eb:"Bund",prog:"Nationales Radverkehrsprogramm",pct:75}]},
+  {id:"B02",icon:"🚌",name:"ÖPNV-Takt Verdopplung",typ:"strukturell",dims:["C","B"],kosten:1200000,roi:2800000,desc:"10-Minuten-Takt in unterversorgten Stadtteilen.",foerder:[{eb:"Bund",prog:"GVFG Gemeindeverkehrsgesetz",pct:75},{eb:"Land",prog:"Hessisches ÖPNV-Programm",pct:60}]},
+  {id:"B03",icon:"🏫",name:"Schulstraßen (autofrei)",typ:"quick_win",dims:["B","C","D"],kosten:8000,roi:180000,desc:"Temporäre Sperrung von Schulumgebungen für den MIV.",foerder:[{eb:"Bund",prog:"Klimaschutz durch Radverkehr",pct:70}]},
+  {id:"B04",icon:"🛤️",name:"Radschnellweg",typ:"strukturell",dims:["C","B"],kosten:800000,roi:1900000,desc:"Separater Radschnellweg zwischen Stadtteilen (pro km).",foerder:[{eb:"Bund",prog:"Nationales Radverkehrsprogramm",pct:75},{eb:"EU",prog:"CEF Connecting Europe",pct:50}]},
+  {id:"C01",icon:"🏛️",name:"Community Place (Mehrzweck)",typ:"quick_win",dims:["F","D"],kosten:80000,roi:420000,desc:"Multifunktionaler Gemeinschaftsraum für alle Altersgruppen.",foerder:[{eb:"EU",prog:"ERDF Soziale Infrastruktur",pct:80},{eb:"Bund",prog:"Soziale Stadt (BBSR)",pct:60},{eb:"EU",prog:"ESF+ Sozialfonds",pct:70}]},
+  {id:"C02",icon:"🌍",name:"Mehrsprachiges Beratungszentrum",typ:"quick_win",dims:["F","D"],kosten:120000,roi:380000,desc:"Muttersprach-Beratung für Migranten: Recht, Soziales, Wohnen.",foerder:[{eb:"EU",prog:"AMIF Migrationsfonds",pct:75},{eb:"Bund",prog:"Demokratie leben!",pct:90}]},
+  {id:"C03",icon:"💻",name:"Jugendtreff mit Digitalausstattung",typ:"quick_win",dims:["D","F"],kosten:60000,roi:520000,desc:"Offener Jugendtreff mit Computern, WLAN, Betreuung.",foerder:[{eb:"Bund",prog:"Jugendhilfe Bundesprogramm",pct:80},{eb:"EU",prog:"ESF+ Sozialfonds",pct:70}]},
+  {id:"D01",icon:"⚡",name:"Energie-Gemeinschaft (EEG 2023)",typ:"strukturell",dims:["A","E"],kosten:350000,roi:980000,desc:"Bürgerliche Energiegemeinschaft für gemeinsame PV-Nutzung.",foerder:[{eb:"EU",prog:"ERDF Energiewende",pct:60},{eb:"Bund",prog:"EEG 2023 Energiegemeinschaft",pct:40}]},
+  {id:"E01",icon:"📡",name:"Luftqualitätssensornetz",typ:"quick_win",dims:["B"],kosten:45000,roi:200000,desc:"50 Mikroklimasensoren (PM2.5, NO2, Temperatur) im Stadtteil.",foerder:[{eb:"EU",prog:"Horizont Europe Open Data",pct:70},{eb:"Bund",prog:"mFUND Digitale Infrastruktur",pct:60}]},
+  {id:"H01",icon:"⛱️",name:"Sonnensegel & Verschattung",typ:"quick_win",dims:["A","B"],kosten:45000,roi:185000,desc:"10 Sonnensegel-Anlagen an Hitzepunkten.",foerder:[{eb:"EU",prog:"ERDF Klimaanpassung",pct:80},{eb:"Bund",prog:"DAS Klimaanpassungsstrategie",pct:70}]},
+  {id:"H02",icon:"🪨",name:"Entsiegelung Innenhöfe",typ:"strukturell",dims:["A","G","H"],kosten:180000,roi:520000,desc:"Entfernung versiegelter Beläge in Blockinnenbereichen (2.000 m²).",foerder:[{eb:"EU",prog:"LIFE+ Naturbasierte Lösungen",pct:60},{eb:"Bund",prog:"Bundesprogramm Stadtgrün",pct:75},{eb:"Land",prog:"Hessisches Klimaschutzprogramm",pct:50}]},
+  {id:"H03",icon:"🌫️",name:"Trinkbrunnen & Sprühnebler",typ:"quick_win",dims:["A","B"],kosten:65000,roi:280000,desc:"Sprühnebelanlagen + 15 öffentliche Trinkbrunnen.",foerder:[{eb:"EU",prog:"ERDF Klimaanpassung",pct:80},{eb:"Bund",prog:"DAS Klimaanpassungsstrategie",pct:70}]},
+  {id:"H04",icon:"🔆",name:"Helle Oberflächenbeläge",typ:"strukturell",dims:["A"],kosten:95000,roi:210000,desc:"Austausch dunkler Asphaltbeläge durch reflektierende Pflastersteine.",foerder:[{eb:"EU",prog:"Horizont Europe Urban Missions",pct:50},{eb:"EU",prog:"ERDF Klimaanpassung",pct:80}]},
+  {id:"H05",icon:"🏢",name:"Klimatisierte Kühlräume",typ:"quick_win",dims:["A","B","D"],kosten:120000,roi:960000,desc:"5 öffentlich zugängliche klimatisierte Gebäude als Kühlorte.",foerder:[{eb:"EU",prog:"ERDF Soziale Infrastruktur",pct:80},{eb:"Bund",prog:"DAS Klimaanpassungsstrategie",pct:70}]},
+  {id:"H06",icon:"🛰️",name:"Kleinklimatische Straßenzug-Analyse",typ:"quick_win",dims:["A","G"],kosten:38000,roi:320000,desc:"Hochauflösende Temperatur- und NDVI-Kartierung.",foerder:[{eb:"EU",prog:"Horizont Europe Open Data",pct:70},{eb:"Bund",prog:"mFUND Digitale Infrastruktur",pct:60}]},
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function nice(d){ return Math.round((d.A+d.B+d.C+d.D+d.E+d.F+d.G+d.H)/8); }
+function scoreColor(s){ return s<40?'#dc2626':s<55?'#ea580c':s<70?'#ca8a04':'#16a34a'; }
+function fmt(n){ return n>=1000000?(n/1000000).toFixed(1)+'M€':n>=1000?Math.round(n/1000)+'k€':n+'€'; }
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+const entries = Object.entries(DISTRICTS);
+const allScores = entries.map(([,d])=>nice(d));
+const avgScore = Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length);
+const critCount = allScores.filter(s=>s<40).length;
+const highCount = allScores.filter(s=>s<55).length;
+
+// Hero
+document.getElementById('h-avg').textContent = avgScore;
+document.getElementById('h-crit').textContent = critCount;
+
+// KPIs
+const kpiData = [
+  {val: avgScore, lbl:'Ø NICE Score', sub:'46 Stadtteile Frankfurt', cls: avgScore<50?'warn':avgScore<65?'':'ok'},
+  {val: critCount, lbl:'Kritische Stadtteile', sub:'NICE Score unter 40', cls:'warn'},
+  {val: highCount, lbl:'Hohe Dringlichkeit', sub:'NICE Score unter 55', cls:'warn'},
+  {val: '€' + Math.round(entries.reduce((s,[,d])=>s+(d.hw?1:0),0)*230/10)*10+'M', lbl:'Flutrisiko-Gebäude', sub:'HQ100-Risikobereich (Mio€)', cls:'warn'},
+  {val: Math.round(entries.reduce((s,[,d])=>s+d.sgb2,0)/entries.length)+'%', lbl:'Ø SGB-II-Quote', sub:'Soziale Vulnerabilität', cls:''},
+];
+document.getElementById('kpiRow').innerHTML = kpiData.map(k=>
+  `<div class="kpi ${k.cls}"><div class="val">${k.val}</div><div class="lbl">${k.lbl}</div><div class="sub">${k.sub}</div></div>`
+).join('');
+
+// City dimension averages
+const dimKeys = ['A','B','C','D','E','F','G','H'];
+const dimNames = {A:'Klimagerechtigkeit',B:'Gesundheit',C:'Mobilität',D:'Bildung',E:'Wohnen',F:'Demokratie',G:'Ökosystem',H:'Resilienz'};
+const dimIcons = {A:'🌡️',B:'🫁',C:'🚲',D:'📚',E:'🏠',F:'🗳️',G:'🌳',H:'🛡️'};
+const dimAvgs = {};
+dimKeys.forEach(k=>{ dimAvgs[k]=Math.round(entries.reduce((s,[,d])=>s+d[k],0)/entries.length); });
+
+const worstDims = [...dimKeys].sort((a,b)=>dimAvgs[a]-dimAvgs[b]).slice(0,4);
+const bestDims  = [...dimKeys].sort((a,b)=>dimAvgs[b]-dimAvgs[a]).slice(0,4);
+
+document.getElementById('cityGrid').innerHTML = `
+  <div class="city-card">
+    <h3>Durchschnitt aller 8 Dimensionen — Frankfurt</h3>
+    ${dimKeys.map(k=>`
+      <div class="bar-row">
+        <div class="bar-label">${dimIcons[k]} ${dimNames[k]}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${dimAvgs[k]}%;background:${scoreColor(dimAvgs[k])}"></div></div>
+        <div class="bar-val" style="color:${scoreColor(dimAvgs[k])}">${dimAvgs[k]}</div>
+      </div>`).join('')}
+  </div>
+  <div class="city-card">
+    <h3>Größter Handlungsbedarf — Dimensionsranking</h3>
+    <div style="margin-bottom:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#dc2626;margin-bottom:8px">⚠ Schwächste Dimensionen</div>
+      ${worstDims.map(k=>`
+        <div class="bar-row">
+          <div class="bar-label">${dimIcons[k]} ${dimNames[k]}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${dimAvgs[k]}%;background:${scoreColor(dimAvgs[k])}"></div></div>
+          <div class="bar-val" style="color:${scoreColor(dimAvgs[k])}">${dimAvgs[k]}</div>
+        </div>`).join('')}
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#16a34a;margin-bottom:8px">✓ Stärkste Dimensionen</div>
+      ${bestDims.map(k=>`
+        <div class="bar-row">
+          <div class="bar-label">${dimIcons[k]} ${dimNames[k]}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${dimAvgs[k]}%;background:${scoreColor(dimAvgs[k])}"></div></div>
+          <div class="bar-val" style="color:${scoreColor(dimAvgs[k])}">${dimAvgs[k]}</div>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:16px;padding:12px;background:#fef2f2;border-radius:10px;border:1px solid #fecaca">
+      <div style="font-size:10px;font-weight:700;color:#dc2626;margin-bottom:4px">Gesamtstadtmaßnahmen — höchste Priorität</div>
+      ${worstDims.map(k=>{
+        const m=MASS.filter(x=>x.dims.includes(k)).slice(0,1)[0];
+        return m?`<div style="font-size:11px;color:#7f1d1d;padding:2px 0">→ ${m.icon} ${m.name} (${m.dims.join('+')})</div>`:'';
+      }).join('')}
+    </div>
+  </div>`;
+
+// Stadtteil-Filterung
+let stadtteile = entries.map(([name,d])=>({name, d, score:nice(d)}));
+
+function renderStadt(list){
+  document.getElementById('tblCount').textContent = `${list.length} Stadtteile`;
+  document.getElementById('stadtTbody').innerHTML = list.map(({name,d,score})=>{
+    const risks = [d.hw?'💧 Flut':'', d.heat?'🌡️ Hitze':'', d.noise>70?'🔊 Lärm':''].filter(Boolean).join(' ');
+    return `<tr onclick="openDistrict('${name}')">
+      <td class="name">${name}</td>
+      <td><span class="score-pill" style="background:${scoreColor(score)}">${score}</span></td>
+      ${dimKeys.map(k=>`<td><span class="dim-score" style="background:${scoreColor(d[k])}">${d[k]}</span></td>`).join('')}
+      <td style="color:${d.sgb2>40?'#dc2626':d.sgb2>25?'#ea580c':'var(--text2)'};font-weight:${d.sgb2>30?700:400}">${d.sgb2}%</td>
+      <td style="color:${d.kinderarmut>50?'#dc2626':d.kinderarmut>30?'#ea580c':'var(--text2)'};font-weight:${d.kinderarmut>40?700:400}">${d.kinderarmut}%</td>
+      <td class="muted">${(d.einkommen/1000).toFixed(0)}k€</td>
+      <td class="muted">${d.mig}%</td>
+      <td>${risks||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable(){
+  const q = document.getElementById('searchStadt').value.toLowerCase();
+  const risk = document.getElementById('filterRisk').value;
+  const sort = document.getElementById('sortCol').value;
+  let list = [...stadtteile];
+  if(q) list = list.filter(x=>x.name.toLowerCase().includes(q));
+  if(risk==='krit')   list = list.filter(x=>x.score<40);
+  if(risk==='hoch')   list = list.filter(x=>x.score>=40&&x.score<55);
+  if(risk==='mittel') list = list.filter(x=>x.score>=55&&x.score<70);
+  if(risk==='gut')    list = list.filter(x=>x.score>=70);
+  if(sort==='nice')           list.sort((a,b)=>a.score-b.score);
+  else if(dimKeys.includes(sort)) list.sort((a,b)=>a.d[sort]-b.d[sort]);
+  else if(sort==='sgb2')      list.sort((a,b)=>b.d.sgb2-a.d.sgb2);
+  else if(sort==='einkommen') list.sort((a,b)=>a.d.einkommen-b.d.einkommen);
+  renderStadt(list);
+}
+
+renderStadt([...stadtteile].sort((a,b)=>a.score-b.score));
+
+// Fördermittel-Populate
+const stadtSelect = document.getElementById('filterMassStadt');
+entries.sort((a,b)=>nice(a[1])-nice(b[1])).forEach(([name])=>{
+  const o=document.createElement('option'); o.value=name; o.textContent=name;
+  stadtSelect.appendChild(o);
+});
+
+function priorityDistricts(m){
+  // Finde Stadtteile wo mind. eine Dimension des Maßnahme schwach ist
+  return entries.filter(([,d])=>m.dims.some(k=>d[k]<50))
+    .sort((a,b)=>{ const sa=Math.min(...m.dims.map(k=>a[1][k])), sb=Math.min(...m.dims.map(k=>b[1][k])); return sa-sb; })
+    .slice(0,3).map(([n])=>n).join(', ');
+}
+
+function renderMass(list){
+  document.getElementById('massTblCount').textContent = `${list.length} Maßnahmen`;
+  document.getElementById('massTbody').innerHTML = list.map(m=>{
+    const prio = priorityDistricts(m);
+    return `<tr class="mass-row">
+      <td>
+        <div class="mass-name">${m.icon} ${m.name}</div>
+        <div class="mass-desc">${m.desc}</div>
+      </td>
+      <td><span class="mass-type ${m.typ}">${m.typ==='quick_win'?'Quick Win':'Strukturell'}</span></td>
+      <td>${m.dims.map(k=>`<span class="dim-score" style="background:${scoreColor(dimAvgs[k])}">${k}</span>`).join(' ')}</td>
+      <td style="font-size:11px;color:var(--text2)">${prio}</td>
+      <td class="kosten-cell" style="font-size:11px">${fmt(m.kosten)}</td>
+      <td class="roi-pos" style="font-size:11px">${fmt(m.roi)}</td>
+      <td>
+        <div class="foerder-pills">
+          ${m.foerder.map(f=>{
+            const cls=f.eb==='EU'?'eu':f.eb==='Bund'?'bund':f.eb==='Land'?'land':'kfw';
+            return `<span class="fpill ${cls}">${f.eb}${f.pct?` ${f.pct}%`:''}</span>`;
+          }).join('')}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterMass(){
+  const q    = document.getElementById('searchMass').value.toLowerCase();
+  const stadt= document.getElementById('filterMassStadt').value;
+  const dim  = document.getElementById('filterMassDim').value;
+  const typ  = document.getElementById('filterMassTyp').value;
+  let list = [...MASS];
+  if(q)     list = list.filter(m=>m.name.toLowerCase().includes(q)||m.desc.toLowerCase().includes(q));
+  if(dim)   list = list.filter(m=>m.dims.includes(dim));
+  if(typ)   list = list.filter(m=>m.typ===typ);
+  if(stadt){
+    const d = DISTRICTS[stadt];
+    if(d) list = list.filter(m=>m.dims.some(k=>d[k]<55))
+      .sort((a,b)=>{
+        const sa=Math.min(...a.dims.map(k=>d[k]??50)), sb=Math.min(...b.dims.map(k=>d[k]??50));
+        return sa-sb;
+      });
+  }
+  renderMass(list);
+}
+
+renderMass(MASS);
+
+// ── DISTRICT DRAWER ───────────────────────────────────────────────────────────
+function openDistrict(name){
+  const d = DISTRICTS[name];
+  if(!d) return;
+  const score = nice(d);
+  document.getElementById('d-name').textContent = name;
+  document.getElementById('d-sub').textContent = `NICE Score ${score}/100 · ${d.pop.toLocaleString('de')} Einwohner`;
+
+  const weakDims = dimKeys.filter(k=>d[k]<55).sort((a,b)=>d[a]-d[b]);
+  const recMass  = MASS.filter(m=>m.dims.some(k=>weakDims.includes(k)))
+    .sort((a,b)=>Math.min(...a.dims.map(k=>d[k]??50))-Math.min(...b.dims.map(k=>d[k]??50)))
+    .slice(0,5);
+
+  document.getElementById('d-body').innerHTML = `
+    <div class="d-section">
+      <h4>NICE Score — 8 Dimensionen</h4>
+      <div class="d-score-grid">
+        ${dimKeys.map(k=>`
+          <div class="d-score-item">
+            <div class="d-score-val" style="color:${scoreColor(d[k])}">${d[k]}</div>
+            <div class="d-score-lbl">${dimIcons[k]} ${k}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="d-section">
+      <h4>Soziale Indikatoren</h4>
+      ${[
+        ['Wahlbeteiligung',d.wb+'%'],['Migration',d.mig+'%'],['SGB-II-Quote',d.sgb2+'%'],
+        ['Kinderarmut',d.kinderarmut+'%'],['Medianeinkommen',(d.einkommen/1000).toFixed(0)+'k€/Jahr'],
+        ['Arbeitslosigkeit',d.arbeitslos+'%'],['Abiturquote',d.abitur+'%'],
+        ['Versiegelungsgrad',d.versieg+'%'],['Hitze-Delta (LST)','+'+d.lst_delta+'°C'],
+      ].map(([k,v])=>`<div class="d-kv"><span>${k}</span><span>${v}</span></div>`).join('')}
+    </div>
+    <div class="d-section">
+      <h4>Risiken</h4>
+      ${[d.hw?'💧 Hochwasserrisiko (HQ100)':'', d.heat?'🌡️ Hitzeinsel (LST erhöht)':'', d.noise>70?'🔊 Lärm über EU-Grenzwert':''].filter(Boolean).map(r=>`<div class="d-kv"><span>${r}</span><span style="color:#dc2626">⚠ Aktiv</span></div>`).join('')||'<div style="font-size:12px;color:var(--muted)">Keine kritischen Risiken</div>'}
+    </div>
+    <div class="d-section">
+      <h4>Empfohlene Maßnahmen (${recMass.length})</h4>
+      ${recMass.map(m=>`
+        <div class="d-mass-item">
+          <div class="d-mass-name">${m.icon} ${m.name}</div>
+          <div class="d-mass-meta">${fmt(m.kosten)} Invest → ${fmt(m.roi)} ROI · Dimensionen: ${m.dims.join('+')}</div>
+          <div class="d-mass-foerder">
+            ${m.foerder.map(f=>`<span class="fpill ${f.eb==='EU'?'eu':f.eb==='Bund'?'bund':f.eb==='Land'?'land':'kfw'}">${f.eb}${f.pct?' '+f.pct+'%':''}</span>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>`;
+
+  document.getElementById('drawerOverlay').style.display='block';
+  document.getElementById('drawer').classList.add('open');
+}
+
+function closeDrawer(){
+  document.getElementById('drawerOverlay').style.display='none';
+  document.getElementById('drawer').classList.remove('open');
+}
+</script>
+</body>
+</html>
