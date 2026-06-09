@@ -355,52 +355,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="nsep"></div>
   <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none">📊 Dashboard</a>
   <div class="nsep"></div>
-  <a href="green3d.html" class="bbrille-btn" style="text-decoration:none">🌿 Grünflächen</a>
-  <div class="nsep"></div>
-  <button class="bbrille-btn" id="nav3dBtn" onclick="toggle3DView()">🏗 3D Analyse</button>
-  <div class="nsep"></div>
   <div class="ninfo">🏙 Frankfurt am Main · NICE Score — <b>117 Indikatoren</b></div>
   <div class="nav-r">
-    <button class="bbrille-btn" id="bbrilleBtn" onclick="toggleBuergerbrille()">
-      👁 Bürgerbrille
-    </button>
-    <div class="epill">📅 EUI Deadline 15. Juni 2026</div>
     <div class="lpill"><div class="dot"></div>Open Data Live</div>
   </div>
 </nav>
 
-<!-- Bürgerbrille Score Popup -->
-<div id="brillePopup" class="brille-popup" style="display:none">
-  <div class="bp-close" onclick="closeBrillePopup()">✕</div>
-  <div class="bp-head">
-    <div class="bp-title">👁 Street-Score</div>
-    <div class="bp-addr" id="bpAddr">Berechne…</div>
-  </div>
-  <div class="bp-score-row">
-    <div class="bp-circle">
-      <svg viewBox="0 0 64 64" width="64" height="64">
-        <circle cx="32" cy="32" r="27" fill="none" stroke="var(--border)" stroke-width="6"/>
-        <circle id="bpArc" cx="32" cy="32" r="27" fill="none" stroke="#16a34a" stroke-width="6"
-          stroke-dasharray="0 170" stroke-linecap="round" transform="rotate(-90 32 32)"
-          style="transition:stroke-dasharray .6s,stroke .4s"/>
-      </svg>
-      <div class="bp-num"><span id="bpScore">—</span><small>/100</small></div>
-    </div>
-    <div class="bp-grade-col">
-      <div class="gpill" id="bpGrade" style="font-size:12px;padding:4px 12px"></div>
-      <div id="bpProblem" style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5"></div>
-    </div>
-  </div>
-  <div class="bp-bars" id="bpBars"></div>
-  <div class="bp-tip" id="bpTip"></div>
-</div>
-
-<!-- WIND & RUNWAY -->
-<div class="wind-pill" id="windPill" onclick="toggleWindPopup()">
-  <span class="wind-arrow" id="windArrow">🌬️</span>
-  <span id="windSpeed">…</span>
-  <span class="wind-rwy" id="windRwy">RWY?</span>
-</div>
 <div class="wind-popup" id="windPopup">
   <div style="font-size:11px;font-weight:800;margin-bottom:8px;color:#1a1a2e">🌬️ Live Wind — Frankfurt Flughafen</div>
   <div class="wind-row"><span class="wind-label">Windrichtung</span><span class="wind-val" id="wpDir">—</span></div>
@@ -413,11 +373,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div id="map"></div>
-
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- 3D OVERLAY — MapLibre GL JS embedded view                  -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div id="map3d-overlay"></div>
 
 <!-- 3D mode: Layer panel button repositioned to left side -->
 <!-- Layer panel button hidden in clean 3D view -->
@@ -3436,7 +3391,7 @@ const MODE_PITCH3D = {co2:52,bi:52,footway:0,flight:0,flood:20,bike:0,bench:0,st
 
 let map3d = null, map3dReady = false, is3dActive = false;
 // Auto-activate 3D on first load
-window.addEventListener('load', () => setTimeout(toggle3DView, 200));
+
 let currentMode3d = "co2", totalCO2_3d = 0, currentReno3d = 0, trees3dOn = false;
 let dataLoaded3d = {}, currentFloodFilter3d = "all";
 
