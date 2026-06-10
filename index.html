@@ -523,6 +523,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lname">🌳 Straßenbäume & Alleen</span>
     <span class="lstatus" id="st-trees"></span>
   </div>
+  <div class="lrow" onclick="toggleLayer('osm_trees')">
+    <button class="ltoggle" id="tog-osm_trees"></button>
+    <span class="lname">🌍 Bäume weltweit (OSM live)</span>
+    <span class="lstatus" id="st-osm_trees"></span>
+  </div>
   <div class="lrow" onclick="toggleLayer('benches')">
     <button class="ltoggle" id="tog-benches"></button>
     <span class="lname">🪑 Bänke — Qualitätsstufen</span>
@@ -1379,6 +1384,7 @@ function loadLayer(id,statusEl){
   const c=CITY_CFG[city];
   switch(id){
     case 'duh_ampel':       return renderDUHAmpel(id,statusEl);
+    case 'osm_trees':       return renderOSMTrees(id,statusEl);
     case 'flood':    return loadLocal(`flood_exposure_${city}.geojson`,id,statusEl,renderFloodExposure);
     case 'floodex':  return loadLocal(`waterways_${city}.geojson`,id,statusEl,renderFloodZones);
     case 'heat':     return loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,renderHeatExposure);
@@ -1460,6 +1466,48 @@ function renderDUHAmpel(id,statusEl){
   }).addTo(map);
   layerObjs[id]=lyr;
   statusEl.textContent='✓ '+geoFeatures.length;
+}
+
+// ── OSM BÄUME WELTWEIT: lädt natural=tree live aus dem Kartenausschnitt ──
+// Funktioniert überall auf der Welt — Abdeckung je nach Stadt unterschiedlich.
+let osmTreesHooked=false, osmTreesTimer=null;
+function renderOSMTrees(id,statusEl){
+  if(!osmTreesHooked){
+    osmTreesHooked=true;
+    map.on('moveend',()=>{
+      if(!activeLayers['osm_trees'])return;
+      clearTimeout(osmTreesTimer);
+      osmTreesTimer=setTimeout(()=>loadOSMTreesViewport(document.getElementById('st-osm_trees')),700);
+    });
+  }
+  loadOSMTreesViewport(statusEl);
+}
+function loadOSMTreesViewport(statusEl){
+  if(!activeLayers['osm_trees'])return;
+  // Zoom-Schutz: ganze Städte auf einmal überlasten Overpass
+  if(map.getZoom()<14){
+    if(layerObjs['osm_trees']){map.removeLayer(layerObjs['osm_trees']);delete layerObjs['osm_trees'];}
+    statusEl.textContent='🔍 näher zoomen';
+    return;
+  }
+  statusEl.innerHTML='<span class="loading-dot"></span>';
+  const b=map.getBounds();
+  const q=`[out:json][timeout:25];node["natural"="tree"](${b.getSouth().toFixed(5)},${b.getWest().toFixed(5)},${b.getNorth().toFixed(5)},${b.getEast().toFixed(5)});out skel qt 8000;`;
+  fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q))
+    .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();})
+    .then(j=>{
+      if(!activeLayers['osm_trees'])return;
+      if(layerObjs['osm_trees'])map.removeLayer(layerObjs['osm_trees']);
+      const grp=L.layerGroup();
+      (j.elements||[]).forEach(n=>{
+        L.circleMarker([n.lat,n.lon],{renderer:window.canvasRenderer,radius:2.5,fillColor:'#16a34a',fillOpacity:0.75,stroke:false}).addTo(grp);
+      });
+      grp.addTo(map);
+      layerObjs['osm_trees']=grp;
+      const n=(j.elements||[]).length;
+      statusEl.textContent=n>=8000?'✓ 8.000+ im Ausschnitt':n===0?'0 — hier nicht kartiert':'✓ '+n.toLocaleString('de-DE');
+    })
+    .catch(()=>{statusEl.textContent='⚠ Overpass-Limit, kurz warten';});
 }
 
 
