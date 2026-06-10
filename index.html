@@ -56,7 +56,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* NAV — white bar like Shadowmap homepage */
 .nav{position:fixed;top:0;left:0;right:0;height:54px;z-index:1000;background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:0 2px 16px rgba(0,0,0,0.08)}
 .logo{font-size:17px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px}.logo span{color:#1a1a2e}
-.city-toggle{display:none}
+.city-toggle{display:flex;gap:4px;background:var(--surface2);padding:3px;border-radius:20px;border:1px solid var(--border)}
+.ct{padding:5px 14px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap}
+.ct:hover:not(.on){color:var(--text)}
+.ct.on{background:#1a1a2e;color:var(--accent)}
+#citySearch{border:1.5px solid var(--border2);border-radius:18px;padding:6px 14px;font-size:11px;width:190px;outline:none;background:var(--surface);color:var(--text);transition:border .15s,opacity .15s}
+#citySearch:focus{border-color:#1a1a2e}
 .nsep{width:1px;height:24px;background:rgba(0,0,0,0.1);margin:0 4px}
 .ninfo{font-size:11px;color:#6b7280;font-weight:500}.ninfo b{color:#1a1a2e}
 .nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -355,7 +360,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="nsep"></div>
   <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none">📊 Dashboard</a>
   <div class="nsep"></div>
-  <div class="ninfo">🏙 Frankfurt am Main · NICE Score — <b>117 Indikatoren</b></div>
+  <div class="city-toggle">
+    <div class="ct on" id="ct-ffm" onclick="switchCity('ffm')">🇩🇪 Frankfurt</div>
+    <div class="ct" id="ct-utr" onclick="switchCity('utr')">🇳🇱 Utrecht</div>
+  </div>
+  <div class="nsep"></div>
+  <input id="citySearch" placeholder="🔍 Stadt in Europa…" onkeydown="if(event.key==='Enter')jumpToCity(this.value)">
+  <div class="ninfo">NICE Score — <b>117 Indikatoren</b></div>
   <div class="nav-r">
     <div class="lpill"><div class="dot"></div>Open Data Live</div>
   </div>
@@ -523,11 +534,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lname">🌳 Straßenbäume & Alleen</span>
     <span class="lstatus" id="st-trees"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('osm_trees')">
-    <button class="ltoggle" id="tog-osm_trees"></button>
-    <span class="lname">🌍 Bäume weltweit (OSM live)</span>
-    <span class="lstatus" id="st-osm_trees"></span>
-  </div>
   <div class="lrow" onclick="toggleLayer('benches')">
     <button class="ltoggle" id="tog-benches"></button>
     <span class="lname">🪑 Bänke — Qualitätsstufen</span>
@@ -559,6 +565,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lstatus" id="st-parking"></span>
   </div>
 
+  <div class="lp-section">🌍 Europa-Modus — Live aus OpenStreetMap</div>
+  <div style="font-size:9px;color:var(--muted);margin-bottom:8px;padding:5px 7px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+    Funktioniert in jeder Stadt: Suchfeld oben nutzen, hinzoomen (ab Zoom 14), Layer einschalten. Lädt beim Verschieben automatisch nach.
+  </div>
+  <div class="lrow" onclick="toggleLayer('osm_trees')">
+    <button class="ltoggle" id="tog-osm_trees"></button>
+    <span class="lname">🌳 Bäume (live)</span>
+    <span class="lstatus" id="st-osm_trees"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('osm_drinking')">
+    <button class="ltoggle" id="tog-osm_drinking"></button>
+    <span class="lname">🚰 Trinkbrunnen (live)</span>
+    <span class="lstatus" id="st-osm_drinking"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('osm_benches')">
+    <button class="ltoggle" id="tog-osm_benches"></button>
+    <span class="lname">🪑 Bänke (live)</span>
+    <span class="lstatus" id="st-osm_benches"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('osm_schools')">
+    <button class="ltoggle" id="tog-osm_schools"></button>
+    <span class="lname">🏫 Schulen & Kitas (live)</span>
+    <span class="lstatus" id="st-osm_schools"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('osm_health')">
+    <button class="ltoggle" id="tog-osm_health"></button>
+    <span class="lname">🏥 Gesundheit (live)</span>
+    <span class="lstatus" id="st-osm_health"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('osm_transit')">
+    <button class="ltoggle" id="tog-osm_transit"></button>
+    <span class="lname">🚌 ÖPNV-Haltestellen (live)</span>
+    <span class="lstatus" id="st-osm_transit"></span>
+  </div>
 
   <div class="llegend">
     <b style="color:var(--text)">🚲 Radwege:</b>
@@ -712,6 +752,24 @@ const CITY_CFG={
       "Harheim":          {A:72,B:74,C:35,D:72,E:65,F:70,G:74,H:68,pop:5000, wb:70,mig:8, hw:false,heat:false,noise:42, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:70, versieg:28,lst_delta:-0.3},
       "Bergen-Enkheim":   {A:65,B:66,C:42,D:68,E:60,F:66,G:70,H:66,pop:18000,wb:67,mig:14,hw:false,heat:false,noise:50, sgb2:9, kinderarmut:10,einkommen:38000,arbeitslos:3, abitur:62, versieg:38,lst_delta:0.6},
       "Flughafen":        {A:15,B:20,C:55,D:50,E:50,F:30,G:8, H:45,pop:200,  wb:40,mig:30,hw:false,heat:true, noise:88, sgb2:5, kinderarmut:5, einkommen:35000,arbeitslos:3, abitur:50, versieg:93,lst_delta:4.2},
+    }
+  },
+  utr:{
+    name:"Utrecht",center:[52.0907,5.1214],zoom:12,
+    bbox:"52.04,5.05,52.14,5.20",
+    geojson:"/urbanlens/data/layers/wijken_utrecht.geojson",
+    nameProp:"wijknaam",
+    data:{
+      "Binnenstad":        {A:40,B:44,C:90,D:68,E:26,F:70,G:33,H:60,pop:17000,wb:68,mig:38,hw:false,heat:true, noise:80, versieg:78,lst_delta:2.9},
+      "West":              {A:47,B:50,C:65,D:57,E:39,F:54,G:44,H:53,pop:18000,wb:56,mig:35,hw:false,heat:true, noise:66, versieg:66,lst_delta:2.0},
+      "Noordwest":         {A:49,B:51,C:62,D:60,E:43,F:57,G:46,H:55,pop:23000,wb:58,mig:32,hw:false,heat:false,noise:65, versieg:64,lst_delta:1.9},
+      "Overvecht":         {A:31,B:34,C:55,D:42,E:29,F:37,G:30,H:43,pop:31000,wb:40,mig:55,hw:false,heat:true, noise:68, versieg:62,lst_delta:2.2},
+      "Noordoost":         {A:54,B:56,C:68,D:65,E:47,F:61,G:51,H:59,pop:19000,wb:62,mig:28,hw:false,heat:false,noise:62, versieg:58,lst_delta:1.5},
+      "Oost":              {A:62,B:65,C:75,D:75,E:45,F:70,G:58,H:64,pop:26000,wb:70,mig:22,hw:false,heat:false,noise:60, versieg:55,lst_delta:1.4},
+      "Zuid":              {A:57,B:59,C:68,D:64,E:43,F:63,G:54,H:59,pop:22000,wb:64,mig:20,hw:false,heat:false,noise:58, versieg:54,lst_delta:1.3},
+      "Zuidwest":          {A:44,B:46,C:57,D:54,E:37,F:51,G:42,H:51,pop:14000,wb:54,mig:30,hw:false,heat:false,noise:64, versieg:60,lst_delta:1.7},
+      "Leidsche Rijn":     {A:65,B:67,C:60,D:72,E:60,F:66,G:64,H:66,pop:45000,wb:66,mig:18,hw:false,heat:false,noise:50, versieg:48,lst_delta:0.9},
+      "Vleuten-De Meern":  {A:70,B:72,C:52,D:74,E:64,F:68,G:70,H:68,pop:28000,wb:68,mig:12,hw:false,heat:false,noise:46, versieg:34,lst_delta:0.3},
     }
   }
 };
@@ -1227,18 +1285,52 @@ function initMap(){
   loadCity('ffm');
 }
 
-function switchCity(c){ /* deprecated — Frankfurt only */ }
+function switchCity(c){
+  if(city===c)return;
+  city=c;selected=null;closeDrawer();
+  document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
+  const btn=document.getElementById('ct-'+c);
+  if(btn)btn.classList.add('on');
+  document.getElementById('loaderTxt').textContent=c==='ffm'?'Frankfurter Stadtteile…':'Utrechtse Wijken…';
+  document.getElementById('loader').style.display='flex';
+  // Alle aktiven Layer abräumen — Daten sind stadtspezifisch
+  Object.keys(layerObjs).forEach(k=>{if(layerObjs[k])map.removeLayer(layerObjs[k]);delete layerObjs[k];});
+  Object.keys(activeLayers).forEach(k=>delete activeLayers[k]);
+  document.querySelectorAll('.ltoggle').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.lstatus').forEach(el=>el.textContent='');
+  activeCount=0;document.getElementById('layerCount').textContent='0';
+  loadCity(c);
+}
+
+// ── STÄDTE-SUCHE (Nominatim / OSM) — Europa-Fokus DE+NL ──────────
+function jumpToCity(q){
+  if(!q||!q.trim())return;
+  const inp=document.getElementById('citySearch');
+  inp.style.opacity='0.5';
+  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=de&countrycodes=de,nl,be,lu,at,ch,fr,it,es,pt,pl,cz,dk,se,no,fi,gb,ie&q='+encodeURIComponent(q.trim()))
+    .then(r=>r.json())
+    .then(res=>{
+      inp.style.opacity='1';
+      if(!res.length){inp.value='';inp.placeholder='Nicht gefunden — nochmal?';return;}
+      map.flyTo([+res[0].lat,+res[0].lon],14,{duration:1.4});
+      inp.blur();
+    })
+    .catch(()=>{inp.style.opacity='1';});
+}
 
 function loadCity(c){
   const cfg=CITY_CFG[c];
   fetch(cfg.geojson)
     .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()})
     .then(data=>{
-      // GeoJSON-Namen normalisieren (Polygon-Quelle kürzt ab)
+      // GeoJSON-Namen normalisieren (FFM-Quelle kürzt ab, CBS nummeriert Wijken)
       const ALIAS={"Sachsenhausen-N.":"Sachsenhausen-Nord","Sachsenhausen-S.":"Sachsenhausen-Süd"};
       data.features.forEach(f=>{
-        const n=f.properties[cfg.nameProp];
-        if(ALIAS[n])f.properties[cfg.nameProp]=ALIAS[n];
+        let n=f.properties[cfg.nameProp];
+        if(typeof n!=='string')return;
+        n=n.replace(/^Wijk \d+ /,'');
+        if(ALIAS[n])n=ALIAS[n];
+        f.properties[cfg.nameProp]=n;
       });
       const known=Object.keys(cfg.data);
       geoFeatures=data.features.filter(f=>{
@@ -1384,7 +1476,9 @@ function loadLayer(id,statusEl){
   const c=CITY_CFG[city];
   switch(id){
     case 'duh_ampel':       return renderDUHAmpel(id,statusEl);
-    case 'osm_trees':       return renderOSMTrees(id,statusEl);
+    case 'osm_trees': case 'osm_drinking': case 'osm_benches':
+    case 'osm_schools': case 'osm_health': case 'osm_transit':
+      return renderOSMLive(id,statusEl);
     case 'flood':    return loadLocal(`flood_exposure_${city}.geojson`,id,statusEl,renderFloodExposure);
     case 'floodex':  return loadLocal(`waterways_${city}.geojson`,id,statusEl,renderFloodZones);
     case 'heat':     return loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,renderHeatExposure);
@@ -1468,44 +1562,61 @@ function renderDUHAmpel(id,statusEl){
   statusEl.textContent='✓ '+geoFeatures.length;
 }
 
-// ── OSM BÄUME WELTWEIT: lädt natural=tree live aus dem Kartenausschnitt ──
-// Funktioniert überall auf der Welt — Abdeckung je nach Stadt unterschiedlich.
-let osmTreesHooked=false, osmTreesTimer=null;
-function renderOSMTrees(id,statusEl){
-  if(!osmTreesHooked){
-    osmTreesHooked=true;
+// ── OSM LIVE-LAYER (Europa/weltweit): lädt den aktuellen Kartenausschnitt ──
+// Funktioniert in jeder Stadt — Abdeckung je nach OSM-Kartierung unterschiedlich.
+const OSM_LIVE={
+  osm_trees:   {q:bb=>`node["natural"="tree"](${bb});`,                                   out:'skel qt',       color:'#16a34a',r:2.5,cap:8000},
+  osm_drinking:{q:bb=>`node["amenity"="drinking_water"](${bb});`,                         out:'tags center qt',color:'#0284c7',r:5,  cap:2000},
+  osm_benches: {q:bb=>`node["amenity"="bench"](${bb});`,                                  out:'skel qt',       color:'#b45309',r:3,  cap:4000},
+  osm_schools: {q:bb=>`nwr["amenity"~"^(school|kindergarten|university)$"](${bb});`,      out:'tags center qt',color:'#7c3aed',r:6,  cap:2000},
+  osm_health:  {q:bb=>`nwr["amenity"~"^(hospital|clinic|doctors|pharmacy)$"](${bb});`,    out:'tags center qt',color:'#dc2626',r:6,  cap:2000},
+  osm_transit: {q:bb=>`(node["highway"="bus_stop"](${bb});node["railway"~"^(station|halt|tram_stop)$"](${bb}););`,out:'tags center qt',color:'#2563eb',r:5,cap:3000},
+};
+let osmLiveHooked=false, osmLiveTimer=null;
+function renderOSMLive(id,statusEl){
+  if(!osmLiveHooked){
+    osmLiveHooked=true;
     map.on('moveend',()=>{
-      if(!activeLayers['osm_trees'])return;
-      clearTimeout(osmTreesTimer);
-      osmTreesTimer=setTimeout(()=>loadOSMTreesViewport(document.getElementById('st-osm_trees')),700);
+      clearTimeout(osmLiveTimer);
+      osmLiveTimer=setTimeout(()=>{
+        Object.keys(OSM_LIVE).forEach(k=>{
+          if(activeLayers[k])loadOSMLiveViewport(k,document.getElementById('st-'+k));
+        });
+      },700);
     });
   }
-  loadOSMTreesViewport(statusEl);
+  loadOSMLiveViewport(id,statusEl);
 }
-function loadOSMTreesViewport(statusEl){
-  if(!activeLayers['osm_trees'])return;
-  // Zoom-Schutz: ganze Städte auf einmal überlasten Overpass
+function loadOSMLiveViewport(id,statusEl){
+  if(!activeLayers[id]||!statusEl)return;
+  const cfgL=OSM_LIVE[id];
+  // Zoom-Schutz: ganze Städte auf einmal überlasten die freie Overpass-API
   if(map.getZoom()<14){
-    if(layerObjs['osm_trees']){map.removeLayer(layerObjs['osm_trees']);delete layerObjs['osm_trees'];}
+    if(layerObjs[id]){map.removeLayer(layerObjs[id]);delete layerObjs[id];}
     statusEl.textContent='🔍 näher zoomen';
     return;
   }
   statusEl.innerHTML='<span class="loading-dot"></span>';
   const b=map.getBounds();
-  const q=`[out:json][timeout:25];node["natural"="tree"](${b.getSouth().toFixed(5)},${b.getWest().toFixed(5)},${b.getNorth().toFixed(5)},${b.getEast().toFixed(5)});out skel qt 8000;`;
+  const bb=`${b.getSouth().toFixed(5)},${b.getWest().toFixed(5)},${b.getNorth().toFixed(5)},${b.getEast().toFixed(5)}`;
+  const q=`[out:json][timeout:25];${cfgL.q(bb)}out ${cfgL.out} ${cfgL.cap};`;
   fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q))
     .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();})
     .then(j=>{
-      if(!activeLayers['osm_trees'])return;
-      if(layerObjs['osm_trees'])map.removeLayer(layerObjs['osm_trees']);
+      if(!activeLayers[id])return;
+      if(layerObjs[id])map.removeLayer(layerObjs[id]);
       const grp=L.layerGroup();
       (j.elements||[]).forEach(n=>{
-        L.circleMarker([n.lat,n.lon],{renderer:window.canvasRenderer,radius:2.5,fillColor:'#16a34a',fillOpacity:0.75,stroke:false}).addTo(grp);
+        const lat=n.lat??(n.center&&n.center.lat), lon=n.lon??(n.center&&n.center.lon);
+        if(lat==null)return;
+        const m=L.circleMarker([lat,lon],{renderer:window.canvasRenderer,radius:cfgL.r,fillColor:cfgL.color,fillOpacity:0.78,stroke:false});
+        if(n.tags&&n.tags.name)m.bindTooltip(n.tags.name,{sticky:true});
+        m.addTo(grp);
       });
       grp.addTo(map);
-      layerObjs['osm_trees']=grp;
+      layerObjs[id]=grp;
       const n=(j.elements||[]).length;
-      statusEl.textContent=n>=8000?'✓ 8.000+ im Ausschnitt':n===0?'0 — hier nicht kartiert':'✓ '+n.toLocaleString('de-DE');
+      statusEl.textContent=n>=cfgL.cap?`✓ ${cfgL.cap.toLocaleString('de-DE')}+ im Ausschnitt`:n===0?'0 — hier nicht kartiert':'✓ '+n.toLocaleString('de-DE');
     })
     .catch(()=>{statusEl.textContent='⚠ Overpass-Limit, kurz warten';});
 }
