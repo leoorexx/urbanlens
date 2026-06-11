@@ -3320,10 +3320,10 @@ function toggleBuergerbrille(){
 }
 
 function closeBrillePopup(){
-  document.getElementById('brillePopup').style.display='none';
+  // Bürgerbrille-UI wurde entfernt — Funktion bleibt als sicherer No-Op
+  const bp=document.getElementById('brillePopup');
+  if(bp)bp.style.display='none';
   brilleActive=false;
-  document.getElementById('bbrilleBtn').classList.remove('on');
-  document.getElementById('bbrilleBtn').textContent='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.8"/></svg> Bürgerbrille';
   document.getElementById('map').classList.remove('map-brille-active');
   if(brilleClickHandler) map.off('click', brilleClickHandler);
 }
