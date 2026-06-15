@@ -75,8 +75,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lhead{padding:12px 12px 8px;border-bottom:1px solid var(--border);flex-shrink:0}
 .ltitle{font-size:11px;font-weight:700;color:var(--text)}
 .lsub{font-size:9px;color:var(--muted);margin-top:2px}
-.dice-btn{border:1px solid var(--border2);background:var(--surface);border-radius:9px;width:30px;height:30px;display:grid;place-items:center;cursor:pointer;color:var(--text2);transition:all .15s;flex-shrink:0}
-.dice-btn:hover{color:var(--text);background:var(--surface2);transform:rotate(12deg)}
 .swrap{margin-top:8px;position:relative}
 .swrap input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 10px 6px 28px;font-size:11px;color:var(--text);outline:none}
 .swrap input::placeholder{color:var(--muted)}
@@ -397,7 +395,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="swrap">
       <span class="sicon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></span>
       <input id="searchBox" placeholder="Stadtteil suchen…" data-i18n-ph="search_ph" oninput="renderList(this.value)">
-      <button class="dice-btn" onclick="randomDistrict()" title="Zufälliger Stadtteil" data-i18n-title="dice_tip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.1" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.1" fill="currentColor"/><circle cx="12" cy="12" r="1.1" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.1" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.1" fill="currentColor"/></svg></button>
     </div>
   </div>
   <div class="lens-bar">
@@ -760,7 +757,7 @@ function ic(name,size=14){
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
  de:{nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
-     search_ph:'Stadtteil suchen…',dice_tip:'Zufälliger Stadtteil',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
+     search_ph:'Stadtteil suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
      sec_social:'Soziale Infrastruktur',sec_europe:'Europa-Modus — Live aus OpenStreetMap',
@@ -771,7 +768,7 @@ const STR={
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
  en:{nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
-     search_ph:'Search district…',dice_tip:'Random district',list_sub:'Relative ranking within the city · quintiles',
+     search_ph:'Search district…',list_sub:'Relative ranking within the city · quintiles',
      loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
      sec_social:'Social infrastructure',sec_europe:'Europe mode — live from OpenStreetMap',
@@ -782,7 +779,7 @@ const STR={
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
  nl:{nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
-     search_ph:'Zoek wijk…',dice_tip:'Willekeurige wijk',list_sub:'Relatieve positie binnen de stad · kwintielen',
+     search_ph:'Zoek wijk…',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
      sec_social:'Sociale infrastructuur',sec_europe:'Europa-modus — live uit OpenStreetMap',
@@ -805,15 +802,6 @@ function setLang(l){
   if(typeof renderList==='function'&&typeof city!=='undefined')try{renderList(document.getElementById('searchBox').value);}catch(e){}
 }
 
-// ── ZUFALLS-STADTTEIL (Entdecker-Feature) ─────────────────────
-function randomDistrict(){
-  const cfg=CITY_CFG[city];
-  const keys=Object.keys(cfg.data);
-  const k=keys[Math.floor(Math.random()*keys.length)];
-  openDrawer(k,cfg.data[k]);
-  const f=geoFeatures.find(ft=>{const n=ft.properties[cfg.nameProp]||'';return n===k||n.includes(k)||k.includes(n);});
-  if(f){try{const b=L.geoJSON(f).getBounds();map.flyToBounds(b,{maxZoom:14,duration:0.9});}catch(e){}}
-}
 
 // ── DATEN-PRELOAD: beide Städte im Hintergrund vorladen ───────
 const dataCache={};
