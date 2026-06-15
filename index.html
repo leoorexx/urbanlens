@@ -6,6 +6,8 @@
 <title>UrbanLens — Digital Twin Frankfurt</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 <style>
 :root{
   --bg:#f5f3ee;--surface:#ffffff;--surface2:rgba(0,0,0,0.03);
@@ -85,6 +87,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .diag-legend span{display:inline-flex;align-items:center;gap:4px}
 .diag-legend .lc{width:11px;height:11px;border-radius:3px;display:inline-block}
 .diag-pop b{font-size:12px}.diag-pop .dp-norm{font-size:9px;color:#8888aa;margin-top:5px;border-top:1px solid #eee;padding-top:5px}
+.tool-btn{position:fixed;left:268px;z-index:600;background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:46px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;box-shadow:var(--shl);color:var(--text);font-size:7px;font-weight:700;transition:all .15s}
+.tool-btn:hover{background:var(--surface2)}
+.tool-btn.on{background:#1a1a2e;color:#FFD600}
+.area-panel{position:fixed;right:12px;top:62px;width:312px;max-height:calc(100vh - 80px);overflow-y:auto;z-index:660;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);display:none}
+.area-panel.open{display:block}
+.ap-head{padding:13px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ap-ttl{font-size:13px;font-weight:800;color:var(--text)}
+.ap-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.ap-x{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:4px 7px;border-radius:7px}
+.ap-x:hover{background:var(--surface2)}
+.ap-body{padding:13px 15px}
+.ap-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px}
+.ap-stat{background:var(--surface2);border-radius:9px;padding:8px 9px}
+.ap-stat .v{font-size:16px;font-weight:800;color:var(--text);line-height:1}
+.ap-stat .l{font-size:8.5px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:3px}
+.ap-diag{font-size:11px;line-height:1.5;padding:9px 11px;border-radius:9px;margin-bottom:12px}
+.ap-sec{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 8px}
+.ap-meas{border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px;cursor:pointer;transition:all .15s}
+.ap-meas:hover{border-color:var(--border2)}
+.ap-meas.on{border-color:#16a34a;background:rgba(22,163,74,0.05)}
+.ap-meas .mh{display:flex;align-items:center;gap:8px}
+.ap-meas .mh .mc{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:var(--surface2);color:var(--text2);flex-shrink:0}
+.ap-meas.on .mc{background:#16a34a;color:#fff}
+.ap-meas .mn{flex:1;font-size:11px;font-weight:700;color:var(--text)}
+.ap-meas .me{font-size:9px;color:#15803d;font-weight:700}
+.ap-meas .md{font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4}
+.ap-proj{background:#1a1a2e;border-radius:11px;padding:11px 13px;margin-top:10px}
+.ap-proj .pl{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#FFD600;font-weight:800;margin-bottom:6px}
+.ap-proj .pr{display:flex;justify-content:space-between;font-size:11px;color:#e8e6f0;padding:2px 0}
+.ap-proj .pr b{color:#fff}
+.ap-proj .pr .up{color:#5dcaa5}
 .cdot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:-1px;margin-right:1px}
 .nsep{width:1px;height:24px;background:rgba(0,0,0,0.1);margin:0 4px}
 .ninfo{font-size:11px;color:#6b7280;font-weight:500}.ninfo b{color:#1a1a2e}
@@ -411,6 +444,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div id="map"></div>
+<button class="tool-btn" id="tool-area" style="top:116px" onclick="startAreaDraw()" title="Gebiet analysieren">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 14h6v6h-6zM10 7h7v7"/></svg>
+  <span data-i18n="tool_area">Gebiet</span>
+</button>
+<div class="area-panel" id="areaPanel"></div>
 
 
 <div class="left">
@@ -798,7 +836,7 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
+ de:{tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
      search_ph:'Stadtteil suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
@@ -809,7 +847,7 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
+ en:{tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
      search_ph:'Search district…',list_sub:'Relative ranking within the city · quintiles',
      loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
@@ -820,7 +858,7 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
+ nl:{tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
      search_ph:'Zoek wijk…',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
@@ -1809,6 +1847,184 @@ function renderDUHAmpel(id,statusEl){
   statusEl.textContent='✓ '+geoFeatures.length;
 }
 
+
+
+// ══════════════════════════════════════════════════════════════
+// GEBIETS-WERKZEUG — Fläche zeichnen, Bilanz, Maßnahmen anwenden
+// ══════════════════════════════════════════════════════════════
+let areaDrawer=null, areaShape=null, areaDrawHooked=false, areaStats=null, areaApplied={};
+
+function startAreaDraw(){
+  if(typeof closeDrawer==='function')closeDrawer();
+  if(areaShape){map.removeLayer(areaShape);areaShape=null;}
+  document.getElementById('areaPanel').classList.remove('open');
+  document.getElementById('tool-area').classList.add('on');
+  if(!areaDrawHooked){
+    areaDrawHooked=true;
+    map.on('draw:created', e=>{
+      if(areaShape)map.removeLayer(areaShape);
+      areaShape=e.layer; areaShape.addTo(map);
+      document.getElementById('tool-area').classList.remove('on');
+      analyzeArea(areaShape.getLatLngs()[0]);
+    });
+  }
+  if(typeof L.Draw!=='undefined'){
+    areaDrawer=new L.Draw.Polygon(map,{allowIntersection:false,shapeOptions:{color:'#2563eb',weight:2,fillColor:'#2563eb',fillOpacity:0.08}});
+    areaDrawer.enable();
+  } else {
+    alert('Zeichenwerkzeug lädt noch — bitte erneut versuchen.');
+    document.getElementById('tool-area').classList.remove('on');
+  }
+}
+
+function polyAreaM2(ll){
+  const lat0=ll[0].lat*Math.PI/180, mLat=111320, mLon=111320*Math.cos(lat0);
+  let a=0;
+  for(let i=0,j=ll.length-1;i<ll.length;j=i++){
+    a += (ll[j].lng*mLon)*(ll[i].lat*mLat) - (ll[i].lng*mLon)*(ll[j].lat*mLat);
+  }
+  return Math.abs(a/2);
+}
+
+function getAreaEls(b){
+  return new Promise(res=>{
+    if(CITY_BUNDLE[city]){ loadCityBundle(city).then(bn=>res(bn?bundleToEls(bn,b):null)); return; }
+    const bbox=`${b.getSouth().toFixed(5)},${b.getWest().toFixed(5)},${b.getNorth().toFixed(5)},${b.getEast().toFixed(5)}`;
+    const q=`[out:json][timeout:30];(node["natural"="tree"](${bbox});node["amenity"="bench"](${bbox});node["shop"](${bbox});node["amenity"~"^(drinking_water|fountain)$"](${bbox});way["leisure"~"park|garden|playground|pitch|common"](${bbox});way["landuse"~"grass|recreation_ground|forest|meadow|village_green|cemetery"](${bbox}););out geom 7000;`;
+    fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q)).then(r=>r.json()).then(j=>{
+      const els={trees:[],benches:[],shops:[],water:[],green:[]};
+      (j.elements||[]).forEach(e=>{
+        if(e.type==='node'){const am=e.tags&&e.tags.amenity;
+          if(e.tags&&e.tags.natural==='tree')els.trees.push([e.lat,e.lon]);
+          else if(am==='bench')els.benches.push([e.lat,e.lon]);
+          else if(am==='drinking_water'||am==='fountain')els.water.push([e.lat,e.lon]);
+          else els.shops.push([e.lat,e.lon]);
+        } else if(e.type==='way'&&e.geometry)els.green.push(e.geometry.map(g=>[g.lat,g.lon]));
+      });
+      res(els);
+    }).catch(()=>res(null));
+  });
+}
+
+function analyzeArea(ll){
+  const ring=ll.map(p=>[p.lat,p.lng]);
+  const b=L.latLngBounds(ll);
+  const areaM2=polyAreaM2(ll), ha=areaM2/10000;
+  document.getElementById('areaPanel').classList.add('open');
+  document.getElementById('areaPanel').innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${lang==='en'?'Area analysis':lang==='nl'?'Gebiedsanalyse':'Gebiets-Analyse'}</div><div class="ap-sub">${ha.toFixed(1)} ha · ${Math.round(areaM2).toLocaleString('de-DE')} m²</div></div><button class="ap-x" onclick="closeArea()">✕</button></div><div class="ap-body" id="apBody"><div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div></div>`;
+  getAreaEls(b).then(els=>{
+    if(!els){document.getElementById('apBody').innerHTML='<div style="font-size:11px;color:var(--muted);padding:10px 0">Keine Daten verfügbar.</div>';return;}
+    const inArea=p=>diagPointInPoly(p[0],p[1],ring);
+    const trees=els.trees.filter(inArea).length;
+    const benches=els.benches.filter(inArea).length;
+    const water=els.water.filter(inArea).length;
+    const shops=els.shops.filter(inArea).length;
+    // Grünanteil per Stichprobenraster
+    const s=b.getSouth(),w=b.getWest(),n=b.getNorth(),e=b.getEast();
+    let inRing=0,inGreen=0;
+    const NS=26;
+    for(let i=0;i<NS;i++)for(let j=0;j<NS;j++){
+      const la=s+(i+0.5)/NS*(n-s), lo=w+(j+0.5)/NS*(e-w);
+      if(!diagPointInPoly(la,lo,ring))continue;
+      inRing++;
+      for(const poly of els.green){ if(diagPointInPoly(la,lo,poly)){inGreen++;break;} }
+    }
+    const greenPct=inRing?Math.round(inGreen/inRing*100):0;
+    const treesPerHa=ha>0?+(trees/ha).toFixed(1):0;
+    areaStats={trees,benches,water,shops,greenPct,treesPerHa,ha};
+    areaApplied={};
+    renderAreaPanel();
+  });
+}
+
+function areaScore(st){
+  let sc=45;
+  sc+=Math.min(22, st.treesPerHa*1.4);
+  sc+=Math.min(14, st.benches*1.5);
+  sc+=Math.min(16, st.greenPct*0.4);
+  sc+=Math.min(6, st.water*3);
+  if(st.shops>=4 && st.benches<2) sc-=14;
+  return Math.max(2,Math.min(100,Math.round(sc)));
+}
+
+const AREA_MEASURES=[
+  {id:'A01',ic:'tree',cond:s=>s.treesPerHa<10||s.greenPct<35,d:{trees:50},eff:'+50 Bäume'},
+  {id:'H02',ic:'building',cond:s=>s.greenPct<25,d:{greenPct:6},eff:'Grünanteil +6 Pp.'},
+  {id:'G01',ic:'leaf',cond:s=>s.greenPct<45,d:{greenPct:4},eff:'Grünanteil +4 Pp.'},
+  {id:'D02',ic:'bench',cond:s=>s.benches<2&&s.shops>=3,d:{benches:10},eff:'+10 Sitzplätze'},
+  {id:'H03',ic:'droplet',cond:s=>s.water===0,d:{water:6},eff:'+6 Trinkbrunnen'},
+];
+
+function projectedStats(){
+  const st={...areaStats};
+  AREA_MEASURES.forEach(m=>{
+    if(!areaApplied[m.id])return;
+    if(m.d.trees){st.trees+=m.d.trees; st.treesPerHa=st.ha>0?+(st.trees/st.ha).toFixed(1):st.treesPerHa;}
+    if(m.d.greenPct)st.greenPct=Math.min(100,st.greenPct+m.d.greenPct);
+    if(m.d.benches)st.benches+=m.d.benches;
+    if(m.d.water)st.water+=m.d.water;
+  });
+  return st;
+}
+
+function renderAreaPanel(){
+  const st=areaStats;
+  const sc0=areaScore(st);
+  const scoreCol=s=>s<45?'#dc2626':s<65?'#eab308':'#16a34a';
+  const findings=[];
+  if(st.greenPct<25)findings.push((lang==='en'?`Only ${st.greenPct}% green cover — below a healthy neighbourhood share.`:lang==='nl'?`Slechts ${st.greenPct}% groen — onder een gezond wijkaandeel.`:`Nur ${st.greenPct}% Grünanteil — unter gesundem Quartiersniveau.`));
+  if(st.shops>=4&&st.benches<2)findings.push((lang==='en'?`Commercial but few benches — passing-through, not lingering.`:lang==='nl'?`Commercieel maar weinig bankjes — doorgangsruimte.`:`Kommerziell, kaum Bänke — Durchgangsraum statt Verweilort.`));
+  if(st.treesPerHa<8)findings.push((lang==='en'?`${st.treesPerHa} trees/ha — low canopy, heat-prone.`:lang==='nl'?`${st.treesPerHa} bomen/ha — weinig beschaduwing.`:`${st.treesPerHa} Bäume/ha — wenig Beschattung, hitzeanfällig.`));
+  if(!findings.length)findings.push((lang==='en'?'Balanced: green, seating and canopy present.':lang==='nl'?'Evenwichtig: groen, zitplekken en bomen aanwezig.':'Ausgewogen: Grün, Sitzgelegenheiten und Bäume vorhanden.'));
+  const diagBad=sc0<65;
+  const applicable=AREA_MEASURES.filter(m=>m.cond(st));
+  const L0=(k)=>({de:{stats:'Bilanz',trees:'Bäume',benches:'Bänke',water:'Brunnen',shops:'Geschäfte',green:'Grünanteil',tph:'Bäume/ha',diag:'Diagnose',meas:'Maßnahmen anwenden',proj:'Projektion nach Maßnahmen',score:'Aufenthalts-Index',none:'Keine Maßnahme nötig — gute Werte.'},
+    en:{stats:'Balance',trees:'Trees',benches:'Benches',water:'Fountains',shops:'Shops',green:'Green cover',tph:'Trees/ha',diag:'Diagnosis',meas:'Apply measures',proj:'Projection after measures',score:'Place index',none:'No measure needed — good values.'},
+    nl:{stats:'Balans',trees:'Bomen',benches:'Bankjes',water:'Fonteinen',shops:'Winkels',green:'Groen',tph:'Bomen/ha',diag:'Diagnose',meas:'Maatregelen toepassen',proj:'Projectie na maatregelen',score:'Verblijfsindex',none:'Geen maatregel nodig — goede waarden.'}}[lang]||{})[k];
+  let html=`
+    <div class="ap-stats">
+      <div class="ap-stat"><div class="v">${st.trees}</div><div class="l">${ic('tree',11)} ${L0('trees')}</div></div>
+      <div class="ap-stat"><div class="v">${st.benches}</div><div class="l">${ic('bench',11)} ${L0('benches')}</div></div>
+      <div class="ap-stat"><div class="v">${st.greenPct}%</div><div class="l">${ic('leaf',11)} ${L0('green')}</div></div>
+      <div class="ap-stat"><div class="v">${st.treesPerHa}</div><div class="l">${L0('tph')}</div></div>
+      <div class="ap-stat"><div class="v">${st.shops}</div><div class="l">${ic('shop',11)} ${L0('shops')}</div></div>
+      <div class="ap-stat"><div class="v">${st.water}</div><div class="l">${ic('droplet',11)} ${L0('water')}</div></div>
+    </div>
+    <div class="ap-diag" style="background:${diagBad?'#fef2f2':'#f0fdf4'};border:1px solid ${diagBad?'#fecaca':'#bbf7d0'};color:${diagBad?'#b91c1c':'#15803d'}">
+      <b>${L0('diag')} · ${L0('score')} ${sc0}/100</b><br>${findings.map(f=>'· '+f).join('<br>')}
+    </div>`;
+  if(applicable.length){
+    html+=`<div class="ap-sec">${L0('meas')}</div>`;
+    applicable.forEach(m=>{
+      const mo=MASS.find(x=>x.id===m.id);
+      html+=`<div class="ap-meas${areaApplied[m.id]?' on':''}" onclick="toggleAreaMeasure('${m.id}')">
+        <div class="mh"><div class="mc">${ic(m.ic,13)}</div><div class="mn">${mo?mo.name:m.id}</div><div class="me">${m.eff}</div></div>
+        ${mo?`<div class="md">${fmt(mo.kosten)} · ROI ${fmt(mo.roi)} · ${mo.foerder&&mo.foerder[0]?mo.foerder[0].pct+'% förderbar':''}</div>`:''}
+      </div>`;
+    });
+    const anyApplied=Object.values(areaApplied).some(Boolean);
+    if(anyApplied){
+      const pst=projectedStats(), sc1=areaScore(pst);
+      const row=(lbl,a,b,suf='')=>`<div class="pr"><span>${lbl}</span><span><b>${a}${suf}</b> → <span class="up">${b}${suf}</span></span></div>`;
+      html+=`<div class="ap-proj"><div class="pl">${L0('proj')}</div>
+        ${row(L0('score'),sc0,sc1)}
+        ${st.trees!==pst.trees?row(L0('trees'),st.trees,pst.trees):''}
+        ${st.greenPct!==pst.greenPct?row(L0('green'),st.greenPct,pst.greenPct,'%'):''}
+        ${st.benches!==pst.benches?row(L0('benches'),st.benches,pst.benches):''}
+        ${st.water!==pst.water?row(L0('water'),st.water,pst.water):''}
+      </div>`;
+    }
+  } else {
+    html+=`<div style="font-size:10px;color:var(--muted);padding:6px 0">${L0('none')}</div>`;
+  }
+  document.getElementById('apBody').innerHTML=html;
+}
+
+function toggleAreaMeasure(id){ areaApplied[id]=!areaApplied[id]; renderAreaPanel(); }
+function closeArea(){
+  document.getElementById('areaPanel').classList.remove('open');
+  if(areaShape){map.removeLayer(areaShape);areaShape=null;}
+}
 
 // ══════════════════════════════════════════════════════════════
 // DIAGNOSE-ENGINE — Straßen & Plätze gegen Normen bewerten
