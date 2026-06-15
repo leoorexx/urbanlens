@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanLens — Methodik & Datenquellen</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f3ee;--surface:#fff;--surface2:#f0ede6;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#1a1a2e;--text2:#4a4a6a;--muted:#8888aa;
+  --accent:#2563eb;--yellow:#FFD600;
+  --measured:#0F6E56;--modeled:#BA7517;--estimated:#5F5E5A;--live:#1D9E75;
+  --sh:0 2px 12px rgba(0,0,0,0.07);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+svg.i{vertical-align:-2px}
+.nav{position:sticky;top:0;z-index:100;height:54px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 24px;box-shadow:var(--sh)}
+.logo{font-size:16px;font-weight:800;text-decoration:none;color:var(--text);letter-spacing:-.4px}
+.logo span{color:var(--accent)}
+.nav-pill{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;text-decoration:none;border:1.5px solid var(--border);color:var(--text2);transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.nav-pill:hover,.nav-pill.active{background:var(--text);color:#fff;border-color:var(--text)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.page{max-width:980px;margin:0 auto;padding:40px 24px 96px}
+.lede{font-size:13px;color:var(--text2);max-width:680px;margin-top:10px;line-height:1.7}
+h1{font-size:28px;font-weight:900;letter-spacing:-.5px}
+h2{font-size:18px;font-weight:800;margin:0 0 4px}
+.section{margin-top:44px}
+.section-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 24px;box-shadow:var(--sh)}
+.conf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.conf{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px}
+.conf-dot{width:16px;height:16px;border-radius:50%;display:inline-block;box-sizing:border-box;margin-bottom:8px}
+.conf h3{font-size:13px;font-weight:800;margin-bottom:3px}
+.conf p{font-size:11px;color:var(--text2);line-height:1.5}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+thead th{background:var(--surface2);text-align:left;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--border)}
+tbody td{padding:11px 12px;font-size:11.5px;vertical-align:top;border-bottom:1px solid var(--border)}
+tbody tr:last-child td{border-bottom:none}
+.dim-name{font-weight:800;white-space:nowrap}
+.formula{font-family:ui-monospace,'SF Mono',monospace;font-size:10.5px;color:var(--text2);background:var(--surface2);padding:2px 6px;border-radius:5px;display:inline-block}
+.src-prim{color:var(--text);font-weight:600}
+.src-val{color:var(--muted);font-size:10.5px}
+.cbadge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.cbadge .d{width:10px;height:10px;border-radius:50%;display:inline-block;box-sizing:border-box}
+.d-measured{background:var(--measured)}
+.d-modeled{background:linear-gradient(90deg,var(--modeled) 50%,transparent 50%);border:1.5px solid var(--modeled)}
+.d-estimated{border:1.5px solid var(--estimated)}
+.d-live{background:var(--live);box-shadow:0 0 0 3px rgba(29,158,117,0.25)}
+.vintage{font-size:10.5px;color:var(--muted);white-space:nowrap}
+.dl-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.dl-row:last-child{border-bottom:none}
+.dl-row b{font-weight:700}
+.disclaimer{background:#fef9ec;border:1px solid #f5e2a8;border-radius:14px;padding:18px 22px;font-size:12px;color:#7a5c0a;line-height:1.7}
+.cite-box{background:var(--text);color:#e8e6f0;border-radius:14px;padding:18px 22px;font-family:ui-monospace,monospace;font-size:12px;line-height:1.7}
+.cite-box .lbl{font-family:-apple-system,sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--yellow);font-weight:800;margin-bottom:8px;display:block}
+.muted-note{font-size:10.5px;color:var(--muted);margin-top:8px}
+a.ref{color:var(--accent);text-decoration:none}
+a.ref:hover{text-decoration:underline}
+@media(max-width:760px){.conf-grid{grid-template-columns:repeat(2,1fr)}.page{padding:28px 16px 64px}table{font-size:10px}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="logo">Urban<span>Lens</span></a>
+  <a href="index.html" class="nav-pill"><svg class="i" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m9 3-6 2v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16M15 5v16"/></svg> Karte</a>
+  <a href="dashboard.html" class="nav-pill"><svg class="i" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+  <a href="methodik.html" class="nav-pill active">Methodik</a>
+  <div class="nav-r"><span style="font-size:10px;color:var(--muted)">Stand: Juni 2026 · v1.0</span></div>
+</nav>
+
+<div class="page">
+
+  <h1>Methodik &amp; Datenquellen</h1>
+  <p class="lede">UrbanLens bewertet Stadtteile entlang des NICE Score — 8 Dimensionen, abgeleitet aus 117 Indikatoren. Diese Seite dokumentiert für jeden Indikator die Berechnungsformel, Primär- und Validierungsquelle, den normativen Bezugsrahmen, den Datenstand und den Konfidenzgrad. Sie ist als zitierfähige Referenz für Verwaltung, Planungsbüros und Forschung gedacht.</p>
+
+  <div class="section">
+    <div class="section-label">Konfidenzmodell — vier Stufen der Datengrundlage</div>
+    <div class="conf-grid">
+      <div class="conf">
+        <span class="conf-dot d-live"></span>
+        <h3>Live</h3>
+        <p>Echtzeit aus OpenStreetMap-Overpass oder Sensorik. Wird beim Verschieben der Karte neu geladen. Aktualität maximal, Vollständigkeit je nach Kartierung.</p>
+      </div>
+      <div class="conf">
+        <span class="conf-dot d-measured"></span>
+        <h3>Gemessen</h3>
+        <p>Direkte amtliche Erhebung oder Satellitenmessung (Copernicus, Zensus, amtliche Hochwasserkarte). Höchste Sicherheit.</p>
+      </div>
+      <div class="conf">
+        <span class="conf-dot d-modeled"></span>
+        <h3>Modelliert</h3>
+        <p>Aus gemessenen Werten nach dokumentierter Methode berechnet (z.&nbsp;B. CO₂ aus Baualter × IWU-Typologie). Mittlere Sicherheit.</p>
+      </div>
+      <div class="conf">
+        <span class="conf-dot d-estimated"></span>
+        <h3>Geschätzt</h3>
+        <p>Annahme- oder proxybasiert bei lückenhafter Datenlage. Als Schätzung gekennzeichnet, dient der Orientierung.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">NICE Score — Berechnung der 8 Dimensionen</div>
+    <p class="lede" style="margin:0 0 14px">NICE Score = ungewichtetes Mittel der 8 Dimensionen (je 0–100, höher = besser). Die Kartenfarbe nutzt Quintile im Stadtvergleich, keinen absoluten Schwellwert.</p>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Dimension</th><th>Formel (vereinfacht)</th><th>Primärquelle</th><th>Validierung</th><th>Normativer Bezug</th><th>Stand</th><th>Konfidenz</th></tr></thead>
+      <tbody id="dimBody"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Umweltdaten — doppelt referenziert</div>
+    <p class="lede" style="margin:0 0 14px">Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung. So werden Messlücken erkannt und Referenzen abgesichert.</p>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Indikator</th><th>Primärquelle</th><th>Validierungsquelle</th><th>Stand</th><th>Konfidenz</th></tr></thead>
+      <tbody id="envBody"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Benchmark-Studien — methodischer Anschluss</div>
+    <div class="card" style="margin-bottom:14px">
+      <h2>DUH Hitze-Check 2026</h2>
+      <p class="lede" style="margin-top:6px">Die Deutsche Umwelthilfe bewertet 195 Städte nach Versiegelung, Grünvolumen, Oberflächentemperatur und Bevölkerungsdichte (Ampelsystem rot/gelb/grün). UrbanLens rechnet diese Methodik auf Stadtteilebene herunter — die DUH bewertet nur Gesamtstädte. Unser Hitzebetroffenheitsindex = 0,35·Versiegelung + 0,35·Oberflächentemperatur-Perzentil + 0,30·(invertiertes Grünvolumen). Grünvolumen geschätzt aus Versiegelungsgrad und Ökosystem-Score. <a class="ref" href="https://www.duh.de/hitze-check/" target="_blank" rel="noopener">duh.de/hitze-check ↗</a></p>
+    </div>
+    <div class="card">
+      <h2>SKL Glücksatlas</h2>
+      <p class="lede" style="margin-top:6px">Universität Freiburg / IfD Allensbach erheben Lebenszufriedenheit (Skala 0–10) über 50 Indikatoren in 13 Kategorien. Kernbefund: entscheidend ist nicht der Durchschnitt, sondern das Zufriedenheitsgefälle — wo die Lücke zwischen zufriedenen und unzufriedenen Vierteln groß ist, sinkt das Glücksniveau der ganzen Stadt. UrbanLens bildet dieses Gefälle als Kennzahl „Zufriedenheitsgefälle" ab (Spread zwischen bestem und schlechtestem Stadtteil). <a class="ref" href="https://www.skl-gluecksatlas.de/" target="_blank" rel="noopener">skl-gluecksatlas.de ↗</a></p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Datenstand — Übersicht</div>
+    <div class="card">
+      <div class="dl-row"><span>Satelliten-/Klimadaten (Copernicus Sentinel-2/-3)</span><b>2024</b></div>
+      <div class="dl-row"><span>Amtliche Hochwassergefahrenkarte (HLNUG / Risicokaart NL)</span><b>2023</b></div>
+      <div class="dl-row"><span>Gebäude- &amp; CO₂-Typologie (IWU / EPC-Register Hessen)</span><b>2023</b></div>
+      <div class="dl-row"><span>Sozialdaten (Zensus 2022, Statistikportal FFM / CBS)</span><b>2022</b></div>
+      <div class="dl-row"><span>Wahlbeteiligung (letzte Bundestags- &amp; Kommunalwahl)</span><b>2021</b></div>
+      <div class="dl-row"><span>OpenStreetMap Live-Layer (Bäume, ÖPNV, Trinkbrunnen …)</span><b>Echtzeit</b></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Grenzen &amp; Haftung</div>
+    <div class="disclaimer">
+      UrbanLens ist ein Analyse- und Orientierungswerkzeug, kein amtliches Gutachten. Modellierte und geschätzte Werte (siehe Konfidenzgrad) sind Annäherungen und ersetzen keine fachgutachterliche Prüfung, keinen Energieausweis und keine rechtsverbindliche Hochwasserbewertung. Förder- und Kostenangaben dienen der Orientierung; Konditionen können sich ändern und sind kein Ersatz für individuelle Beratung. Sozialindikatoren liegen amtlich nur auf Stadtteilebene vor; eine feinere Darstellung wäre Schätzung. Für Entscheidungen mit rechtlicher oder finanzieller Tragweite sind die jeweiligen amtlichen Primärquellen heranzuziehen.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Zitierweise</div>
+    <div class="cite-box">
+      <span class="lbl">So zitieren Sie UrbanLens</span>
+      UrbanLens (2026): NICE Score &amp; Klimarisiko-Analyse, [Stadtteil], [Stadt]. Datenstand wie angegeben. Methodik: leoorexx.github.io/urbanlens/methodik.html. Abgerufen am [Datum].
+    </div>
+    <p class="muted-note">Jeder Stadtteil im Tool bietet ein vorformatiertes Zitat zum Kopieren sowie einen Permalink, der direkt diesen Stadtteil öffnet.</p>
+  </div>
+
+</div>
+
+<script>
+const ICONS={thermo:'<path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/>',lung:'<path d="M12 4v8M12 12c0 3-2 6-5 6s-4-2-4-5 1-7 3-7 3 2 3 4M12 12c0 3 2 6 5 6s4-2 4-5-1-7-3-7-3 2-3 4"/>',bike:'<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h2l-3.5 7H9l-2 4.5"/><path d="m9 13-2-7h3"/>',book:'<path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2Z"/>',home:'<path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-9Z"/>',vote:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',tree:'<path d="M12 3 8 9h2l-4 6h12l-4-6h2l-4-6Z"/><path d="M12 15v6"/>',shield:'<path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/>'};
+function ic(n){const p=ICONS[n];return p?`<svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`:'';}
+function cb(t){const m={measured:['d-measured','Gemessen'],modeled:['d-modeled','Modelliert'],estimated:['d-estimated','Geschätzt'],live:['d-live','Live']}[t];return `<span class="cbadge"><span class="d ${m[0]}"></span>${m[1]}</span>`;}
+
+const DIMS=[
+ {k:'A',icon:'thermo',name:'Klimagerechtigkeit',formula:'0,40·LST-Perzentil + 0,35·Versiegelung + 0,25·NDVI-Mangel',prim:'Copernicus Sentinel-3 (Oberflächentemperatur)',val:'DWD Klimaatlas · HLNUG Hitzestress Hessen',norm:'EU Renaturierungs-VO 2024/1991',stand:'2024',conf:'measured'},
+ {k:'B',icon:'lung',name:'Gesundheitslast',formula:'Luftqualität (PM2.5+NO2 vs. EU-Grenzwert) + Lärm Lden + Atemwegsrate',prim:'HLNUG Luftmessnetz · EU-Umgebungslärm-Kartierung',val:'RKI Gesundheitsatlas',norm:'EU Air Quality Directive 2024',stand:'2023',conf:'modeled'},
+ {k:'C',icon:'bike',name:'Mobilität',formula:'ÖPNV-Takt (GTFS) + Radweglänge/km² + 10-Min-Erreichbarkeit − Unfalldichte',prim:'RMV GTFS · OpenStreetMap Overpass',val:'Unfallatlas Deutschland (Destatis)',norm:'SDG 11.2 · 10-Minuten-Stadt',stand:'2024',conf:'modeled'},
+ {k:'D',icon:'book',name:'Bildungsstart',formula:'Kita-Quote + (1−Abbrecherquote) + (1−Jugendarbeitslosigkeit) − SGB-II',prim:'Statistikportal FFM · Jugendamt',val:'Bundesagentur für Arbeit',norm:'SDG 4 (Kita-Quote >90%)',stand:'2022',conf:'estimated'},
+ {k:'E',icon:'home',name:'Wohn-Krise',formula:'Mietbelastungsquote + Gentrifizierungsdruck (5J) + Überbelegung',prim:'Statistikportal FFM · Zensus 2022',val:'ImmobilienScout24 Mietspiegel',norm:'Wohngeldgesetz (Mietquote ≤30%)',stand:'2023',conf:'estimated'},
+ {k:'F',icon:'vote',name:'Demokratie & Teilhabe',formula:'Wahlbeteiligung (BTW+Kommunal) + Vereinsdichte + Community Places/10.000 EW',prim:'Stadtwahlamt Frankfurt',val:'Vereinsregister · OSM',norm:'Aarhus-Konvention',stand:'2021',conf:'measured'},
+ {k:'G',icon:'tree',name:'Ökosystem-Gesundheit',formula:'NDVI + Baumvitalität/Kronendichte + Biotopkonnektivität + Wasserretention',prim:'Copernicus Sentinel-2 (NDVI)',val:'Stadtbaumliste FFM · HLNUG Biotopkartierung',norm:'EU Renaturierungs-VO 2024',stand:'2024',conf:'measured'},
+ {k:'H',icon:'shield',name:'Katastrophenresilienz',formula:'Hochwasserrisiko HQ100 (Flächenanteil) + kritische Infrastruktur + Reaktionszeit',prim:'HLNUG Hochwassergefahrenkarte · Risicokaart NL',val:'Feuerwehr FFM · RP Darmstadt',norm:'EU Floods Directive 2007/60/EG',stand:'2023',conf:'measured'},
+];
+document.getElementById('dimBody').innerHTML=DIMS.map(d=>`<tr>
+  <td class="dim-name">${ic(d.icon)} ${d.k} · ${d.name}</td>
+  <td><span class="formula">${d.formula}</span></td>
+  <td class="src-prim">${d.prim}</td>
+  <td class="src-val">${d.val}</td>
+  <td style="font-size:10.5px;color:var(--text2)">${d.norm}</td>
+  <td class="vintage">${d.stand}</td>
+  <td>${cb(d.conf)}</td>
+</tr>`).join('');
+
+const ENV=[
+ {n:'Oberflächentemperatur (LST)',prim:'Copernicus Sentinel-3',val:'DWD/KNMI Klimaatlas',stand:'2024',conf:'measured'},
+ {n:'Versiegelungsgrad',prim:'Copernicus HRL Imperviousness',val:'DUH/LUP Hitze-Check 2026',stand:'2024',conf:'measured'},
+ {n:'Grünvolumen / NDVI',prim:'Copernicus Sentinel-2',val:'Stadtbaumkataster FFM / Gem. Utrecht',stand:'2024',conf:'modeled'},
+ {n:'Straßenbäume (Einzelbäume)',prim:'Stadtkataster FFM / Utrecht',val:'OpenStreetMap (live)',stand:'2024 / Echtzeit',conf:'live'},
+ {n:'Hochwasserrisiko HQ100',prim:'HWGK Hessen',val:'Risicokaart NL / EU Floods Directive',stand:'2023',conf:'measured'},
+ {n:'Lärmbelastung',prim:'EU-Umgebungslärm-Richtlinie',val:'OSM Straßenklassen-Modell',stand:'2022',conf:'modeled'},
+ {n:'Gebäude-CO₂-Intensität',prim:'IWU-Gebäudetypologie 2023',val:'EPC-Register Hessen',stand:'2023',conf:'modeled'},
+ {n:'Sozialindikatoren',prim:'Zensus 2022 · Statistikportal FFM / CBS',val:'Bundesagentur für Arbeit / UWV',stand:'2022',conf:'estimated'},
+];
+document.getElementById('envBody').innerHTML=ENV.map(e=>`<tr>
+  <td class="dim-name">${e.n}</td>
+  <td class="src-prim">${e.prim}</td>
+  <td class="src-val">${e.val}</td>
+  <td class="vintage">${e.stand}</td>
+  <td>${cb(e.conf)}</td>
+</tr>`).join('');
+</script>
+</body>
+</html>

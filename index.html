@@ -61,6 +61,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lang-switch{display:flex;gap:2px;background:var(--surface2);padding:3px;border-radius:14px;border:1px solid var(--border)}
 .lg{border:none;background:transparent;padding:4px 9px;border-radius:11px;font-size:10px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .15s}
 .lg.on{background:#1a1a2e;color:#FFD600}
+.cbadge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;white-space:nowrap;color:var(--text2)}
+.cbadge .cd{width:9px;height:9px;border-radius:50%;display:inline-block;box-sizing:border-box;flex-shrink:0}
+.cd-measured{background:#0F6E56}
+.cd-modeled{background:linear-gradient(90deg,#BA7517 50%,transparent 50%);border:1.5px solid #BA7517}
+.cd-estimated{border:1.5px solid #5F5E5A}
+.cd-live{background:#1D9E75;box-shadow:0 0 0 2.5px rgba(29,158,117,0.28)}
+.cite-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding:9px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:9px}
+.cite-row .ct{flex:1;font-size:9.5px;color:var(--text2);font-family:ui-monospace,monospace;line-height:1.4;word-break:break-word}
+.cite-btn{border:1px solid var(--border2);background:var(--surface);border-radius:7px;padding:4px 8px;font-size:10px;font-weight:700;color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:all .15s}
+.cite-btn:hover{background:var(--text);color:#fff;border-color:var(--text)}
 .cdot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:-1px;margin-right:1px}
 .nsep{width:1px;height:24px;background:rgba(0,0,0,0.1);margin:0 4px}
 .ninfo{font-size:11px;color:#6b7280;font-weight:500}.ninfo b{color:#1a1a2e}
@@ -358,6 +368,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <nav class="nav">
   <a href="home.html" style="text-decoration:none"><div class="logo">Urban<span>Lens</span></div></a>
   <div class="nsep"></div>
+  <a href="methodik.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg> Methodik</a>
   <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> <span data-i18n="nav_dashboard">Dashboard</span></a>
   <div class="ninfo">NICE Score — <b>117 <span data-i18n="nav_indicators">Indikatoren</span></b></div>
   <div class="nav-r">
@@ -716,6 +727,9 @@ document.addEventListener('mouseout', e => {
 // ICON-SYSTEM (SVG statt Emojis) + MEHRSPRACHIGKEIT DE/EN/NL
 // ══════════════════════════════════════════════════════════════
 const ICONS={
+ link:'<path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/>',
+ copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+ check:'<path d="m5 12 5 5L20 7"/>',
  thermo:'<path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/>',
  droplet:'<path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/>',
  waves:'<path d="M2 8c1.5-1.6 3.5-1.6 5 0s3.5 1.6 5 0 3.5-1.6 5 0 3.5 1.6 5 0"/><path d="M2 14c1.5-1.6 3.5-1.6 5 0s3.5 1.6 5 0 3.5-1.6 5 0 3.5 1.6 5 0"/>',
@@ -902,36 +916,73 @@ const CITY_CFG={
   }
 };
 
+
+// ── PROVENIENZ / KONFIDENZ (4-stufig) ─────────────────────────
+const PROV_LBL={
+  de:{measured:'Gemessen',modeled:'Modelliert',estimated:'Geschätzt',live:'Live'},
+  en:{measured:'Measured',modeled:'Modelled',estimated:'Estimated',live:'Live'},
+  nl:{measured:'Gemeten',modeled:'Gemodelleerd',estimated:'Geschat',live:'Live'},
+};
+function cbadge(tier){
+  const lbl=(PROV_LBL[lang]||PROV_LBL.de)[tier]||tier;
+  return `<span class="cbadge"><span class="cd cd-${tier}"></span>${lbl}</span>`;
+}
+function copyCitation(name){
+  const cfg=CITY_CFG[city];const d=cfg.data[name];if(!d)return;
+  const today=new Date().toLocaleDateString('de-DE');
+  const url=location.origin+location.pathname+'#'+city+'/'+encodeURIComponent(name);
+  const txt=`UrbanLens (2026): ${name}, ${cfg.name}. NICE Score ${nice(d)}. Methodik: leoorexx.github.io/urbanlens/methodik.html. Abgerufen am ${today}. ${url}`;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const b=document.getElementById('citeCopyBtn');if(b){const o=b.innerHTML;b.innerHTML=ic('check',13)+' Kopiert';setTimeout(()=>b.innerHTML=o,1600);}
+  });
+}
+function copyPermalink(name){
+  const url=location.origin+location.pathname+'#'+city+'/'+encodeURIComponent(name);
+  navigator.clipboard.writeText(url).then(()=>{
+    const b=document.getElementById('permaBtn');if(b){const o=b.innerHTML;b.innerHTML=ic('check',13)+' Link kopiert';setTimeout(()=>b.innerHTML=o,1600);}
+  });
+}
+// Permalink-Routing: beim Laden Hash auswerten
+function openFromHash(){
+  const h=decodeURIComponent((location.hash||'').replace(/^#/,''));
+  if(!h)return;
+  const [c,name]=h.split('/');
+  if(c&&CITY_CFG[c]&&name){
+    if(c!==city){switchCity(c);setTimeout(()=>{if(CITY_CFG[c].data[name])openDrawer(name,CITY_CFG[c].data[name]);},1400);}
+    else if(CITY_CFG[city].data[name])openDrawer(name,CITY_CFG[city].data[name]);
+  }
+}
+
 const DIMS=[
-  {k:"A",icon:"thermo",name:"Klimagerechtigkeit",col:"#dc2626",
+  {k:"A",prov:"measured",stand:"2024",icon:"thermo",name:"Klimagerechtigkeit",col:"#dc2626",
    desc:"Oberflächentemperatur (LST), NDVI-Mangel, Bevölkerungsvulnerabilität, Versiegelungsgrad.",
    src:"Copernicus Sentinel-2, HLNUG, Zensus 2022",bm:"EU Renaturierungs-VO 2024/1991: 30% Grünfläche bis 2030",
    ctx:s=>s<40?"<span class=cdot style=background:#dc2626></span> Hitzeinsel: LST deutlich über Stadtdurchschnitt, hohe Versiegelung.":s>65?"<span class=cdot style=background:#16a34a></span> Gute Durchgrünung, geringe Hitzeexposition.":"<span class=cdot style=background:#eab308></span> Durchschnittlich, Optimierungspotenzial."},
-  {k:"B",icon:"lung",name:"Gesundheitslast",col:"#ea580c",
+  {k:"B",prov:"modeled",stand:"2023",icon:"lung",name:"Gesundheitslast",col:"#ea580c",
    desc:"PM2.5 + NO2 (EU AQI, Jahresmittel), Lärmexposition Lden dB, RKI Atemwegsrate.",
    src:"HLNUG Luftmessnetz, RKI Gesundheitsatlas, EU Lärmkarte",bm:"EU: PM2.5 ≤25 µg/m³ · NO2 ≤40 µg/m³ · Lden ≤65 dB(A)",
    ctx:s=>s<40?"<span class=cdot style=background:#dc2626></span> Über EU-Grenzwerten. Gesundheitsrisiko messbar.":s>65?"<span class=cdot style=background:#16a34a></span> Gesunde Luft, geringe Lärmbelastung.":"<span class=cdot style=background:#eab308></span> Grenzwertnah, Maßnahmen sinnvoll."},
-  {k:"C",icon:"bike",name:"Mobilität",col:"#2563eb",
+  {k:"C",prov:"modeled",stand:"2024",icon:"bike",name:"Mobilität",col:"#2563eb",
    desc:"ÖPNV-Takt (GTFS), Radweglänge pro km², 10-Min-Stadt-Score (34 POIs), Unfalldichte.",
    src:"RMV GTFS, OpenStreetMap Overpass, Unfallatlas Deutschland",bm:"10-Minuten-Stadt: Alle Alltagseinrichtungen in ≤10 min erreichbar",
    ctx:s=>s<40?"<span class=cdot style=background:#dc2626></span> Schlechte ÖPNV-Anbindung, wenig Radwege.":s>70?"<span class=cdot style=background:#16a34a></span> Sehr gute multimodale Erreichbarkeit.":"<span class=cdot style=background:#eab308></span> Mittlere Konnektivität, Ausbaupotenzial."},
-  {k:"D",icon:"book",name:"Bildungsstart",col:"#7c3aed",
+  {k:"D",prov:"estimated",stand:"2022",icon:"book",name:"Bildungsstart",col:"#7c3aed",
    desc:"Kita-Quote, Schulabbrecherquote, Jugendarbeitslosigkeit U25, SGB-II-Quote.",
    src:"Jugendamt Frankfurt, Statistikportal FFM, BA für Arbeit",bm:"SDG 4 · Kita-Quote Ziel: >90%",
    ctx:s=>s<40?"<span class=cdot style=background:#dc2626></span> Niedrige Kita-Quote + hohe Jugendarbeitslosigkeit.":s>65?"<span class=cdot style=background:#16a34a></span> Gute Bildungsinfrastruktur.":"<span class=cdot style=background:#eab308></span> Durchschnittlich, Ausbaubedarf."},
-  {k:"E",icon:"home",name:"Wohn-Krise",col:"#db2777",
+  {k:"E",prov:"estimated",stand:"2023",icon:"home",name:"Wohn-Krise",col:"#db2777",
    desc:"Mietbelastungsquote (>30% EK), Gentrifizierungsdruck (Mietpreisanstieg 5J), Überbelegung.",
    src:"Statistikportal FFM, ImmobilienScout24, Zensus 2022",bm:"Wohngeldgesetz: Tragbare Mietquote ≤30% des Nettoeinkommens",
    ctx:s=>s<40?"<span class=cdot style=background:#dc2626></span> Akute Wohnkrise: Mietbelastung >40%, starker Gentrifizierungsdruck.":s>65?"<span class=cdot style=background:#16a34a></span> Stabile Wohnsituation.":"<span class=cdot style=background:#eab308></span> Spürbare Belastung, Prävention sinnvoll."},
-  {k:"F",icon:"vote",name:"Demokratie & Teilhabe",col:"#d97706",
+  {k:"F",prov:"measured",stand:"2021",icon:"vote",name:"Demokratie & Teilhabe",col:"#d97706",
    desc:"Wahlbeteiligung Bundestag + Kommunal, Vereinsdichte, Community Places/10.000 EW.",
    src:"Stadtwahlamt Frankfurt, Vereinsregister, OSM",bm:"Aarhus-Konvention: Recht auf politische Partizipation",
    ctx:s=>s<40?"<span class=cdot style=background:#dc2626></span> Niedrige Wahlbeteiligung + wenig Infrastruktur = struktureller Ausschluss.":s>65?"<span class=cdot style=background:#16a34a></span> Aktive Bürgergesellschaft.":"<span class=cdot style=background:#eab308></span> Ausbaufähige Partizipation."},
-  {k:"G",icon:"tree",name:"Ökosystem-Gesundheit",col:"#16a34a",
+  {k:"G",prov:"measured",stand:"2024",icon:"tree",name:"Ökosystem-Gesundheit",col:"#16a34a",
    desc:"NDVI (Grünanteil), Baumvitalität + Kronendichte, Biotopkonnektivität, Wasserretention.",
    src:"Copernicus Sentinel-2, Stadtbaumliste FFM, HLNUG Biotopkartierung",bm:"EU Renaturierungs-VO 2024: Biotopverbund wiederherstellen",
    ctx:s=>s<40?"<span class=cdot style=background:#dc2626></span> Stark versiegelt, kaum Biodiversität.":s>65?"<span class=cdot style=background:#16a34a></span> Gute Ökosystemqualität.":"<span class=cdot style=background:#eab308></span> Durchschnittliches Grün, Ausbau möglich."},
-  {k:"H",icon:"shield",name:"Katastrophenresilienz",col:"#0284c7",
+  {k:"H",prov:"measured",stand:"2023",icon:"shield",name:"Katastrophenresilienz",col:"#0284c7",
    desc:"Hochwasserrisiko HQ100 (Fläche in Überflutungszone), kritische Infrastruktur, Feuerwehr-Reaktionszeit.",
    src:"HLNUG Hochwassergefahrenkarte, Feuerwehr FFM, RP Darmstadt",bm:"EU Floods Dir. 2007/60/EG: Hochwasserrisikomanagement",
    ctx:s=>s<40?"<span class=cdot style=background:#dc2626></span> Erhöhtes Hochwasserrisiko und/oder eingeschränkte Infrastruktur.":s>65?"<span class=cdot style=background:#16a34a></span> Gute Resilienz, geringe Risiken.":"<span class=cdot style=background:#eab308></span> Mittleres Risikoprofil."},
@@ -2774,6 +2825,7 @@ function showTab(i){
 
 function openDrawer(name,d){
   selected=name;
+  if(history.replaceState)history.replaceState(null,'','#'+city+'/'+encodeURIComponent(name));
   renderList(document.getElementById('searchBox').value);
   if(geoFeatures.length)renderMap();
 
@@ -2906,7 +2958,19 @@ function openDrawer(name,d){
           <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:7px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.15);color:#7c3aed">${m.foerder[0]?.pct||'?'}% förderbar</span>
         </div>
         <div style="font-size:8px;color:var(--muted);margin-top:4px;padding-top:3px;border-top:1px solid var(--border)">${m.kw.split('.')[0]}.</div>
-      </div>`;
+      </div>
+    <div class="sec">Zitieren & Teilen</div>
+    <div class="ibox" style="padding-bottom:10px">
+      <div style="font-size:10px;color:var(--muted);line-height:1.5">Konfidenz & Datenstand je Dimension siehe Tab „Dimensionen". Vollständige Methodik & Quellen auf der <a href="methodik.html" target="_blank" style="color:var(--accent);font-weight:700">Methodikseite</a>.</div>
+      <div class="cite-row">
+        <span class="ct">UrbanLens (2026): ${name}, ${cfg.name}. NICE Score ${s}. Abgerufen ${new Date().toLocaleDateString('de-DE')}.</span>
+        <button class="cite-btn" id="citeCopyBtn" onclick="copyCitation('${name.replace(/'/g,"\\'")}')">${ic('copy',13)} Zitat</button>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:6px">
+        <button class="cite-btn" id="permaBtn" onclick="copyPermalink('${name.replace(/'/g,"\\'")}')">${ic('link',13)} Permalink</button>
+      </div>
+    </div>
+  `;
       const duh = duhAmpel(d);
       return`
       <div class="sec"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> Hitzebetroffenheit — Satelliten- & Erdbeobachtungsanalyse</div>
@@ -3011,7 +3075,11 @@ function openDrawer(name,d){
         </div>
       <div class="dtrack"><div class="dfill" style="width:${d[dim.k]}%;background:linear-gradient(90deg,${dim.col}30,${dim.col})"></div></div>
       <div class="dctx">${dim.ctx(d[dim.k])}</div>
-      <div class="dsrc">Quelle: <b>${dim.src.split(',')[0]}</b></div>
+      <div class="dsrc" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span>Quelle: <b>${dim.src.split(',')[0]}</b></span>
+        <span style="color:var(--muted)">Stand ${dim.stand||'—'}</span>
+        ${cbadge(dim.prov||'modeled')}
+      </div>
     </div>`).join('');
 
   // TAB 2 — Maßnahmen
@@ -3242,6 +3310,7 @@ function openDrawer(name,d){
 }
 
 function closeDrawer(){
+  if(history.replaceState&&location.hash)history.replaceState(null,'',location.pathname+location.search);
   document.getElementById('drawer').classList.remove('open');
   selected=null;if(geoFeatures.length)renderMap();
   renderList(document.getElementById('searchBox').value);
@@ -3609,6 +3678,7 @@ setTimeout(()=>{
 initMap();
 setLang(lang);
 setTimeout(preloadAllCities, 2500);
+setTimeout(openFromHash, 1600);
 
 // Event delegation for list clicks — city-safe, no string interpolation
 document.getElementById('stList').addEventListener('click',e=>{
