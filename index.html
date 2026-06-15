@@ -693,6 +693,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 9h16M8 17v2.5M16 17v2.5"/><circle cx="8.5" cy="13.5" r=".8"/><circle cx="15.5" cy="13.5" r=".8"/></svg> ÖPNV-Haltestellen (live)</span>
     <span class="lstatus" id="st-osm_transit"></span>
   </div>
+  <div class="lrow" onclick="toggleLayer('osm_lamps')">
+    <button class="ltoggle" id="tog-osm_lamps"></button>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.6-1 1.2-1 2H9c0-.8-.3-1.4-1-2A6 6 0 0 1 12 3Z"/></svg> Beleuchtung (Sicherheitsgefühl)</span>
+    <span class="lstatus" id="st-osm_lamps"></span>
+  </div>
 
   <div class="llegend">
     <b style="color:var(--text)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h2l-3.5 7H9l-2 4.5"/><path d="m9 13-2-7h3"/></svg> Radwege:</b>
@@ -1769,7 +1774,7 @@ function loadLayer(id,statusEl){
   switch(id){
     case 'duh_ampel':       return renderDUHAmpel(id,statusEl);
     case 'osm_trees': case 'osm_drinking': case 'osm_benches':
-    case 'osm_schools': case 'osm_health': case 'osm_transit':
+    case 'osm_schools': case 'osm_health': case 'osm_transit': case 'osm_lamps':
       return renderOSMLive(id,statusEl);
     case 'flood':    return loadLocal(`flood_exposure_${city}.geojson`,id,statusEl,renderFloodExposure);
     case 'floodex':  return loadLocal(`waterways_${city}.geojson`,id,statusEl,renderFloodZones);
@@ -2376,6 +2381,7 @@ const OSM_LIVE={
   osm_schools: {q:bb=>`nwr["amenity"~"^(school|kindergarten|university)$"](${bb});`,      out:'tags center qt',color:'#7c3aed',r:6,  cap:2000},
   osm_health:  {q:bb=>`nwr["amenity"~"^(hospital|clinic|doctors|pharmacy)$"](${bb});`,    out:'tags center qt',color:'#dc2626',r:6,  cap:2000},
   osm_transit: {q:bb=>`(node["highway"="bus_stop"](${bb});node["railway"~"^(station|halt|tram_stop)$"](${bb}););`,out:'tags center qt',color:'#2563eb',r:5,cap:3000},
+  osm_lamps:   {q:bb=>`node["highway"="street_lamp"](${bb});`,out:'skel qt',color:'#f59e0b',r:1.8,cap:8000},
 };
 let osmLiveHooked=false, osmLiveTimer=null;
 function renderOSMLive(id,statusEl){
@@ -3566,6 +3572,21 @@ function openDrawer(name,d){
         </div>
         <div style="font-size:8px;color:var(--muted);margin-top:4px;padding-top:3px;border-top:1px solid var(--border)">${m.kw.split('.')[0]}.</div>
       </div>
+    <div class="sec">${lang==='en'?'Safety & social control':lang==='nl'?'Veiligheid & sociale controle':'Sicherheit & soziale Kontrolle'}</div>
+    <div class="ibox" style="padding-bottom:10px">
+      <div style="font-size:10px;color:var(--text2);line-height:1.6">${lang==='en'?'UrbanLens does not fabricate crime figures. Two objective proxies for perceived safety are available on the map:':lang==='nl'?'UrbanLens verzint geen misdaadcijfers. Twee objectieve proxy\'s voor veiligheidsbeleving staan op de kaart:':'UrbanLens erfindet keine Kriminalitätszahlen. Zwei objektive Proxys für das Sicherheitsgefühl liegen auf der Karte:'}</div>
+      <div style="margin-top:7px;display:flex;flex-direction:column;gap:5px">
+        <div style="display:flex;gap:7px;align-items:flex-start;font-size:10px;color:var(--text2)"><span style="color:#f59e0b;margin-top:1px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.6-1 1.2-1 2H9c0-.8-.3-1.4-1-2A6 6 0 0 1 12 3Z"/></svg></span><span><b>${lang==='en'?'Lighting':lang==='nl'?'Verlichting':'Beleuchtung'}</b> — ${lang==='en'?'layer „Lighting" shows lit vs. dark streets.':lang==='nl'?'laag „Verlichting" toont verlichte vs. donkere straten.':'Layer „Beleuchtung" zeigt beleuchtete vs. dunkle Straßen.'}</span></div>
+        <div style="display:flex;gap:7px;align-items:flex-start;font-size:10px;color:var(--text2)"><span style="color:#2563eb;margin-top:1px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16l-1 5a3 3 0 0 1-3 2.5A3 3 0 0 1 13 12a3 3 0 0 1-3 2.5A3 3 0 0 1 7 12L4 7Z"/><path d="M5 14v6h14v-6"/></svg></span><span><b>${lang==='en'?'Active frontage':lang==='nl'?'Levendige plinten':'Belebte Erdgeschosse'}</b> — ${lang==='en'?'diagnosis „Place quality" maps „eyes on the street" (Jane Jacobs).':lang==='nl'?'diagnose „Verblijfskwaliteit" toont „eyes on the street" (Jane Jacobs).':'Diagnose „Aufenthaltsqualität" zeigt „eyes on the street" (Jane Jacobs).'}</span></div>
+      </div>
+      <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border);font-size:10px">
+        <span style="color:var(--muted)">${lang==='en'?'Official crime statistics':lang==='nl'?'Officiële criminaliteitscijfers':'Amtliche Kriminalstatistik'}:</span>
+        ${city==='utr'
+          ? '<a href="https://www.politie.nl/informatie/misdaad-in-kaart.html" target="_blank" style="color:var(--accent);font-weight:700">politie.nl — Misdaad in kaart →</a>'
+          : '<a href="https://www.polizei.hessen.de/" target="_blank" style="color:var(--accent);font-weight:700">Polizei Hessen →</a>'}
+      </div>
+      ${city==='utr'?`<div style="font-size:9px;color:var(--muted);margin-top:5px">${lang==='nl'?'NL biedt open misdaaddata per buurt — integratie als nächster Schritt möglich.':lang==='en'?'NL offers open per-neighbourhood crime data — integration possible as a next step.':'NL bietet offene Kriminalitätsdaten pro Buurt — Integration als nächster Schritt möglich.'}</div>`:''}
+    </div>
     <div class="sec">Zitieren & Teilen</div>
     <div class="ibox" style="padding-bottom:10px">
       <div style="font-size:10px;color:var(--muted);line-height:1.5">Konfidenz & Datenstand je Dimension siehe Tab „Dimensionen". Vollständige Methodik & Quellen auf der <a href="methodik.html" target="_blank" style="color:var(--accent);font-weight:700">Methodikseite</a>.</div>
