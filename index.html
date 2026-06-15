@@ -856,6 +856,8 @@ function preloadAllCities(){
     });
   });
   files.push('wijken_utrecht.geojson');
+  // Diagnose-Bundle der aktuellen Stadt vorwärmen (lazy, ~0,6–1,3 MB)
+  if(typeof loadCityBundle==='function')setTimeout(()=>loadCityBundle(city),400);
   let i=0;
   function next(){
     if(i>=files.length)return;
@@ -1812,7 +1814,29 @@ function renderDUHAmpel(id,statusEl){
 // DIAGNOSE-ENGINE — Straßen & Plätze gegen Normen bewerten
 // Grid-basiert, läuft aus OSM-Live-Daten in jeder Stadt.
 // ══════════════════════════════════════════════════════════════
-const DIAG={active:false,mode:null,layer:null,under:null,hooked:false,cache:{},timer:null};
+const DIAG={active:false,mode:null,layer:null,under:null,hooked:false,cache:{},timer:null,bundle:{}};
+
+// Vorab gebündelte Stadtdaten (FFM/UTR) — sofort & stadtweit, kein Overpass.
+const CITY_BUNDLE={ffm:'diag_ffm.json',utr:'diag_utr.json'};
+function loadCityBundle(c){
+  return new Promise(res=>{
+    if(!CITY_BUNDLE[c]){res(null);return;}
+    if(DIAG.bundle[c]){res(DIAG.bundle[c]);return;}
+    fetch(DATA_BASE+'/'+CITY_BUNDLE[c]).then(r=>r.ok?r.json():null)
+      .then(d=>{DIAG.bundle[c]=d;res(d);}).catch(()=>res(null));
+  });
+}
+function bundleToEls(bundle,b){
+  const s=b.getSouth(),w=b.getWest(),n=b.getNorth(),e=b.getEast();
+  const inB=p=>p[0]>=s&&p[0]<=n&&p[1]>=w&&p[1]<=e;
+  return {
+    trees:(bundle.trees||[]).filter(inB),
+    benches:(bundle.benches||[]).filter(inB),
+    water:(bundle.water||[]).filter(inB),
+    shops:(bundle.shops||[]).filter(inB),
+    green:(bundle.green||[]).filter(ring=>ring.some(inB)),
+  };
+}
 
 function diagPointInPoly(lat,lon,ring){
   let inside=false;
@@ -1852,12 +1876,27 @@ function diagStatus(txt){
 
 function diagRun(){
   if(!DIAG.active)return;
-  if(map.getZoom()<14){ if(DIAG.layer){map.removeLayer(DIAG.layer);DIAG.layer=null;} if(DIAG.under){map.removeLayer(DIAG.under);DIAG.under=null;}
+  const hasBundle=!!CITY_BUNDLE[city];
+  const minZoom=hasBundle?13:14;
+  if(map.getZoom()<minZoom){ if(DIAG.layer){map.removeLayer(DIAG.layer);DIAG.layer=null;} if(DIAG.under){map.removeLayer(DIAG.under);DIAG.under=null;}
     diagStatus(lang==='de'?'näher zoomen':lang==='nl'?'zoom in':'zoom in'); return; }
   diagStatus('<span class="loading-dot"></span>');
   const b=map.getBounds();
-  const key=DIAG.mode+'@'+[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(3)).join(',');
+  const key=city+'@'+[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(3)).join(',');
   if(DIAG.cache[key]){ diagRender(DIAG.cache[key]); return; }
+  // Schneller Pfad: vorab gebündelte Stadtdaten (FFM/UTR) — kein Overpass
+  if(hasBundle){
+    loadCityBundle(city).then(bundle=>{
+      if(!DIAG.active)return;
+      if(!bundle){diagRunLive(b,key);return;}
+      const data=diagBuildGrid(b,bundleToEls(bundle,b));
+      DIAG.cache[key]=data; diagRender(data);
+    });
+    return;
+  }
+  diagRunLive(b,key);
+}
+function diagRunLive(b,key){
   const bbox=`${b.getSouth().toFixed(5)},${b.getWest().toFixed(5)},${b.getNorth().toFixed(5)},${b.getEast().toFixed(5)}`;
   const q=`[out:json][timeout:30];(node["natural"="tree"](${bbox});node["amenity"="bench"](${bbox});node["shop"](${bbox});node["amenity"~"^(cafe|restaurant|bar|fast_food|bank|pharmacy)$"](${bbox});node["amenity"~"^(drinking_water|fountain)$"](${bbox});way["leisure"~"park|garden|playground|pitch|common"](${bbox});way["landuse"~"grass|recreation_ground|forest|meadow|village_green|cemetery"](${bbox}););out geom 7000;`;
   fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q))
@@ -2052,6 +2091,16 @@ function loadOSMLiveViewport(id,statusEl){
     const n=elements.length;
     statusEl.textContent=n>=cfgL.cap?`✓ ${cfgL.cap.toLocaleString('de-DE')}+ im Ausschnitt`:n===0?'0 — hier nicht kartiert':'✓ '+n.toLocaleString('de-DE');
   };
+  // Schnellster Pfad: vorab gebündelte Stadtdaten (FFM/UTR)
+  const BUNDLE_KEY={osm_trees:'trees',osm_benches:'benches',osm_drinking:'water',osm_schools:'schools',osm_health:'health'};
+  if(CITY_BUNDLE[city]&&BUNDLE_KEY[id]){
+    loadCityBundle(city).then(bundle=>{
+      if(!bundle||!activeLayers[id])return;
+      const inB=p=>p[0]>=b.getSouth()&&p[0]<=b.getNorth()&&p[1]>=b.getWest()&&p[1]<=b.getEast();
+      render((bundle[BUNDLE_KEY[id]]||[]).filter(inB).map(p=>({lat:p[0],lon:p[1]})));
+    });
+    return;
+  }
   // Cache-Hit: sofort rendern, keine Overpass-Anfrage
   if(window.__osmCache&&window.__osmCache[ckey]){render(window.__osmCache[ckey]);return;}
   const q=`[out:json][timeout:25];${cfgL.q(bb)}out ${cfgL.out} ${cfgL.cap};`;
