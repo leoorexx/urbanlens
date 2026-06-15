@@ -156,6 +156,7 @@ td.muted{color:var(--muted)}
   .hero{flex-direction:column}.hero-stats{gap:16px}
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -273,6 +274,8 @@ td.muted{color:var(--muted)}
           <option value="einkommen">Sortierung: Einkommen</option>
         </select>
         <span class="tbl-count" id="tblCount"></span>
+        <button onclick="exportCSV()" style="margin-left:auto;border:1.5px solid var(--border2);background:#fff;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12M7 12l5 5 5-5M5 21h14"/></svg> CSV</button>
+        <button onclick="cityPDF()" style="border:1.5px solid var(--border2);background:#fff;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12M7 12l5 5 5-5M5 21h14"/></svg> Bericht (PDF)</button>
       </div>
       <div style="overflow-x:auto">
         <table id="stadtTable">
@@ -648,6 +651,51 @@ function openDistrict(name){
   document.getElementById('drawer').classList.add('open');
 }
 function closeDrawer(){ document.getElementById('drawerOverlay').style.display='none'; document.getElementById('drawer').classList.remove('open'); }
+
+
+function exportCSV(){
+  const isNL=CITY.country==='NL';
+  const cols=['Stadtteil','NICE','A','B','C','D','E','F','G','H','Einwohner','Wahlbeteiligung','Migration_%',isNL?'Bijstand_%':'SGB2_%',isNL?'LaagInkomen_%':'Kinderarmut_%','Einkommen_EUR','Versiegelung_%','LST_Delta','DUH_Index','DUH_Karte'];
+  const rows=Object.entries(DISTRICTS).sort((a,b)=>nice(a[1])-nice(b[1])).map(([n,d])=>{
+    const du=duhAmpel(d);
+    return [n,nice(d),d.A,d.B,d.C,d.D,d.E,d.F,d.G,d.H,d.pop,d.wb,d.mig,d.sgb2,d.kinderarmut,d.einkommen,d.versieg,d.lst_delta,du.idx,du.lbl];
+  });
+  const esc=v=>{v=String(v);return /[",;\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const csv=[cols.join(';'),...rows.map(r=>r.map(esc).join(';'))].join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`UrbanLens_${CITY.name.replace(/[^\w]/g,'_')}_NICE.csv`; a.click();
+}
+function cityPDF(){
+  const J=(window.jspdf&&window.jspdf.jsPDF); if(!J){alert('PDF-Bibliothek lädt noch.');return;}
+  const doc=new J({unit:'mm',format:'a4'}); const today=new Date().toLocaleDateString('de-DE');
+  doc.setFillColor(13,17,23); doc.rect(0,0,210,28,'F');
+  doc.setTextColor(255,214,0); doc.setFont('helvetica','bold'); doc.setFontSize(17); doc.text('UrbanLens',14,15);
+  doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.text('Klimarisiko-Dashboard · '+CITY.name,14,22);
+  let y=40;
+  doc.setTextColor(26,26,46); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text((CITY.country==='NL'?'Stadsoverzicht':'Gesamtstadt-Übersicht'),14,y); y+=9;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(70,70,80);
+  const kpis=[['Ø NICE Score',avgScore],['Kritische Gebiete (<40)',critCount],['Klimaziel',CITY.neutralYear+' · '+CITY.thgTarget],['Ø Gebäude-CO₂',CITY.avgCO2+' '+CITY.co2Unit]];
+  kpis.forEach(k=>{doc.text(String(k[0]),14,y);doc.setFont('helvetica','bold');doc.text(String(k[1]),196,y,{align:'right'});doc.setFont('helvetica','normal');y+=7;});
+  y+=4; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=8;
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text((CITY.country==='NL'?'Ranking wijken (NICE Score)':'Ranking Stadtteile (NICE Score)'),14,y); y+=7;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+  Object.entries(DISTRICTS).sort((a,b)=>nice(a[1])-nice(b[1])).forEach(([n,d])=>{
+    if(y>275){doc.addPage();y=20;}
+    const sc=nice(d), du=duhAmpel(d);
+    doc.setTextColor(sc<40?200:sc<55?180:60, sc<40?40:sc<55?120:60, 60);
+    doc.text(String(sc).padStart(3),14,y);
+    doc.setTextColor(40,40,50); doc.text(n,26,y);
+    doc.setTextColor(120,120,130); doc.text('DUH '+du.lbl+' · '+(d.einkommen/1000).toFixed(0)+'k€ · '+(CITY.country==='NL'?'Bijstand ':'SGB-II ')+d.sgb2+'%',196,y,{align:'right'});
+    y+=5.5;
+  });
+  doc.setDrawColor(220,220,220); doc.line(14,288,196,288);
+  doc.setTextColor(130,130,140); doc.setFontSize(7);
+  doc.text('UrbanLens (2026): '+CITY.name+'. Abgerufen '+today+'.',14,292);
+  doc.text('leoorexx.github.io/urbanlens/methodik.html',196,292,{align:'right'});
+  doc.save('UrbanLens_'+CITY.name.replace(/[^\w]/g,'_')+'_Bericht.pdf');
+}
 
 // ── LOADER ──
 fetch(DATA_BASE+'/cities.json').then(r=>r.json()).then(all=>{
