@@ -24,6 +24,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .nav-pill{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;text-decoration:none;border:1.5px solid var(--border);color:var(--text2);transition:all .15s}
 .nav-pill:hover,.nav-pill.active{background:var(--text);color:#fff;border-color:var(--text)}
 .nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.city-toggle{display:flex;gap:3px;background:var(--surface2);padding:3px;border-radius:20px;border:1px solid var(--border)}
+.ct{border:none;background:transparent;padding:5px 13px;border-radius:16px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .15s}
+.ct.on{background:#1a1a2e;color:#FFD600}
 .badge{background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.2);border-radius:20px;padding:4px 12px;font-size:10px;color:var(--accent);font-weight:700}
 
 /* PAGE */
@@ -50,6 +53,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .kpi .sub{font-size:9px;color:var(--muted);margin-top:3px}
 .kpi.warn .val{color:var(--r1)}
 .kpi.ok .val{color:var(--r4)}
+.ghg{background:#0d1117;border-radius:16px;padding:20px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.ghg .gv{font-size:30px;font-weight:900;color:#FFD600;line-height:1}
+.ghg .gl{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.ghg .gbar{flex:1;min-width:160px;height:10px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}
+.ghg .gbarf{height:100%;border-radius:99px;background:linear-gradient(90deg,#dc2626,#eab308,#16a34a)}
+.sdg-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.sdg-num{font-size:11px;font-weight:800;color:#fff;border-radius:6px;padding:2px 8px;display:inline-block}
 .kpi.accent .val{color:var(--accent)}
 
 /* NORMATIVER RAHMEN */
@@ -154,7 +164,10 @@ td.muted{color:var(--muted)}
   <a href="index.html" class="nav-pill">Zur Karte</a>
   <a href="dashboard.html" class="nav-pill active">Dashboard</a>
   <div class="nav-r">
-    <div class="badge">Frankfurt am Main · 46 Stadtteile · NICE Score 2024</div>
+    <div class="city-toggle">
+      <button class="ct on" id="ct-ffm" onclick="setCity('ffm')">Frankfurt am Main</button>
+      <button class="ct" id="ct-utr" onclick="setCity('utr')">Utrecht</button>
+    </div>
   </div>
 </nav>
 
@@ -163,8 +176,8 @@ td.muted{color:var(--muted)}
   <!-- HERO -->
   <div class="hero">
     <div>
-      <h1>Klimarisiko-Dashboard<br><span>Frankfurt am Main</span></h1>
-      <p>Normative Grundlage: EU Green Deal · SDG 11 · Frankfurter Klimaplan 2030 · NICE Score 117 Indikatoren in 8 Dimensionen. Benchmarks: DUH Hitze-Check 2026 + SKL Glücksatlas — heruntergebrochen auf Stadtteilebene. Ergebnisse, Maßnahmen und Förderprogramme für alle 46 Stadtteile.</p>
+      <h1>Klimarisiko-Dashboard<br><span id="heroCity">Frankfurt am Main</span></h1>
+      <p id="heroDesc"></p>
     </div>
     <div class="hero-stats">
       <div class="hero-stat"><div class="val" id="h-avg">—</div><div class="lbl">Ø NICE Score</div></div>
@@ -175,6 +188,9 @@ td.muted{color:var(--muted)}
 
   <!-- KPIs -->
   <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- GHG / KLIMAZIEL -->
+  <div class="section"><div id="ghgBanner"></div></div>
 
   <!-- NORMATIVER RAHMEN -->
   <div class="section">
@@ -228,6 +244,12 @@ td.muted{color:var(--muted)}
     <div class="city-grid" id="cityGrid"></div>
   </div>
 
+  <!-- SDG-ZUORDNUNG -->
+  <div class="section">
+    <div class="section-title">SDG-Zuordnung — UN-Nachhaltigkeitsziele je Dimension</div>
+    <div id="sdgGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
+  </div>
+
   <!-- STADTTEIL ERGEBNISSE -->
   <div class="section">
     <div class="section-title">Ergebnisse je Stadtteil</div>
@@ -267,8 +289,8 @@ td.muted{color:var(--muted)}
               <th title="Demokratie">F</th>
               <th title="Ökosystem">G</th>
               <th title="Resilienz">H</th>
-              <th title="SGB-II-Quote">SGB-II</th>
-              <th title="Kinderarmut">Kinderarmt.</th>
+              <th title="SGB-II-Quote / Bijstand" id="th-sgb2">SGB-II</th>
+              <th title="Kinderarmut / laag inkomen" id="th-ka">Kinderarmt.</th>
               <th title="Medianeinkommen">Einkommen</th>
               <th title="Migration">Migration</th>
               <th>Risiken</th>
@@ -375,54 +397,9 @@ const ICONS={
 function ic(n,s=14){const p=ICONS[n];if(!p)return'';return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px">${p}</svg>`;}
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
-const DISTRICTS = {
-  "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, wb:33,mig:71,hw:true, heat:true, noise:82, sgb2:62,kinderarmut:70,einkommen:17000,arbeitslos:17,abitur:25, versieg:88,lst_delta:3.9},
-  "Gutleutviertel":   {A:24,B:27,C:80,D:38,E:18,F:35,G:18,H:42,pop:5000, wb:36,mig:65,hw:true, heat:true, noise:78, sgb2:44,kinderarmut:50,einkommen:20000,arbeitslos:13,abitur:30, versieg:82,lst_delta:3.4},
-  "Gallus":           {A:28,B:32,C:58,D:42,E:22,F:34,G:30,H:45,pop:72000,wb:38,mig:58,hw:false,heat:true, noise:72, sgb2:30,kinderarmut:36,einkommen:24000,arbeitslos:10,abitur:38, versieg:74,lst_delta:2.9},
-  "Altstadt":         {A:30,B:34,C:82,D:56,E:28,F:50,G:22,H:50,pop:12000,wb:55,mig:40,hw:false,heat:true, noise:75, sgb2:18,kinderarmut:20,einkommen:30000,arbeitslos:7, abitur:52, versieg:80,lst_delta:3.2},
-  "Innenstadt":       {A:28,B:32,C:84,D:58,E:24,F:52,G:20,H:52,pop:16000,wb:57,mig:38,hw:false,heat:true, noise:74, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:6, abitur:60, versieg:83,lst_delta:3.5},
-  "Fechenheim":       {A:32,B:35,C:45,D:40,E:30,F:40,G:36,H:42,pop:21000,wb:41,mig:48,hw:true, heat:false,noise:68, sgb2:26,kinderarmut:32,einkommen:25000,arbeitslos:9, abitur:34, versieg:65,lst_delta:2.1},
-  "Griesheim":        {A:35,B:38,C:52,D:48,E:34,F:42,G:34,H:48,pop:43000,wb:44,mig:44,hw:false,heat:true, noise:70, sgb2:24,kinderarmut:28,einkommen:26000,arbeitslos:9, abitur:38, versieg:72,lst_delta:2.6},
-  "Nied":             {A:38,B:40,C:42,D:44,E:36,F:44,G:40,H:44,pop:17000,wb:43,mig:42,hw:false,heat:false,noise:65, sgb2:22,kinderarmut:26,einkommen:27000,arbeitslos:8, abitur:40, versieg:60,lst_delta:1.8},
-  "Sossenheim":       {A:40,B:42,C:40,D:45,E:38,F:45,G:42,H:50,pop:18000,wb:46,mig:38,hw:false,heat:false,noise:62, sgb2:19,kinderarmut:23,einkommen:28000,arbeitslos:7, abitur:42, versieg:55,lst_delta:1.5},
-  "Niederrad":        {A:42,B:45,C:60,D:52,E:40,F:48,G:44,H:52,pop:26000,wb:51,mig:35,hw:true, heat:false,noise:66, sgb2:16,kinderarmut:19,einkommen:30000,arbeitslos:6, abitur:50, versieg:62,lst_delta:1.9},
-  "Zeilsheim":        {A:44,B:46,C:38,D:48,E:42,F:48,G:47,H:50,pop:15000,wb:50,mig:33,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:52, versieg:48,lst_delta:1.1},
-  "Höchst":           {A:45,B:47,C:62,D:52,E:42,F:50,G:44,H:52,pop:15000,wb:52,mig:36,hw:true, heat:false,noise:65, sgb2:22,kinderarmut:27,einkommen:26000,arbeitslos:8, abitur:38, versieg:68,lst_delta:2.2},
-  "Unterliederbach":  {A:46,B:48,C:40,D:50,E:44,F:50,G:50,H:52,pop:22000,wb:52,mig:30,hw:false,heat:false,noise:60, sgb2:16,kinderarmut:18,einkommen:30000,arbeitslos:6, abitur:48, versieg:52,lst_delta:1.3},
-  "Rödelheim":        {A:48,B:50,C:55,D:55,E:44,F:52,G:54,H:55,pop:20000,wb:53,mig:32,hw:false,heat:false,noise:62, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:44, versieg:58,lst_delta:1.6},
-  "Sindlingen":       {A:50,B:52,C:38,D:54,E:48,F:54,G:54,H:55,pop:8000, wb:55,mig:24,hw:false,heat:false,noise:58, sgb2:14,kinderarmut:16,einkommen:30000,arbeitslos:6, abitur:46, versieg:52,lst_delta:1.4},
-  "Schwanheim":       {A:55,B:56,C:42,D:55,E:50,F:56,G:62,H:58,pop:19000,wb:57,mig:20,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:36000,arbeitslos:4, abitur:58, versieg:38,lst_delta:0.4},
-  "Bockenheim":       {A:50,B:55,C:76,D:68,E:40,F:62,G:44,H:58,pop:54000,wb:62,mig:28,hw:false,heat:true, noise:68, sgb2:14,kinderarmut:16,einkommen:34000,arbeitslos:6, abitur:62, versieg:70,lst_delta:2.4},
-  "Eckenheim":        {A:57,B:59,C:58,D:65,E:50,F:61,G:57,H:58,pop:12000,wb:62,mig:25,hw:false,heat:false,noise:60, sgb2:14,kinderarmut:16,einkommen:33000,arbeitslos:5, abitur:58, versieg:62,lst_delta:1.9},
-  "Ostend":           {A:52,B:55,C:68,D:65,E:40,F:62,G:44,H:55,pop:27000,wb:62,mig:30,hw:false,heat:true, noise:65, sgb2:16,kinderarmut:18,einkommen:32000,arbeitslos:6, abitur:55, versieg:72,lst_delta:2.7},
-  "Sachsenhausen-Nord":{A:55,B:58,C:70,D:68,E:42,F:65,G:47,H:58,pop:35000,wb:65,mig:24,hw:false,heat:false,noise:62, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:66, versieg:65,lst_delta:2.0},
-  "Sachsenhausen-Süd":{A:58,B:60,C:65,D:70,E:45,F:68,G:52,H:60,pop:17000,wb:68,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:4, abitur:72, versieg:60,lst_delta:1.7},
-  "Riederwald":       {A:60,B:62,C:52,D:66,E:54,F:64,G:61,H:60,pop:8000, wb:64,mig:22,hw:false,heat:false,noise:55, sgb2:18,kinderarmut:22,einkommen:28000,arbeitslos:7, abitur:42, versieg:55,lst_delta:1.4},
-  "Hausen":           {A:60,B:62,C:60,D:68,E:52,F:64,G:60,H:60,pop:10000,wb:64,mig:20,hw:false,heat:false,noise:56, sgb2:12,kinderarmut:14,einkommen:34000,arbeitslos:5, abitur:58, versieg:52,lst_delta:1.2},
-  "Ginnheim":         {A:61,B:63,C:62,D:70,E:53,F:65,G:61,H:62,pop:13000,wb:66,mig:18,hw:false,heat:false,noise:54, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66, versieg:55,lst_delta:1.3},
-  "Nordend-West":     {A:60,B:62,C:72,D:75,E:42,F:70,G:52,H:62,pop:37000,wb:70,mig:20,hw:false,heat:false,noise:62, sgb2:10,kinderarmut:11,einkommen:42000,arbeitslos:4, abitur:74, versieg:68,lst_delta:2.2},
-  "Bornheim":         {A:58,B:60,C:73,D:72,E:45,F:68,G:50,H:60,pop:47000,wb:68,mig:22,hw:false,heat:false,noise:60, sgb2:13,kinderarmut:15,einkommen:36000,arbeitslos:5, abitur:64, versieg:66,lst_delta:2.1},
-  "Nordend-Ost":      {A:62,B:64,C:70,D:76,E:44,F:72,G:53,H:64,pop:28000,wb:72,mig:18,hw:false,heat:false,noise:58, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76, versieg:65,lst_delta:2.0},
-  "Dornbusch":        {A:60,B:62,C:65,D:70,E:52,F:68,G:57,H:62,pop:33000,wb:68,mig:16,hw:false,heat:false,noise:56, sgb2:9, kinderarmut:10,einkommen:44000,arbeitslos:3, abitur:76, versieg:58,lst_delta:1.5},
-  "Heddernheim":      {A:58,B:60,C:55,D:68,E:52,F:65,G:57,H:60,pop:19000,wb:65,mig:20,hw:false,heat:false,noise:54, sgb2:12,kinderarmut:14,einkommen:35000,arbeitslos:5, abitur:60, versieg:50,lst_delta:1.1},
-  "Praunheim":        {A:62,B:64,C:55,D:70,E:54,F:65,G:64,H:62,pop:17000,wb:66,mig:16,hw:false,heat:false,noise:52, sgb2:11,kinderarmut:13,einkommen:36000,arbeitslos:4, abitur:62, versieg:45,lst_delta:0.8},
-  "Preungesheim":     {A:60,B:62,C:52,D:66,E:54,F:64,G:60,H:60,pop:11000,wb:64,mig:18,hw:false,heat:false,noise:54, sgb2:14,kinderarmut:16,einkommen:32000,arbeitslos:5, abitur:56, versieg:52,lst_delta:1.2},
-  "Westend-Süd":      {A:62,B:65,C:72,D:78,E:36,F:72,G:54,H:65,pop:31000,wb:72,mig:14,hw:false,heat:false,noise:60, sgb2:6, kinderarmut:7, einkommen:58000,arbeitslos:2, abitur:88, versieg:62,lst_delta:1.8},
-  "Westend-Nord":     {A:64,B:67,C:70,D:80,E:33,F:74,G:57,H:68,pop:22000,wb:74,mig:12,hw:false,heat:false,noise:58, sgb2:5, kinderarmut:6, einkommen:62000,arbeitslos:2, abitur:92, versieg:58,lst_delta:1.5},
-  "Eschersheim":      {A:62,B:64,C:60,D:72,E:54,F:70,G:61,H:64,pop:25000,wb:70,mig:14,hw:false,heat:false,noise:52, sgb2:10,kinderarmut:11,einkommen:38000,arbeitslos:4, abitur:66, versieg:50,lst_delta:1.1},
-  "Niederursel":      {A:64,B:66,C:52,D:72,E:57,F:68,G:64,H:65,pop:25000,wb:68,mig:14,hw:false,heat:false,noise:50, sgb2:11,kinderarmut:13,einkommen:37000,arbeitslos:4, abitur:64, versieg:48,lst_delta:0.9},
-  "Seckbach":         {A:66,B:68,C:48,D:72,E:60,F:68,G:69,H:65,pop:14000,wb:68,mig:12,hw:false,heat:false,noise:48, sgb2:9, kinderarmut:10,einkommen:40000,arbeitslos:3, abitur:68, versieg:42,lst_delta:0.6},
-  "Oberrad":          {A:65,B:66,C:52,D:70,E:58,F:68,G:65,H:63,pop:13000,wb:68,mig:12,hw:false,heat:false,noise:50, sgb2:10,kinderarmut:11,einkommen:39000,arbeitslos:4, abitur:66, versieg:46,lst_delta:0.8},
-  "Bonames":          {A:62,B:64,C:45,D:68,E:56,F:64,G:64,H:62,pop:8000, wb:64,mig:15,hw:false,heat:false,noise:48, sgb2:16,kinderarmut:19,einkommen:29000,arbeitslos:6, abitur:44, versieg:42,lst_delta:0.7},
-  "Frankfurter Berg": {A:60,B:62,C:48,D:68,E:54,F:64,G:62,H:60,pop:8000, wb:64,mig:16,hw:false,heat:false,noise:50, sgb2:18,kinderarmut:21,einkommen:27000,arbeitslos:7, abitur:42, versieg:44,lst_delta:0.8},
-  "Berkersheim":      {A:70,B:72,C:42,D:72,E:62,F:68,G:71,H:65,pop:4000, wb:68,mig:10,hw:false,heat:false,noise:44, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:72, versieg:32,lst_delta:0.2},
-  "Kalbach-Riedberg": {A:70,B:72,C:50,D:78,E:62,F:72,G:70,H:68,pop:15000,wb:72,mig:10,hw:false,heat:false,noise:46, sgb2:6, kinderarmut:7, einkommen:50000,arbeitslos:2, abitur:82, versieg:38,lst_delta:0.3},
-  "Nieder-Eschbach":  {A:71,B:73,C:38,D:74,E:64,F:70,G:73,H:68,pop:10000,wb:70,mig:10,hw:false,heat:false,noise:44, sgb2:8, kinderarmut:9, einkommen:43000,arbeitslos:3, abitur:70, versieg:35,lst_delta:0.0},
-  "Nieder-Erlenbach": {A:73,B:75,C:32,D:74,E:65,F:72,G:75,H:70,pop:4000, wb:72,mig:8, hw:false,heat:false,noise:40, sgb2:5, kinderarmut:6, einkommen:52000,arbeitslos:2, abitur:80, versieg:22,lst_delta:-0.8},
-  "Harheim":          {A:72,B:74,C:35,D:72,E:65,F:70,G:74,H:68,pop:5000, wb:70,mig:8, hw:false,heat:false,noise:42, sgb2:7, kinderarmut:8, einkommen:45000,arbeitslos:3, abitur:70, versieg:28,lst_delta:-0.3},
-  "Bergen-Enkheim":   {A:65,B:66,C:42,D:68,E:60,F:66,G:70,H:66,pop:18000,wb:67,mig:14,hw:false,heat:false,noise:50, sgb2:9, kinderarmut:10,einkommen:38000,arbeitslos:3, abitur:62, versieg:38,lst_delta:0.6},
-  "Flughafen":        {A:15,B:20,C:55,D:50,E:50,F:30,G:8, H:45,pop:200,  wb:40,mig:30,hw:false,heat:true, noise:88, sgb2:5, kinderarmut:5, einkommen:35000,arbeitslos:3, abitur:50, versieg:93,lst_delta:4.2}
-};
+let DISTRICTS={}, CITY={}, CITYKEY='ffm', ALLCITIES={};
+let entries=[], allScores=[], avgScore=0, critCount=0, highCount=0, dimAvgs={}, stadtteile=[];
+const DATA_BASE=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'data':'/urbanlens/data';
 
 const MASS = [
   {id:"A01",icon:"tree",name:"Straßenbaum-Programm",typ:"quick_win",dims:["A","G"],kosten:150000,roi:340000,desc:"50 Straßenbäume inkl. Pflanzgrube, Bewässerung, 5-Jahres-Pflege.",foerder:[{eb:"EU",prog:"LIFE+ Naturbasierte Lösungen",pct:60},{eb:"Bund",prog:"Bundesprogramm Stadtgrün",pct:75},{eb:"KfW",prog:"Kommunalkredit 0,6% p.a.",pct:null}]},
@@ -456,116 +433,126 @@ const MASS = [
   {id:"B05",icon:"walk",name:"Superblock / Verkehrsberuhigtes Quartier",typ:"strukturell",dims:["B","C","A"],kosten:450000,roi:1600000,desc:"Modale Filter, Begrünung, Spielstraßen nach Barcelona-Vorbild: −25% NO2, −5dB.",foerder:[{eb:"EU",prog:"EUI Innovative Actions",pct:80},{eb:"Bund",prog:"Nationale Klimaschutzinitiative",pct:70}]},
 ];
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
 function nice(d){ return Math.round((d.A+d.B+d.C+d.D+d.E+d.F+d.G+d.H)/8); }
 function scoreColor(s){ return s<40?'#dc2626':s<55?'#ea580c':s<70?'#ca8a04':'#16a34a'; }
 function fmt(n){ return n>=1000000?(n/1000000).toFixed(1)+'M€':n>=1000?Math.round(n/1000)+'k€':n+'€'; }
-
-// ── DUH HITZE-CHECK (Methodik angelehnt an Deutsche Umwelthilfe 2026) ──
-function gruenvolumen(d){
-  return Math.round(((100-(d.versieg||50))*0.055+(d.G||40)*0.012)*10)/10;
-}
+function gruenvolumen(d){ return Math.round(((100-(d.versieg||50))*0.055+(d.G||40)*0.012)*10)/10; }
 function duhAmpel(d){
   const lstPct=Math.min(100,Math.max(0,((d.lst_delta||0)+0.5)/4.5*100));
-  const gv=gruenvolumen(d);
-  const gvPct=Math.min(100,Math.max(0,(gv-1)/5*100));
+  const gv=gruenvolumen(d), gvPct=Math.min(100,Math.max(0,(gv-1)/5*100));
   const idx=Math.round(0.35*(d.versieg||50)+0.35*lstPct+0.30*(100-gvPct));
   if(idx>=70)return{card:'rot', col:'#dc2626',emoji:'',lbl:'Rote Karte', idx,gv};
   if(idx>=40)return{card:'gelb',col:'#eab308',emoji:'',lbl:'Gelbe Karte',idx,gv};
   return{card:'gruen',col:'#16a34a',emoji:'',lbl:'Grüne Karte',idx,gv};
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-const entries = Object.entries(DISTRICTS);
-const allScores = entries.map(([,d])=>nice(d));
-const avgScore = Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length);
-const critCount = allScores.filter(s=>s<40).length;
-const highCount = allScores.filter(s=>s<55).length;
+const dimKeys=['A','B','C','D','E','F','G','H'];
+const dimNames={A:'Klimagerechtigkeit',B:'Gesundheit',C:'Mobilität',D:'Bildung',E:'Wohnen',F:'Demokratie',G:'Ökosystem',H:'Resilienz'};
+const dimIcons={A:'thermo',B:'lung',C:'bike',D:'book',E:'home',F:'vote',G:'leaf',H:'shield'};
 
-// Hero
-document.getElementById('h-avg').textContent = avgScore;
-document.getElementById('h-crit').textContent = critCount;
+// ── SDG-Zuordnung je Dimension ──
+const SDG_META={1:{n:'Keine Armut',c:'#E5243B'},3:{n:'Gesundheit & Wohlergehen',c:'#4C9F38'},4:{n:'Hochwertige Bildung',c:'#C5192D'},11:{n:'Nachhaltige Städte',c:'#FD9D24'},13:{n:'Maßnahmen zum Klimaschutz',c:'#3F7E44'},15:{n:'Leben an Land',c:'#56C02B'},16:{n:'Frieden & Institutionen',c:'#00689D'}};
+const SDG_DIM={A:[13,11],B:[3],C:[11],D:[4],E:[11,1],F:[16],G:[15],H:[13,11]};
 
-// KPIs
-const duhRot  = entries.filter(([,d])=>duhAmpel(d).card==='rot').length;
-const duhGelb = entries.filter(([,d])=>duhAmpel(d).card==='gelb').length;
-const spread  = Math.max(...allScores)-Math.min(...allScores);
-const kpiData = [
-  {val: avgScore, lbl:'Ø NICE Score', sub:'46 Stadtteile Frankfurt', cls: avgScore<50?'warn':avgScore<65?'':'ok'},
-  {val: critCount, lbl:'Kritische Stadtteile', sub:'NICE Score unter 40', cls:'warn'},
-  {val: duhRot, lbl:'DUH Rote Karten', sub:`Hitze-Check Stadtteilebene · ${duhGelb}× gelb`, cls:'warn'},
-  {val: spread+' Pkt.', lbl:'Zufriedenheitsgefälle', sub:'Spread bester ↔ schlechtester Stadtteil (Glücksatlas-Logik)', cls: spread>40?'warn':''},
-  {val: '€' + Math.round(entries.reduce((s,[,d])=>s+(d.hw?1:0),0)*230/10)*10+'M', lbl:'Flutrisiko-Gebäude', sub:'HQ100-Risikobereich (Mio€)', cls:'warn'},
-  {val: Math.round(entries.reduce((s,[,d])=>s+d.sgb2,0)/entries.length)+'%', lbl:'Ø SGB-II-Quote', sub:'Soziale Vulnerabilität', cls:''},
-];
-document.getElementById('kpiRow').innerHTML = kpiData.map(k=>
-  `<div class="kpi ${k.cls}"><div class="val">${k.val}</div><div class="lbl">${k.lbl}</div><div class="sub">${k.sub}</div></div>`
-).join('');
+// ── STADT WECHSELN ──
+function setCity(key){
+  if(!ALLCITIES[key])return;
+  CITYKEY=key; CITY=ALLCITIES[key]; DISTRICTS=CITY.districts;
+  document.querySelectorAll('.ct').forEach(b=>b.classList.remove('on'));
+  const cb=document.getElementById('ct-'+key); if(cb)cb.classList.add('on');
+  if(history.replaceState)history.replaceState(null,'','?city='+key);
+  // NL/DE-Spaltenlabels
+  const isNL=CITY.country==='NL';
+  const thS=document.getElementById('th-sgb2'); if(thS)thS.textContent=isNL?'Bijstand':'SGB-II';
+  const thK=document.getElementById('th-ka'); if(thK)thK.textContent=isNL?'Laag ink.':'Kinderarmt.';
+  buildDashboard();
+}
 
-// City dimension averages
-const dimKeys = ['A','B','C','D','E','F','G','H'];
-const dimNames = {A:'Klimagerechtigkeit',B:'Gesundheit',C:'Mobilität',D:'Bildung',E:'Wohnen',F:'Demokratie',G:'Ökosystem',H:'Resilienz'};
-const dimIcons = {A:'thermo',B:'lung',C:'bike',D:'book',E:'home',F:'vote',G:'leaf',H:'shield'};
-const dimAvgs = {};
-dimKeys.forEach(k=>{ dimAvgs[k]=Math.round(entries.reduce((s,[,d])=>s+d[k],0)/entries.length); });
+function buildDashboard(){
+  entries=Object.entries(DISTRICTS);
+  allScores=entries.map(([,d])=>nice(d));
+  avgScore=Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length);
+  critCount=allScores.filter(s=>s<40).length;
+  highCount=allScores.filter(s=>s<55).length;
+  const N=entries.length, cityName=CITY.name;
 
-const worstDims = [...dimKeys].sort((a,b)=>dimAvgs[a]-dimAvgs[b]).slice(0,4);
-const bestDims  = [...dimKeys].sort((a,b)=>dimAvgs[b]-dimAvgs[a]).slice(0,4);
+  // Hero
+  document.getElementById('heroCity').textContent=cityName;
+  document.getElementById('h-avg').textContent=avgScore;
+  document.getElementById('h-crit').textContent=critCount;
+  document.getElementById('h-mass').textContent=MASS.length;
+  document.getElementById('heroDesc').innerHTML=`Normative Grundlage: EU Green Deal · SDG 11/13 · ${CITY.plan} · NICE Score 117 Indikatoren in 8 Dimensionen. Benchmarks: DUH Hitze-Check 2026 + SKL Glücksatlas. Ergebnisse, Maßnahmen und Förderprogramme für alle ${N} ${CITYKEY==='utr'?'Wijken':'Stadtteile'}.`;
 
-document.getElementById('cityGrid').innerHTML = `
-  <div class="city-card">
-    <h3>Durchschnitt aller 8 Dimensionen — Frankfurt</h3>
-    ${dimKeys.map(k=>`
-      <div class="bar-row">
-        <div class="bar-label">${ic(dimIcons[k],12)} ${dimNames[k]}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${dimAvgs[k]}%;background:${scoreColor(dimAvgs[k])}"></div></div>
-        <div class="bar-val" style="color:${scoreColor(dimAvgs[k])}">${dimAvgs[k]}</div>
-      </div>`).join('')}
-  </div>
-  <div class="city-card">
-    <h3>Größter Handlungsbedarf — Dimensionsranking</h3>
-    <div style="margin-bottom:16px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#dc2626;margin-bottom:8px">⚠ Schwächste Dimensionen</div>
-      ${worstDims.map(k=>`
-        <div class="bar-row">
-          <div class="bar-label">${ic(dimIcons[k],12)} ${dimNames[k]}</div>
-          <div class="bar-track"><div class="bar-fill" style="width:${dimAvgs[k]}%;background:${scoreColor(dimAvgs[k])}"></div></div>
-          <div class="bar-val" style="color:${scoreColor(dimAvgs[k])}">${dimAvgs[k]}</div>
-        </div>`).join('')}
-    </div>
-    <div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#16a34a;margin-bottom:8px">✓ Stärkste Dimensionen</div>
-      ${bestDims.map(k=>`
-        <div class="bar-row">
-          <div class="bar-label">${ic(dimIcons[k],12)} ${dimNames[k]}</div>
-          <div class="bar-track"><div class="bar-fill" style="width:${dimAvgs[k]}%;background:${scoreColor(dimAvgs[k])}"></div></div>
-          <div class="bar-val" style="color:${scoreColor(dimAvgs[k])}">${dimAvgs[k]}</div>
-        </div>`).join('')}
-    </div>
-    <div style="margin-top:16px;padding:12px;background:#fef2f2;border-radius:10px;border:1px solid #fecaca">
-      <div style="font-size:10px;font-weight:700;color:#dc2626;margin-bottom:4px">Gesamtstadtmaßnahmen — höchste Priorität</div>
-      ${worstDims.map(k=>{
-        const m=MASS.filter(x=>x.dims.includes(k)).slice(0,1)[0];
-        return m?`<div style="font-size:11px;color:#7f1d1d;padding:2px 0">→ ${ic(m.icon,14)} ${m.name} (${m.dims.join('+')})</div>`:'';
-      }).join('')}
-    </div>
+  // GHG-Banner
+  const pct=Math.round((2026-2020)/(CITY.neutralYear-2020)*100);
+  document.getElementById('ghgBanner').innerHTML=`<div class="ghg">
+    <div><div class="gv">${CITY.neutralYear}</div><div class="gl">Klimaneutralität (Ziel)</div></div>
+    <div><div class="gv" style="font-size:18px">${CITY.thgTarget}</div><div class="gl">Treibhausgas-Ziel (GHG)</div></div>
+    <div><div class="gv">${CITY.avgCO2}</div><div class="gl">Ø Gebäude ${CITY.co2Unit}</div></div>
+    <div style="flex:1;min-width:200px"><div class="gl" style="margin-bottom:6px">Weg zur Klimaneutralität · ${CITY.plan}</div>
+      <div class="gbar"><div class="gbarf" style="width:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,.4);margin-top:3px"><span>2020</span><span>heute</span><span>${CITY.neutralYear}</span></div></div>
   </div>`;
 
-// Stadtteil-Filterung
-let stadtteile = entries.map(([name,d])=>({name, d, score:nice(d)}));
+  // SDG-Grid
+  document.getElementById('sdgGrid').innerHTML=dimKeys.map(k=>`
+    <div class="sdg-card">
+      <div style="font-size:11px;font-weight:800;margin-bottom:7px">${ic(dimIcons[k],13)} ${k} · ${dimNames[k]}</div>
+      ${SDG_DIM[k].map(n=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="sdg-num" style="background:${SDG_META[n].c}">SDG ${n}</span><span style="font-size:10px;color:var(--text2)">${SDG_META[n].n}</span></div>`).join('')}
+    </div>`).join('');
+
+  // KPIs
+  const duhRot=entries.filter(([,d])=>duhAmpel(d).card==='rot').length;
+  const duhGelb=entries.filter(([,d])=>duhAmpel(d).card==='gelb').length;
+  const spread=Math.max(...allScores)-Math.min(...allScores);
+  const avgSgb2=Math.round(entries.reduce((s,[,d])=>s+(d.sgb2||0),0)/N*10)/10;
+  const isNL=CITY.country==='NL';
+  const kpiData=[
+    {val:avgScore,lbl:'Ø NICE Score',sub:`${N} ${isNL?'Wijken':'Stadtteile'} ${cityName}`,cls:avgScore<50?'warn':avgScore<65?'':'ok'},
+    {val:critCount,lbl:'Kritische '+(isNL?'Wijken':'Stadtteile'),sub:'NICE Score unter 40',cls:'warn'},
+    {val:duhRot,lbl:'DUH Rote Karten',sub:`Hitze-Check · ${duhGelb}× gelb`,cls:'warn'},
+    {val:spread+' Pkt.',lbl:'Zufriedenheitsgefälle',sub:'Spread bester ↔ schlechtester (Glücksatlas)',cls:spread>40?'warn':''},
+    {val:'€'+Math.round(entries.reduce((s,[,d])=>s+(d.hw?1:0),0)*230/10)*10+'M',lbl:'Flutrisiko-Gebäude',sub:'HQ100-Risikobereich (Mio€)',cls:'warn'},
+    {val:avgSgb2+'%',lbl:isNL?'Ø Bijstand-Quote':'Ø SGB-II-Quote',sub:'Soziale Vulnerabilität',cls:''},
+  ];
+  document.getElementById('kpiRow').innerHTML=kpiData.map(k=>`<div class="kpi ${k.cls}"><div class="val">${k.val}</div><div class="lbl">${k.lbl}</div><div class="sub">${k.sub}</div></div>`).join('');
+
+  // Dimensions-Durchschnitte
+  dimAvgs={}; dimKeys.forEach(k=>{ dimAvgs[k]=Math.round(entries.reduce((s,[,d])=>s+d[k],0)/N); });
+  const worstDims=[...dimKeys].sort((a,b)=>dimAvgs[a]-dimAvgs[b]).slice(0,4);
+  const bestDims=[...dimKeys].sort((a,b)=>dimAvgs[b]-dimAvgs[a]).slice(0,4);
+  const bar=k=>`<div class="bar-row"><div class="bar-label">${ic(dimIcons[k],12)} ${dimNames[k]}</div><div class="bar-track"><div class="bar-fill" style="width:${dimAvgs[k]}%;background:${scoreColor(dimAvgs[k])}"></div></div><div class="bar-val" style="color:${scoreColor(dimAvgs[k])}">${dimAvgs[k]}</div></div>`;
+  document.getElementById('cityGrid').innerHTML=`
+    <div class="city-card"><h3>Durchschnitt aller 8 Dimensionen — ${cityName}</h3>${dimKeys.map(bar).join('')}</div>
+    <div class="city-card"><h3>Größter Handlungsbedarf — Dimensionsranking</h3>
+      <div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#dc2626;margin-bottom:8px">Schwächste Dimensionen</div>${worstDims.map(bar).join('')}</div>
+      <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#16a34a;margin-bottom:8px">Stärkste Dimensionen</div>${bestDims.map(bar).join('')}</div>
+      <div style="margin-top:16px;padding:12px;background:#fef2f2;border-radius:10px;border:1px solid #fecaca"><div style="font-size:10px;font-weight:700;color:#dc2626;margin-bottom:4px">Gesamtstadtmaßnahmen — höchste Priorität</div>${worstDims.map(k=>{const m=MASS.filter(x=>x.dims.includes(k))[0];return m?`<div style="font-size:11px;color:#7f1d1d;padding:2px 0">→ ${ic(m.icon,14)} ${m.name} (${m.dims.join('+')})</div>`:'';}).join('')}</div>
+    </div>`;
+
+  // Stadtteil-Tabelle
+  stadtteile=entries.map(([name,d])=>({name,d,score:nice(d)}));
+  renderStadt([...stadtteile].sort((a,b)=>a.score-b.score));
+
+  // Maßnahmen-Filter: Stadtteil-Dropdown neu füllen
+  const sel=document.getElementById('filterMassStadt');
+  sel.innerHTML='<option value="">Alle '+(isNL?'Wijken':'Stadtteile')+'</option>'+
+    entries.slice().sort((a,b)=>nice(a[1])-nice(b[1])).map(([n])=>`<option value="${n}">${n}</option>`).join('');
+  renderMass(MASS);
+}
 
 function renderStadt(list){
-  document.getElementById('tblCount').textContent = `${list.length} Stadtteile`;
-  document.getElementById('stadtTbody').innerHTML = list.map(({name,d,score})=>{
-    const risks = [d.hw?ic('droplet',11)+' Flut':'', d.heat?ic('thermo',11)+' Hitze':'', d.noise>70?ic('volume',11)+' Lärm':''].filter(Boolean).join(' ');
-    const duh = duhAmpel(d);
-    return `<tr onclick="openDistrict('${name}')">
+  document.getElementById('tblCount').textContent=`${list.length} ${CITY.country==='NL'?'Wijken':'Stadtteile'}`;
+  document.getElementById('stadtTbody').innerHTML=list.map(({name,d,score})=>{
+    const risks=[d.hw?ic('droplet',11)+' Flut':'', d.heat?ic('thermo',11)+' Hitze':'', d.noise>70?ic('volume',11)+' Lärm':''].filter(Boolean).join(' ');
+    const duh=duhAmpel(d);
+    return `<tr onclick="openDistrict('${name.replace(/'/g,"\\'")}')">
       <td class="name">${name}</td>
       <td><span class="score-pill" style="background:${scoreColor(score)}">${score}</span></td>
-      <td title="DUH Hitze-Check: ${duh.lbl} · Index ${duh.idx}/100">${duh.emoji}</td>
+      <td title="DUH: ${duh.lbl} · Index ${duh.idx}"><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:${duh.col}"></span></td>
       ${dimKeys.map(k=>`<td><span class="dim-score" style="background:${scoreColor(d[k])}">${d[k]}</span></td>`).join('')}
-      <td style="color:${d.sgb2>40?'#dc2626':d.sgb2>25?'#ea580c':'var(--text2)'};font-weight:${d.sgb2>30?700:400}">${d.sgb2}%</td>
-      <td style="color:${d.kinderarmut>50?'#dc2626':d.kinderarmut>30?'#ea580c':'var(--text2)'};font-weight:${d.kinderarmut>40?700:400}">${d.kinderarmut}%</td>
+      <td style="color:${d.sgb2>25?'#dc2626':d.sgb2>12?'#ea580c':'var(--text2)'};font-weight:${d.sgb2>15?700:400}">${d.sgb2}%</td>
+      <td style="color:${d.kinderarmut>30?'#dc2626':d.kinderarmut>12?'#ea580c':'var(--text2)'}">${d.kinderarmut}%</td>
       <td class="muted">${(d.einkommen/1000).toFixed(0)}k€</td>
       <td class="muted">${d.mig}%</td>
       <td>${risks||'—'}</td>
@@ -574,154 +561,101 @@ function renderStadt(list){
 }
 
 function filterTable(){
-  const q = document.getElementById('searchStadt').value.toLowerCase();
-  const risk = document.getElementById('filterRisk').value;
-  const sort = document.getElementById('sortCol').value;
-  let list = [...stadtteile];
-  if(q) list = list.filter(x=>x.name.toLowerCase().includes(q));
-  if(risk==='krit')   list = list.filter(x=>x.score<40);
-  if(risk==='hoch')   list = list.filter(x=>x.score>=40&&x.score<55);
-  if(risk==='mittel') list = list.filter(x=>x.score>=55&&x.score<70);
-  if(risk==='gut')    list = list.filter(x=>x.score>=70);
-  if(sort==='nice')           list.sort((a,b)=>a.score-b.score);
-  else if(dimKeys.includes(sort)) list.sort((a,b)=>a.d[sort]-b.d[sort]);
-  else if(sort==='sgb2')      list.sort((a,b)=>b.d.sgb2-a.d.sgb2);
-  else if(sort==='einkommen') list.sort((a,b)=>a.d.einkommen-b.d.einkommen);
+  const q=document.getElementById('searchStadt').value.toLowerCase();
+  const risk=document.getElementById('filterRisk').value;
+  const sort=document.getElementById('sortCol').value;
+  let list=[...stadtteile];
+  if(q)list=list.filter(x=>x.name.toLowerCase().includes(q));
+  if(risk==='krit')list=list.filter(x=>x.score<40);
+  if(risk==='hoch')list=list.filter(x=>x.score>=40&&x.score<55);
+  if(risk==='mittel')list=list.filter(x=>x.score>=55&&x.score<70);
+  if(risk==='gut')list=list.filter(x=>x.score>=70);
+  if(sort==='nice')list.sort((a,b)=>a.score-b.score);
+  else if(dimKeys.includes(sort))list.sort((a,b)=>a.d[sort]-b.d[sort]);
+  else if(sort==='sgb2')list.sort((a,b)=>b.d.sgb2-a.d.sgb2);
+  else if(sort==='einkommen')list.sort((a,b)=>a.d.einkommen-b.d.einkommen);
   renderStadt(list);
 }
 
-renderStadt([...stadtteile].sort((a,b)=>a.score-b.score));
-
-// Fördermittel-Populate
-const stadtSelect = document.getElementById('filterMassStadt');
-entries.sort((a,b)=>nice(a[1])-nice(b[1])).forEach(([name])=>{
-  const o=document.createElement('option'); o.value=name; o.textContent=name;
-  stadtSelect.appendChild(o);
-});
-
 function priorityDistricts(m){
-  // Finde Stadtteile wo mind. eine Dimension des Maßnahme schwach ist
   return entries.filter(([,d])=>m.dims.some(k=>d[k]<50))
-    .sort((a,b)=>{ const sa=Math.min(...m.dims.map(k=>a[1][k])), sb=Math.min(...m.dims.map(k=>b[1][k])); return sa-sb; })
+    .sort((a,b)=>Math.min(...m.dims.map(k=>a[1][k]))-Math.min(...m.dims.map(k=>b[1][k])))
     .slice(0,3).map(([n])=>n).join(', ');
 }
 
 function renderMass(list){
-  document.getElementById('massTblCount').textContent = `${list.length} Maßnahmen`;
-  document.getElementById('massTbody').innerHTML = list.map(m=>{
-    const prio = priorityDistricts(m);
-    return `<tr class="mass-row">
-      <td>
-        <div class="mass-name">${ic(m.icon,14)} ${m.name}</div>
-        <div class="mass-desc">${m.desc}</div>
-      </td>
-      <td><span class="mass-type ${m.typ}">${m.typ==='quick_win'?'Quick Win':'Strukturell'}</span></td>
-      <td>${m.dims.map(k=>`<span class="dim-score" style="background:${scoreColor(dimAvgs[k])}">${k}</span>`).join(' ')}</td>
-      <td style="font-size:11px;color:var(--text2)">${prio}</td>
-      <td class="kosten-cell" style="font-size:11px">${fmt(m.kosten)}</td>
-      <td class="roi-pos" style="font-size:11px">${fmt(m.roi)}</td>
-      <td>
-        <div class="foerder-pills">
-          ${m.foerder.map(f=>{
-            const cls=f.eb==='EU'?'eu':f.eb==='Bund'?'bund':f.eb==='Land'?'land':'kfw';
-            return `<span class="fpill ${cls}">${f.eb}${f.pct?` ${f.pct}%`:''}</span>`;
-          }).join('')}
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
+  document.getElementById('massTblCount').textContent=`${list.length} Maßnahmen`;
+  document.getElementById('massTbody').innerHTML=list.map(m=>`<tr class="mass-row">
+    <td><div class="mass-name">${ic(m.icon,14)} ${m.name}</div><div class="mass-desc">${m.desc}</div></td>
+    <td><span class="mass-type ${m.typ}">${m.typ==='quick_win'?'Quick Win':'Strukturell'}</span></td>
+    <td>${m.dims.map(k=>`<span class="dim-score" style="background:${scoreColor(dimAvgs[k]||50)}">${k}</span>`).join(' ')}</td>
+    <td style="font-size:11px;color:var(--text2)">${priorityDistricts(m)}</td>
+    <td class="kosten-cell" style="font-size:11px">${fmt(m.kosten)}</td>
+    <td class="roi-pos" style="font-size:11px">${fmt(m.roi)}</td>
+    <td><div class="foerder-pills">${m.foerder.map(f=>{const cls=f.eb==='EU'?'eu':f.eb==='Bund'?'bund':f.eb==='Land'?'land':'kfw';return `<span class="fpill ${cls}">${f.eb}${f.pct?` ${f.pct}%`:''}</span>`;}).join('')}</div></td>
+  </tr>`).join('');
 }
 
 function filterMass(){
-  const q    = document.getElementById('searchMass').value.toLowerCase();
-  const stadt= document.getElementById('filterMassStadt').value;
-  const dim  = document.getElementById('filterMassDim').value;
-  const typ  = document.getElementById('filterMassTyp').value;
-  let list = [...MASS];
-  if(q)     list = list.filter(m=>m.name.toLowerCase().includes(q)||m.desc.toLowerCase().includes(q));
-  if(dim)   list = list.filter(m=>m.dims.includes(dim));
-  if(typ)   list = list.filter(m=>m.typ===typ);
-  if(stadt){
-    const d = DISTRICTS[stadt];
-    if(d) list = list.filter(m=>m.dims.some(k=>d[k]<55))
-      .sort((a,b)=>{
-        const sa=Math.min(...a.dims.map(k=>d[k]??50)), sb=Math.min(...b.dims.map(k=>d[k]??50));
-        return sa-sb;
-      });
-  }
+  const q=document.getElementById('searchMass').value.toLowerCase();
+  const stadt=document.getElementById('filterMassStadt').value;
+  const dim=document.getElementById('filterMassDim').value;
+  const typ=document.getElementById('filterMassTyp').value;
+  let list=[...MASS];
+  if(q)list=list.filter(m=>m.name.toLowerCase().includes(q)||m.desc.toLowerCase().includes(q));
+  if(dim)list=list.filter(m=>m.dims.includes(dim));
+  if(typ)list=list.filter(m=>m.typ===typ);
+  if(stadt){const d=DISTRICTS[stadt];if(d)list=list.filter(m=>m.dims.some(k=>d[k]<55)).sort((a,b)=>Math.min(...a.dims.map(k=>d[k]??50))-Math.min(...b.dims.map(k=>d[k]??50)));}
   renderMass(list);
 }
 
-renderMass(MASS);
-
-// ── DISTRICT DRAWER ───────────────────────────────────────────────────────────
 function openDistrict(name){
-  const d = DISTRICTS[name];
-  if(!d) return;
-  const score = nice(d);
-  document.getElementById('d-name').textContent = name;
-  document.getElementById('d-sub').textContent = `NICE Score ${score}/100 · ${d.pop.toLocaleString('de')} Einwohner`;
-
-  const weakDims = dimKeys.filter(k=>d[k]<55).sort((a,b)=>d[a]-d[b]);
-  const recMass  = MASS.filter(m=>m.dims.some(k=>weakDims.includes(k)))
-    .sort((a,b)=>Math.min(...a.dims.map(k=>d[k]??50))-Math.min(...b.dims.map(k=>d[k]??50)))
-    .slice(0,5);
-
-  const duh = duhAmpel(d);
-  document.getElementById('d-body').innerHTML = `
+  const d=DISTRICTS[name]; if(!d)return;
+  const score=nice(d);
+  const isNL=CITY.country==='NL';
+  document.getElementById('d-name').textContent=name;
+  document.getElementById('d-sub').textContent=`NICE Score ${score}/100 · ${d.pop.toLocaleString('de')} ${isNL?'inwoners':'Einwohner'}`;
+  const weakDims=dimKeys.filter(k=>d[k]<55).sort((a,b)=>d[a]-d[b]);
+  const recMass=MASS.filter(m=>m.dims.some(k=>weakDims.includes(k))).sort((a,b)=>Math.min(...a.dims.map(k=>d[k]??50))-Math.min(...b.dims.map(k=>d[k]??50))).slice(0,5);
+  const duh=duhAmpel(d);
+  const incLbl=isNL?'Gem. inkomen/inwoner':'Medianeinkommen';
+  const sgbLbl=isNL?'Bijstand-Quote':'SGB-II-Quote';
+  const kaLbl=isNL?'Laag inkomen (huish.)':'Kinderarmut';
+  const aLbl=isNL?'WW-Quote':'Arbeitslosigkeit';
+  const eduLbl=isNL?'Hoog opgeleid':'Abiturquote';
+  document.getElementById('d-body').innerHTML=`
     <div style="background:${duh.col}12;border:1.5px solid ${duh.col}50;border-radius:12px;padding:12px 14px;margin-bottom:20px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:22px">${duh.emoji}</span>
-        <div>
-          <div style="font-size:13px;font-weight:800;color:${duh.col}">DUH Hitze-Check: ${duh.lbl}</div>
-          <div style="font-size:10px;color:var(--text2);margin-top:1px">Index ${duh.idx}/100 · Versiegelung ${d.versieg}% · Grünvolumen ~${duh.gv} m³/m² · ΔLST ${d.lst_delta>0?'+':''}${d.lst_delta}°C</div>
-        </div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${duh.col}"></span>
+        <div><div style="font-size:13px;font-weight:800;color:${duh.col}">DUH Hitze-Check: ${duh.lbl}</div>
+          <div style="font-size:10px;color:var(--text2);margin-top:1px">Index ${duh.idx}/100 · Versiegelung ${d.versieg}% · Grünvolumen ~${duh.gv} m³/m² · ΔLST ${d.lst_delta>0?'+':''}${d.lst_delta}°C</div></div>
       </div>
-      <div style="font-size:9px;color:var(--muted);margin-top:7px;padding-top:6px;border-top:1px solid ${duh.col}30">Methodik angelehnt an DUH Hitze-Check 2026 — auf Stadtteilebene heruntergebrochen (DUH bewertet nur Gesamtstädte).</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:7px;padding-top:6px;border-top:1px solid ${duh.col}30">Methodik angelehnt an DUH Hitze-Check 2026 — auf ${isNL?'Wijk':'Stadtteil'}ebene heruntergebrochen.</div>
     </div>
-    <div class="d-section">
-      <h4>NICE Score — 8 Dimensionen</h4>
-      <div class="d-score-grid">
-        ${dimKeys.map(k=>`
-          <div class="d-score-item">
-            <div class="d-score-val" style="color:${scoreColor(d[k])}">${d[k]}</div>
-            <div class="d-score-lbl">${ic(dimIcons[k],12)} ${k}</div>
-          </div>`).join('')}
-      </div>
+    <div class="d-section"><h4>NICE Score — 8 Dimensionen</h4><div class="d-score-grid">
+      ${dimKeys.map(k=>`<div class="d-score-item"><div class="d-score-val" style="color:${scoreColor(d[k])}">${d[k]}</div><div class="d-score-lbl">${ic(dimIcons[k],12)} ${k}</div></div>`).join('')}
+    </div></div>
+    <div class="d-section"><h4>${isNL?'Sociale indicatoren (CBS)':'Soziale Indikatoren'}</h4>
+      ${[['Wahlbeteiligung',d.wb+'%'],['Migration',d.mig+'%'],[sgbLbl,d.sgb2+'%'],[kaLbl,d.kinderarmut+'%'],[incLbl,(d.einkommen/1000).toFixed(0)+'k€/Jahr'],[aLbl,d.arbeitslos+'%'],[eduLbl,d.abitur+'%'],['Versiegelungsgrad',d.versieg+'%'],['Hitze-Delta (LST)','+'+d.lst_delta+'°C']].map(([k,v])=>`<div class="d-kv"><span>${k}</span><span>${v}</span></div>`).join('')}
+      <div style="font-size:9px;color:var(--muted);margin-top:8px">${CITY.socialNote}</div>
     </div>
-    <div class="d-section">
-      <h4>Soziale Indikatoren</h4>
-      ${[
-        ['Wahlbeteiligung',d.wb+'%'],['Migration',d.mig+'%'],['SGB-II-Quote',d.sgb2+'%'],
-        ['Kinderarmut',d.kinderarmut+'%'],['Medianeinkommen',(d.einkommen/1000).toFixed(0)+'k€/Jahr'],
-        ['Arbeitslosigkeit',d.arbeitslos+'%'],['Abiturquote',d.abitur+'%'],
-        ['Versiegelungsgrad',d.versieg+'%'],['Hitze-Delta (LST)','+'+d.lst_delta+'°C'],
-      ].map(([k,v])=>`<div class="d-kv"><span>${k}</span><span>${v}</span></div>`).join('')}
+    <div class="d-section"><h4>SDG-Bezug</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${[...new Set(weakDims.flatMap(k=>SDG_DIM[k]))].map(n=>`<span class="sdg-num" style="background:${SDG_META[n].c}">SDG ${n}</span>`).join('')||'<span style="font-size:11px;color:var(--muted)">—</span>'}</div>
     </div>
-    <div class="d-section">
-      <h4>Risiken</h4>
-      ${[d.hw?ic('droplet',11)+' Hochwasserrisiko (HQ100)':'', d.heat?ic('thermo',11)+' Hitzeinsel (LST erhöht)':'', d.noise>70?ic('volume',11)+' Lärm über EU-Grenzwert':''].filter(Boolean).map(r=>`<div class="d-kv"><span>${r}</span><span style="color:#dc2626">⚠ Aktiv</span></div>`).join('')||'<div style="font-size:12px;color:var(--muted)">Keine kritischen Risiken</div>'}
-    </div>
-    <div class="d-section">
-      <h4>Empfohlene Maßnahmen (${recMass.length})</h4>
-      ${recMass.map(m=>`
-        <div class="d-mass-item">
-          <div class="d-mass-name">${ic(m.icon,14)} ${m.name}</div>
-          <div class="d-mass-meta">${fmt(m.kosten)} Invest → ${fmt(m.roi)} ROI · Dimensionen: ${m.dims.join('+')}</div>
-          <div class="d-mass-foerder">
-            ${m.foerder.map(f=>`<span class="fpill ${f.eb==='EU'?'eu':f.eb==='Bund'?'bund':f.eb==='Land'?'land':'kfw'}">${f.eb}${f.pct?' '+f.pct+'%':''}</span>`).join('')}
-          </div>
-        </div>`).join('')}
+    <div class="d-section"><h4>Empfohlene Maßnahmen (${recMass.length})</h4>
+      ${recMass.map(m=>`<div class="d-mass-item"><div class="d-mass-name">${ic(m.icon,14)} ${m.name}</div><div class="d-mass-meta">${fmt(m.kosten)} Invest → ${fmt(m.roi)} ROI · ${m.dims.join('+')}</div><div class="d-mass-foerder">${m.foerder.map(f=>`<span class="fpill ${f.eb==='EU'?'eu':f.eb==='Bund'?'bund':f.eb==='Land'?'land':'kfw'}">${f.eb}${f.pct?' '+f.pct+'%':''}</span>`).join('')}</div></div>`).join('')}
     </div>`;
-
   document.getElementById('drawerOverlay').style.display='block';
   document.getElementById('drawer').classList.add('open');
 }
+function closeDrawer(){ document.getElementById('drawerOverlay').style.display='none'; document.getElementById('drawer').classList.remove('open'); }
 
-function closeDrawer(){
-  document.getElementById('drawerOverlay').style.display='none';
-  document.getElementById('drawer').classList.remove('open');
-}
+// ── LOADER ──
+fetch(DATA_BASE+'/cities.json').then(r=>r.json()).then(all=>{
+  ALLCITIES=all;
+  const init=new URLSearchParams(location.search).get('city');
+  setCity(ALLCITIES[init]?init:'ffm');
+}).catch(()=>{ document.getElementById('kpiRow').innerHTML='<div style="padding:20px;color:var(--muted)">Daten konnten nicht geladen werden.</div>'; });
+
 </script>
 </body>
 </html>
