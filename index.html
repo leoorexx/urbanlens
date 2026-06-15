@@ -71,6 +71,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cite-row .ct{flex:1;font-size:9.5px;color:var(--text2);font-family:ui-monospace,monospace;line-height:1.4;word-break:break-word}
 .cite-btn{border:1px solid var(--border2);background:var(--surface);border-radius:7px;padding:4px 8px;font-size:10px;font-weight:700;color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:all .15s}
 .cite-btn:hover{background:var(--text);color:#fff;border-color:var(--text)}
+.diag-hint{font-size:9px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);line-height:1.5}
+.diag-mode{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:9px;cursor:pointer;border:1.5px solid var(--border);margin-bottom:5px;transition:all .15s;background:var(--surface)}
+.diag-mode:hover{border-color:var(--border2)}
+.diag-mode.on{border-color:#1a1a2e;background:var(--surface2)}
+.diag-mode .dm-ic{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:var(--surface2);color:var(--text2);flex-shrink:0}
+.diag-mode.on .dm-ic{background:#1a1a2e;color:#FFD600}
+.diag-mode .dm-tx{flex:1;min-width:0}
+.diag-mode .dm-nm{font-size:11px;font-weight:700;color:var(--text)}
+.diag-mode .dm-sub{font-size:9px;color:var(--muted);line-height:1.3}
+.diag-mode .dm-st{font-size:9px;color:var(--muted)}
+.diag-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:9px;color:var(--text2);margin:4px 0 2px;padding:0 2px}
+.diag-legend span{display:inline-flex;align-items:center;gap:4px}
+.diag-legend .lc{width:11px;height:11px;border-radius:3px;display:inline-block}
+.diag-pop b{font-size:12px}.diag-pop .dp-norm{font-size:9px;color:#8888aa;margin-top:5px;border-top:1px solid #eee;padding-top:5px}
 .cdot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:-1px;margin-right:1px}
 .nsep{width:1px;height:24px;background:rgba(0,0,0,0.1);margin:0 4px}
 .ninfo{font-size:11px;color:#6b7280;font-weight:500}.ninfo b{color:#1a1a2e}
@@ -445,6 +459,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span data-i18n="hint_layers">Stadtteil-Füllung blendet sich automatisch aus wenn Layer aktiv sind — die Karte bleibt lesbar.</span>
   </div>
 
+    <div class="lp-section"><span data-i18n="sec_diag">Diagnose — Probleme erkennen</span></div>
+  <div class="diag-hint" data-i18n="diag_hint">Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.</div>
+  <div class="diag-mode" id="diag-green" onclick="toggleDiag('green')">
+    <div class="dm-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 8 9h2l-4 6h12l-4-6h2l-4-6Z"/><path d="M12 15v6"/></svg></div>
+    <div class="dm-tx"><div class="dm-nm" data-i18n="diag_green_nm">Grünversorgung (300-m-Regel)</div><div class="dm-sub" data-i18n="diag_green_sub">Wo ist der nächste Park weiter als 300 m? (WHO/EU)</div></div>
+    <div class="dm-st" id="dst-green"></div>
+  </div>
+  <div class="diag-mode" id="diag-stay" onclick="toggleDiag('stay')">
+    <div class="dm-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16M5 9v8M19 9v8M3 13.5h18"/></svg></div>
+    <div class="dm-tx"><div class="dm-nm" data-i18n="diag_stay_nm">Aufenthaltsqualität</div><div class="dm-sub" data-i18n="diag_stay_sub">Wo fehlen Bänke, Schatten, Grün trotz Betrieb?</div></div>
+    <div class="dm-st" id="dst-stay"></div>
+  </div>
+  <div class="diag-legend" id="diag-legend" style="display:none"></div>
+
   <div class="lp-section"><span data-i18n="sec_risk">Risikolayer (offizielle Quellen)</span></div>
 
   <div class="lrow" onclick="toggleLayer('duh_ampel')">
@@ -770,7 +798,7 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
+ de:{sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
      search_ph:'Stadtteil suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
@@ -781,7 +809,7 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
+ en:{sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
      search_ph:'Search district…',list_sub:'Relative ranking within the city · quintiles',
      loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
@@ -792,7 +820,7 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
+ nl:{sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
      search_ph:'Zoek wijk…',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
@@ -814,6 +842,7 @@ function setLang(l){
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{el.placeholder=t(el.dataset.i18nPh);});
   document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});
   if(typeof renderList==='function'&&typeof city!=='undefined')try{renderList(document.getElementById('searchBox').value);}catch(e){}
+  if(typeof DIAG!=='undefined'&&DIAG.active)try{diagRun();}catch(e){}
 }
 
 
@@ -1778,6 +1807,197 @@ function renderDUHAmpel(id,statusEl){
   statusEl.textContent='✓ '+geoFeatures.length;
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// DIAGNOSE-ENGINE — Straßen & Plätze gegen Normen bewerten
+// Grid-basiert, läuft aus OSM-Live-Daten in jeder Stadt.
+// ══════════════════════════════════════════════════════════════
+const DIAG={active:false,mode:null,layer:null,under:null,hooked:false,cache:{},timer:null};
+
+function diagPointInPoly(lat,lon,ring){
+  let inside=false;
+  for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+    const yi=ring[i][0],xi=ring[i][1],yj=ring[j][0],xj=ring[j][1];
+    if(((yi>lat)!==(yj>lat)) && (lon<(xj-xi)*(lat-yi)/(yj-yi)+xi)) inside=!inside;
+  }
+  return inside;
+}
+
+function toggleDiag(mode){
+  const wasOn=DIAG.active && DIAG.mode===mode;
+  document.getElementById('diag-green').classList.remove('on');
+  document.getElementById('diag-stay').classList.remove('on');
+  if(wasOn){ diagClear(); return; }
+  DIAG.active=true; DIAG.mode=mode;
+  document.getElementById('diag-'+mode).classList.add('on');
+  // andere Stadtteil-Füllung ausblenden für Lesbarkeit
+  const pane=map.getPane('choropleth'); if(pane)pane.style.display='none';
+  if(!DIAG.hooked){
+    DIAG.hooked=true;
+    map.on('moveend',()=>{ if(DIAG.active){clearTimeout(DIAG.timer);DIAG.timer=setTimeout(diagRun,600);} });
+  }
+  diagRun();
+}
+function diagClear(){
+  DIAG.active=false; DIAG.mode=null;
+  if(DIAG.layer){map.removeLayer(DIAG.layer);DIAG.layer=null;}
+  if(DIAG.under){map.removeLayer(DIAG.under);DIAG.under=null;}
+  document.getElementById('diag-legend').style.display='none';
+  document.getElementById('dst-green').textContent='';
+  document.getElementById('dst-stay').textContent='';
+}
+function diagStatus(txt){
+  const el=document.getElementById('dst-'+DIAG.mode); if(el)el.innerHTML=txt;
+}
+
+function diagRun(){
+  if(!DIAG.active)return;
+  if(map.getZoom()<14){ if(DIAG.layer){map.removeLayer(DIAG.layer);DIAG.layer=null;} if(DIAG.under){map.removeLayer(DIAG.under);DIAG.under=null;}
+    diagStatus(lang==='de'?'näher zoomen':lang==='nl'?'zoom in':'zoom in'); return; }
+  diagStatus('<span class="loading-dot"></span>');
+  const b=map.getBounds();
+  const key=DIAG.mode+'@'+[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(3)).join(',');
+  if(DIAG.cache[key]){ diagRender(DIAG.cache[key]); return; }
+  const bbox=`${b.getSouth().toFixed(5)},${b.getWest().toFixed(5)},${b.getNorth().toFixed(5)},${b.getEast().toFixed(5)}`;
+  const q=`[out:json][timeout:30];(node["natural"="tree"](${bbox});node["amenity"="bench"](${bbox});node["shop"](${bbox});node["amenity"~"^(cafe|restaurant|bar|fast_food|bank|pharmacy)$"](${bbox});node["amenity"~"^(drinking_water|fountain)$"](${bbox});way["leisure"~"park|garden|playground|pitch|common"](${bbox});way["landuse"~"grass|recreation_ground|forest|meadow|village_green|cemetery"](${bbox}););out geom 7000;`;
+  fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q))
+    .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();})
+    .then(j=>{
+      if(!DIAG.active)return;
+      const els={trees:[],benches:[],shops:[],water:[],green:[]};
+      (j.elements||[]).forEach(e=>{
+        if(e.type==='node'){
+          if(e.tags&&e.tags.natural==='tree')els.trees.push([e.lat,e.lon]);
+          else if(e.tags&&e.tags.amenity==='bench')els.benches.push([e.lat,e.lon]);
+          else if(e.tags&&(e.tags.amenity==='drinking_water'||e.tags.amenity==='fountain'))els.water.push([e.lat,e.lon]);
+          else els.shops.push([e.lat,e.lon]);
+        } else if(e.type==='way'&&e.geometry){
+          els.green.push(e.geometry.map(g=>[g.lat,g.lon]));
+        }
+      });
+      const data=diagBuildGrid(b,els);
+      DIAG.cache[key]=data;
+      diagRender(data);
+    })
+    .catch(()=>{ diagStatus(lang==='de'?'Overpass-Limit, kurz warten':'Overpass busy'); });
+}
+
+function diagBuildGrid(bounds,els,targetM=72){
+  const s=bounds.getSouth(),w=bounds.getWest(),n=bounds.getNorth(),e=bounds.getEast();
+  const midLat=(s+n)/2, mPerLat=111320, mPerLon=111320*Math.cos(midLat*Math.PI/180);
+  const rows=Math.max(4,Math.min(64,Math.round((n-s)*mPerLat/targetM)));
+  const cols=Math.max(4,Math.min(64,Math.round((e-w)*mPerLon/targetM)));
+  const cellH=(n-s)/rows, cellW=(e-w)/cols;
+  const cellM=Math.round((cellH*mPerLat+cellW*mPerLon)/2);
+  const grid=[];
+  for(let r=0;r<rows;r++){grid.push([]);for(let c=0;c<cols;c++)grid[r].push({r,c,trees:0,benches:0,shops:0,water:0,green:false,lat:s+(r+0.5)*cellH,lon:w+(c+0.5)*cellW});}
+  const idx=(lat,lon)=>{const r=Math.floor((lat-s)/cellH),c=Math.floor((lon-w)/cellW);return(r>=0&&r<rows&&c>=0&&c<cols)?grid[r][c]:null;};
+  els.trees.forEach(p=>{const g=idx(p[0],p[1]);if(g)g.trees++;});
+  els.benches.forEach(p=>{const g=idx(p[0],p[1]);if(g)g.benches++;});
+  els.shops.forEach(p=>{const g=idx(p[0],p[1]);if(g)g.shops++;});
+  els.water.forEach(p=>{const g=idx(p[0],p[1]);if(g)g.water++;});
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const g=grid[r][c];for(const poly of els.green){if(diagPointInPoly(g.lat,g.lon,poly)){g.green=true;break;}}}
+  // BFS Grün-Distanz (Zellen)
+  const dist=grid.map(row=>row.map(g=>g.green?0:Infinity));
+  const q=[];for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)if(grid[r][c].green)q.push([r,c]);
+  let h=0;while(h<q.length){const[r,c]=q[h++];[[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([nr,nc])=>{if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&dist[nr][nc]===Infinity){dist[nr][nc]=dist[r][c]+1;q.push([nr,nc]);}});}
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)grid[r][c].greenDistM=dist[r][c]===Infinity?9999:dist[r][c]*cellM;
+  // Nachbarschafts-Aggregate (3×3) für Bäume/Bänke/Shops
+  const sum=(r,c,f)=>{let t=0;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<rows&&nc>=0&&nc<cols)t+=grid[nr][nc][f];}return t;};
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const g=grid[r][c];g.nTrees=sum(r,c,'trees');g.nBench=sum(r,c,'benches');g.nShop=sum(r,c,'shops');g.nWater=sum(r,c,'water');}
+  return {grid,rows,cols,cellM,cellH,cellW,s,w,els};
+}
+
+function diagScore(g){
+  // Aufenthaltsqualität 0–100
+  let sc=48;
+  sc+=Math.min(20,g.nTrees*2.2);
+  sc+=Math.min(16,g.nBench*8);
+  sc+=g.greenDistM<150?14:g.greenDistM<300?4:-10;
+  sc+=Math.min(6,g.nWater*6);
+  if(g.nShop>=3 && g.nBench===0) sc-=18;       // kommerziell, kein Verweilort
+  if(g.nTrees===0 && g.nShop>=2) sc-=12;        // bebaut, kein Schatten
+  return Math.max(2,Math.min(100,Math.round(sc)));
+}
+function diagHasContext(g){ return g.trees||g.benches||g.shops||g.water||g.green||g.greenDistM<500||g.nShop>0; }
+
+function diagRender(data){
+  if(DIAG.layer)map.removeLayer(DIAG.layer);
+  if(DIAG.under)map.removeLayer(DIAG.under);
+  const cells=L.layerGroup(), under=L.layerGroup();
+  const {grid,rows,cols,cellH,cellW,s,w}=data;
+  let flagged=0,total=0;
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const g=grid[r][c];
+    if(!diagHasContext(g))continue;
+    total++;
+    let col,op=0.42,problem=false;
+    if(DIAG.mode==='green'){
+      if(g.greenDistM>=9999){continue;}
+      if(g.greenDistM>300){col='#dc2626';problem=true;}
+      else if(g.greenDistM>150)col='#eab308';
+      else col='#16a34a';
+    } else {
+      const sc=diagScore(g);
+      if(sc<45){col='#dc2626';problem=true;}
+      else if(sc<65)col='#eab308';
+      else col='#16a34a';
+    }
+    if(problem)flagged++;
+    const bnds=[[s+r*cellH,w+c*cellW],[s+(r+1)*cellH,w+(c+1)*cellW]];
+    const rect=L.rectangle(bnds,{renderer:window.canvasRenderer,color:col,weight:0.4,fillColor:col,fillOpacity:op,opacity:0.5});
+    rect.on('click',()=>diagPopup(g,bnds));
+    rect.addTo(cells);
+  }
+  // Element-Underlay: zeigen WO Bänke/Trinkbrunnen/Bäume sind
+  (data.els.benches||[]).forEach(p=>L.circleMarker(p,{renderer:window.canvasRenderer,radius:3,fillColor:'#b45309',fillOpacity:0.95,stroke:true,color:'#fff',weight:0.8}).bindTooltip('Bank',{sticky:true}).addTo(under));
+  (data.els.water||[]).forEach(p=>L.circleMarker(p,{renderer:window.canvasRenderer,radius:3.5,fillColor:'#0284c7',fillOpacity:0.95,stroke:true,color:'#fff',weight:0.8}).bindTooltip('Trinkbrunnen',{sticky:true}).addTo(under));
+  (data.els.trees||[]).forEach(p=>L.circleMarker(p,{renderer:window.canvasRenderer,radius:1.8,fillColor:'#15803d',fillOpacity:0.6,stroke:false}).addTo(under));
+  cells.addTo(map); under.addTo(map);
+  DIAG.layer=cells; DIAG.under=under;
+  diagStatus('<b style="color:#dc2626">'+flagged+'</b>/'+total);
+  diagLegend(flagged,total);
+}
+
+function diagLegend(flagged,total){
+  const el=document.getElementById('diag-legend'); el.style.display='flex';
+  if(DIAG.mode==='green'){
+    el.innerHTML='<span><span class="lc" style="background:#16a34a"></span>'+(lang==='en'?'<150 m':lang==='nl'?'<150 m':'<150 m')+'</span>'+
+      '<span><span class="lc" style="background:#eab308"></span>150–300 m</span>'+
+      '<span><span class="lc" style="background:#dc2626"></span>'+(lang==='en'?'>300 m (gap)':lang==='nl'?'>300 m (tekort)':'>300 m (Lücke)')+'</span>'+
+      '<span><span class="lc" style="background:#b45309"></span>'+(lang==='en'?'bench':lang==='nl'?'bankje':'Bank')+'</span>';
+  } else {
+    el.innerHTML='<span><span class="lc" style="background:#16a34a"></span>'+(lang==='en'?'good':lang==='nl'?'goed':'gut')+'</span>'+
+      '<span><span class="lc" style="background:#eab308"></span>'+(lang==='en'?'medium':lang==='nl'?'matig':'mittel')+'</span>'+
+      '<span><span class="lc" style="background:#dc2626"></span>'+(lang==='en'?'deficit':lang==='nl'?'tekort':'Defizit')+'</span>'+
+      '<span><span class="lc" style="background:#b45309"></span>'+(lang==='en'?'bench':lang==='nl'?'bankje':'Bank')+'</span>';
+  }
+}
+
+function diagPopup(g,bnds){
+  const T={de:{},en:{},nl:{}}[lang]||{};
+  const findings=[];
+  // Grün
+  if(g.greenDistM>=9999){}
+  else if(g.greenDistM>300) findings.push({ic:'tree',t:(lang==='en'?`${g.greenDistM} m to nearest green — above the WHO/EU 300 m guideline.`:lang==='nl'?`${g.greenDistM} m tot dichtstbijzijnde groen — boven de WHO/EU-norm van 300 m.`:`${g.greenDistM} m zum nächsten Grün — über dem WHO/EU-Richtwert (300 m).`),bad:true});
+  else findings.push({ic:'tree',t:(lang==='en'?`Green within ${g.greenDistM} m — meets the 300 m guideline.`:lang==='nl'?`Groen binnen ${g.greenDistM} m — voldoet aan de 300 m-norm.`:`Grün in ${g.greenDistM} m — erfüllt den 300-m-Richtwert.`),bad:false});
+  // Bänke / Aufenthalt
+  if(g.nShop>=3 && g.nBench===0) findings.push({ic:'bench',t:(lang==='en'?`Commercial activity (${g.nShop} shops nearby) but no public bench — a place to pass through, not to linger.`:lang==='nl'?`Commerciële drukte (${g.nShop} winkels) maar geen openbaar bankje — doorgangsruimte, geen verblijfsplek.`:`Kommerziell geprägt (${g.nShop} Geschäfte) aber keine öffentliche Bank — Durchgangsraum statt Verweilort.`),bad:true});
+  else if(g.nBench>0) findings.push({ic:'bench',t:(lang==='en'?`${g.nBench} bench(es) nearby.`:lang==='nl'?`${g.nBench} bankje(s) in de buurt.`:`${g.nBench} Sitzgelegenheit(en) im Umfeld.`),bad:false});
+  // Schatten / Bäume
+  if(g.nTrees===0 && g.nShop>=2) findings.push({ic:'thermo',t:(lang==='en'?`No tree canopy in a built-up block — heat & comfort deficit.`:lang==='nl'?`Geen boomkronen in bebouwd blok — hitte- en comfortgebrek.`:`Keine Baumüberschirmung im bebauten Block — Hitze- & Aufenthaltsdefizit.`),bad:true});
+  else if(g.nTrees>=3) findings.push({ic:'tree',t:(lang==='en'?`${g.nTrees} trees nearby — good canopy.`:lang==='nl'?`${g.nTrees} bomen — goede beschaduwing.`:`${g.nTrees} Bäume im Umfeld — gute Beschattung.`),bad:false});
+  // passende Maßnahme
+  const measure = (g.greenDistM>300||g.nTrees===0)?'A01':(g.nBench===0&&g.nShop>=2)?'D02':null;
+  const mObj = measure?MASS.find(m=>m.id===measure):null;
+  const html='<div class="diag-pop">'+
+    '<b>'+(lang==='en'?'Diagnosis · ~70 m cell':lang==='nl'?'Diagnose · ~70 m cel':'Diagnose · ~70 m-Zelle')+'</b>'+
+    findings.map(f=>`<div style="display:flex;gap:6px;align-items:flex-start;margin-top:6px;font-size:11px;color:${f.bad?'#b91c1c':'#15803d'}">${ic(f.ic,14)}<span style="flex:1;color:#1a1a2e">${f.t}</span></div>`).join('')+
+    (mObj?`<div style="margin-top:8px;background:#fef9ec;border:1px solid #f5e2a8;border-radius:8px;padding:6px 8px;font-size:10px;color:#7a5c0a">${lang==='en'?'Suggested measure':lang==='nl'?'Voorgestelde maatregel':'Empfohlene Maßnahme'}: <b>${mObj.name}</b></div>`:'')+
+    '<div class="dp-norm">'+(lang==='en'?'Live from OpenStreetMap · norms: WHO 300 m green, 15-minute city':lang==='nl'?'Live uit OpenStreetMap · normen: WHO 300 m groen, 15-minutenstad':'Live aus OpenStreetMap · Normen: WHO 300 m Grün, 15-Minuten-Stadt')+'</div></div>';
+  L.popup({maxWidth:280}).setLatLng([(bnds[0][0]+bnds[1][0])/2,(bnds[0][1]+bnds[1][1])/2]).setContent(html).openOn(map);
+}
+
 // ── OSM LIVE-LAYER (Europa/weltweit): lädt den aktuellen Kartenausschnitt ──
 // Funktioniert in jeder Stadt — Abdeckung je nach OSM-Kartierung unterschiedlich.
 const OSM_LIVE={
@@ -1815,24 +2035,32 @@ function loadOSMLiveViewport(id,statusEl){
   statusEl.innerHTML='<span class="loading-dot"></span>';
   const b=map.getBounds();
   const bb=`${b.getSouth().toFixed(5)},${b.getWest().toFixed(5)},${b.getNorth().toFixed(5)},${b.getEast().toFixed(5)}`;
+  const ckey=id+'@'+[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(3)).join(',');
+  const render=(elements)=>{
+    if(!activeLayers[id])return;
+    if(layerObjs[id])map.removeLayer(layerObjs[id]);
+    const grp=L.layerGroup();
+    elements.forEach(n=>{
+      const lat=n.lat??(n.center&&n.center.lat), lon=n.lon??(n.center&&n.center.lon);
+      if(lat==null)return;
+      const m=L.circleMarker([lat,lon],{renderer:window.canvasRenderer,radius:cfgL.r,fillColor:cfgL.color,fillOpacity:0.78,stroke:false});
+      if(n.tags&&n.tags.name)m.bindTooltip(n.tags.name,{sticky:true});
+      m.addTo(grp);
+    });
+    grp.addTo(map);
+    layerObjs[id]=grp;
+    const n=elements.length;
+    statusEl.textContent=n>=cfgL.cap?`✓ ${cfgL.cap.toLocaleString('de-DE')}+ im Ausschnitt`:n===0?'0 — hier nicht kartiert':'✓ '+n.toLocaleString('de-DE');
+  };
+  // Cache-Hit: sofort rendern, keine Overpass-Anfrage
+  if(window.__osmCache&&window.__osmCache[ckey]){render(window.__osmCache[ckey]);return;}
   const q=`[out:json][timeout:25];${cfgL.q(bb)}out ${cfgL.out} ${cfgL.cap};`;
   fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q))
     .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();})
     .then(j=>{
-      if(!activeLayers[id])return;
-      if(layerObjs[id])map.removeLayer(layerObjs[id]);
-      const grp=L.layerGroup();
-      (j.elements||[]).forEach(n=>{
-        const lat=n.lat??(n.center&&n.center.lat), lon=n.lon??(n.center&&n.center.lon);
-        if(lat==null)return;
-        const m=L.circleMarker([lat,lon],{renderer:window.canvasRenderer,radius:cfgL.r,fillColor:cfgL.color,fillOpacity:0.78,stroke:false});
-        if(n.tags&&n.tags.name)m.bindTooltip(n.tags.name,{sticky:true});
-        m.addTo(grp);
-      });
-      grp.addTo(map);
-      layerObjs[id]=grp;
-      const n=(j.elements||[]).length;
-      statusEl.textContent=n>=cfgL.cap?`✓ ${cfgL.cap.toLocaleString('de-DE')}+ im Ausschnitt`:n===0?'0 — hier nicht kartiert':'✓ '+n.toLocaleString('de-DE');
+      const elements=j.elements||[];
+      window.__osmCache=window.__osmCache||{};window.__osmCache[ckey]=elements;
+      render(elements);
     })
     .catch(()=>{statusEl.textContent='⚠ Overpass-Limit, kurz warten';});
 }
