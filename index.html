@@ -51,6 +51,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .psub3d{font-size:10px;color:#8892a4;line-height:1.5}
 .btn3d-activate{width:100%;padding:10px;background:#FFD600;color:#1a1a2e;border:none;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.02em}
 .btn3d-activate:hover{background:#ffe033;transform:translateY(-1px)}
+.map-legend{position:fixed;bottom:28px;left:10px;z-index:620;background:rgba(255,253,248,0.96);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl);padding:9px 11px;max-width:190px;max-height:46vh;overflow-y:auto;backdrop-filter:blur(8px)}
+.map-legend .ml-h{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.map-legend .ml-g{margin-bottom:7px}
+.map-legend .ml-g:last-child{margin-bottom:0}
+.map-legend .ml-t{font-size:10px;font-weight:700;color:var(--text);margin-bottom:3px}
+.map-legend .ml-r{display:flex;align-items:center;gap:6px;font-size:9.5px;color:var(--text2);padding:1px 0}
+.map-legend .ml-c{width:13px;height:7px;border-radius:2px;flex-shrink:0}
 .maplibregl-ctrl-attrib{font-size:9px!important}
 .maplibregl-ctrl-group{border-radius:10px!important;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1)!important}
 
@@ -445,6 +452,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div id="map"></div>
+<div id="mapLegend" class="map-legend" style="display:none"></div>
 <button class="tool-btn" id="tool-inspect" style="top:116px" onclick="toggleInspect()" title="Klick-Inspektor">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/><path d="M11 8v6M8 11h6"/></svg>
   <span data-i18n="tool_inspect">Punkt</span>
@@ -527,6 +535,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="ltoggle" id="tog-duh_ampel"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> DUH Hitze-Ampel (Stadtteile)</span>
     <span class="lstatus" id="st-duh_ampel"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('traffic_co2')">
+    <button class="ltoggle" id="tog-traffic_co2"></button>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 11 7 6h10l2 5"/><rect x="3" y="11" width="18" height="6" rx="2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg> Verkehrs-CO₂ (Emissionen)</span>
+    <span class="lstatus" id="st-traffic_co2"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('flood')">
     <button class="ltoggle" id="tog-flood"></button>
@@ -897,6 +910,7 @@ function setLang(l){
   document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});
   if(typeof renderList==='function'&&typeof city!=='undefined')try{renderList(document.getElementById('searchBox').value);}catch(e){}
   if(typeof DIAG!=='undefined'&&DIAG.active)try{diagRun();}catch(e){}
+  if(typeof updateMapLegend==='function')try{updateMapLegend();}catch(e){}
   if(typeof selected!=='undefined'&&selected&&CITY_CFG[city]&&CITY_CFG[city].data[selected])try{openDrawer(selected,CITY_CFG[city].data[selected],true);}catch(e){}
 }
 
@@ -1734,6 +1748,7 @@ function toggleLayer(id){
   // Toggle choropleth pane visibility instantly — no redraw needed
   const pane=map.getPane('choropleth');
   if(pane) pane.style.display = activeCount>0 ? 'none' : '';
+  updateMapLegend();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1784,6 +1799,7 @@ function loadLayer(id,statusEl){
   const c=CITY_CFG[city];
   switch(id){
     case 'duh_ampel':       return renderDUHAmpel(id,statusEl);
+    case 'traffic_co2':     return renderTrafficCO2(id,statusEl);
     case 'osm_trees': case 'osm_drinking': case 'osm_benches':
     case 'osm_schools': case 'osm_health': case 'osm_transit': case 'osm_lamps':
       return renderOSMLive(id,statusEl);
@@ -1846,6 +1862,72 @@ function loadLayer(id,statusEl){
 }
 
 // ── DUH HITZE-AMPEL: Stadtteil-Choropleth nach DUH-Methodik ──────
+
+// ── VERKEHRS-CO₂ (Proxy aus Straßenklasse, modelliert) ──────────
+const TRAFFIC_W={motorway:100,trunk:90,primary:70,secondary:50,tertiary:35,unclassified:25,residential:15,living_street:8};
+function trafficColor(w){return w>=70?'#7f1d1d':w>=50?'#dc2626':w>=35?'#f97316':w>=20?'#fbbf24':w>=8?'#a3e635':'#22c55e';}
+let trafficCache={}, trafficHook=false;
+function renderTrafficCO2(id,statusEl){
+  if(map.getZoom()<14){ if(layerObjs[id]){map.removeLayer(layerObjs[id]);delete layerObjs[id];} statusEl.textContent=lang==='de'?'Näher zoomen':lang==='nl'?'Zoom in':'Zoom in'; return; }
+  if(!trafficHook){trafficHook=true; map.on('moveend',()=>{ if(activeLayers['traffic_co2']){clearTimeout(window.__trT);window.__trT=setTimeout(()=>renderTrafficCO2('traffic_co2',document.getElementById('st-traffic_co2')),600);} });}
+  statusEl.innerHTML='<span class="loading-dot"></span>';
+  const b=map.getBounds();
+  const key=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(3)).join(',');
+  const draw=(ways)=>{
+    if(!activeLayers['traffic_co2'])return;
+    if(layerObjs[id])map.removeLayer(layerObjs[id]);
+    const grp=L.layerGroup();
+    ways.forEach(w=>{
+      const wt=TRAFFIC_W[w.hw]||10, col=trafficColor(wt);
+      const lvl=wt>=70?(lang==='en'?'very high':lang==='nl'?'zeer hoog':'sehr hoch'):wt>=35?(lang==='en'?'elevated':lang==='nl'?'verhoogd':'erhöht'):(lang==='en'?'low':lang==='nl'?'laag':'niedrig');
+      const pl=L.polyline(w.geo,{renderer:window.canvasRenderer,color:col,weight:Math.max(2,wt/16),opacity:0.82});
+      pl.bindTooltip(`${w.name||w.hw} · ${lang==='en'?'traffic emission':lang==='nl'?'verkeersemissie':'Verkehrsemission'} ${lvl} (Proxy)`,{sticky:true});
+      pl.addTo(grp);
+    });
+    grp.addTo(map); layerObjs[id]=grp;
+    statusEl.textContent='✓ '+ways.length;
+  };
+  if(trafficCache[key]){draw(trafficCache[key]);return;}
+  const bbox=`${b.getSouth().toFixed(5)},${b.getWest().toFixed(5)},${b.getNorth().toFixed(5)},${b.getEast().toFixed(5)}`;
+  const q=`[out:json][timeout:30];way["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street)$"](${bbox});out geom 3000;`;
+  fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q)).then(r=>r.json()).then(j=>{
+    const ways=(j.elements||[]).filter(e=>e.type==='way'&&e.geometry).map(e=>({geo:e.geometry.map(g=>[g.lat,g.lon]),hw:e.tags.highway,name:e.tags.name||''}));
+    trafficCache[key]=ways; draw(ways);
+  }).catch(()=>{statusEl.textContent='⚠ Overpass-Limit';});
+}
+
+// ── KARTEN-LEGENDE — feste Legende je aktivem Layer ─────────────
+const LAYER_LEGEND={
+ traffic_co2:{t:'Verkehrs-CO₂ (Proxy)',i:[['#7f1d1d','Autobahn / Hauptstr.'],['#f97316','Sammelstraße'],['#fbbf24','Nebenstraße'],['#22c55e','Wohnstraße']]},
+ duh_ampel:{t:'DUH Hitze-Check',i:[['#dc2626','Rote Karte'],['#eab308','Gelbe Karte'],['#16a34a','Grüne Karte']]},
+ co2:{t:'Gebäude-CO₂ (kg/m²)',i:[['#1e3a8a','< 30'],['#fbbf24','60–100'],['#7f1d1d','> 140']]},
+ heat:{t:'Hitzeinsel (LST)',i:[['#4ade80','kühl'],['#fbbf24','mittel'],['#7f1d1d','heiß']]},
+ flood:{t:'Hochwasser HQ100',i:[['#fbbf24','gering'],['#ef4444','hoch'],['#7f1d1d','kritisch']]},
+ noise:{t:'Lärmbelastung',i:[['#16a34a','leise'],['#f97316','laut'],['#dc2626','> 70 dB']]},
+ bike:{t:'Radwege',i:[['#16a34a','getrennt'],['#eab308','Schutzstreifen'],['#dc2626','fehlt']]},
+ trees:{t:'Bäume',i:[['#34d399','Straßenbaum']]},
+ benches:{t:'Bänke',i:[['#b45309','Bank']]},
+ parks:{t:'Parks & Grün',i:[['#22c55e','Grünfläche']]},
+ schools:{t:'Schulen & Kitas',i:[['#7c3aed','Standort']]},
+ health:{t:'Gesundheit',i:[['#dc2626','Standort']]},
+ osm_trees:{t:'Bäume (live)',i:[['#16a34a','Baum']]},
+ osm_benches:{t:'Bänke (live)',i:[['#b45309','Bank']]},
+ osm_drinking:{t:'Trinkbrunnen',i:[['#0284c7','Brunnen']]},
+ osm_schools:{t:'Schulen/Kitas (live)',i:[['#7c3aed','Standort']]},
+ osm_health:{t:'Gesundheit (live)',i:[['#dc2626','Standort']]},
+ osm_transit:{t:'ÖPNV',i:[['#2563eb','Haltestelle']]},
+ osm_lamps:{t:'Beleuchtung',i:[['#f59e0b','Laterne']]},
+};
+function updateMapLegend(){
+  const el=document.getElementById('mapLegend'); if(!el)return;
+  const ids=Object.keys(activeLayers).filter(k=>LAYER_LEGEND[k]);
+  if(!ids.length){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML='<div class="ml-h">'+(lang==='en'?'Legend':lang==='nl'?'Legenda':'Legende')+'</div>'+
+    ids.map(k=>{const Lg=LAYER_LEGEND[k];return '<div class="ml-g"><div class="ml-t">'+Lg.t+'</div>'+
+      Lg.i.map(it=>'<div class="ml-r"><span class="ml-c" style="background:'+it[0]+'"></span>'+it[1]+'</div>').join('')+'</div>';}).join('');
+}
+
 function renderDUHAmpel(id,statusEl){
   const cfg=CITY_CFG[city];
   if(!geoFeatures.length){statusEl.textContent='—';return;}
