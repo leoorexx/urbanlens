@@ -463,7 +463,7 @@ function setCity(key){
   CITYKEY=key; CITY=ALLCITIES[key]; DISTRICTS=CITY.districts;
   document.querySelectorAll('.ct').forEach(b=>b.classList.remove('on'));
   const cb=document.getElementById('ct-'+key); if(cb)cb.classList.add('on');
-  if(history.replaceState)history.replaceState(null,'','?city='+key);
+  try{ if(history.replaceState)history.replaceState(null,'','?city='+key); }catch(e){}
   // NL/DE-Spaltenlabels
   const isNL=CITY.country==='NL';
   const thS=document.getElementById('th-sgb2'); if(thS)thS.textContent=isNL?'Bijstand':'SGB-II';
