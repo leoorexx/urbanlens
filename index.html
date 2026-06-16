@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UrbanLens — Digital Twin Frankfurt</title>
+<title>nice here — Digital Twin Frankfurt</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
@@ -415,13 +415,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <body>
 
 <div class="loader" id="loader">
-  <div class="lloogo">Urban<span>Lens</span></div>
+  <div class="lloogo">nice <span>here</span></div>
   <div class="lring"></div>
   <div class="ltxt" id="loaderTxt" data-i18n="loading">Geodaten werden geladen…</div>
 </div>
 
 <nav class="nav">
-  <a href="home.html" style="text-decoration:none"><div class="logo">Urban<span>Lens</span></div></a>
+  <a href="home.html" style="text-decoration:none"><div class="logo">nice <span>here</span></div></a>
   <div class="nsep"></div>
   <a href="methodik.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg> Methodik</a>
   <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> <span data-i18n="nav_dashboard">Dashboard</span></a>
@@ -1036,7 +1036,7 @@ function copyCitation(name){
   const cfg=CITY_CFG[city];const d=cfg.data[name];if(!d)return;
   const today=new Date().toLocaleDateString('de-DE');
   const url=location.origin+location.pathname+'#'+city+'/'+encodeURIComponent(name);
-  const txt=`UrbanLens (2026): ${name}, ${cfg.name}. NICE Score ${nice(d)}. Methodik: leoorexx.github.io/urbanlens/methodik.html. Abgerufen am ${today}. ${url}`;
+  const txt=`nice here (2026): ${name}, ${cfg.name}. NICE Score ${nice(d)}. Methodik: leoorexx.github.io/urbanlens/methodik.html. Abgerufen am ${today}. ${url}`;
   navigator.clipboard.writeText(txt).then(()=>{
     const b=document.getElementById('citeCopyBtn');if(b){const o=b.innerHTML;b.innerHTML=ic('check',13)+' Kopiert';setTimeout(()=>b.innerHTML=o,1600);}
   });
@@ -1285,7 +1285,7 @@ const FOERDER_DB=[
   {id:"HKS",cat:"Hessen",name:"Hessisches Klimaschutzprogramm",bereich:"Klima",pct:50,max:"unbegrenzt",deadline:"jährlich",url:"hessen.de",note:"Für alle Klimaschutzmaßnahmen in Hessen"},
   {id:"HHA",cat:"Hessen",name:"HA Hessen Agentur Stadtentwicklung",bereich:"Städtebau",pct:40,max:"unbegrenzt",deadline:"laufend",url:"hessen-agentur.de",note:"Stadtumbau, Innenentwicklung"},
   {id:"HOEPNV",cat:"Hessen",name:"Hessisches ÖPNV-Investitionsprogramm",bereich:"ÖPNV",pct:60,max:"unbegrenzt",deadline:"laufend",url:"hessen.de",note:"Haltestellen, Fahrzeuge, Infrastruktur"},
-  {id:"LOEWE",cat:"Hessen",name:"LOEWE Forschungsförderung",bereich:"Forschung",pct:60,max:"unbegrenzt",deadline:"jährlich",url:"wissenschaft.hessen.de",note:"Für wissenschaftliche Begleitung von UrbanLens"},
+  {id:"LOEWE",cat:"Hessen",name:"LOEWE Forschungsförderung",bereich:"Forschung",pct:60,max:"unbegrenzt",deadline:"jährlich",url:"wissenschaft.hessen.de",note:"Für wissenschaftliche Begleitung von nice here"},
 ];
 
 // ══════════════════════════════════════════════════════════════
@@ -1972,7 +1972,7 @@ function renderDUHAmpel(id,statusEl){
 function pdfDoc(){ const J=(window.jspdf&&window.jspdf.jsPDF); return J?new J({unit:'mm',format:'a4'}):null; }
 function pdfHeader(doc,title,sub){
   doc.setFillColor(26,26,46); doc.rect(0,0,210,26,'F');
-  doc.setTextColor(255,214,0); doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.text('UrbanLens',14,14);
+  doc.setTextColor(255,214,0); doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.text('nice here',14,14);
   doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.text(title,14,20);
   doc.setTextColor(150,150,160); doc.setFontSize(8); doc.text(sub,196,20,{align:'right'});
   return 36;
@@ -2003,8 +2003,8 @@ function districtPDF(name){
   const rec=MASS.filter(m=>m.dims.some(k=>weak.includes(k))).slice(0,5);
   sec(lang==='en'?'Recommended measures':lang==='nl'?'Aanbevolen maatregelen':'Empfohlene Maßnahmen');
   rec.forEach(m=>{ if(y>265){doc.addPage();y=20;} doc.setFont('helvetica','bold'); doc.text('• '+m.name,14,y); doc.setFont('helvetica','normal'); doc.setTextColor(120,120,130); doc.text(`${fmt(m.kosten)} → ROI ${fmt(m.roi)} · ${m.foerder&&m.foerder[0]?m.foerder[0].pct+'% förderbar':''}`,196,y,{align:'right'}); doc.setTextColor(60,60,70); y+=6; });
-  pdfFooter(doc, `UrbanLens (2026): ${name}, ${cfg.name}. NICE Score ${s}. ${lang==='nl'?'Opgehaald':'Abgerufen'} ${today}.`);
-  doc.save(`UrbanLens_${name.replace(/[^\w]/g,'_')}.pdf`);
+  pdfFooter(doc, `nice here (2026): ${name}, ${cfg.name}. NICE Score ${s}. ${lang==='nl'?'Opgehaald':'Abgerufen'} ${today}.`);
+  doc.save(`nicehere_${name.replace(/[^\w]/g,'_')}.pdf`);
 }
 function areaPDF(){
   if(!areaStats){return;} const doc=pdfDoc(); if(!doc){alert('PDF-Bibliothek lädt noch.');return;}
@@ -2018,8 +2018,8 @@ function areaPDF(){
   rows.forEach((r,i)=>{ const col=i%2,x=14+col*92; if(col===0&&i>0)y+=8; doc.setTextColor(90,90,110); doc.text(r[0],x,y); doc.setFont('helvetica','bold'); doc.setTextColor(26,26,46); doc.text(String(r[1]),x+86,y,{align:'right'}); doc.setFont('helvetica','normal'); }); y+=14;
   doc.setFontSize(8); doc.setTextColor(120,120,130);
   doc.text((lang==='en'?'Source: bundled/live OpenStreetMap. Norms: WHO 300 m green, 15-minute city.':lang==='nl'?'Bron: OpenStreetMap. Normen: WHO 300 m groen, 15-minutenstad.':'Quelle: OpenStreetMap. Normen: WHO 300 m Grün, 15-Minuten-Stadt.'),14,y);
-  pdfFooter(doc,`UrbanLens (2026): ${lang==='nl'?'Gebiedsanalyse':'Gebiets-Analyse'}, ${CITY_CFG[city].name}. ${today}.`);
-  doc.save('UrbanLens_Gebiet.pdf');
+  pdfFooter(doc,`nice here (2026): ${lang==='nl'?'Gebiedsanalyse':'Gebiets-Analyse'}, ${CITY_CFG[city].name}. ${today}.`);
+  doc.save('nicehere_Gebiet.pdf');
 }
 
 
@@ -3792,7 +3792,7 @@ function openDrawer(name,d,skipZoom){
       </div>
     <div class="sec">${lang==='en'?'Safety & social control':lang==='nl'?'Veiligheid & sociale controle':'Sicherheit & soziale Kontrolle'}</div>
     <div class="ibox" style="padding-bottom:10px">
-      <div style="font-size:10px;color:var(--text2);line-height:1.6">${lang==='en'?'UrbanLens does not fabricate crime figures. Two objective proxies for perceived safety are available on the map:':lang==='nl'?'UrbanLens verzint geen misdaadcijfers. Twee objectieve proxy\'s voor veiligheidsbeleving staan op de kaart:':'UrbanLens erfindet keine Kriminalitätszahlen. Zwei objektive Proxys für das Sicherheitsgefühl liegen auf der Karte:'}</div>
+      <div style="font-size:10px;color:var(--text2);line-height:1.6">${lang==='en'?'nice here does not fabricate crime figures. Two objective proxies for perceived safety are available on the map:':lang==='nl'?'nice here verzint geen misdaadcijfers. Twee objectieve proxy\'s voor veiligheidsbeleving staan op de kaart:':'nice here erfindet keine Kriminalitätszahlen. Zwei objektive Proxys für das Sicherheitsgefühl liegen auf der Karte:'}</div>
       <div style="margin-top:7px;display:flex;flex-direction:column;gap:5px">
         <div style="display:flex;gap:7px;align-items:flex-start;font-size:10px;color:var(--text2)"><span style="color:#f59e0b;margin-top:1px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.6-1 1.2-1 2H9c0-.8-.3-1.4-1-2A6 6 0 0 1 12 3Z"/></svg></span><span><b>${lang==='en'?'Lighting':lang==='nl'?'Verlichting':'Beleuchtung'}</b> — ${lang==='en'?'layer „Lighting" shows lit vs. dark streets.':lang==='nl'?'laag „Verlichting" toont verlichte vs. donkere straten.':'Layer „Beleuchtung" zeigt beleuchtete vs. dunkle Straßen.'}</span></div>
         <div style="display:flex;gap:7px;align-items:flex-start;font-size:10px;color:var(--text2)"><span style="color:#2563eb;margin-top:1px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16l-1 5a3 3 0 0 1-3 2.5A3 3 0 0 1 13 12a3 3 0 0 1-3 2.5A3 3 0 0 1 7 12L4 7Z"/><path d="M5 14v6h14v-6"/></svg></span><span><b>${lang==='en'?'Active frontage':lang==='nl'?'Levendige plinten':'Belebte Erdgeschosse'}</b> — ${lang==='en'?'diagnosis „Place quality" maps „eyes on the street" (Jane Jacobs).':lang==='nl'?'diagnose „Verblijfskwaliteit" toont „eyes on the street" (Jane Jacobs).':'Diagnose „Aufenthaltsqualität" zeigt „eyes on the street" (Jane Jacobs).'}</span></div>
@@ -3809,7 +3809,7 @@ function openDrawer(name,d,skipZoom){
     <div class="ibox" style="padding-bottom:10px">
       <div style="font-size:10px;color:var(--muted);line-height:1.5">Konfidenz & Datenstand je Dimension siehe Tab „Dimensionen". Vollständige Methodik & Quellen auf der <a href="methodik.html" target="_blank" style="color:var(--accent);font-weight:700">Methodikseite</a>.</div>
       <div class="cite-row">
-        <span class="ct">UrbanLens (2026): ${name}, ${cfg.name}. NICE Score ${s}. Abgerufen ${new Date().toLocaleDateString('de-DE')}.</span>
+        <span class="ct">nice here (2026): ${name}, ${cfg.name}. NICE Score ${s}. Abgerufen ${new Date().toLocaleDateString('de-DE')}.</span>
         <button class="cite-btn" id="citeCopyBtn" onclick="copyCitation('${name.replace(/'/g,"\\'")}')">${ic('copy',13)} Zitat</button>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-top:6px">
@@ -3830,7 +3830,7 @@ function openDrawer(name,d,skipZoom){
           </div>
         </div>
         <div style="font-size:8px;color:var(--muted);margin-top:6px;padding-top:5px;border-top:1px solid ${duh.col}33">
-          Methodik angelehnt an Deutsche Umwelthilfe Hitze-Check 2026 (Versiegelung · Grünvolumen · Oberflächentemperatur) — von UrbanLens auf Stadtteilebene heruntergebrochen. DUH bewertet nur Gesamtstädte.
+          Methodik angelehnt an Deutsche Umwelthilfe Hitze-Check 2026 (Versiegelung · Grünvolumen · Oberflächentemperatur) — von nice here auf Stadtteilebene heruntergebrochen. DUH bewertet nur Gesamtstädte.
         </div>
       </div>
 
