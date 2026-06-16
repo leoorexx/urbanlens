@@ -556,7 +556,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg> Lärmbelastung Straße</span>
     <span class="lstatus" id="st-noise"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('flight_noise')">
+  <div class="lrow ffm-only" onclick="toggleLayer('flight_noise')">
     <button class="ltoggle" id="tog-flight_noise"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg> Fluglärm-Zonen FRA</span>
     <span class="lstatus" id="st-flight_noise"></span>
@@ -595,14 +595,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <div class="lp-section">Composite-Insights (2 Layer kombiniert)</div>
 
-  <div class="lp-section">Amtliche Klimadaten — Geoportal Hessen</div>
+  <div class="lp-section ffm-only">Amtliche Klimadaten — Geoportal Hessen</div>
 
-  <div class="lrow" onclick="toggleLayer('hessen_heat')">
+  <div class="lrow ffm-only" onclick="toggleLayer('hessen_heat')">
     <button class="ltoggle" id="tog-hessen_heat"></button>
     <span class="lname">Hitzestress & LST — HLNUG amtlich</span>
     <span class="lstatus" id="st-hessen_heat"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('hessen_lcz')">
+  <div class="lrow ffm-only" onclick="toggleLayer('hessen_lcz')">
     <button class="ltoggle" id="tog-hessen_lcz"></button>
     <span class="lname">Versiegelung & Klimazonen — LCZ</span>
     <span class="lstatus" id="st-hessen_lcz"></span>
@@ -1631,6 +1631,16 @@ function switchCity(c){
   document.querySelectorAll('.ltoggle').forEach(el=>el.classList.remove('on'));
   document.querySelectorAll('.lstatus').forEach(el=>el.textContent='');
   activeCount=0;document.getElementById('layerCount').textContent='0';
+  // Frankfurt-/Hessen-only Layer für andere Städte ausblenden
+  document.querySelectorAll('.ffm-only').forEach(el=>el.style.display = c==='ffm' ? '' : 'none');
+  // Diagnose/Werkzeuge zurücksetzen (stadtspezifisch)
+  try{ if(typeof DIAG!=='undefined'&&DIAG.active)diagClear(); }catch(e){}
+  try{ if(typeof STREET!=='undefined'&&STREET.active)toggleStreetMode(); }catch(e){}
+  try{ if(typeof INSPECT!=='undefined'&&INSPECT.active)toggleInspect(); }catch(e){}
+  try{ closeArea(); }catch(e){}
+  if(typeof updateMapLegend==='function')updateMapLegend();
+  // Bundle der neuen Stadt vorwärmen (Diagnose/Werkzeuge sofort)
+  if(typeof loadCityBundle==='function')setTimeout(()=>loadCityBundle(c),300);
   loadCity(c);
 }
 
@@ -3646,7 +3656,7 @@ function showTab(i){
 
 function openDrawer(name,d,skipZoom){
   selected=name;
-  if(history.replaceState)history.replaceState(null,'','#'+city+'/'+encodeURIComponent(name));
+  try{ if(history.replaceState)history.replaceState(null,'','#'+city+'/'+encodeURIComponent(name)); }catch(e){}
   renderList(document.getElementById('searchBox').value);
   if(geoFeatures.length)renderMap();
 
@@ -4147,7 +4157,7 @@ function openDrawer(name,d,skipZoom){
 }
 
 function closeDrawer(){
-  if(history.replaceState&&location.hash)history.replaceState(null,'',location.pathname+location.search);
+  try{ if(history.replaceState&&location.hash)history.replaceState(null,'',location.pathname+location.search); }catch(e){}
   document.getElementById('drawer').classList.remove('open');
   selected=null;if(geoFeatures.length)renderMap();
   renderList(document.getElementById('searchBox').value);
