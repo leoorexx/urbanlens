@@ -541,6 +541,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 11 7 6h10l2 5"/><rect x="3" y="11" width="18" height="6" rx="2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg> Verkehrs-CO₂ (Emissionen)</span>
     <span class="lstatus" id="st-traffic_co2"></span>
   </div>
+  <div class="lrow" onclick="toggleLayer('raumklang')">
+    <button class="ltoggle" id="tog-raumklang"></button>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 10v4h4l5 4V6l-5 4H3z"/><path d="M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14"/></svg> Raumklang (Schallausbreitung)</span>
+    <span class="lstatus" id="st-raumklang"></span>
+  </div>
   <div class="lrow" onclick="toggleLayer('flood')">
     <button class="ltoggle" id="tog-flood"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/></svg> Hochwasser HQ100 — Gebäude</span>
@@ -1810,6 +1815,7 @@ function loadLayer(id,statusEl){
   switch(id){
     case 'duh_ampel':       return renderDUHAmpel(id,statusEl);
     case 'traffic_co2':     return renderTrafficCO2(id,statusEl);
+    case 'raumklang':       return renderRaumklang(id,statusEl);
     case 'osm_trees': case 'osm_drinking': case 'osm_benches':
     case 'osm_schools': case 'osm_health': case 'osm_transit': case 'osm_lamps':
       return renderOSMLive(id,statusEl);
@@ -1906,9 +1912,82 @@ function renderTrafficCO2(id,statusEl){
   }).catch(()=>{statusEl.textContent='⚠ Overpass-Limit';});
 }
 
+
+// ── RAUMKLANG — Schallausbreitungsmodell (RLS-90 vereinfacht) ───
+// Verkehrslärm aus Straßenklasse + Abstandsdämpfung (Liniequelle),
+// Energiesummation mehrerer Quellen. Lden-Näherung in dB(A).
+const NOISE_SRC={motorway:80,trunk:78,primary:72,secondary:68,tertiary:63,unclassified:60,residential:55,living_street:50,service:50};
+function noiseColor(db){return db<50?'#4ade80':db<55?'#a3e635':db<60?'#fbbf24':db<65?'#f97316':db<70?'#ef4444':'#7f1d1d';}
+let raumCache={}, raumHook=false, raumT=null;
+function renderRaumklang(id,statusEl){
+  if(map.getZoom()<15){ if(layerObjs[id]){map.removeLayer(layerObjs[id]);delete layerObjs[id];} statusEl.textContent=lang==='de'?'Näher zoomen':lang==='nl'?'Zoom in':'Zoom in'; return; }
+  if(!raumHook){raumHook=true; map.on('moveend',()=>{ if(activeLayers['raumklang']){clearTimeout(raumT);raumT=setTimeout(()=>renderRaumklang('raumklang',document.getElementById('st-raumklang')),650);} });}
+  statusEl.innerHTML='<span class="loading-dot"></span>';
+  const b=map.getBounds();
+  const key=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(3)).join(',');
+  if(raumCache[key]){ drawRaum(raumCache[key],id,statusEl); return; }
+  const bbox=`${b.getSouth().toFixed(5)},${b.getWest().toFixed(5)},${b.getNorth().toFixed(5)},${b.getEast().toFixed(5)}`;
+  const q=`[out:json][timeout:30];way["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street)$"](${bbox});out geom 2500;`;
+  fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q)).then(r=>r.json()).then(j=>{
+    if(!activeLayers['raumklang'])return;
+    const roads=(j.elements||[]).filter(e=>e.type==='way'&&e.geometry).map(e=>({hw:e.tags.highway,geo:e.geometry.map(g=>[g.lat,g.lon])}));
+    const data=raumGrid(b,roads);
+    raumCache[key]=data; drawRaum(data,id,statusEl);
+  }).catch(()=>{statusEl.textContent='⚠ Overpass-Limit';});
+}
+function raumGrid(b,roads,targetM=52){
+  const s=b.getSouth(),w=b.getWest(),n=b.getNorth(),e=b.getEast();
+  const mLat=111320, mLon=111320*Math.cos((s+n)/2*Math.PI/180);
+  const rows=Math.max(6,Math.min(70,Math.round((n-s)*mLat/targetM)));
+  const cols=Math.max(6,Math.min(70,Math.round((e-w)*mLon/targetM)));
+  const cellH=(n-s)/rows, cellW=(e-w)/cols;
+  // Straßen-Bbox für schnellen Range-Test
+  roads.forEach(r=>{ let mnLa=90,mxLa=-90,mnLo=180,mxLo=-180; r.geo.forEach(v=>{if(v[0]<mnLa)mnLa=v[0];if(v[0]>mxLa)mxLa=v[0];if(v[1]<mnLo)mnLo=v[1];if(v[1]>mxLo)mxLo=v[1];}); r.bb=[mnLa,mnLo,mxLa,mxLo]; r.Lw=NOISE_SRC[r.hw]||55; });
+  const cells=[];
+  const pad=0.0035; // ~300m in Grad
+  for(let ri=0;ri<rows;ri++)for(let ci=0;ci<cols;ci++){
+    const la=s+(ri+0.5)*cellH, lo=w+(ci+0.5)*cellW;
+    let energy=0;
+    for(const r of roads){
+      if(la<r.bb[0]-pad||la>r.bb[2]+pad||lo<r.bb[1]-pad||lo>r.bb[3]+pad)continue;
+      let dmin=1e9;
+      for(const v of r.geo){ const dd=distM([la,lo],v); if(dd<dmin)dmin=dd; if(dmin<8)break; }
+      if(dmin>300)continue;
+      const d=Math.max(dmin,7.5);
+      const L=r.Lw-10*Math.log10(d/7.5)-(d>50?(d-50)*0.015:0);
+      energy+=Math.pow(10,L/10);
+    }
+    const db=energy>0?Math.round(10*Math.log10(energy)):0;
+    if(db>=45) cells.push({la,lo,db,bnds:[[s+ri*cellH,w+ci*cellW],[s+(ri+1)*cellH,w+(ci+1)*cellW]]});
+  }
+  return {cells};
+}
+function drawRaum(data,id,statusEl){
+  if(layerObjs[id])map.removeLayer(layerObjs[id]);
+  const grp=L.layerGroup(); let loud=0;
+  data.cells.forEach(c=>{
+    if(c.db>=65)loud++;
+    const rect=L.rectangle(c.bnds,{renderer:window.canvasRenderer,color:noiseColor(c.db),weight:0,fillColor:noiseColor(c.db),fillOpacity:0.42});
+    rect.on('click',()=>{
+      const verdict=c.db>=65?(lang==='en'?'above EU limit (65 dB)':lang==='nl'?'boven EU-grens (65 dB)':'über EU-Grenzwert (65 dB)'):c.db>=55?(lang==='en'?'above residential guideline (55 dB)':lang==='nl'?'boven woonnorm (55 dB)':'über Wohn-Richtwert (55 dB)'):(lang==='en'?'within guideline':lang==='nl'?'binnen norm':'im Richtwert');
+      L.popup({maxWidth:240}).setLatLng([(c.bnds[0][0]+c.bnds[1][0])/2,(c.bnds[0][1]+c.bnds[1][1])/2]).setContent(
+        `<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa">${lang==='en'?'Spatial sound · ~50 m cell':lang==='nl'?'Ruimtelijk geluid · ~50 m cel':'Raumklang · ~50-m-Zelle'}</div>`+
+        `<div style="font-size:20px;font-weight:800;color:${noiseColor(c.db)};margin:3px 0">${c.db} dB(A) <span style="font-size:11px;color:#8888aa">L<sub>den</sub></span></div>`+
+        `<div style="font-size:11px;color:#1a1a2e">${verdict}</div>`+
+        `<div style="font-size:8.5px;color:#8888aa;margin-top:6px;border-top:1px solid #eee;padding-top:5px">${lang==='en'?'Model: simplified RLS-90 — road class + distance attenuation. EU Environmental Noise Directive 2002/49/EC.':lang==='nl'?'Model: vereenvoudigd RLS-90 — wegklasse + afstandsdemping. EU-richtlijn omgevingslawaai.':'Modell: RLS-90 vereinfacht — Straßenklasse + Abstandsdämpfung. EU-Umgebungslärmrichtlinie 2002/49/EG.'}</div></div>`
+      ).openOn(map);
+    });
+    rect.addTo(grp);
+  });
+  grp.addTo(map); layerObjs[id]=grp;
+  statusEl.innerHTML='<b style="color:#dc2626">'+loud+'</b> >65 dB';
+  if(typeof updateMapLegend==='function')updateMapLegend();
+}
+
 // ── KARTEN-LEGENDE — feste Legende je aktivem Layer ─────────────
 const LAYER_LEGEND={
  traffic_co2:{t:'Verkehrs-CO₂ (Proxy)',i:[['#7f1d1d','Autobahn / Hauptstr.'],['#f97316','Sammelstraße'],['#fbbf24','Nebenstraße'],['#22c55e','Wohnstraße']]},
+ raumklang:{t:'Raumklang (dB Lden)',i:[['#4ade80','<50 leise'],['#fbbf24','55 EU-Wohnen'],['#ef4444','65 EU-Grenze'],['#7f1d1d','>70 dB']]},
  duh_ampel:{t:'DUH Hitze-Check',i:[['#dc2626','Rote Karte'],['#eab308','Gelbe Karte'],['#16a34a','Grüne Karte']]},
  co2:{t:'Gebäude-CO₂ (kg/m²)',i:[['#1e3a8a','< 30'],['#fbbf24','60–100'],['#7f1d1d','> 140']]},
  heat:{t:'Hitzeinsel (LST)',i:[['#4ade80','kühl'],['#fbbf24','mittel'],['#7f1d1d','heiß']]},
