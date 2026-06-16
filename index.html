@@ -461,12 +461,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19 9 5M20 19 15 5M12 6v2M12 11v2M12 16v2"/></svg>
   <span data-i18n="tool_street">Straße</span>
 </button>
-<button class="tool-btn" id="tool-area" style="top:224px" onclick="startAreaDraw()" title="Gebiet analysieren">
+<button class="tool-btn" id="tool-heatsim" style="top:224px" onclick="toggleHeatSim()" title="Hitze-Kühlsimulation">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><circle cx="12" cy="17" r="3"/><path d="M12 9a3 3 0 0 0 3-3 3 3 0 0 0-1-2"/></svg>
+  <span data-i18n="tool_heat">Hitze</span>
+</button>
+<button class="tool-btn" id="tool-area" style="top:278px" onclick="startAreaDraw()" title="Gebiet analysieren">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 14h6v6h-6zM10 7h7v7"/></svg>
   <span data-i18n="tool_area">Gebiet</span>
 </button>
 <div class="area-panel" id="areaPanel"></div>
 <div class="area-panel" id="streetPanel"></div>
+<div class="area-panel" id="heatPanel"></div>
 
 
 <div class="left">
@@ -870,7 +875,7 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{tool_street:'Straße',tool_inspect:'Punkt',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
+ de:{tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
      search_ph:'Stadtteil suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
@@ -881,7 +886,7 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{tool_street:'Street',tool_inspect:'Point',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
+ en:{tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
      search_ph:'Search district…',list_sub:'Relative ranking within the city · quintiles',
      loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
@@ -892,7 +897,7 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{tool_street:'Straat',tool_inspect:'Punt',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
+ nl:{tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
      search_ph:'Zoek wijk…',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
@@ -1644,6 +1649,7 @@ function switchCity(c){
   try{ if(typeof STREET!=='undefined'&&STREET.active)toggleStreetMode(); }catch(e){}
   try{ if(typeof INSPECT!=='undefined'&&INSPECT.active)toggleInspect(); }catch(e){}
   try{ closeArea(); }catch(e){}
+  try{ if(typeof HEAT!=='undefined'&&HEAT.active)toggleHeatSim(); }catch(e){}
   if(typeof updateMapLegend==='function')updateMapLegend();
   // Bundle der neuen Stadt vorwärmen (Diagnose/Werkzeuge sofort)
   if(typeof loadCityBundle==='function')setTimeout(()=>loadCityBundle(c),300);
@@ -2105,6 +2111,126 @@ function areaPDF(){
   doc.save('nicehere_Gebiet.pdf');
 }
 
+
+
+// ══════════════════════════════════════════════════════════════
+// HITZE-KÜHLSIMULATION — Wärmeraster + Was-wäre-wenn-Kühlung
+// Modell angelehnt an BBSR/UBA: Bäume −1–2,5°C, Entsiegelung −1,8°C,
+// Grünfläche −1,5°C (lokale Lufttemperatur).
+// ══════════════════════════════════════════════════════════════
+let HEAT={active:false, data:null, layer:null, hooked:false, timer:null, cool:{trees:0,deseal:0,green:0}};
+function toggleHeatSim(){
+  HEAT.active=!HEAT.active;
+  document.getElementById('tool-heatsim').classList.toggle('on',HEAT.active);
+  if(HEAT.active){
+    if(typeof closeDrawer==='function')closeDrawer();
+    const pane=map.getPane('choropleth'); if(pane)pane.style.display='none';
+    if(!HEAT.hooked){HEAT.hooked=true; map.on('moveend',()=>{ if(HEAT.active){clearTimeout(HEAT.timer);HEAT.timer=setTimeout(heatRun,600);} });}
+    heatRun();
+  } else {
+    if(HEAT.layer){map.removeLayer(HEAT.layer);HEAT.layer=null;}
+    document.getElementById('heatPanel').classList.remove('open');
+  }
+}
+function heatColor(dt){ // ΔT °C → blau (kühl) … rot (heiß)
+  return dt<0.3?'#3b82f6':dt<0.9?'#93c5fd':dt<1.6?'#fde68a':dt<2.3?'#f97316':dt<3.2?'#ef4444':'#7f1d1d';
+}
+function heatRun(){
+  if(!HEAT.active)return;
+  const hasBundle=!!CITY_BUNDLE[city];
+  if(map.getZoom()<(hasBundle?13:14)){ if(HEAT.layer){map.removeLayer(HEAT.layer);HEAT.layer=null;} heatPanel('zoom'); return; }
+  heatPanel('load');
+  const b=map.getBounds();
+  if(hasBundle){
+    loadCityBundle(city).then(bn=>{ if(!HEAT.active)return; if(!bn){heatPanel('err');return;} HEAT.data=heatGrid(b,bundleToEls(bn,b)); heatRender(); }); return;
+  }
+  getAreaEls(b).then(els=>{ if(!HEAT.active)return; if(!els){heatPanel('err');return;} HEAT.data=heatGrid(b,els); heatRender(); });
+}
+function heatGrid(b,els,targetM=62){
+  const s=b.getSouth(),w=b.getWest(),n=b.getNorth(),e=b.getEast();
+  const mLat=111320,mLon=111320*Math.cos((s+n)/2*Math.PI/180);
+  const rows=Math.max(5,Math.min(64,Math.round((n-s)*mLat/targetM)));
+  const cols=Math.max(5,Math.min(64,Math.round((e-w)*mLon/targetM)));
+  const cellH=(n-s)/rows,cellW=(e-w)/cols;
+  const grid=[];
+  for(let r=0;r<rows;r++){grid.push([]);for(let c=0;c<cols;c++)grid[r].push({trees:0,shops:0,green:false,lat:s+(r+0.5)*cellH,lon:w+(c+0.5)*cellW,bnds:[[s+r*cellH,w+c*cellW],[s+(r+1)*cellH,w+(c+1)*cellW]]});}
+  const idx=(la,lo)=>{const r=Math.floor((la-s)/cellH),c=Math.floor((lo-w)/cellW);return(r>=0&&r<rows&&c>=0&&c<cols)?grid[r][c]:null;};
+  (els.trees||[]).forEach(p=>{const g=idx(p[0],p[1]);if(g)g.trees++;});
+  (els.shops||[]).forEach(p=>{const g=idx(p[0],p[1]);if(g)g.shops++;});
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const g=grid[r][c];for(const poly of (els.green||[])){if(diagPointInPoly(g.lat,g.lon,poly)){g.green=true;break;}}}
+  const sum=(r,c,f)=>{let t=0;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<rows&&nc>=0&&nc<cols)t+=grid[nr][nc][f];}return t;};
+  const cells=[];
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const g=grid[r][c];
+    const treeN=sum(r,c,'trees'), shopN=sum(r,c,'shops');
+    const builtUp=Math.min(1,shopN/8);
+    const greenCov=g.green?1:0;
+    if(!(treeN||shopN||greenCov))continue;
+    let dt0=0.6+builtUp*2.8-greenCov*2.2-Math.min(1.2,treeN*0.04);
+    dt0=Math.max(-0.5,Math.min(5,dt0));
+    cells.push({bnds:g.bnds,dt0,builtUp,greenCov,treeN});
+  }
+  return {cells};
+}
+function heatCooled(cell){
+  const {trees,deseal,green}=HEAT.cool;
+  let dt=cell.dt0;
+  dt-= trees*Math.min(1.8,cell.builtUp*1.8+0.3);   // Bäume: bis −1,8°C
+  dt-= deseal*cell.builtUp*1.8;                      // Entsiegelung
+  dt-= green*(1-cell.greenCov)*1.5;                  // Grünfläche
+  return Math.max(-1,dt);
+}
+function heatRender(){
+  if(HEAT.layer)map.removeLayer(HEAT.layer);
+  const grp=L.layerGroup();
+  let hot0=0,hot1=0,sum0=0,sum1=0,nn=0;
+  HEAT.data.cells.forEach(c=>{
+    const dt=heatCooled(c);
+    if(c.dt0>=2.5)hot0++; if(dt>=2.5)hot1++; sum0+=c.dt0; sum1+=dt; nn++;
+    const rect=L.rectangle(c.bnds,{renderer:window.canvasRenderer,color:heatColor(dt),weight:0,fillColor:heatColor(dt),fillOpacity:0.46});
+    rect.on('click',()=>{
+      L.popup({maxWidth:230}).setLatLng([(c.bnds[0][0]+c.bnds[1][0])/2,(c.bnds[0][1]+c.bnds[1][1])/2]).setContent(
+        `<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa">${lang==='en'?'Heat · ~60 m cell':lang==='nl'?'Hitte · ~60 m cel':'Hitze · ~60-m-Zelle'}</div>`+
+        `<div style="font-size:18px;font-weight:800;color:${heatColor(dt)};margin:3px 0">+${dt.toFixed(1)} °C <span style="font-size:10px;color:#8888aa">ΔT</span></div>`+
+        (HEAT.cool.trees||HEAT.cool.deseal||HEAT.cool.green?`<div style="font-size:10px;color:#15803d">${lang==='en'?'cooled from':lang==='nl'?'gekoeld van':'gekühlt von'} +${c.dt0.toFixed(1)} °C</div>`:'')+
+        `<div style="font-size:8.5px;color:#8888aa;margin-top:6px;border-top:1px solid #eee;padding-top:5px">${lang==='en'?'Model: sealing + green proximity + canopy. Cooling per BBSR/UBA.':lang==='nl'?'Model: verharding + groen + kronen. Koeling volgens BBSR/UBA.':'Modell: Versiegelung + Grünnähe + Kronendach. Kühlung nach BBSR/UBA.'}</div></div>`
+      ).openOn(map);
+    });
+    rect.addTo(grp);
+  });
+  grp.addTo(map); HEAT.layer=grp;
+  heatPanel('ok',{hot0,hot1,avg0:nn?sum0/nn:0,avg1:nn?sum1/nn:0,n:nn});
+}
+function heatPanel(state,st){
+  const P=document.getElementById('heatPanel'); P.classList.add('open');
+  const T=lang==='en'?{t:'Heat & cooling simulation',zoom:'Zoom in (level 13+).',load:'Computing heat grid…',err:'No data.',sub:'Urban heat + what-if cooling',trees:'Tree planting',deseal:'De-sealing',green:'New green space',hot:'Heat hotspots (>2.5 °C)',avg:'Avg heat anomaly',proj:'After cooling',cells:'cells'}
+   :lang==='nl'?{t:'Hitte- & koelsimulatie',zoom:'Zoom in (niveau 13+).',load:'Hitteraster berekenen…',err:'Geen data.',sub:'Stedelijke hitte + koeling',trees:'Bomen planten',deseal:'Ontharding',green:'Nieuw groen',hot:'Hittepunten (>2,5 °C)',avg:'Gem. hitteanomalie',proj:'Na koeling',cells:'cellen'}
+   :{t:'Hitze-Kühlsimulation',zoom:'Näher zoomen (Zoom 13+).',load:'Wärmeraster wird berechnet…',err:'Keine Daten.',sub:'Urbane Hitze + Was-wäre-wenn-Kühlung',trees:'Baumpflanzung',deseal:'Entsiegelung',green:'Neue Grünfläche',hot:'Hitze-Brennpunkte (>2,5 °C)',avg:'Ø Hitze-Anomalie',proj:'Nach Kühlung',cells:'Zellen'};
+  const head=`<div class="ap-head"><div><div class="ap-ttl">${T.t}</div><div class="ap-sub">${T.sub}</div></div><button class="ap-x" onclick="toggleHeatSim()">✕</button></div>`;
+  if(state==='zoom'){P.innerHTML=head+`<div class="ap-body"><div style="font-size:11px;color:var(--muted);padding:10px 0">${T.zoom}</div></div>`;return;}
+  if(state==='load'){P.innerHTML=head+`<div class="ap-body"><div style="text-align:center;padding:20px 0"><span class="loading-dot"></span> ${T.load}</div></div>`;return;}
+  if(state==='err'){P.innerHTML=head+`<div class="ap-body"><div style="font-size:11px;color:var(--muted);padding:10px 0">${T.err}</div></div>`;return;}
+  const C=HEAT.cool;
+  const slider=(id,lbl,val)=>`<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:3px"><span>${lbl}</span><span style="color:var(--accent)">${Math.round(val*100)}%</span></div><input type="range" min="0" max="100" value="${Math.round(val*100)}" oninput="setHeatCool('${id}',this.value)" style="width:100%;accent-color:#16a34a"></div>`;
+  let body=`<div class="ap-body">
+    <div class="ap-stats" style="grid-template-columns:1fr 1fr">
+      <div class="ap-stat"><div class="v" style="color:${st.hot1<st.hot0?'#16a34a':'var(--text)'}">${st.hot1}${st.hot1<st.hot0?` <span style="font-size:10px;color:#8888aa">(${st.hot0})</span>`:''}</div><div class="l">${T.hot}</div></div>
+      <div class="ap-stat"><div class="v">+${st.avg1.toFixed(1)}°C</div><div class="l">${T.avg}${st.avg1<st.avg0?` · −${(st.avg0-st.avg1).toFixed(1)}`:''}</div></div>
+    </div>
+    <div class="ap-sec">${T.proj}</div>
+    ${slider('trees',T.trees,C.trees)}
+    ${slider('deseal',T.deseal,C.deseal)}
+    ${slider('green',T.green,C.green)}`;
+  if(C.trees||C.deseal||C.green){
+    body+=`<div class="ap-proj"><div class="pl">${T.proj}</div>
+      <div class="pr"><span>${T.hot}</span><span><b>${st.hot0}</b> → <span class="up">${st.hot1}</span></span></div>
+      <div class="pr"><span>${T.avg}</span><span><b>+${st.avg0.toFixed(1)}°C</b> → <span class="up">+${st.avg1.toFixed(1)}°C</span></span></div>
+    </div>`;
+  }
+  body+='</div>';
+  P.innerHTML=head+body;
+}
+function setHeatCool(k,v){ HEAT.cool[k]=Math.max(0,Math.min(1,v/100)); heatRender(); }
 
 // ══════════════════════════════════════════════════════════════
 // STRASSEN-WERKZEUG — Straßen wählen, Maßnahmen anwenden
