@@ -66,6 +66,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .kpi.accent .val{color:var(--accent)}
 
 /* NORMATIVER RAHMEN */
+.challenges{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 22px;box-shadow:var(--sh)}
+.challenges h3{font-size:13px;font-weight:800;margin-bottom:4px}
+.challenges .csub{font-size:11px;color:var(--muted);margin-bottom:12px}
+.ch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ch-item{background:#fef2f2;border:1px solid #fecaca;border-radius:11px;padding:11px 13px}
+.ch-item b{font-size:11px;color:#b91c1c;display:block;margin-bottom:3px}
+.ch-item span{font-size:10px;color:#7f1d1d;line-height:1.45}
+@media(max-width:760px){.ch-grid{grid-template-columns:1fr}}
 .rahmen-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
 .rahmen-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px;box-shadow:var(--sh)}
 .rahmen-icon{font-size:22px;margin-bottom:10px}
@@ -201,50 +209,13 @@ td.muted{color:var(--muted)}
   <!-- GHG / KLIMAZIEL -->
   <div class="section"><div id="ghgBanner"></div></div>
 
+  <!-- ZENTRALE HERAUSFORDERUNGEN -->
+  <div class="section"><div id="challengesBox"></div></div>
+
   <!-- NORMATIVER RAHMEN -->
   <div class="section">
     <div class="section-title" data-de="Normativer Rahmen">Normativer Rahmen</div>
-    <div class="rahmen-grid">
-      <div class="rahmen-card">
-        <div class="rahmen-icon" style="color:#2563eb"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a13.5 13.5 0 0 1 0 18 13.5 13.5 0 0 1 0-18Z"/></svg></div>
-        <div class="rahmen-title">EU-Klimaziele & SDGs</div>
-        <div class="rahmen-sub">Verbindliche EU-Rechtsrahmen und UN-Nachhaltigkeitsziele als Bewertungsgrundlage für alle NICE-Indikatoren.</div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU Green Deal — Klimaneutralität 2050</b>Verbindliches Ziel: -55% CO₂ bis 2030, Netto-Null bis 2050 (EU-Klimagesetz 2021/1119). Frankfurt: aktuell 62 kg CO₂/m² Gebäude.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU Mission 100 Klimaneutrale Städte</b>Frankfurt Mitglied der EU Mission. Ziel: Klimaneutralität bis 2030 in Pilotstädten. Fördertopf: 360 Mio€ Horizont Europe.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>SDG 11 — Nachhaltige Städte</b>Inklusive, sichere, widerstandsfähige und nachhaltige Städte bis 2030. Basis für Dimensionen C (Mobilität), F (Teilhabe), H (Resilienz).</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU Renaturierungs-VO 2024/1991</b>30% Grünfläche in Städten bis 2030. Direkte Grundlage für NICE-Dimension A (Klimagerechtigkeit) und G (Ökosystem).</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU Air Quality Directive 2024</b>PM2.5 ≤10 µg/m³ (ab 2030), NO2 ≤20 µg/m³. Grundlage NICE-Dimension B (Gesundheitslast).</div></div>
-      </div>
-      <div class="rahmen-card">
-        <div class="rahmen-icon" style="color:#1a1a2e"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/></svg></div>
-        <div class="rahmen-title">Frankfurter Klimaplan</div>
-        <div class="rahmen-sub">Lokale politische Zielarchitektur, auf die UrbanLens-Maßnahmen direkt einzahlen.</div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Frankfurter Klimaplan 2030</b>Klimaneutralität bis 2035 (Beschluss Stadtverordnetenversammlung 2021). -90% THG ggü. 1990. Jährliches Monitoring erforderlich.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Masterplan 100% Klimaschutz</b>Gesamtstrategie für Energie, Mobilität, Gebäude, Grün. 47 Leitprojekte — UrbanLens priorisiert nach Stadtteil-Score.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Hessisches Klimaschutzgesetz (HKSG 2022)</b>Klimaneutralität Hessen bis 2045. Verpflichtung zur Erstellung kommunaler Klimaschutzkonzepte. Förderfähig über HA Hessen Agentur.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Hitzeaktionsplan Frankfurt 2023</b>Pflicht: Kühlorte, Frühwarnsystem, Hitzetelefon. Grundlage für Maßnahmen H01–H06 (Hitzeschutz).</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Frankfurter Programm Aktive Mobilität</b>Radschnellwegausbau, ÖPNV-Takterhöhung, Schulstraßen. Direkte Deckung mit Maßnahmen B01–B04.</div></div>
-      </div>
-      <div class="rahmen-card">
-        <div class="rahmen-icon" style="color:#16a34a"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18.5 5.5A8 8 0 1 0 18.5 18.5M3 10h11M3 14h11"/></svg></div>
-        <div class="rahmen-title">Förderkulisse</div>
-        <div class="rahmen-sub">Verfügbare Förderprogramme, die den Maßnahmenkatalog vollständig abdecken. Alle Maßnahmen sind mehrfach förderfähig.</div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU — ERDF + LIFE+ + ESF+</b>Europäischer Fonds für regionale Entwicklung: bis 80% Förderung für Klimaanpassung, Naturbasierte Lösungen, Soziale Infrastruktur. Programmzeitraum 2021–2027.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>EU — EUI Innovative Actions Call 4</b>60 Mio€ ERDF für Urbane Innovationsstrategien. Deadline: 15. Juni 2026. Förderpct: bis 80%. Für integrierte Stadtteillösungen.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Bund — BEG Effiziente Gebäude</b>35% Zuschuss (KfW) für Fassaden, Dächer, Dämmung. 150k€/WE Maximalförderung. Direkt für Gebäudesanierung in Hochrisiko-Stadtteilen.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Bund — DAS Klimaanpassungsstrategie</b>BMUV-Förderprogramm: 70% Förderung für Hitzeaktionspläne, Grüninfrastruktur, Monitoring. Jahresbudget 2024: 180 Mio€.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Land Hessen — Hessisches Klimaschutzprogramm</b>50% Förderung für kommunale Klimaschutzmaßnahmen. LOEWE-Forschungsförderung 60% für wissenschaftliche Begleitung.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>KfW — Kommunalkredit 0,6% p.a.</b>KfW 432 Energetische Stadtsanierung: 75% Zuschuss für integrierte Quartierskonzepte. EH40/EH55 für Klimafreundliches Bauen.</div></div>
-      </div>
-      <div class="rahmen-card">
-        <div class="rahmen-icon" style="color:#7c3aed"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7"/><path d="M2 20h20"/></svg></div>
-        <div class="rahmen-title">Benchmarks & Studien</div>
-        <div class="rahmen-sub">Bundesweite Vergleichsstudien, an die UrbanLens methodisch anschließt — heruntergebrochen auf Stadtteilebene.</div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>DUH Hitze-Check 2026 (Deutsche Umwelthilfe)</b>195 Städte bewertet nach Versiegelung, Grünvolumen, Oberflächentemperatur und Bevölkerungsdichte — Ampelsystem (rote/gelbe/grüne Karte). UrbanLens rechnet diese Methodik auf alle 46 Frankfurter Stadtteile herunter: die DUH-Spalte in der Tabelle unten zeigt, welche Stadtteile einzeln eine rote Karte bekämen.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>SKL Glücksatlas (Uni Freiburg / IfD Allensbach)</b>Lebenszufriedenheit 0–10, 50 Indikatoren in 13 Kategorien (Wohnen, Wohlstand, Umweltqualität u.a.), Städteranking der 40 größten Städte. Kernbefund: Entscheidend ist das <i>Zufriedenheitsgefälle</i> — wo die Lücke zwischen zufriedenen und unzufriedenen Vierteln groß ist, sinkt das Glücksniveau der ganzen Stadt. Genau dieses Gefälle misst die KPI „Zufriedenheitsgefälle" oben.</div></div>
-        <div class="rahmen-item"><div class="rahmen-dot"></div><div><b>Anschlussfähigkeit</b>Beide Studien arbeiten mit denselben Faktoren wie der NICE Score (Versiegelung, Grün, Einkommen, Wohnen, Teilhabe). UrbanLens liefert die Stadtteil-Auflösung, die den bundesweiten Studien fehlt — als Planungsgrundlage für gezielte Maßnahmen statt Gesamtstadt-Durchschnitten.</div></div>
-      </div>
-    </div>
+    <div class="rahmen-grid" id="rahmenGrid"></div>
   </div>
 
   <!-- STADTÜBERSICHT -->
@@ -486,6 +457,79 @@ function setCity(key){
   buildDashboard();
 }
 
+const RICON={globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a13.5 13.5 0 0 1 0 18 13.5 13.5 0 0 1 0-18Z"/>',building:'<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/>',euro:'<path d="M18.5 5.5A8 8 0 1 0 18.5 18.5M3 10h11M3 14h11"/>',chart:'<path d="M4 20V10M10 20V4M16 20v-7"/><path d="M2 20h20"/>'};
+function ricon(n,col){return `<div class="rahmen-icon" style="color:${col}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${RICON[n]}</svg></div>`;}
+const RAHMEN={
+ ffm:[
+  {ic:'globe',col:'#2563eb',t:'EU-Klimaziele & SDGs',s:'Verbindliche EU-Rechtsrahmen und UN-Nachhaltigkeitsziele als Bewertungsgrundlage für alle NICE-Indikatoren.',i:[
+   ['EU Green Deal — Klimaneutralität 2050','Verbindliches Ziel: -55% CO₂ bis 2030, Netto-Null bis 2050 (EU-Klimagesetz 2021/1119). Frankfurt: aktuell 62 kg CO₂/m² Gebäude.'],
+   ['EU Mission 100 Klimaneutrale Städte','Frankfurt Mitglied der EU Mission. Ziel: Klimaneutralität bis 2030 in Pilotstädten. Fördertopf: 360 Mio€ Horizont Europe.'],
+   ['SDG 11 — Nachhaltige Städte','Inklusive, sichere, widerstandsfähige Städte bis 2030. Basis für Dimensionen C (Mobilität), F (Teilhabe), H (Resilienz).'],
+   ['EU Renaturierungs-VO 2024/1991','30% Grünfläche in Städten bis 2030. Grundlage für NICE-Dimension A (Klimagerechtigkeit) und G (Ökosystem).'],
+   ['EU Air Quality Directive 2024','PM2.5 ≤10 µg/m³ (ab 2030), NO2 ≤20 µg/m³. Grundlage NICE-Dimension B (Gesundheitslast).']]},
+  {ic:'building',col:'#1a1a2e',t:'Frankfurter Klimaplan',s:'Lokale politische Zielarchitektur, auf die UrbanLens-Maßnahmen direkt einzahlen.',i:[
+   ['Frankfurter Klimaplan 2030','Klimaneutralität bis 2035 (Beschluss Stadtverordnetenversammlung 2021). -90% THG ggü. 1990. Jährliches Monitoring.'],
+   ['Masterplan 100% Klimaschutz','Gesamtstrategie für Energie, Mobilität, Gebäude, Grün. 47 Leitprojekte — UrbanLens priorisiert nach Stadtteil-Score.'],
+   ['Hessisches Klimaschutzgesetz (HKSG 2022)','Klimaneutralität Hessen bis 2045. Pflicht zu kommunalen Klimaschutzkonzepten. Förderfähig über HA Hessen Agentur.'],
+   ['Hitzeaktionsplan Frankfurt 2023','Pflicht: Kühlorte, Frühwarnsystem, Hitzetelefon. Grundlage für Maßnahmen H01–H06 (Hitzeschutz).'],
+   ['Frankfurter Programm Aktive Mobilität','Radschnellwegausbau, ÖPNV-Takterhöhung, Schulstraßen. Deckung mit Maßnahmen B01–B04.']]},
+  {ic:'euro',col:'#16a34a',t:'Förderkulisse',s:'Verfügbare Förderprogramme, die den Maßnahmenkatalog abdecken. Alle Maßnahmen mehrfach förderfähig.',i:[
+   ['EU — ERDF + LIFE+ + ESF+','Bis 80% Förderung für Klimaanpassung, naturbasierte Lösungen, soziale Infrastruktur. Programmzeitraum 2021–2027.'],
+   ['EU — EUI Innovative Actions Call 4','60 Mio€ ERDF für urbane Innovationsstrategien. Deadline 15. Juni 2026. Bis 80%. Für integrierte Stadtteillösungen.'],
+   ['Bund — BEG Effiziente Gebäude','35% Zuschuss (KfW) für Fassaden, Dächer, Dämmung. 150k€/WE max. Für Gebäudesanierung in Hochrisiko-Stadtteilen.'],
+   ['Bund — DAS Klimaanpassungsstrategie','BMUV: 70% Förderung für Hitzeaktionspläne, Grüninfrastruktur, Monitoring. Jahresbudget 2024: 180 Mio€.'],
+   ['Land Hessen — Klimaschutzprogramm','50% Förderung für kommunale Klimaschutzmaßnahmen. LOEWE-Forschungsförderung 60% für wissenschaftliche Begleitung.'],
+   ['KfW — Kommunalkredit 0,6% p.a.','KfW 432 Energetische Stadtsanierung: 75% Zuschuss für integrierte Quartierskonzepte. EH40/EH55.']]},
+  {ic:'chart',col:'#7c3aed',t:'Benchmarks & Studien',s:'Bundesweite Vergleichsstudien, an die UrbanLens methodisch anschließt — auf Stadtteilebene.',i:[
+   ['DUH Hitze-Check 2026 (Deutsche Umwelthilfe)','195 Städte nach Versiegelung, Grünvolumen, Oberflächentemperatur, Dichte — Ampelsystem. UrbanLens rechnet das auf alle 46 Frankfurter Stadtteile herunter (DUH-Spalte unten).'],
+   ['SKL Glücksatlas (Uni Freiburg / Allensbach)','Lebenszufriedenheit 0–10, 50 Indikatoren. Kernbefund: das Zufriedenheitsgefälle drückt das Glück der ganzen Stadt — als KPI oben abgebildet.'],
+   ['Anschlussfähigkeit','Beide Studien nutzen dieselben Faktoren wie der NICE Score. UrbanLens liefert die Stadtteil-Auflösung, die den bundesweiten Studien fehlt.']]}
+ ],
+ utr:[
+  {ic:'globe',col:'#2563eb',t:'EU-Klimaziele & SDGs',s:'Verbindliche EU-Rechtsrahmen und UN-Nachhaltigkeitsziele als Bewertungsgrundlage für alle NICE-Indikatoren.',i:[
+   ['EU Green Deal — Klimaneutralität 2050','-55% CO₂ bis 2030, Netto-Null bis 2050 (EU-Klimagesetz 2021/1119). Utrecht: Ø 48 kg CO₂/m² Gebäude.'],
+   ['EU Mission Klimaneutrale Städte','NL-Pilotstädte u.a. Amsterdam, Rotterdam, Eindhoven. Utrecht eigenes Ziel: klimaatneutraal bereits 2030.'],
+   ['SDG 11 — Nachhaltige Städte','Inklusive, sichere, widerstandsfähige Städte bis 2030. Basis für Dimensionen C (Mobilität), F (Teilhabe), H (Resilienz).'],
+   ['EU Natuurherstelwet 2024','30% Grünfläche in Städten bis 2030. Grundlage für NICE-Dimension A und G — in Utrecht über „groen-blauwe structuur" verankert.'],
+   ['EU Luchtkwaliteitsrichtlijn 2024','PM2.5 ≤10 µg/m³ (ab 2030), NO2 ≤20 µg/m³. Grundlage NICE-Dimension B (Gesundheitslast).']]},
+  {ic:'building',col:'#1a1a2e',t:'Energieplan Utrecht & NL-Klimaatwet',s:'Lokale und nationale Zielarchitektur, auf die UrbanLens-Maßnahmen einzahlen.',i:[
+   ['Energieplan Utrecht — Klimaatneutraal 2030','Utrecht peilt CO₂-Neutralität bis 2030 — deutlich vor dem NL-Ziel. Aardgasvrij, all-electric Quartiere (z.B. Overvecht-Noord).'],
+   ['Nederlandse Klimaatwet (2019)','-55% (Regierungsziel) bis 2030, -95% bis 2050 ggü. 1990. Verpflichtende Klimaatakkoord-Umsetzung auf Gemeindeebene.'],
+   ['„Gezond Stedelijk Leven voor Iedereen"','Utrechts Kernvision (Healthy Urban Living for Everyone): Gesundheit & Lebensqualität als Leitprinzip aller Stadtentwicklung. Deckt NICE-Dimensionen B, E, F.'],
+   ['Ruimtelijke Strategie Utrecht 2040 (RSU)','Binnenstedelijke Verdichtung statt Zersiedelung, 10-Minuten-Stadt, „dichtbij"-Prinzip → direkte Deckung mit Dimension C (Mobilität).'],
+   ['Klimaatadaptatiestrategie Utrecht','Hittestress-Aanpak mit Overvecht & Kanaleneiland als Brennpunkten; wateroverlast & bodemdaling. Grundlage für Maßnahmen H01–H06.']]},
+  {ic:'euro',col:'#16a34a',t:'Förderkulisse (NL + EU)',s:'Verfügbare Förderprogramme — alle Maßnahmen mehrfach förderfähig.',i:[
+   ['EU — ERDF + LIFE+ + ESF+','Bis 80% für Klimaanpassung, naturbasierte Lösungen, soziale Infrastruktur. Programmzeitraum 2021–2027.'],
+   ['EU — Interreg North-West Europe','60% für transnationale Kooperation — ideal für ein Frankfurt-Utrecht-Tandemprojekt (DE-NL).'],
+   ['NL — DUMAVA (RVO)','Verduurzaming Maatschappelijk Vastgoed: 30% Zuschuss für Sanierung öffentlicher Gebäude (Schulen, Bürgerämter).'],
+   ['NL — Impulsregeling Klimaatadaptatie','33% Bundesförderung (Rijk) für kommunale Klimaanpassung — Entsiegelung, Wasserretention, Grün.'],
+   ['NL — Nationaal Groeifonds','Staatsfonds (20 Mrd€) für Wachstum & Nachhaltigkeit — Infrastruktur, Energiewende, Innovation.'],
+   ['NL — SPUK & ISDE','Specifieke Uitkeringen für Kommunen + Investeringssubsidie Duurzame Energie (Wärmepumpen, PV).']]},
+  {ic:'chart',col:'#7c3aed',t:'Benchmarks & Studien',s:'Vergleichsstudien, an die UrbanLens methodisch anschließt — auf Wijk-Ebene.',i:[
+   ['DUH Hitze-Check-Methodik (angepasst)','Versiegelung / Grünvolumen / Oberflächentemperatur — auf alle 10 Utrechter Wijken heruntergebrochen (DUH-Spalte unten). Overvecht erwartbar „rote Karte".'],
+   ['Klimaateffectatlas NL / Atlas Leefomgeving','Nationale Referenz für Hitze, wateroverlast, droogte. UrbanLens ergänzt diese Klimadaten um die soziale Dimension je Wijk.'],
+   ['Tevredenheidskloof (Glücksatlas-Logik)','Spread zwischen bester (Binnenstad) und schlechtester Wijk (Overvecht) als Frühindikator sozialer Spaltung — KPI oben.']]}
+ ]
+};
+const CHALLENGES={
+ ffm:{t:'Zentrale Herausforderungen — Frankfurt',s:'Wo UrbanLens den dringlichsten Handlungsbedarf identifiziert.',i:[
+   ['Hitzeinseln Innenstadt','Bahnhofsviertel, Gallus, Innenstadt: hohe Versiegelung, ΔLST bis +3,9°C — DUH „rote Karte".'],
+   ['HQ100-Flutrisiko','Mainnahe Lagen (Gutleut, Niederrad, Höchst): Gebäude im 100-jährlichen Hochwasserbereich.'],
+   ['Soziale Segregation','Bahnhofsviertel/Gallus: SGB-II bis 62%, Kinderarmut bis 70% — Klima- + Sozialrisiko gekoppelt.']]},
+ utr:{t:'Zentrale Herausforderungen — Utrecht',s:'Wo UrbanLens den dringlichsten Handlungsbedarf identifiziert.',i:[
+   ['Woningnood & Verdichtung','Utrecht ist die am schnellsten wachsende NL-Stadt. Enormer Wohnungsdruck — Verdichtung vs. Leefbaarheit (RSU 2040).'],
+   ['Hittestress Overvecht/Kanaleneiland','Dichte Nachkriegsbebauung, wenig Grün — höchste Hitzebetroffenheit & DUH „rote Karte".'],
+   ['Tweedeling & wateroverlast','Soziale Spaltung Overvecht ↔ Binnenstad gekoppelt mit Grachten-naher wateroverlast und bodemdaling.']]}
+};
+function renderRahmen(){
+  document.getElementById('rahmenGrid').innerHTML=(RAHMEN[CITYKEY]||RAHMEN.ffm).map(c=>
+    `<div class="rahmen-card">${ricon(c.ic,c.col)}<div class="rahmen-title">${c.t}</div><div class="rahmen-sub">${c.s}</div>`+
+    c.i.map(it=>`<div class="rahmen-item"><div class="rahmen-dot"></div><div><b>${it[0]}</b>${it[1]}</div></div>`).join('')+`</div>`).join('');
+  const ch=CHALLENGES[CITYKEY]||CHALLENGES.ffm;
+  document.getElementById('challengesBox').innerHTML=`<div class="challenges"><h3>${ch.t}</h3><div class="csub">${ch.s}</div><div class="ch-grid">`+
+    ch.i.map(x=>`<div class="ch-item"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('')+`</div></div>`;
+}
+
 function buildDashboard(){
   entries=Object.entries(DISTRICTS);
   allScores=entries.map(([,d])=>nice(d));
@@ -557,7 +601,8 @@ function buildDashboard(){
   sel.innerHTML='<option value="">Alle '+(isNL?'Wijken':'Stadtteile')+'</option>'+
     entries.slice().sort((a,b)=>nice(a[1])-nice(b[1])).map(([n])=>`<option value="${n}">${n}</option>`).join('');
   renderMass(MASS);
-  ['kpiRow','cityGrid','sdgGrid','ghgBanner','heroDesc'].forEach(dlz);
+  renderRahmen();
+  ['kpiRow','cityGrid','sdgGrid','ghgBanner','heroDesc','rahmenGrid','challengesBox'].forEach(dlz);
   if(lang!=='de')localizeStatic();
 }
 
