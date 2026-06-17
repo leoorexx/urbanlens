@@ -62,6 +62,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .maplibregl-ctrl-group{border-radius:10px!important;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1)!important}
 
 /* NAV — white bar like Shadowmap homepage */
+body.embed .nav{display:none}
+body.embed .left{top:10px!important}
+body.embed .layer-btn{top:10px!important}
+body.embed #tool-inspect{top:64px!important}body.embed #tool-street{top:118px!important}body.embed #tool-heatsim{top:172px!important}body.embed #tool-mit{top:226px!important}body.embed #tool-area{top:280px!important}
+.embed-logo{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:1000;background:rgba(255,253,248,0.95);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:800;box-shadow:var(--sh);display:none}
+body.embed .embed-logo{display:block}
+.embed-logo span{color:var(--accent)}
+.embed-logo a{text-decoration:none;color:var(--text)}
 .nav{position:fixed;top:0;left:0;right:0;height:54px;z-index:1000;background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:0 2px 16px rgba(0,0,0,0.08)}
 .logo{font-size:17px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px}.logo span{color:#1a1a2e}
 .city-toggle{display:flex;gap:4px;background:var(--surface2);padding:3px;border-radius:20px;border:1px solid var(--border)}
@@ -413,6 +421,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </style>
 </head>
 <body>
+<div class="embed-logo"><a href="index.html" target="_blank">nice <span>here</span></a></div>
 
 <div class="loader" id="loader">
   <div class="lloogo">nice <span>here</span></div>
@@ -971,7 +980,7 @@ const CITY_CFG={
   ffm:{
     name:"Frankfurt am Main",center:[50.1109,8.6821],zoom:12,
     bbox:"50.05,8.55,50.22,8.82",
-    geojson:"https://cdn.jsdelivr.net/gh/codeforgermany/click_that_hood@main/public/data/frankfurt-main.geojson",
+    geojson:(location.hostname==='localhost'||location.hostname==='127.0.0.1'?'data/layers/stadtteile_ffm.geojson':'/urbanlens/data/layers/stadtteile_ffm.geojson'),
     nameProp:"name",
     data:{
       "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, wb:33,mig:71,hw:true, heat:true, noise:82, sgb2:62,kinderarmut:70,einkommen:17000,arbeitslos:17,abitur:25, versieg:88,lst_delta:3.9},
@@ -4939,6 +4948,8 @@ setTimeout(()=>{
   setInterval(loadLiveWind, 15*60*1000);
 }, 2000);
 
+// Embed-Modus: ?embed=1 blendet die Navigation aus (für iframe-Einbettung)
+try{ if(new URLSearchParams(location.search).get('embed'))document.body.classList.add('embed'); }catch(e){}
 initMap();
 setLang(lang);
 setTimeout(preloadAllCities, 2500);
