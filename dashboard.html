@@ -182,8 +182,8 @@ td.muted{color:var(--muted)}
       <button class="lg" id="lg-nl" onclick="setLang('nl')">NL</button>
     </div>
     <div class="city-toggle">
-      <button class="ct on" id="ct-ffm" onclick="setCity('ffm')">Frankfurt am Main</button>
-      <button class="ct" id="ct-utr" onclick="setCity('utr')">Utrecht</button>
+      <button class="ct" id="ct-ffm" onclick="setCity('ffm')">Frankfurt am Main</button>
+      <button class="ct on" id="ct-utr" onclick="setCity('utr')">Utrecht</button>
     </div>
   </div>
 </nav>
@@ -744,7 +744,29 @@ function cityPDF(){
   const kpis=[['Ø NICE Score',avgScore],['Kritische Gebiete (<40)',critCount],['Klimaziel',CITY.neutralYear+' · '+CITY.thgTarget],['Ø Gebäude-CO₂',CITY.avgCO2+' '+CITY.co2Unit]];
   kpis.forEach(k=>{doc.text(String(k[0]),14,y);doc.setFont('helvetica','bold');doc.text(String(k[1]),196,y,{align:'right'});doc.setFont('helvetica','normal');y+=7;});
   y+=4; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=8;
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text((CITY.country==='NL'?'Ranking wijken (NICE Score)':'Ranking Stadtteile (NICE Score)'),14,y); y+=7;
+  // ── Handlungsbedarf: Doppelte Verwundbarkeit (Klima × Sozial) ──
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(87,66,73);
+  doc.text(CITY.country==='NL'?'Prioriteit: dubbele kwetsbaarheid (klimaat × sociaal)':'Handlungsbedarf: Doppelte Verwundbarkeit (Klima × Sozial)',14,y); y+=6;
+  (()=>{
+    const ds=Object.entries(DISTRICTS), vals=ds.map(([,d])=>d);
+    const rng=arr=>{const mn=Math.min(...arr),mx=Math.max(...arr);return v=>mx>mn?(v-mn)/(mx-mn):0.5;};
+    const nS=rng(vals.map(d=>d.sgb2||0)),nK=rng(vals.map(d=>d.kinderarmut||0)),nA=rng(vals.map(d=>d.arbeitslos||0)),nI=rng(vals.map(d=>d.einkommen||0)),nW=rng(vals.map(d=>d.wb||0)),nC=rng(vals.map(d=>duhAmpel(d).idx));
+    const social=d=>(nS(d.sgb2||0)+nK(d.kinderarmut||0)+nA(d.arbeitslos||0)+(1-nI(d.einkommen||0))+(1-nW(d.wb||0)))/5;
+    const clim=d=>Math.min(1,nC(duhAmpel(d).idx)*0.82+(d.hw?0.18:0));
+    const top=ds.map(([n,d])=>({n,d,sc:Math.round(social(d)*100),cl:Math.round(clim(d)*100),p:social(d)*clim(d)})).sort((a,b)=>b.p-a.p).slice(0,5);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+    top.forEach((t,i)=>{ doc.setFont('helvetica','bold');doc.setTextColor(87,66,73);doc.text((i+1)+'. '+t.n,14,y);
+      doc.setFont('helvetica','normal');doc.setTextColor(110,110,120);
+      doc.text((CITY.country==='NL'?'Klimaat ':'Klima ')+t.cl+' · '+(CITY.country==='NL'?'Sociaal ':'Sozial ')+t.sc+' · '+(CITY.country==='NL'?'Bijstand ':'SGB-II ')+t.d.sgb2+'%',196,y,{align:'right'});y+=5.5; });
+    y+=2;
+    const ch=(typeof CHALLENGES!=='undefined'&&CHALLENGES[CITYKEY])?CHALLENGES[CITYKEY]:null;
+    if(ch){ if(y>250){doc.addPage();y=20;} doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(26,26,46);doc.text(ch.t,14,y);y+=5.5;
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(70,70,80);
+      ch.i.forEach(x=>{ const lines=doc.splitTextToSize('• '+x[0]+': '+x[1],182); doc.text(lines,14,y); y+=lines.length*4.4+1.5; }); }
+  })();
+  y+=2; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=8;
+  if(y>250){doc.addPage();y=20;}
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(26,26,46); doc.text((CITY.country==='NL'?'Ranking wijken (NICE Score)':'Ranking Stadtteile (NICE Score)'),14,y); y+=7;
   doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
   Object.entries(DISTRICTS).sort((a,b)=>nice(a[1])-nice(b[1])).forEach(([n,d])=>{
     if(y>275){doc.addPage();y=20;}
@@ -766,7 +788,7 @@ function cityPDF(){
 fetch(DATA_BASE+'/cities.json').then(r=>r.json()).then(all=>{
   ALLCITIES=all;
   const init=new URLSearchParams(location.search).get('city');
-  setCity(ALLCITIES[init]?init:'ffm');
+  setCity(ALLCITIES[init]?init:'utr');
   setLang(lang);
 }).catch(()=>{ document.getElementById('kpiRow').innerHTML='<div style="padding:20px;color:var(--muted)">Daten konnten nicht geladen werden.</div>'; });
 

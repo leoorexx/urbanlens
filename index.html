@@ -433,7 +433,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="lg" id="lg-nl" onclick="setLang('nl')">NL</button>
     </div>
     <div class="city-toggle">
-      <div class="ct on" id="ct-ffm" onclick="switchCity('ffm')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/></svg> Frankfurt am Main</div>
+      <div class="ct" id="ct-ffm" onclick="switchCity('ffm')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/></svg> Frankfurt am Main</div>
       <div class="ct" id="ct-utr" onclick="switchCity('utr')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/></svg> Utrecht</div>
     </div>
     <div class="lpill"><div class="dot"></div><span data-i18n="nav_live">Open Data Live</span></div>
@@ -1307,7 +1307,7 @@ const FOERDER_DB=[
 // ══════════════════════════════════════════════════════════════
 // STATE & ENGINE
 // ══════════════════════════════════════════════════════════════
-let map, geoLayer, city='ffm', selected=null, geoFeatures=[];
+let map, geoLayer, city='utr', selected=null, geoFeatures=[];
 const activeLayers={}, layerObjs={};
 let activeCount=0;
 
@@ -1630,7 +1630,13 @@ function initMap(){
     {attribution:'© OpenStreetMap © CARTO',maxZoom:19,pane:'tilePane'}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
   map.on('click',e=>{ if(INSPECT.active)inspectAt(e.latlng); });
-  loadCity('ffm');
+  const urlCity=new URLSearchParams(location.search).get('city');
+  const startCity=CITY_CFG[urlCity]?urlCity:'utr';
+  // Nav-Status + Frankfurt-only Layer für Startstadt setzen
+  document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
+  const cb=document.getElementById('ct-'+startCity); if(cb)cb.classList.add('on');
+  document.querySelectorAll('.ffm-only').forEach(el=>el.style.display = startCity==='ffm' ? '' : 'none');
+  loadCity(startCity);
 }
 
 function switchCity(c){
@@ -1664,6 +1670,7 @@ function switchCity(c){
 
 
 function loadCity(c){
+  city=c;
   const cfg=CITY_CFG[c];
   fetch(cfg.geojson)
     .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()})
