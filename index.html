@@ -535,6 +535,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="diag-legend" id="diag-legend" style="display:none"></div>
 
   <div class="lp-section"><span data-i18n="sec_risk">Risikolayer (offizielle Quellen)</span></div>
+  <div class="lrow" onclick="toggleLayer('double_vuln')" style="background:rgba(87,66,73,0.05);border-radius:7px">
+    <button class="ltoggle" id="tog-double_vuln"></button>
+    <span class="lname" style="font-weight:700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5"/></svg> <span data-i18n="dv_name">Doppelte Verwundbarkeit (Klima × Sozial)</span></span>
+    <span class="lstatus" id="st-double_vuln"></span>
+  </div>
 
   <div class="lrow" onclick="toggleLayer('duh_ampel')">
     <button class="ltoggle" id="tog-duh_ampel"></button>
@@ -875,7 +880,7 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
+ de:{dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
      search_ph:'Stadtteil suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
@@ -886,7 +891,7 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
+ en:{dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
      search_ph:'Search district…',list_sub:'Relative ranking within the city · quintiles',
      loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
@@ -897,7 +902,7 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
+ nl:{dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
      search_ph:'Zoek wijk…',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
@@ -1822,6 +1827,7 @@ function loadLayer(id,statusEl){
   const c=CITY_CFG[city];
   switch(id){
     case 'duh_ampel':       return renderDUHAmpel(id,statusEl);
+    case 'double_vuln':     return renderDoubleVuln(id,statusEl);
     case 'traffic_co2':     return renderTrafficCO2(id,statusEl);
     case 'raumklang':       return renderRaumklang(id,statusEl);
     case 'osm_trees': case 'osm_drinking': case 'osm_benches':
@@ -2019,12 +2025,78 @@ const LAYER_LEGEND={
 };
 function updateMapLegend(){
   const el=document.getElementById('mapLegend'); if(!el)return;
+  let dvHTML='';
+  if(activeLayers['double_vuln']){
+    const lab=lang==='en'?{t:'Double vulnerability',x:'Social →',y:'Climate ↑'}:lang==='nl'?{t:'Dubbele kwetsbaarheid',x:'Sociaal →',y:'Klimaat ↑'}:{t:'Doppelte Verwundbarkeit',x:'Sozial →',y:'Klima ↑'};
+    const B=[['#e8e8e8','#e4acac','#c85a5a'],['#b0d5df','#ad9ea5','#985356'],['#64acbe','#627f8c','#574249']];
+    let m='<div class="ml-h">'+lab.t+'</div><div style="display:flex;gap:5px;align-items:flex-end;margin-bottom:6px"><div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:8px;color:var(--muted)">'+lab.y+'</div><div>';
+    for(let r=2;r>=0;r--){m+='<div style="display:flex">';for(let c=0;c<3;c++)m+='<span style="width:14px;height:14px;background:'+B[r][c]+'"></span>';m+='</div>';}
+    m+='<div style="font-size:8px;color:var(--muted);text-align:center;margin-top:2px">'+lab.x+'</div></div></div>';
+    dvHTML='<div class="ml-g">'+m+'</div>';
+  }
   const ids=Object.keys(activeLayers).filter(k=>LAYER_LEGEND[k]);
+  if(dvHTML){ el.style.display='block'; el.innerHTML=dvHTML+(ids.length?'<div class="ml-h">'+(lang==='en'?'Legend':lang==='nl'?'Legenda':'Legende')+'</div>'+ids.map(k=>{const Lg=LAYER_LEGEND[k];return '<div class="ml-g"><div class="ml-t">'+Lg.t+'</div>'+Lg.i.map(it=>'<div class="ml-r"><span class="ml-c" style="background:'+it[0]+'"></span>'+it[1]+'</div>').join('')+'</div>';}).join(''):''); return; }
   if(!ids.length){el.style.display='none';return;}
   el.style.display='block';
   el.innerHTML='<div class="ml-h">'+(lang==='en'?'Legend':lang==='nl'?'Legenda':'Legende')+'</div>'+
     ids.map(k=>{const Lg=LAYER_LEGEND[k];return '<div class="ml-g"><div class="ml-t">'+Lg.t+'</div>'+
       Lg.i.map(it=>'<div class="ml-r"><span class="ml-c" style="background:'+it[0]+'"></span>'+it[1]+'</div>').join('')+'</div>';}).join('');
+}
+
+
+// ── DOPPELTE VERWUNDBARKEIT — Klima × Sozial (bivariate Analyse) ──
+// Signatur-Analyse: wo fallen Hitze-/Klimabelastung UND soziale
+// Verwundbarkeit zusammen? Füllt die Lücke der physischen City-Twins.
+const BIV_DV=[ // [sozial-Tercile][klima-Tercile]
+  ['#e8e8e8','#e4acac','#c85a5a'],
+  ['#b0d5df','#ad9ea5','#985356'],
+  ['#64acbe','#627f8c','#574249']
+];
+function dvIndices(){
+  const cfg=CITY_CFG[city]; const ds=Object.values(cfg.data);
+  const rng=arr=>{const mn=Math.min(...arr),mx=Math.max(...arr);return v=>mx>mn?(v-mn)/(mx-mn):0.5;};
+  const nS=rng(ds.map(d=>d.sgb2||0)),nK=rng(ds.map(d=>d.kinderarmut||0)),nA=rng(ds.map(d=>d.arbeitslos||0)),nI=rng(ds.map(d=>d.einkommen||0)),nW=rng(ds.map(d=>d.wb||0)),nC=rng(ds.map(d=>duhAmpel(d).idx));
+  return {
+    social:d=>(nS(d.sgb2||0)+nK(d.kinderarmut||0)+nA(d.arbeitslos||0)+(1-nI(d.einkommen||0))+(1-nW(d.wb||0)))/5,
+    clim:d=>Math.min(1,nC(duhAmpel(d).idx)*0.82+(d.hw?0.18:0))
+  };
+}
+const dvTerc=v=>v<0.34?0:v<0.67?1:2;
+function renderDoubleVuln(id,statusEl){
+  const cfg=CITY_CFG[city];
+  if(!geoFeatures.length){statusEl.textContent='—';return;}
+  const fn=dvIndices();
+  const findKey=raw=>Object.keys(cfg.data).find(k=>raw===k)||Object.keys(cfg.data).find(k=>raw.includes(k)||k.includes(raw));
+  const lyr=L.geoJSON({type:'FeatureCollection',features:geoFeatures},{
+    style:f=>{const k=findKey(f.properties[cfg.nameProp]||'');const d=k?cfg.data[k]:null;
+      if(!d)return{fillOpacity:0,opacity:0};
+      const col=BIV_DV[dvTerc(fn.social(d))][dvTerc(fn.clim(d))];
+      return{fillColor:col,fillOpacity:0.62,color:'#fff',weight:1.5,opacity:0.85};},
+    onEachFeature:(f,l)=>{const k=findKey(f.properties[cfg.nameProp]||'');const d=k?cfg.data[k]:null;if(!d)return;
+      const sv=fn.social(d),cb=fn.clim(d),st=dvTerc(sv),ct=dvTerc(cb);
+      const isNL=cfg.country==='NL'||city==='utr';
+      const lvl=(st===2&&ct===2)?(lang==='en'?'HIGHEST double burden':lang==='nl'?'HOOGSTE dubbele last':'HÖCHSTE Doppelbelastung'):(st>=1&&ct>=1)?(lang==='en'?'elevated double burden':lang==='nl'?'verhoogde dubbele last':'erhöhte Doppelbelastung'):(lang==='en'?'lower':lang==='nl'?'lager':'geringer');
+      const lvlCol=(st===2&&ct===2)?'#574249':(st>=1&&ct>=1)?'#985356':'#627f8c';
+      l.bindTooltip(`<b>${k}</b> · <span style="color:${lvlCol}">${lvl}</span><br><small>${lang==='en'?'Climate':lang==='nl'?'Klimaat':'Klima'} ${['niedrig','mittel','hoch'][ct]} · ${lang==='en'?'Social':lang==='nl'?'Sociaal':'Sozial'} ${['niedrig','mittel','hoch'][st]}</small>`,{sticky:true});
+      l.on('click',()=>{
+        const recM=MASS.filter(m=>m.dims.some(x=>['A','B','E','F'].includes(x))).slice(0,2);
+        const html2=`<div style="font-family:inherit;min-width:230px">
+          <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa">${lang==='en'?'Double vulnerability':lang==='nl'?'Dubbele kwetsbaarheid':'Doppelte Verwundbarkeit'}</div>
+          <div style="font-size:14px;font-weight:800;margin:2px 0 6px">${k}</div>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <div style="flex:1;background:#fef2f2;border-radius:8px;padding:7px 9px"><div style="font-size:9px;color:#8888aa">${lang==='en'?'Climate burden':lang==='nl'?'Klimaatlast':'Klimabelastung'}</div><div style="font-size:15px;font-weight:800;color:#c85a5a">${Math.round(cb*100)}</div></div>
+            <div style="flex:1;background:#eff6ff;border-radius:8px;padding:7px 9px"><div style="font-size:9px;color:#8888aa">${isNL?(lang==='en'?'Social vuln.':'Sociale kwetsb.'):'Soziale Verwundb.'}</div><div style="font-size:15px;font-weight:800;color:#5a8fc8">${Math.round(sv*100)}</div></div>
+          </div>
+          <div style="font-size:11px;color:#1a1a2e;line-height:1.5">${k}: ${isNL?'Bijstand':'SGB-II'} ${d.sgb2}% · ${isNL?'laag ink.':'Kinderarmut'} ${d.kinderarmut}% · ${(d.einkommen/1000).toFixed(0)}k€ · ${lang==='en'?'turnout':lang==='nl'?'opkomst':'Wahlbet.'} ${d.wb}% · DUH ${duhAmpel(d).idx}/100</div>
+          ${(st===2&&ct===2)?`<div style="margin-top:8px;background:#574249;color:#fff;border-radius:8px;padding:7px 9px;font-size:10px"><b>${lang==='en'?'Priority for action':lang==='nl'?'Prioriteit voor handelen':'Handlungsbedarf prioritär'}</b> — ${lang==='en'?'climate adaptation must be coupled with social investment here.':lang==='nl'?'klimaatadaptatie hier koppelen aan sociale investering.':'Klimaanpassung hier mit sozialer Investition koppeln.'}</div>`:''}
+          ${recM.length?`<div style="font-size:9px;color:#8888aa;margin-top:6px">${lang==='en'?'Suggested':lang==='nl'?'Voorstel':'Empfohlen'}: ${recM.map(m=>m.name).join(' · ')}</div>`:''}
+        </div>`;
+        L.popup({maxWidth:280}).setLatLng(l.getBounds().getCenter()).setContent(html2).openOn(map);
+      });
+    }
+  }).addTo(map);
+  layerObjs[id]=lyr; statusEl.textContent='✓ '+geoFeatures.length;
+  if(typeof updateMapLegend==='function')updateMapLegend();
 }
 
 function renderDUHAmpel(id,statusEl){
