@@ -8,6 +8,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
 <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
@@ -707,6 +708,10 @@ body.embed .embed-logo{display:block}
   </div>
 
   <div class="lp-section"><span data-i18n="sec_europe">Europa-Modus — Live aus OpenStreetMap</span></div>
+  <label class="lrow" style="cursor:pointer" onclick="toggleDensity(event)">
+    <button class="ltoggle" id="tog-density"></button>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" opacity="0.4"/></svg> <span data-i18n="density">Dichte-Heatmap statt Punkte</span></span>
+  </label>
   <div style="font-size:9px;color:var(--muted);margin-bottom:8px;padding:5px 7px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
     <span data-i18n="hint_europe">Funktioniert in jeder Stadt: hinzoomen (ab Zoom 14), Layer einschalten. Lädt beim Verschieben automatisch nach.</span>
   </div>
@@ -894,7 +899,7 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
+ de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
      search_ph:'Stadtteil suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
@@ -905,7 +910,7 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
+ en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
      search_ph:'Search district…',list_sub:'Relative ranking within the city · quintiles',
      loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
@@ -916,7 +921,7 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
+ nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
      search_ph:'Zoek wijk…',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
@@ -3020,6 +3025,14 @@ const OSM_LIVE={
   osm_lamps:   {q:bb=>`node["highway"="street_lamp"](${bb});`,out:'skel qt',color:'#f59e0b',r:1.8,cap:8000},
 };
 let osmLiveHooked=false, osmLiveTimer=null;
+function toggleDensity(ev){
+  if(ev)ev.preventDefault();
+  window.densityMode=!window.densityMode;
+  document.getElementById('tog-density').classList.toggle('on',window.densityMode);
+  ['osm_trees','osm_benches','osm_drinking','osm_schools','osm_health','osm_transit','osm_lamps'].forEach(id=>{
+    if(activeLayers[id])loadOSMLiveViewport(id,document.getElementById('st-'+id));
+  });
+}
 function renderOSMLive(id,statusEl){
   if(!osmLiveHooked){
     osmLiveHooked=true;
@@ -3050,17 +3063,26 @@ function loadOSMLiveViewport(id,statusEl){
   const render=(elements)=>{
     if(!activeLayers[id])return;
     if(layerObjs[id])map.removeLayer(layerObjs[id]);
+    const n=elements.length;
+    // Dichte-Heatmap statt Punktwolke
+    if(window.densityMode && L.heatLayer && n>15){
+      const pts=elements.map(e=>{const la=e.lat??(e.center&&e.center.lat),lo=e.lon??(e.center&&e.center.lon);return la!=null?[la,lo,0.7]:null;}).filter(Boolean);
+      const grad={0.2:'#2563eb',0.4:cfgL.color,0.7:'#f97316',1:'#dc2626'};
+      const hl=L.heatLayer(pts,{radius:20,blur:24,minOpacity:0.35,maxZoom:18,gradient:grad});
+      hl.addTo(map); layerObjs[id]=hl;
+      statusEl.textContent=(n>=cfgL.cap?'✓ '+cfgL.cap.toLocaleString('de-DE')+'+':'✓ '+n.toLocaleString('de-DE'))+' · Dichte';
+      return;
+    }
     const grp=L.layerGroup();
-    elements.forEach(n=>{
-      const lat=n.lat??(n.center&&n.center.lat), lon=n.lon??(n.center&&n.center.lon);
+    elements.forEach(e=>{
+      const lat=e.lat??(e.center&&e.center.lat), lon=e.lon??(e.center&&e.center.lon);
       if(lat==null)return;
       const m=L.circleMarker([lat,lon],{renderer:window.canvasRenderer,radius:cfgL.r,fillColor:cfgL.color,fillOpacity:0.78,stroke:false});
-      if(n.tags&&n.tags.name)m.bindTooltip(n.tags.name,{sticky:true});
+      if(e.tags&&e.tags.name)m.bindTooltip(e.tags.name,{sticky:true});
       m.addTo(grp);
     });
     grp.addTo(map);
     layerObjs[id]=grp;
-    const n=elements.length;
     statusEl.textContent=n>=cfgL.cap?`✓ ${cfgL.cap.toLocaleString('de-DE')}+ im Ausschnitt`:n===0?'0 — hier nicht kartiert':'✓ '+n.toLocaleString('de-DE');
   };
   // ÖPNV / Laternen aus Mobilitäts-Bundle (FFM/UTR)
