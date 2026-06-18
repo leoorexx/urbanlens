@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nice here — 3D-Ansicht</title>
+<link href="https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.css" rel="stylesheet"/>
+<script src="https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f3ee}
+#map{position:absolute;inset:0}
+.nav{position:fixed;top:0;left:0;right:0;height:54px;z-index:10;background:#fff;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:12px;padding:0 18px;box-shadow:0 2px 16px rgba(0,0,0,0.08)}
+.logo{font-size:16px;font-weight:800;text-decoration:none;color:#1a1a2e;letter-spacing:-.4px}
+.logo span{color:#2563eb}
+.pill{padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;text-decoration:none;border:1.5px solid rgba(0,0,0,0.1);color:#4a4a6a;transition:all .15s;cursor:pointer;background:none}
+.pill:hover,.pill.on{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.nav-r{margin-left:auto;display:flex;gap:8px;align-items:center}
+.ct{padding:5px 12px;border-radius:16px;font-size:11px;font-weight:700;color:#8888aa;cursor:pointer;background:#f0ede6;border:none}
+.ct.on{background:#1a1a2e;color:#FFD600}
+.modebar{position:fixed;top:66px;left:12px;z-index:10;background:rgba(255,253,248,0.95);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:6px;display:flex;gap:4px;box-shadow:0 4px 24px rgba(0,0,0,0.1)}
+.mb{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;border:none;background:none;color:#4a4a6a;cursor:pointer}
+.mb.on{background:#1a1a2e;color:#FFD600}
+.legend{position:fixed;bottom:20px;left:12px;z-index:10;background:rgba(255,253,248,0.95);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:10px 12px;font-size:10px;box-shadow:0 4px 24px rgba(0,0,0,0.1)}
+.legend b{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#8888aa;display:block;margin-bottom:5px}
+.lr{display:flex;align-items:center;gap:6px;color:#4a4a6a;padding:1px 0}
+.lc{width:13px;height:9px;border-radius:2px}
+.loader{position:fixed;inset:0;z-index:20;background:rgba(245,243,238,0.9);display:flex;align-items:center;justify-content:center;font-weight:700;color:#1a1a2e}
+.info{position:fixed;top:66px;right:12px;z-index:10;width:240px;background:rgba(255,253,248,0.97);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:13px 15px;box-shadow:0 4px 24px rgba(0,0,0,0.12);display:none}
+.info.on{display:block}
+.info h3{font-size:13px;font-weight:800;text-transform:capitalize}
+.info .row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #f0ede6}
+.info .row span:first-child{color:#8888aa}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="logo">nice <span>here</span></a>
+  <a href="index.html" class="pill">← 2D-Karte</a>
+  <a href="dashboard.html" class="pill">Dashboard</a>
+  <span class="pill on">3D</span>
+  <div class="nav-r">
+    <div style="display:flex;gap:3px;background:#f0ede6;padding:3px;border-radius:18px">
+      <button class="ct" id="ct-ffm" onclick="setCity('ffm')">Frankfurt</button>
+      <button class="ct on" id="ct-utr" onclick="setCity('utr')">Utrecht</button>
+    </div>
+  </div>
+</nav>
+<div class="modebar">
+  <button class="mb on" id="mb-co2" onclick="setMode('co2')">CO₂ Gebäude</button>
+  <button class="mb" id="mb-heat" onclick="setMode('heat')">Hitze</button>
+</div>
+<div class="legend" id="legend"></div>
+<div class="info" id="info"></div>
+<div id="map"></div>
+<div class="loader" id="loader">3D-Gebäude werden geladen…</div>
+
+<script>
+const BASE=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'data/layers':'/urbanlens/data/layers';
+const CENTERS={ffm:[8.682,50.111],utr:[5.121,52.091]};
+let city='utr', mode='co2', map;
+
+const HEIGHT={apartments:18,residential:12,house:9,detached:9,semidetached_house:9,terrace:11,bungalow:5,commercial:14,retail:8,office:24,industrial:10,warehouse:9,public:16,civic:16,school:12,hospital:20,university:16,church:22,cathedral:30,hotel:24,dormitory:16,train_station:18,parking:9,garage:3,garages:3,shed:3,hut:3,roof:4};
+function heightFor(t){return HEIGHT[t]||10;}
+function co2Color(v){return v>=120?'#7f1d1d':v>=90?'#dc2626':v>=60?'#f97316':v>=40?'#fbbf24':'#a7f3d0';}
+function heatColor(d){return d>=3?'#7f1d1d':d>=2.3?'#dc2626':d>=1.5?'#f97316':d>=0.8?'#fbbf24':'#a3e635';}
+
+function buildLegend(){
+  const el=document.getElementById('legend');
+  if(mode==='co2') el.innerHTML='<b>CO₂ Gebäude (kg/m²)</b>'+
+    [['#a7f3d0','< 40'],['#fbbf24','40–60'],['#f97316','60–90'],['#dc2626','90–120'],['#7f1d1d','> 120']].map(r=>`<div class="lr"><span class="lc" style="background:${r[0]}"></span>${r[1]}</div>`).join('');
+  else el.innerHTML='<b>Hitze ΔLST (°C)</b>'+
+    [['#a3e635','< 0,8'],['#fbbf24','0,8–1,5'],['#f97316','1,5–2,3'],['#dc2626','2,3–3'],['#7f1d1d','> 3']].map(r=>`<div class="lr"><span class="lc" style="background:${r[0]}"></span>${r[1]}</div>`).join('');
+}
+
+function colorFeature(p){return mode==='co2'?co2Color(p.co2_kg_m2||80):heatColor(p.lst_delta||0);}
+
+function loadBuildings(){
+  document.getElementById('loader').style.display='flex';
+  fetch(`${BASE}/co2_buildings_${city}.geojson`).then(r=>r.json()).then(gj=>{
+    gj.features.forEach(f=>{const p=f.properties||{};p._h=heightFor(p.building);p._c=colorFeature(p);});
+    if(map.getSource('buildings')){ map.getSource('buildings').setData(gj); }
+    else {
+      map.addSource('buildings',{type:'geojson',data:gj});
+      map.addLayer({id:'b3d',type:'fill-extrusion',source:'buildings',paint:{
+        'fill-extrusion-color':['get','_c'],'fill-extrusion-height':['get','_h'],'fill-extrusion-base':0,'fill-extrusion-opacity':0.92}});
+      map.on('click','b3d',e=>{const p=e.features[0].properties;
+        document.getElementById('info').className='info on';
+        document.getElementById('info').innerHTML=`<h3>${(p.building||'Gebäude').replace(/_/g,' ')}</h3>`+
+          `<div class="row"><span>CO₂</span><b>${p.co2_kg_m2||'—'} kg/m²</b></div>`+
+          `<div class="row"><span>Hitze ΔLST</span><b>+${p.lst_delta||0} °C</b></div>`+
+          `<div class="row"><span>Höhe (Proxy)</span><b>${heightFor(p.building)} m</b></div>`+
+          `<div class="row"><span>Baualter</span><b>${(p.age_class||'—').replace(/_/g,'–')}</b></div>`+
+          `<div style="font-size:8px;color:#8888aa;margin-top:6px">Höhe = Typ-Proxy · Schätzwerte, kein Energieausweis</div>`;
+      });
+      map.on('mouseenter','b3d',()=>map.getCanvas().style.cursor='pointer');
+      map.on('mouseleave','b3d',()=>map.getCanvas().style.cursor='');
+    }
+    document.getElementById('loader').style.display='none';
+  }).catch(()=>{document.getElementById('loader').textContent='Daten konnten nicht geladen werden.';});
+}
+
+function initMap(){
+  map=new maplibregl.Map({container:'map',style:{version:8,
+    sources:{carto:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO'}},
+    layers:[{id:'carto',type:'raster',source:'carto'}]},
+    center:CENTERS[city],zoom:15,pitch:58,bearing:-18,maxPitch:80,antialias:true});
+  map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
+  map.once('load',()=>{map.resize();loadBuildings();});
+  buildLegend();
+}
+function setCity(c){ if(c===city)return; city=c;
+  document.querySelectorAll('.ct').forEach(b=>b.classList.remove('on'));
+  document.getElementById('ct-'+c).classList.add('on');
+  document.getElementById('info').className='info';
+  map.flyTo({center:CENTERS[c],zoom:15,pitch:58,duration:1200});
+  loadBuildings();
+}
+function setMode(m){ mode=m;
+  document.querySelectorAll('.mb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('mb-'+m).classList.add('on');
+  buildLegend();
+  if(map.getSource('buildings'))loadBuildings();
+}
+const uc=new URLSearchParams(location.search).get('city'); if(CENTERS[uc])city=uc;
+if(city==='ffm'){document.getElementById('ct-utr').classList.remove('on');document.getElementById('ct-ffm').classList.add('on');}
+initMap();
+</script>
+</body>
+</html>
