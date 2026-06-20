@@ -2775,6 +2775,7 @@ function closeArea(){
 const DIAG={active:false,mode:null,layer:null,under:null,hooked:false,cache:{},timer:null,bundle:{}};
 
 // Vorab gebündelte Stadtdaten (FFM/UTR) — sofort & stadtweit, kein Overpass.
+const DATA_BASE=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'data/layers':'/urbanlens/data/layers';
 const CITY_BUNDLE={ffm:'diag_ffm.json',utr:'diag_utr.json'};
 function loadCityBundle(c){
   return new Promise(res=>{
@@ -4938,30 +4939,20 @@ async function loadLiveWind(){
 
     const rwy=getActiveRunway(dir);
     const compass=degToCompass(dir);
-
-    // Pfeil rotieren
-    document.getElementById('windArrow').style.transform=`rotate(${dir}deg)`;
-    document.getElementById('windArrow').textContent='↑';
-    document.getElementById('windSpeed').textContent=`${spd} km/h`;
-    document.getElementById('windRwy').textContent=`RWY ${rwy.rwy}`;
-
-    // Popup
-    document.getElementById('wpDir').textContent=`${compass} (${dir}°)`;
-    document.getElementById('wpSpeed').textContent=`${spd} km/h`;
-    document.getElementById('wpGusts').textContent=gusts?`${gusts} km/h`:'—';
-    document.getElementById('wpRwy').textContent=rwy.rwy;
-
+    // Wind-UI wurde entfernt — DOM-Schreibzugriffe null-sicher
+    const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    const arrow=document.getElementById('windArrow'); if(arrow){arrow.style.transform=`rotate(${dir}deg)`;arrow.textContent='↑';}
+    setTxt('windSpeed',`${spd} km/h`); setTxt('windRwy',`RWY ${rwy.rwy}`);
+    setTxt('wpDir',`${compass} (${dir}°)`); setTxt('wpSpeed',`${spd} km/h`);
+    setTxt('wpGusts',gusts?`${gusts} km/h`:'—'); setTxt('wpRwy',rwy.rwy);
     const col=rwy.larmOst?'#dc2626':'#2563eb';
-    const label=rwy.larmOst?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg> Ostkorridor aktiv':'Westkorridor aktiv';
-    document.getElementById('wpBadge').innerHTML=`<span class="wind-rwy-badge" style="background:${col}20;color:${col}">${label}</span>`;
-    document.getElementById('wpNote').textContent=rwy.note;
-
+    const label=rwy.larmOst?'Ostkorridor aktiv':'Westkorridor aktiv';
+    const badge=document.getElementById('wpBadge'); if(badge)badge.innerHTML=`<span class="wind-rwy-badge" style="background:${col}20;color:${col}">${label}</span>`;
+    setTxt('wpNote',rwy.note);
     // Fluglärm-Zonen dynamisch anpassen
-    updateFlightNoiseZones(rwy.larmOst);
-
+    try{ updateFlightNoiseZones(rwy.larmOst); }catch(e){}
   }catch(e){
-    console.warn('Wind-API nicht erreichbar:',e);
-    document.getElementById('windSpeed').textContent='offline';
+    const ws=document.getElementById('windSpeed'); if(ws)ws.textContent='offline';
   }
 }
 
