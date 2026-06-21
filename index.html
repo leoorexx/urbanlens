@@ -1787,6 +1787,8 @@ function toggleLayerPanel(){
   document.getElementById('layerPanel').classList.toggle('open');
 }
 
+// Layer, die erst ab einer Zoomstufe Daten zeigen (Overpass-Schutz / Rastergröße)
+const ZOOM_GATE={traffic_co2:14,raumklang:15,osm_trees:14,osm_benches:14,osm_drinking:14,osm_schools:14,osm_health:14,osm_transit:14,osm_lamps:14};
 function toggleLayer(id){
   const tog=document.getElementById('tog-'+id);
   const st=document.getElementById('st-'+id);
@@ -1799,6 +1801,10 @@ function toggleLayer(id){
     activeLayers[id]=true;tog.classList.add('on');
     st.innerHTML='<span class="loading-dot"></span>';
     activeCount++;document.getElementById('layerCount').textContent=activeCount;
+    // Zoom-gegatete Layer: automatisch auf nutzbare Stufe gehen, damit der
+    // Layer beim Einschalten sofort Daten zeigt statt scheinbar „leer" zu bleiben
+    const gate=ZOOM_GATE[id];
+    if(gate && map.getZoom()<gate) map.flyTo(map.getCenter(), gate, {duration:0.7});
     loadLayer(id,st);
   }
   // Toggle choropleth pane visibility instantly — no redraw needed
@@ -1926,8 +1932,8 @@ const TRAFFIC_W={motorway:100,trunk:90,primary:70,secondary:50,tertiary:35,uncla
 function trafficColor(w){return w>=70?'#7f1d1d':w>=50?'#dc2626':w>=35?'#f97316':w>=20?'#fbbf24':w>=8?'#a3e635':'#22c55e';}
 let trafficCache={}, trafficHook=false;
 function renderTrafficCO2(id,statusEl){
-  if(map.getZoom()<14){ if(layerObjs[id]){map.removeLayer(layerObjs[id]);delete layerObjs[id];} statusEl.textContent=lang==='de'?'Näher zoomen':lang==='nl'?'Zoom in':'Zoom in'; return; }
   if(!trafficHook){trafficHook=true; map.on('moveend',()=>{ if(activeLayers['traffic_co2']){clearTimeout(window.__trT);window.__trT=setTimeout(()=>renderTrafficCO2('traffic_co2',document.getElementById('st-traffic_co2')),600);} });}
+  if(map.getZoom()<14){ if(layerObjs[id]){map.removeLayer(layerObjs[id]);delete layerObjs[id];} statusEl.textContent=lang==='de'?'Näher zoomen':lang==='nl'?'Zoom in':'Zoom in'; return; }
   statusEl.innerHTML='<span class="loading-dot"></span>';
   const b=map.getBounds();
   const key=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(3)).join(',');
@@ -1963,8 +1969,8 @@ const NOISE_SRC={motorway:80,trunk:78,primary:72,secondary:68,tertiary:63,unclas
 function noiseColor(db){return db<50?'#4ade80':db<55?'#a3e635':db<60?'#fbbf24':db<65?'#f97316':db<70?'#ef4444':'#7f1d1d';}
 let raumCache={}, raumHook=false, raumT=null;
 function renderRaumklang(id,statusEl){
-  if(map.getZoom()<15){ if(layerObjs[id]){map.removeLayer(layerObjs[id]);delete layerObjs[id];} statusEl.textContent=lang==='de'?'Näher zoomen':lang==='nl'?'Zoom in':'Zoom in'; return; }
   if(!raumHook){raumHook=true; map.on('moveend',()=>{ if(activeLayers['raumklang']){clearTimeout(raumT);raumT=setTimeout(()=>renderRaumklang('raumklang',document.getElementById('st-raumklang')),650);} });}
+  if(map.getZoom()<15){ if(layerObjs[id]){map.removeLayer(layerObjs[id]);delete layerObjs[id];} statusEl.textContent=lang==='de'?'Näher zoomen':lang==='nl'?'Zoom in':'Zoom in'; return; }
   statusEl.innerHTML='<span class="loading-dot"></span>';
   const b=map.getBounds();
   const key=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(3)).join(',');
