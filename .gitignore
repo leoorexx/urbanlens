@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+tools/_src/
+qa_*.cjs
+/tmp

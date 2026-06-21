@@ -3185,10 +3185,10 @@ function renderFloodExposure(geojson){
   const id='flood';
   if(!activeLayers[id])return;
   const STYLE={
-    critical:{fillColor:'#1e3a8a',color:'#1e3a8a',fillOpacity:.75,weight:0.5,label:'<span class=cdot style=background:#dc2626></span> <30m — Kritisch (Keller volllaufen)'},
-    high:    {fillColor:'#2563eb',color:'#2563eb',fillOpacity:.6, weight:0.5,label:'<span class=cdot style=background:#ea580c></span> 30–100m — Hohes HQ100-Risiko'},
-    medium:  {fillColor:'#60a5fa',color:'#3b82f6',fillOpacity:.45,weight:0.5,label:'<span class=cdot style=background:#eab308></span> 100–250m — Mittleres Risiko'},
-    low:     {fillColor:'#bfdbfe',color:'#93c5fd',fillOpacity:.3, weight:0.5,label:'⚪ 250–500m — Geringes Risiko'},
+    critical:{fillColor:'#1e3a8a',color:'#1e3a8a',fillOpacity:.75,weight:0.5,label:'<span class=cdot style=background:#1e3a8a></span> Sehr hoch — direkt am Wasser'},
+    high:    {fillColor:'#2563eb',color:'#2563eb',fillOpacity:.6, weight:0.5,label:'<span class=cdot style=background:#2563eb></span> Hoch — gewässernah'},
+    medium:  {fillColor:'#60a5fa',color:'#3b82f6',fillOpacity:.45,weight:0.5,label:'<span class=cdot style=background:#60a5fa></span> Mittel'},
+    low:     {fillColor:'#bfdbfe',color:'#93c5fd',fillOpacity:.3, weight:0.5,label:'<span class=cdot style=background:#bfdbfe></span> Gering'},
   };
   const layer=L.geoJSON(geojson,{
     renderer:window.canvasRenderer,
@@ -3196,7 +3196,7 @@ function renderFloodExposure(geojson){
     onEachFeature:(f,l)=>{
       const r=f.properties.flood_risk||'low';const st=STYLE[r];
       const d=f.properties.flood_dist_m;
-      l.bindTooltip(`<b>${st.label}</b><br>Gebäude: ${f.properties.building||'?'}<br>Abstand Gewässer: <b>${d!=null?d+'m':'?'}</b><br><small>EU Floods Dir. 2007/60/EG · HQ100</small>`,{sticky:true,maxWidth:240});
+      l.bindTooltip(`<b>${st.label}</b><br>Gebäude: ${f.properties.building||'?'}<br>Abstand Gewässer: <b>${d!=null?d+' m':'?'}</b><br><small>Näherung über Distanz zum nächsten Gewässer — kein Hydraulikmodell</small>`,{sticky:true,maxWidth:240});
     }
   }).addTo(map);
   layerObjs[id]=layer;
