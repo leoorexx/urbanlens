@@ -21,11 +21,15 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .modebar{position:fixed;top:66px;left:12px;z-index:10;background:rgba(255,253,248,0.95);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:6px;display:flex;gap:4px;box-shadow:0 4px 24px rgba(0,0,0,0.1)}
 .mb{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;border:none;background:none;color:#4a4a6a;cursor:pointer}
 .mb.on{background:#1a1a2e;color:#FFD600}
-.legend{position:fixed;bottom:20px;left:12px;z-index:10;background:rgba(255,253,248,0.95);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:10px 12px;font-size:10px;box-shadow:0 4px 24px rgba(0,0,0,0.1)}
+.legend{position:fixed;bottom:20px;left:12px;z-index:10;background:rgba(255,253,248,0.95);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:10px 12px;font-size:10px;box-shadow:0 4px 24px rgba(0,0,0,0.1);max-width:215px}
 .legend b{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#8888aa;display:block;margin-bottom:5px}
 .lr{display:flex;align-items:center;gap:6px;color:#4a4a6a;padding:1px 0}
-.lc{width:13px;height:9px;border-radius:2px}
-.loader{position:fixed;inset:0;z-index:20;background:rgba(245,243,238,0.9);display:flex;align-items:center;justify-content:center;font-weight:700;color:#1a1a2e}
+.lc{width:13px;height:9px;border-radius:2px;flex:none}
+.legend .note{font-size:8.5px;color:#a0a0b8;margin-top:6px;line-height:1.4}
+.loader{position:fixed;inset:0;z-index:20;background:rgba(245,243,238,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-weight:700;color:#1a1a2e}
+.spin{width:30px;height:30px;border:3px solid rgba(0,0,0,0.1);border-top-color:#2563eb;border-radius:50%;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loader small{font-weight:500;color:#8888aa;font-size:11px}
 .info{position:fixed;top:66px;right:12px;z-index:10;width:240px;background:rgba(255,253,248,0.97);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:13px 15px;box-shadow:0 4px 24px rgba(0,0,0,0.12);display:none}
 .info.on{display:block}
 .info h3{font-size:13px;font-weight:800;text-transform:capitalize}
@@ -47,69 +51,107 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
   </div>
 </nav>
 <div class="modebar">
-  <button class="mb on" id="mb-co2" onclick="setMode('co2')">CO₂ Gebäude</button>
+  <button class="mb on" id="mb-co2" onclick="setMode('co2')">CO₂</button>
   <button class="mb" id="mb-heat" onclick="setMode('heat')">Hitze</button>
+  <button class="mb" id="mb-flood" onclick="setMode('flood')">Hochwasser</button>
 </div>
 <div class="legend" id="legend"></div>
 <div class="info" id="info"></div>
 <div id="map"></div>
-<div class="loader" id="loader">3D-Gebäude werden geladen…</div>
+<div class="loader" id="loader"><div class="spin"></div><div id="loaderTxt">3D-Stadtmodell wird geladen…</div><small id="loaderSub">alle Gebäude aus dem BAG-Register</small></div>
 
 <script>
 const BASE=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'data/layers':'/urbanlens/data/layers';
 const CENTERS={ffm:[8.682,50.111],utr:[5.121,52.091]};
-let city='utr', mode='co2', map;
+let city='utr', mode='co2', map, FEATURES=null;
 
-const HEIGHT={apartments:18,residential:12,house:9,detached:9,semidetached_house:9,terrace:11,bungalow:5,commercial:14,retail:8,office:24,industrial:10,warehouse:9,public:16,civic:16,school:12,hospital:20,university:16,church:22,cathedral:30,hotel:24,dormitory:16,train_station:18,parking:9,garage:3,garages:3,shed:3,hut:3,roof:4};
-function heightFor(t){return HEIGHT[t]||10;}
-function co2Color(v){return v>=120?'#7f1d1d':v>=90?'#dc2626':v>=60?'#f97316':v>=40?'#fbbf24':'#a7f3d0';}
-function heatColor(d){return d>=3?'#7f1d1d':d>=2.3?'#dc2626':d>=1.5?'#f97316':d>=0.8?'#fbbf24':'#a3e635';}
+const GREY='#cfc9bf';              // neutraler Kontext (Nebengebäude / nicht betroffen)
+// CO₂ kg/m²·a — kalibriert auf reale BAG-Verteilung (Utrecht überwiegend Altbau)
+function co2Color(v){ if(v==null||v==='') return GREY;
+  return v>=46?'#7f1d1d':v>=42?'#dc2626':v>=36?'#f97316':v>=28?'#fbbf24':v>=20?'#bef264':'#86efac'; }
+function heatColor(d){ if(d==null||d==='') return GREY;
+  return d<1.2?GREY:d<1.8?'#fbbf24':d<2.3?'#f97316':d<3?'#dc2626':'#7f1d1d'; }
+function floodColor(f){ return f==='high'?'#1d4ed8':f==='medium'?'#3b82f6':f==='low'?'#93c5fd':GREY; }
+function colorFor(p){ return mode==='co2'?co2Color(p.co2): mode==='heat'?heatColor(p.lst): floodColor(p.flood); }
+
+const ERA_LABEL={pre1920:'vor 1920','1920_1944':'1920–1944','1945_1964':'1945–1964','1965_1974':'1965–1974',
+  '1975_1987':'1975–1987','1988_1999':'1988–1999','2000_2009':'2000–2009','2010_2019':'2010–2019',post2020:'nach 2020',unbekannt:'unbekannt'};
+const USE_LABEL={res:'Wohnen',off:'Büro',ret:'Handel',ind:'Industrie',hea:'Gesundheit',edu:'Bildung',asm:'Versammlung',hot:'Beherbergung',spo:'Sport',oth:'sonstige','':'Nebengebäude'};
 
 function buildLegend(){
   const el=document.getElementById('legend');
-  if(mode==='co2') el.innerHTML='<b>CO₂ Gebäude (kg/m²)</b>'+
-    [['#a7f3d0','< 40'],['#fbbf24','40–60'],['#f97316','60–90'],['#dc2626','90–120'],['#7f1d1d','> 120']].map(r=>`<div class="lr"><span class="lc" style="background:${r[0]}"></span>${r[1]}</div>`).join('');
-  else el.innerHTML='<b>Hitze ΔLST (°C)</b>'+
-    [['#a3e635','< 0,8'],['#fbbf24','0,8–1,5'],['#f97316','1,5–2,3'],['#dc2626','2,3–3'],['#7f1d1d','> 3']].map(r=>`<div class="lr"><span class="lc" style="background:${r[0]}"></span>${r[1]}</div>`).join('');
+  const rows=(arr)=>arr.map(r=>`<div class="lr"><span class="lc" style="background:${r[0]}"></span>${r[1]}</div>`).join('');
+  if(mode==='co2') el.innerHTML='<b>CO₂ Gebäude (kg/m²·a)</b>'+rows([['#86efac','< 20 · effizient'],['#bef264','20–28'],['#fbbf24','28–36'],['#f97316','36–42'],['#dc2626','42–46'],['#7f1d1d','≥ 46 · ineffizient'],[GREY,'Nebengebäude']])+'<div class="note">Modelliert aus echtem Baujahr (PDOK BAG) × Nutzung. Älter ↔ schlechterer Energiestandard.</div>';
+  else if(mode==='heat') el.innerHTML='<b>Hitzebelastung ΔLST (°C)</b>'+rows([[GREY,'< 1,2 · unauffällig'],['#fbbf24','1,2–1,8'],['#f97316','1,8–2,3'],['#dc2626','2,3–3'],['#7f1d1d','> 3 · Hotspot']])+'<div class="note">Oberflächentemperatur-Überhöhung ggü. Stadtmittel.</div>';
+  else el.innerHTML='<b>Hochwasser-Nähe</b>'+rows([['#1d4ed8','hoch (< 25 m Wasser)'],['#3b82f6','mittel (< 70 m)'],['#93c5fd','gering (< 160 m)'],[GREY,'außerhalb']])+'<div class="note">Näherungsproxy über Distanz zu Gewässern, keine Hydraulik.</div>';
 }
 
-function colorFeature(p){return mode==='co2'?co2Color(p.co2_kg_m2||80):heatColor(p.lst_delta||0);}
+function applyColors(){
+  if(!FEATURES) return;
+  for(const f of FEATURES) f.properties._c=colorFor(f.properties);
+  if(map.getSource('buildings')) map.getSource('buildings').setData({type:'FeatureCollection',features:FEATURES});
+}
+
+// Kompakt-Array (utr) → GeoJSON-Features.  FFM nutzt weiter sein GeoJSON.
+function toFeatures(data, isCompact){
+  if(isCompact){
+    return data.map(b=>({type:'Feature',
+      geometry:{type:'Polygon',coordinates:[b.g.concat([b.g[0]])]},   // Ring schließen
+      properties:{co2:b.co2,lst:b.lst,flood:b.flood,era:b.era,use:b.u,_h:b.h}}));
+  }
+  return data.features.map(f=>{const p=f.properties||{};
+    return {type:'Feature',geometry:f.geometry,
+      properties:{co2:p.co2_kg_m2??null,lst:p.lst_delta??null,flood:p.flood_risk??null,
+        era:p.age_class||'unbekannt',use:p.building||'',_h:heightFFM(p.building)}};});
+}
+const HFFM={apartments:18,residential:12,house:9,detached:9,terrace:11,commercial:14,retail:8,office:24,industrial:10,public:16,school:12,hospital:20,church:22,hotel:24,train_station:18,parking:9,garage:3,roof:4};
+function heightFFM(t){return HFFM[t]||10;}
 
 function loadBuildings(){
-  document.getElementById('loader').style.display='flex';
-  fetch(`${BASE}/co2_buildings_${city}.geojson`).then(r=>r.json()).then(gj=>{
-    gj.features.forEach(f=>{const p=f.properties||{};p._h=heightFor(p.building);p._c=colorFeature(p);});
+  const loader=document.getElementById('loader');
+  loader.style.display='flex';
+  document.getElementById('loaderSub').textContent = city==='utr'?'alle Gebäude aus dem BAG-Register':'Gebäude aus OpenStreetMap';
+  const isUtr = city==='utr';
+  const url = isUtr ? `${BASE}/bag_utr.json` : `${BASE}/co2_buildings_${city}.geojson`;
+  fetch(url).then(r=>r.json()).then(data=>{
+    FEATURES = toFeatures(data, isUtr);
+    for(const f of FEATURES) f.properties._c=colorFor(f.properties);
+    const gj={type:'FeatureCollection',features:FEATURES};
     if(map.getSource('buildings')){ map.getSource('buildings').setData(gj); }
     else {
       map.addSource('buildings',{type:'geojson',data:gj});
       map.addLayer({id:'b3d',type:'fill-extrusion',source:'buildings',paint:{
-        'fill-extrusion-color':['get','_c'],'fill-extrusion-height':['get','_h'],'fill-extrusion-base':0,'fill-extrusion-opacity':0.92}});
+        'fill-extrusion-color':['get','_c'],
+        'fill-extrusion-height':['get','_h'],
+        'fill-extrusion-base':0,
+        'fill-extrusion-opacity':0.93}});
       map.on('click','b3d',e=>{const p=e.features[0].properties;
         document.getElementById('info').className='info on';
-        document.getElementById('info').innerHTML=`<h3>${(p.building||'Gebäude').replace(/_/g,' ')}</h3>`+
-          `<div class="row"><span>CO₂</span><b>${p.co2_kg_m2||'—'} kg/m²</b></div>`+
-          `<div class="row"><span>Hitze ΔLST</span><b>+${p.lst_delta||0} °C</b></div>`+
-          `<div class="row"><span>Höhe (Proxy)</span><b>${heightFor(p.building)} m</b></div>`+
-          `<div class="row"><span>Baualter</span><b>${(p.age_class||'—').replace(/_/g,'–')}</b></div>`+
-          `<div style="font-size:8px;color:#8888aa;margin-top:6px">Höhe = Typ-Proxy · Schätzwerte, kein Energieausweis</div>`;
+        document.getElementById('info').innerHTML=`<h3>${USE_LABEL[p.use]||p.use||'Gebäude'}</h3>`+
+          `<div class="row"><span>Baujahr-Epoche</span><b>${ERA_LABEL[p.era]||p.era}</b></div>`+
+          `<div class="row"><span>CO₂</span><b>${p.co2!=null&&p.co2!==''?p.co2+' kg/m²·a':'—'}</b></div>`+
+          `<div class="row"><span>Hitze ΔLST</span><b>${p.lst!=null&&p.lst!==''?'+'+p.lst+' °C':'—'}</b></div>`+
+          `<div class="row"><span>Hochwasser</span><b>${p.flood?({high:'hoch',medium:'mittel',low:'gering'})[p.flood]:'—'}</b></div>`+
+          `<div class="row"><span>Höhe (Proxy)</span><b>${(+p._h).toFixed(0)} m</b></div>`+
+          `<div style="font-size:8px;color:#8888aa;margin-top:6px">Höhe = Geschossfläche/Grundfläche · CO₂ modelliert, kein Energieausweis</div>`;
       });
       map.on('mouseenter','b3d',()=>map.getCanvas().style.cursor='pointer');
       map.on('mouseleave','b3d',()=>map.getCanvas().style.cursor='');
     }
-    document.getElementById('loader').style.display='none';
-  }).catch(()=>{document.getElementById('loader').textContent='Daten konnten nicht geladen werden.';});
+    loader.style.display='none';
+  }).catch(err=>{document.getElementById('loaderTxt').textContent='Daten konnten nicht geladen werden.';console.error(err);});
 }
 
 function initMap(){
   map=new maplibregl.Map({container:'map',style:{version:8,
-    sources:{carto:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO'}},
+    sources:{carto:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO · Gebäude: PDOK BAG'}},
     layers:[{id:'carto',type:'raster',source:'carto'}]},
     center:CENTERS[city],zoom:15,pitch:58,bearing:-18,maxPitch:80,antialias:true});
   map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
   map.once('load',()=>{map.resize();loadBuildings();});
   buildLegend();
 }
-function setCity(c){ if(c===city)return; city=c;
+function setCity(c){ if(c===city)return; city=c; FEATURES=null;
   document.querySelectorAll('.ct').forEach(b=>b.classList.remove('on'));
   document.getElementById('ct-'+c).classList.add('on');
   document.getElementById('info').className='info';
@@ -120,7 +162,7 @@ function setMode(m){ mode=m;
   document.querySelectorAll('.mb').forEach(b=>b.classList.remove('on'));
   document.getElementById('mb-'+m).classList.add('on');
   buildLegend();
-  if(map.getSource('buildings'))loadBuildings();
+  applyColors();
 }
 const uc=new URLSearchParams(location.search).get('city'); if(CENTERS[uc])city=uc;
 if(city==='ffm'){document.getElementById('ct-utr').classList.remove('on');document.getElementById('ct-ffm').classList.add('on');}

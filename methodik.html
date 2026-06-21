@@ -92,7 +92,7 @@ a.ref:hover{text-decoration:underline}
       <div class="conf">
         <span class="conf-dot d-modeled"></span>
         <h3>Modelliert</h3>
-        <p>Aus gemessenen Werten nach dokumentierter Methode berechnet (z.&nbsp;B. CO₂ aus Baualter × IWU-Typologie). Mittlere Sicherheit.</p>
+        <p>Aus gemessenen Werten nach dokumentierter Methode berechnet (z.&nbsp;B. CO₂ aus echtem Baujahr × Energie-Intensität der Bauepoche). Mittlere Sicherheit.</p>
       </div>
       <div class="conf">
         <span class="conf-dot d-estimated"></span>
@@ -141,7 +141,7 @@ a.ref:hover{text-decoration:underline}
     <div class="card">
       <div class="dl-row"><span>Satelliten-/Klimadaten (Copernicus Sentinel-2/-3)</span><b>2024</b></div>
       <div class="dl-row"><span>Amtliche Hochwassergefahrenkarte (HLNUG / Risicokaart NL)</span><b>2023</b></div>
-      <div class="dl-row"><span>Gebäude- &amp; CO₂-Typologie (IWU / EPC-Register Hessen)</span><b>2023</b></div>
+      <div class="dl-row"><span>Gebäude &amp; Baujahr (Utrecht: PDOK BAG · FFM: IWU / EPC Hessen)</span><b>2024</b></div>
       <div class="dl-row"><span>Sozialdaten (Zensus 2022, Statistikportal FFM / CBS)</span><b>2022</b></div>
       <div class="dl-row"><span>Wahlbeteiligung (letzte Bundestags- &amp; Kommunalwahl)</span><b>2021</b></div>
       <div class="dl-row"><span>OpenStreetMap Live-Layer (Bäume, ÖPNV, Trinkbrunnen …)</span><b>Echtzeit</b></div>
@@ -196,9 +196,9 @@ const ENV=[
  {n:'Versiegelungsgrad',prim:'Copernicus HRL Imperviousness',val:'DUH/LUP Hitze-Check 2026',stand:'2024',conf:'measured'},
  {n:'Grünvolumen / NDVI',prim:'Copernicus Sentinel-2',val:'Stadtbaumkataster FFM / Gem. Utrecht',stand:'2024',conf:'modeled'},
  {n:'Straßenbäume (Einzelbäume)',prim:'Stadtkataster FFM / Utrecht',val:'OpenStreetMap (live)',stand:'2024 / Echtzeit',conf:'live'},
- {n:'Hochwasserrisiko HQ100',prim:'HWGK Hessen',val:'Risicokaart NL / EU Floods Directive',stand:'2023',conf:'measured'},
+ {n:'Hochwasser-Nähe',prim:'FFM: HWGK Hessen (HQ100)',val:'Utrecht: Näherung über Distanz zu Gewässern (kein Hydraulikmodell)',stand:'2023/24',conf:'estimated'},
  {n:'Lärmbelastung',prim:'EU-Umgebungslärm-Richtlinie',val:'OSM Straßenklassen-Modell',stand:'2022',conf:'modeled'},
- {n:'Gebäude-CO₂-Intensität',prim:'IWU-Gebäudetypologie 2023',val:'EPC-Register Hessen',stand:'2023',conf:'modeled'},
+ {n:'Gebäude-CO₂-Intensität',prim:'Utrecht: PDOK BAG — echtes Baujahr je Gebäude',val:'× Energie-Intensität der Bauepoche (RVO/WoON) · FFM: IWU-Typologie 2023',stand:'2024',conf:'modeled'},
  {n:'Sozialindikatoren',prim:'Zensus 2022 · Statistikportal FFM / CBS',val:'Bundesagentur für Arbeit / UWV',stand:'2022',conf:'estimated'},
 ];
 document.getElementById('envBody').innerHTML=ENV.map(e=>`<tr>
