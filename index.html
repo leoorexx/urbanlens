@@ -16,6 +16,7 @@
   --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.12);
   --text:#1a1a2e;--text2:#374151;--muted:#9ca3af;
   --accent:#FFD600;--al:rgba(255,214,0,0.12);
+  --climate:#ff8210;--eco:#36d5d0;--social:#a60ba6;
   --r1:#ef4444;--r2:#f97316;--r3:#eab308;--r4:#22c55e;--r5:#16a34a;
   --sh:0 4px 24px rgba(0,0,0,0.08),0 1px 8px rgba(0,0,0,0.05);
   --shl:0 8px 32px rgba(0,0,0,0.12),0 2px 12px rgba(0,0,0,0.07);
@@ -72,7 +73,7 @@ body.embed .embed-logo{display:block}
 .embed-logo span{color:var(--accent)}
 .embed-logo a{text-decoration:none;color:var(--text)}
 .nav{position:fixed;top:0;left:0;right:0;height:54px;z-index:1000;background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:0 2px 16px rgba(0,0,0,0.08)}
-.logo{font-size:17px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px}.logo span{color:#1a1a2e}
+.logo{font-size:17px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px}.logo span{color:var(--eco)}
 .city-toggle{display:flex;gap:4px;background:var(--surface2);padding:3px;border-radius:20px;border:1px solid var(--border)}
 .ct{padding:5px 14px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap}
 .ct:hover:not(.on){color:var(--text)}
@@ -107,6 +108,9 @@ body.embed .embed-logo{display:block}
 .tool-btn{position:fixed;left:268px;z-index:600;background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:46px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;box-shadow:var(--shl);color:var(--text);font-size:7px;font-weight:700;transition:all .15s}
 .tool-btn:hover{background:var(--surface2)}
 .tool-btn.on{background:#1a1a2e;color:#FFD600}
+#tool-analyse.on{background:var(--eco);color:#08403d}
+#tool-heatsim.on{background:var(--climate);color:#fff}
+#tool-mit.on{background:var(--social);color:#fff}
 .area-panel{position:fixed;right:12px;top:62px;width:312px;max-height:calc(100vh - 80px);overflow-y:auto;z-index:660;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);display:none}
 .area-panel.open{display:block}
 .ap-head{padding:13px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
