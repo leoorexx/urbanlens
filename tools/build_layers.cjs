@@ -53,10 +53,21 @@ function era(y){
   if(y<1975) return '1965_1974'; if(y<1988) return '1975_1987'; if(y<2000) return '1988_1999';
   if(y<2010) return '2000_2009'; if(y<2020) return '2010_2019'; return 'post2020';
 }
-const HFALLBACK={res:6,off:14,ret:7,ind:8,hea:16,edu:10,asm:9,hot:18,oth:4,'':3};
+// Höhe Utrecht-realistisch (überwiegend Niedrigbau). WICHTIG: oppervlakte_max ist
+// nur die GRÖSSTE Einheit, nicht die Gesamtfläche → Fläche/Footprint überschätzt
+// Groß-/Industriebauten massiv. Darum: Nicht-Wohnen = Typ-Höhe (keine Inflation),
+// Wohnen = aus Wohnungszahl (Mehrfamilien) bzw. Fläche (Einfamilien), hart gedeckelt.
+const NONRES_H={off:14,ret:6,ind:8,hea:14,edu:9,asm:8,hot:18,spo:9,oth:5,'':3};
 function heightFor(b,fp){
-  if(b.a&&fp>15){const floors=Math.max(1,Math.min(40,Math.round(b.a/fp)));return +(floors*3.1).toFixed(1);}
-  return HFALLBACK[b.u]??6;
+  if(b.u==='res'){
+    let floors;
+    if(b.n>1 && fp>20){ const upf=Math.max(1,Math.round(fp/95)); floors=Math.round(b.n/upf); } // Mehrfamilien: Wohnungen/Geschoss
+    else if(b.a && fp>15){ floors=Math.round(b.a/fp); }                                          // Einfamilien: Gesamtfläche
+    else floors=2;
+    floors=Math.max(1,Math.min(16,floors));   // Deckel: ~50 m (Utrecht-Türme), killt Fake-Hochhäuser
+    return +(floors*3.1).toFixed(1);
+  }
+  return NONRES_H[b.u] ?? 6;   // Nicht-Wohnen: feste Typ-Höhe, kein Footprint-Aufblähen
 }
 
 // ─── Gitter-Index für Nachbarsuche ───────────────────────────────────────
