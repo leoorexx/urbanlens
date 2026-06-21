@@ -142,7 +142,7 @@ a.ref:hover{text-decoration:underline}
       <div class="dl-row"><span>Satelliten-/Klimadaten (Copernicus Sentinel-2/-3)</span><b>2024</b></div>
       <div class="dl-row"><span>Amtliche Hochwassergefahrenkarte (HLNUG / Risicokaart NL)</span><b>2023</b></div>
       <div class="dl-row"><span>Gebäude &amp; Baujahr (Utrecht: PDOK BAG · FFM: IWU / EPC Hessen)</span><b>2024</b></div>
-      <div class="dl-row"><span>Sozialdaten (Zensus 2022, Statistikportal FFM / CBS)</span><b>2022</b></div>
+      <div class="dl-row"><span>Sozialdaten (Utrecht: CBS Kerncijfers · FFM: Zensus/Statistikportal)</span><b>2023</b></div>
       <div class="dl-row"><span>Wahlbeteiligung (letzte Bundestags- &amp; Kommunalwahl)</span><b>2021</b></div>
       <div class="dl-row"><span>OpenStreetMap Live-Layer (Bäume, ÖPNV, Trinkbrunnen …)</span><b>Echtzeit</b></div>
     </div>
@@ -175,9 +175,9 @@ const DIMS=[
  {k:'A',icon:'thermo',name:'Klimagerechtigkeit',formula:'0,40·LST-Perzentil + 0,35·Versiegelung + 0,25·NDVI-Mangel',prim:'Copernicus Sentinel-3 (Oberflächentemperatur)',val:'DWD Klimaatlas · HLNUG Hitzestress Hessen',norm:'EU Renaturierungs-VO 2024/1991',stand:'2024',conf:'measured'},
  {k:'B',icon:'lung',name:'Gesundheitslast',formula:'Luftqualität (PM2.5+NO2 vs. EU-Grenzwert) + Lärm Lden + Atemwegsrate',prim:'HLNUG Luftmessnetz · EU-Umgebungslärm-Kartierung',val:'RKI Gesundheitsatlas',norm:'EU Air Quality Directive 2024',stand:'2023',conf:'modeled'},
  {k:'C',icon:'bike',name:'Mobilität',formula:'ÖPNV-Takt (GTFS) + Radweglänge/km² + 10-Min-Erreichbarkeit − Unfalldichte',prim:'RMV GTFS · OpenStreetMap Overpass',val:'Unfallatlas Deutschland (Destatis)',norm:'SDG 11.2 · 10-Minuten-Stadt',stand:'2024',conf:'modeled'},
- {k:'D',icon:'book',name:'Bildungsstart',formula:'Kita-Quote + (1−Abbrecherquote) + (1−Jugendarbeitslosigkeit) − SGB-II',prim:'Statistikportal FFM · Jugendamt',val:'Bundesagentur für Arbeit',norm:'SDG 4 (Kita-Quote >90%)',stand:'2022',conf:'estimated'},
- {k:'E',icon:'home',name:'Wohn-Krise',formula:'Mietbelastungsquote + Gentrifizierungsdruck (5J) + Überbelegung',prim:'Statistikportal FFM · Zensus 2022',val:'ImmobilienScout24 Mietspiegel',norm:'Wohngeldgesetz (Mietquote ≤30%)',stand:'2023',conf:'estimated'},
- {k:'F',icon:'vote',name:'Demokratie & Teilhabe',formula:'Wahlbeteiligung (BTW+Kommunal) + Vereinsdichte + Community Places/10.000 EW',prim:'Stadtwahlamt Frankfurt',val:'Vereinsregister · OSM',norm:'Aarhus-Konvention',stand:'2021',conf:'measured'},
+ {k:'D',icon:'book',name:'Bildungsstart',formula:'Kita-Quote + (1−Abbrecherquote) + (1−Jugendarbeitslosigkeit) − Bijstand/SGB-II',prim:'Utrecht: DUO / CBS Kerncijfers wijken · FFM: Statistikportal/Jugendamt',val:'UWV / Bundesagentur für Arbeit',norm:'SDG 4 (Kita-Quote >90%)',stand:'2023',conf:'estimated'},
+ {k:'E',icon:'home',name:'Wohn-Krise',formula:'Mietbelastungsquote + Gentrifizierungsdruck (5J) + Überbelegung',prim:'Utrecht: CBS Wonen · FFM: Statistikportal/Zensus',val:'Kadaster / ImmobilienScout24',norm:'Mietquote ≤30% (Wohngeldgesetz / NL Woningwet)',stand:'2023',conf:'estimated'},
+ {k:'F',icon:'vote',name:'Demokratie & Teilhabe',formula:'Wahlbeteiligung + Vereinsdichte + Community Places/10.000 EW',prim:'Utrecht: Kiesraad · FFM: Stadtwahlamt',val:'Verenigingen/Vereinsregister · OSM',norm:'Aarhus-Konvention',stand:'2021',conf:'measured'},
  {k:'G',icon:'tree',name:'Ökosystem-Gesundheit',formula:'NDVI + Baumvitalität/Kronendichte + Biotopkonnektivität + Wasserretention',prim:'Copernicus Sentinel-2 (NDVI)',val:'Stadtbaumliste FFM · HLNUG Biotopkartierung',norm:'EU Renaturierungs-VO 2024',stand:'2024',conf:'measured'},
  {k:'H',icon:'shield',name:'Katastrophenresilienz',formula:'Hochwasserrisiko HQ100 (Flächenanteil) + kritische Infrastruktur + Reaktionszeit',prim:'HLNUG Hochwassergefahrenkarte · Risicokaart NL',val:'Feuerwehr FFM · RP Darmstadt',norm:'EU Floods Directive 2007/60/EG',stand:'2023',conf:'measured'},
 ];
@@ -199,7 +199,7 @@ const ENV=[
  {n:'Hochwasser-Nähe',prim:'FFM: HWGK Hessen (HQ100)',val:'Utrecht: Näherung über Distanz zu Gewässern (kein Hydraulikmodell)',stand:'2023/24',conf:'estimated'},
  {n:'Lärmbelastung',prim:'EU-Umgebungslärm-Richtlinie',val:'OSM Straßenklassen-Modell',stand:'2022',conf:'modeled'},
  {n:'Gebäude-CO₂-Intensität',prim:'Utrecht: PDOK BAG — echtes Baujahr je Gebäude',val:'× Energie-Intensität der Bauepoche (RVO/WoON) · FFM: IWU-Typologie 2023',stand:'2024',conf:'modeled'},
- {n:'Sozialindikatoren',prim:'Zensus 2022 · Statistikportal FFM / CBS',val:'Bundesagentur für Arbeit / UWV',stand:'2022',conf:'estimated'},
+ {n:'Sozialindikatoren',prim:'Utrecht: CBS Kerncijfers wijken 2023 · FFM: Zensus/Statistikportal',val:'UWV / Bundesagentur für Arbeit',stand:'2023',conf:'estimated'},
 ];
 document.getElementById('envBody').innerHTML=ENV.map(e=>`<tr>
   <td class="dim-name">${e.n}</td>
