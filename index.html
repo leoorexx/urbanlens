@@ -66,7 +66,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 body.embed .nav{display:none}
 body.embed .left{top:10px!important}
 body.embed .layer-btn{top:10px!important}
-body.embed #tool-inspect{top:64px!important}body.embed #tool-street{top:118px!important}body.embed #tool-heatsim{top:172px!important}body.embed #tool-mit{top:226px!important}body.embed #tool-area{top:280px!important}
+body.embed #tool-analyse{top:64px!important}body.embed #tool-heatsim{top:118px!important}body.embed #tool-mit{top:172px!important}body.embed #tool-area{top:226px!important}
 .embed-logo{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:1000;background:rgba(255,253,248,0.95);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:800;box-shadow:var(--sh);display:none}
 body.embed .embed-logo{display:block}
 .embed-logo span{color:var(--accent)}
@@ -464,23 +464,19 @@ body.embed .embed-logo{display:block}
 
 <div id="map"></div>
 <div id="mapLegend" class="map-legend" style="display:none"></div>
-<button class="tool-btn" id="tool-inspect" style="top:116px" onclick="toggleInspect()" title="Klick-Inspektor">
+<button class="tool-btn" id="tool-analyse" style="top:116px" onclick="toggleAnalyse()" title="Analyse: Straßenzug anklicken (Maßnahmen) oder freie Fläche (Punkt-Umfeld)">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/><path d="M11 8v6M8 11h6"/></svg>
-  <span data-i18n="tool_inspect">Punkt</span>
+  <span data-i18n="tool_analyse">Analyse</span>
 </button>
-<button class="tool-btn" id="tool-street" style="top:170px" onclick="toggleStreetMode()" title="Maßnahmen auf Straßen">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19 9 5M20 19 15 5M12 6v2M12 11v2M12 16v2"/></svg>
-  <span data-i18n="tool_street">Straße</span>
-</button>
-<button class="tool-btn" id="tool-heatsim" style="top:224px" onclick="toggleHeatSim()" title="Hitze-Kühlsimulation">
+<button class="tool-btn" id="tool-heatsim" style="top:170px" onclick="toggleHeatSim()" title="Hitze-Kühlsimulation">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><circle cx="12" cy="17" r="3"/><path d="M12 9a3 3 0 0 0 3-3 3 3 0 0 0-1-2"/></svg>
   <span data-i18n="tool_heat">Hitze</span>
 </button>
-<button class="tool-btn" id="tool-mit" style="top:278px" onclick="toggleMitwirkung()" title="Mitwirkung: melden & priorisieren">
+<button class="tool-btn" id="tool-mit" style="top:224px" onclick="toggleMitwirkung()" title="Mitwirkung: melden & priorisieren">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg>
   <span data-i18n="tool_mit">Mitwirken</span>
 </button>
-<button class="tool-btn" id="tool-area" style="top:332px" onclick="startAreaDraw()" title="Gebiet analysieren">
+<button class="tool-btn" id="tool-area" style="top:278px" onclick="startAreaDraw()" title="Gebiet analysieren">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 14h6v6h-6zM10 7h7v7"/></svg>
   <span data-i18n="tool_area">Gebiet</span>
 </button>
@@ -900,7 +896,7 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
+ de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
      search_ph:'Stadtteil suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
@@ -911,7 +907,7 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
+ en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
      search_ph:'Search district…',list_sub:'Relative ranking within the city · quintiles',
      loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
@@ -922,7 +918,7 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
+ nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
      search_ph:'Zoek wijk…',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
@@ -2245,6 +2241,36 @@ const REPORT_TYPES={
   barrier:{c:'#ea580c',de:'Barriere / kaputt',en:'Barrier / broken',nl:'Barrière / kapot'},
   litter:{c:'#6b7280',de:'Müll / Verschmutzung',en:'Litter',nl:'Afval'}
 };
+// ── Mitwirkung-Backend (Supabase, optional) ──────────────────────────────
+// Leer = nur lokal (localStorage, nur dieser Browser). Mit URL+anon-key werden
+// Meldungen & Votes serverseitig registriert und sind für ALLE Nutzer sichtbar.
+// Setup + SQL: siehe SUPABASE_SETUP.md im Projekt.
+const SUPABASE_URL = '';   // z.B. 'https://abcdxyz.supabase.co'
+const SUPABASE_KEY = '';   // anon public key (sicher im Client, geschützt via RLS)
+const supaOn  = ()=> !!(SUPABASE_URL && SUPABASE_KEY);
+const supaHdr = ()=>({apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'});
+function supaInsert(table,obj){
+  return fetch(`${SUPABASE_URL}/rest/v1/${table}`,{method:'POST',headers:{...supaHdr(),Prefer:'return=representation'},body:JSON.stringify(obj)})
+    .then(r=>r.ok?r.json():null).catch(()=>null);
+}
+function supaDelete(table,id){
+  if(id==null)return; fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`,{method:'DELETE',headers:supaHdr()}).catch(()=>{});
+}
+// Server → localStorage-Cache (authoritativ), dann neu zeichnen
+function supaSync(){
+  if(!supaOn())return;
+  fetch(`${SUPABASE_URL}/rest/v1/nh_reports?city=eq.${city}&select=id,lat,lon,type,ts&order=ts.desc`,{headers:supaHdr()})
+    .then(r=>r.ok?r.json():null).then(rows=>{ if(!rows)return;
+      saveReports(rows.map(r=>({id:r.id,lat:r.lat,lon:r.lon,type:r.type,ts:r.ts})));
+      if(typeof MIT!=='undefined'&&MIT.active){renderReportMarkers();renderMitPanel();}
+    }).catch(()=>{});
+  fetch(`${SUPABASE_URL}/rest/v1/nh_votes?city=eq.${city}&select=measure_id`,{headers:supaHdr()})
+    .then(r=>r.ok?r.json():null).then(rows=>{ if(!rows)return;
+      const v={}; rows.forEach(x=>v[x.measure_id]=(v[x.measure_id]||0)+1); saveVotes(v);
+      if(typeof MIT!=='undefined'&&MIT.active)renderMitPanel();
+    }).catch(()=>{});
+}
+
 function mitKey(){return 'nh_reports_'+city;}
 function voteKey(){return 'nh_votes_'+city;}
 function getReports(){try{return JSON.parse(localStorage.getItem(mitKey())||'[]');}catch(e){return [];}}
@@ -2255,7 +2281,7 @@ function saveVotes(o){try{localStorage.setItem(voteKey(),JSON.stringify(o));}cat
 function toggleMitwirkung(){
   MIT.active=!MIT.active;
   document.getElementById('tool-mit').classList.toggle('on',MIT.active);
-  if(MIT.active){ if(typeof closeDrawer==='function')closeDrawer(); renderReportMarkers(); renderMitPanel(); map.getContainer().style.cursor=MIT.tab==='report'?'crosshair':''; }
+  if(MIT.active){ if(typeof closeDrawer==='function')closeDrawer(); renderReportMarkers(); renderMitPanel(); map.getContainer().style.cursor=MIT.tab==='report'?'crosshair':''; supaSync(); }
   else { if(MIT.markers){map.removeLayer(MIT.markers);MIT.markers=null;} document.getElementById('mitPanel').classList.remove('open'); map.getContainer().style.cursor=''; }
 }
 function renderReportMarkers(){
@@ -2280,11 +2306,15 @@ function reportPick(latlng){
   L.popup({maxWidth:200}).setLatLng(latlng).setContent(`<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa;margin-bottom:4px">${lang==='en'?'Report a problem':lang==='nl'?'Meld een probleem':'Problem melden'}</div>${btns}</div>`).openOn(map);
 }
 function addReport(lat,lon,type){
-  const a=getReports(); a.push({lat:+lat.toFixed(5),lon:+lon.toFixed(5),type,ts:Date.now()}); saveReports(a);
+  const rec={city,lat:+lat.toFixed(5),lon:+lon.toFixed(5),type,ts:Date.now()};
+  const a=getReports(); a.push(rec); saveReports(a);
   map.closePopup(); renderReportMarkers(); renderMitPanel();
+  if(supaOn()) supaInsert('nh_reports',rec).then(()=>supaSync());
 }
-function removeReport(i){ const a=getReports(); a.splice(i,1); saveReports(a); map.closePopup(); renderReportMarkers(); renderMitPanel(); }
-function voteMeasure(id){ const v=getVotes(); v[id]=(v[id]||0)+1; saveVotes(v); renderMitPanel(); }
+function removeReport(i){ const a=getReports(); const r=a[i]; a.splice(i,1); saveReports(a); map.closePopup(); renderReportMarkers(); renderMitPanel();
+  if(supaOn()&&r&&r.id!=null) supaDelete('nh_reports',r.id); }
+function voteMeasure(id){ const v=getVotes(); v[id]=(v[id]||0)+1; saveVotes(v); renderMitPanel();
+  if(supaOn()) supaInsert('nh_votes',{city,measure_id:id,ts:Date.now()}).then(()=>supaSync()); }
 
 function renderMitPanel(){
   const P=document.getElementById('mitPanel'); P.classList.add('open');
@@ -2439,12 +2469,15 @@ function setHeatCool(k,v){ HEAT.cool[k]=Math.max(0,Math.min(1,v/100)); heatRende
 // STRASSEN-WERKZEUG — Straßen wählen, Maßnahmen anwenden
 // ══════════════════════════════════════════════════════════════
 let STREET={active:false, layer:null, ways:{}, sel:new Set(), hooked:false, timer:null, applied:{}};
-function toggleStreetMode(){
-  STREET.active=!STREET.active;
-  document.getElementById('tool-street').classList.toggle('on',STREET.active);
-  if(STREET.active){
+// Vereintes Analyse-Werkzeug: Straßenzug anklicken → Straßen-Analyse + Maßnahmen,
+// freie Fläche anklicken → Punkt-Inspektor (Map-Klick prüft INSPECT.active in initMap).
+function toggleAnalyse(){
+  const on=!STREET.active;
+  STREET.active=on; INSPECT.active=on;
+  const btn=document.getElementById('tool-analyse'); if(btn)btn.classList.toggle('on',on);
+  if(on){
     if(typeof closeDrawer==='function')closeDrawer();
-    map.getContainer().style.cursor='pointer';
+    map.getContainer().style.cursor='crosshair';
     const pane=map.getPane('choropleth'); if(pane)pane.style.display='none';
     if(!STREET.hooked){STREET.hooked=true; map.on('moveend',()=>{ if(STREET.active){clearTimeout(STREET.timer);STREET.timer=setTimeout(loadStreets,600);} });}
     loadStreets();
@@ -2452,9 +2485,12 @@ function toggleStreetMode(){
     map.getContainer().style.cursor='';
     if(STREET.layer){map.removeLayer(STREET.layer);STREET.layer=null;}
     STREET.ways={}; STREET.sel.clear(); STREET.applied={};
-    document.getElementById('streetPanel').classList.remove('open');
+    const sp=document.getElementById('streetPanel'); if(sp)sp.classList.remove('open');
+    if(INSPECT.marker)map.closePopup();
   }
 }
+// Aliasse für bestehende Aufrufer (Panel-Schließen, switchCity-Cleanup)
+function toggleStreetMode(){ toggleAnalyse(); }
 function streetLenM(geo){ let L=0; for(let i=1;i<geo.length;i++)L+=distM(geo[i-1],geo[i]); return L; }
 function loadStreets(){
   if(!STREET.active)return;
@@ -2511,9 +2547,9 @@ function loadStreetsRestyle(){
 }
 function renderStreetPanel(state){
   const P=document.getElementById('streetPanel'); P.classList.add('open');
-  const T=lang==='en'?{t:'Streets & measures',hint:'Click streets to select, then apply a measure.',zoom:'Zoom in to street level (15+).',load:'Loading streets…',err:'Overpass busy, try again.',sel:'Selected',len:'Length',trees:'Trees along',none:'No street selected yet.',apply:'Apply measures',proj:'Projection',plant:'Plant street trees',bench:'Add benches',calm:'Traffic calming (Tempo 30)',newt:'New trees',cost:'Est. cost',fund:'75% fundable (Stadtgrün/BEG)',shade:'Shaded length'}
-    :lang==='nl'?{t:'Straten & maatregelen',hint:'Klik straten aan, pas dan een maatregel toe.',zoom:'Zoom in tot straatniveau (15+).',load:'Straten laden…',err:'Overpass bezet, opnieuw.',sel:'Geselecteerd',len:'Lengte',trees:'Bomen langs',none:'Nog geen straat geselecteerd.',apply:'Maatregelen toepassen',proj:'Projectie',plant:'Straatbomen planten',bench:'Bankjes toevoegen',calm:'Verkeersluw (30 km/u)',newt:'Nieuwe bomen',cost:'Geschatte kosten',fund:'75% subsidiabel',shade:'Beschaduwde lengte'}
-    :{t:'Straßen & Maßnahmen',hint:'Straßen anklicken zum Auswählen, dann Maßnahme anwenden.',zoom:'Auf Straßenebene zoomen (15+).',load:'Straßen werden geladen…',err:'Overpass ausgelastet, erneut versuchen.',sel:'Ausgewählt',len:'Länge',trees:'Bäume entlang',none:'Noch keine Straße ausgewählt.',apply:'Maßnahmen anwenden',proj:'Projektion',plant:'Straßenbäume pflanzen',bench:'Sitzbänke ergänzen',calm:'Verkehrsberuhigung (Tempo 30)',newt:'Neue Bäume',cost:'Geschätzte Kosten',fund:'75% förderbar (Stadtgrün/BEG)',shade:'Beschattete Länge'};
+  const T=lang==='en'?{t:'Streets & measures',hint:'Click streets to select & apply a measure · click open space for point surroundings.',zoom:'Zoom in to street level (15+).',load:'Loading streets…',err:'Overpass busy, try again.',sel:'Selected',len:'Length',trees:'Trees along',none:'No street selected yet.',apply:'Apply measures',proj:'Projection',plant:'Plant street trees',bench:'Add benches',calm:'Traffic calming (Tempo 30)',newt:'New trees',cost:'Est. cost',fund:'75% fundable (Stadtgrün/BEG)',shade:'Shaded length'}
+    :lang==='nl'?{t:'Straten & maatregelen',hint:'Klik straten aan & pas een maatregel toe · klik open ruimte voor puntomgeving.',zoom:'Zoom in tot straatniveau (15+).',load:'Straten laden…',err:'Overpass bezet, opnieuw.',sel:'Geselecteerd',len:'Lengte',trees:'Bomen langs',none:'Nog geen straat geselecteerd.',apply:'Maatregelen toepassen',proj:'Projectie',plant:'Straatbomen planten',bench:'Bankjes toevoegen',calm:'Verkeersluw (30 km/u)',newt:'Nieuwe bomen',cost:'Geschatte kosten',fund:'75% subsidiabel',shade:'Beschaduwde lengte'}
+    :{t:'Straßen & Maßnahmen',hint:'Straßen anklicken & Maßnahme anwenden · freie Fläche anklicken für Punkt-Umfeld.',zoom:'Auf Straßenebene zoomen (15+).',load:'Straßen werden geladen…',err:'Overpass ausgelastet, erneut versuchen.',sel:'Ausgewählt',len:'Länge',trees:'Bäume entlang',none:'Noch keine Straße ausgewählt.',apply:'Maßnahmen anwenden',proj:'Projektion',plant:'Straßenbäume pflanzen',bench:'Sitzbänke ergänzen',calm:'Verkehrsberuhigung (Tempo 30)',newt:'Neue Bäume',cost:'Geschätzte Kosten',fund:'75% förderbar (Stadtgrün/BEG)',shade:'Beschattete Länge'};
   let head=`<div class="ap-head"><div><div class="ap-ttl">${T.t}</div><div class="ap-sub">${STREET.sel.size} ${T.sel.toLowerCase()}</div></div><button class="ap-x" onclick="toggleStreetMode()">✕</button></div>`;
   if(state==='zoom'){P.innerHTML=head+`<div class="ap-body"><div style="font-size:11px;color:var(--muted);padding:10px 0">${T.zoom}</div></div>`;return;}
   if(state==='load'){P.innerHTML=head+`<div class="ap-body"><div style="text-align:center;padding:20px 0"><span class="loading-dot"></span> ${T.load}</div></div>`;return;}
@@ -2564,12 +2600,7 @@ function toggleStreetMeasure(id){ STREET.applied[id]=!STREET.applied[id]; render
 // KLICK-INSPEKTOR — überall klicken → lokaler Kontext + Diagnose
 // ══════════════════════════════════════════════════════════════
 let INSPECT={active:false, marker:null};
-function toggleInspect(){
-  INSPECT.active=!INSPECT.active;
-  document.getElementById('tool-inspect').classList.toggle('on',INSPECT.active);
-  map.getContainer().style.cursor=INSPECT.active?'crosshair':'';
-  if(!INSPECT.active && INSPECT.marker){map.closePopup();}
-}
+function toggleInspect(){ toggleAnalyse(); }
 function distM(a,b){
   const R=6371000,dLa=(b[0]-a[0])*Math.PI/180,dLo=(b[1]-a[1])*Math.PI/180,la1=a[0]*Math.PI/180,la2=b[0]*Math.PI/180;
   const x=Math.sin(dLa/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLo/2)**2;
