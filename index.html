@@ -177,6 +177,10 @@ body.embed .embed-logo{display:block}
 .layer-panel.open{display:block}
 .lp-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
 .lp-section{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px;padding-top:8px;border-top:1px solid var(--border)}
+.lp-section.s-clim::before,.lp-section.s-eco::before,.lp-section.s-soc::before{content:'';display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:6px;vertical-align:0}
+.lp-section.s-clim::before{background:var(--climate)}
+.lp-section.s-eco::before{background:var(--eco)}
+.lp-section.s-soc::before{background:var(--social)}
 .lp-section:first-of-type{margin-top:0;border:none;padding:0}
 .lrow{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;border-radius:6px}
 .lrow:hover{background:var(--surface2);padding-left:4px}
@@ -435,7 +439,7 @@ body.embed .embed-logo{display:block}
 </div>
 
 <nav class="nav">
-  <a href="home.html" style="text-decoration:none"><div class="logo">nice <span>here</span></div></a>
+  <a href="index.html" style="text-decoration:none"><div class="logo"><svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true" style="vertical-align:-4px;margin-right:6px"><line x1="5" y1="7" x2="12" y2="4" stroke="#36d5d0" stroke-width="1.3"/><line x1="12" y1="4" x2="17" y2="11" stroke="#a60ba6" stroke-width="1.3"/><line x1="5" y1="7" x2="8" y2="15" stroke="#ff8210" stroke-width="1.3"/><line x1="8" y1="15" x2="17" y2="11" stroke="#36d5d0" stroke-width="1.3"/><circle cx="5" cy="7" r="2.4" fill="#ff8210"/><circle cx="12" cy="4" r="1.9" fill="#36d5d0"/><circle cx="17" cy="11" r="2.7" fill="#a60ba6"/><circle cx="8" cy="15" r="2" fill="#36d5d0"/></svg>nice <span>here</span></div></a>
   <div class="nsep"></div>
   <a href="3d.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg> 3D</a>
   <a href="methodik.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg> Methodik</a>
@@ -550,7 +554,7 @@ body.embed .embed-logo{display:block}
   </div>
   <div class="diag-legend" id="diag-legend" style="display:none"></div>
 
-  <div class="lp-section"><span data-i18n="sec_risk">Risikolayer (offizielle Quellen)</span></div>
+  <div class="lp-section s-clim"><span data-i18n="sec_risk">Risikolayer (offizielle Quellen)</span></div>
   <div class="lrow" onclick="toggleLayer('double_vuln')" style="background:rgba(87,66,73,0.05);border-radius:7px">
     <button class="ltoggle" id="tog-double_vuln"></button>
     <span class="lname" style="font-weight:700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5"/></svg> <span data-i18n="dv_name">Doppelte Verwundbarkeit (Klima × Sozial)</span></span>
@@ -593,7 +597,7 @@ body.embed .embed-logo{display:block}
     <span class="lstatus" id="st-flight_noise"></span>
   </div>
 
-  <div class="lp-section"><span data-i18n="sec_mob">Mobilität (OSM Overpass)</span></div>
+  <div class="lp-section s-eco"><span data-i18n="sec_mob">Mobilität (OSM Overpass)</span></div>
 
   <div class="lrow" onclick="toggleLayer('bike')">
     <button class="ltoggle" id="tog-bike"></button>
@@ -655,7 +659,7 @@ body.embed .embed-logo{display:block}
     <span class="lstatus" id="st-green_deficit"></span>
   </div>
 
-  <div class="lp-section">Soziale Qualität (PPS-Framework)</div>
+  <div class="lp-section s-soc">Soziale Qualität (PPS-Framework)</div>
 
   <div class="lrow" onclick="toggleLayer('trees')">
     <button class="ltoggle" id="tog-trees"></button>
@@ -2325,7 +2329,7 @@ function renderMitPanel(){
   const T=lang==='en'?{t:'Engage',sub:'Report & prioritise — your input',rep:'Report',pri:'Prioritise',hint:'Click on the map to report a problem.',none:'No reports yet.',votes:'votes',vlabel:'Residents & actors prioritise measures:',proto:'Prototype — stored locally in your browser. A real deployment needs a shared backend.'}
    :lang==='nl'?{t:'Meedoen',sub:'Melden & prioriteren — jouw inbreng',rep:'Melden',pri:'Prioriteren',hint:'Klik op de kaart om een probleem te melden.',none:'Nog geen meldingen.',votes:'stemmen',vlabel:'Bewoners & actoren prioriteren maatregelen:',proto:'Prototype — lokaal opgeslagen. Echt gebruik vereist een gedeelde backend.'}
    :{t:'Mitwirken',sub:'Melden & priorisieren — deine Stimme',rep:'Melden',pri:'Priorisieren',hint:'Auf die Karte klicken, um ein Problem zu melden.',none:'Noch keine Meldungen.',votes:'Stimmen',vlabel:'Bewohner & Akteure priorisieren Maßnahmen:',proto:'Prototyp — lokal im Browser gespeichert. Echtbetrieb braucht ein gemeinsames Backend.'};
-  const tab=(k,l)=>`<button onclick="mitTab('${k}')" style="flex:1;border:none;background:${MIT.tab===k?'#1a1a2e':'var(--surface2)'};color:${MIT.tab===k?'#FFD600':'var(--text2)'};padding:7px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">${l}</button>`;
+  const tab=(k,l)=>`<button onclick="mitTab('${k}')" style="flex:1;border:none;background:${MIT.tab===k?'var(--social)':'var(--surface2)'};color:${MIT.tab===k?'#fff':'var(--text2)'};padding:7px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">${l}</button>`;
   let body=`<div class="ap-head"><div><div class="ap-ttl">${T.t}</div><div class="ap-sub">${T.sub}</div></div><button class="ap-x" onclick="toggleMitwirkung()">✕</button></div><div class="ap-body">
     <div style="display:flex;gap:6px;margin-bottom:11px">${tab('report',T.rep)}${tab('prioritise',T.pri)}</div>`;
   if(MIT.tab==='report'){
@@ -2340,12 +2344,13 @@ function renderMitPanel(){
     const ranked=MASS.map(m=>({m,v:votes[m.id]||0})).sort((a,b)=>b.v-a.v);
     body+=`<div class="diag-hint">${T.vlabel}</div><div style="margin-top:6px">`+
       ranked.slice(0,12).map(({m,v})=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-        <button onclick="voteMeasure('${m.id}')" style="border:1.5px solid #16a34a;background:#16a34a10;color:#15803d;border-radius:7px;width:26px;height:26px;cursor:pointer;font-weight:800;flex-shrink:0">+</button>
+        <button onclick="voteMeasure('${m.id}')" style="border:1.5px solid var(--social);background:#a60ba610;color:#a60ba6;border-radius:7px;width:26px;height:26px;cursor:pointer;font-weight:800;flex-shrink:0">+</button>
         <div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:700;color:var(--text)">${ic(m.icon,12)} ${m.name}</div></div>
-        <b style="font-size:12px;color:#15803d">${v} <span style="font-size:8px;color:var(--muted);font-weight:400">${T.votes}</span></b>
+        <b style="font-size:12px;color:#a60ba6">${v} <span style="font-size:8px;color:var(--muted);font-weight:400">${T.votes}</span></b>
       </div>`).join('')+`</div>`;
   }
-  body+=`<div style="font-size:9px;color:var(--muted);margin-top:10px;padding:7px 9px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">${T.proto}</div></div>`;
+  const note=supaOn()?(lang==='en'?'Registered server-side — visible to all users.':lang==='nl'?'Serverzijde geregistreerd — voor alle gebruikers zichtbaar.':'Serverseitig registriert — für alle Nutzer sichtbar.'):T.proto;
+  body+=`<div style="font-size:9px;color:var(--muted);margin-top:10px;padding:7px 9px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">${note}</div></div>`;
   P.innerHTML=body;
 }
 function mitTab(k){ MIT.tab=k; map.getContainer().style.cursor=(k==='report'&&MIT.active)?'crosshair':''; renderMitPanel(); }
