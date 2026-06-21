@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>nice here — Digital Twin Frankfurt</title>
+<title>nice here — Urbaner Entscheidungs-Zwilling (Utrecht & Frankfurt)</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
@@ -703,8 +703,8 @@ body.embed .embed-logo{display:block}
       <tr><td style="padding:2px 0;color:var(--text2);font-weight:700">Bäume</td><td style="text-align:right">Stadtkataster FFM/Gem. Utrecht · OSM live</td></tr>
       <tr><td style="padding:2px 0;color:var(--text2);font-weight:700">Hochwasser</td><td style="text-align:right">HWGK Hessen · Risicokaart NL / EU Floods Dir.</td></tr>
       <tr><td style="padding:2px 0;color:var(--text2);font-weight:700">Lärm</td><td style="text-align:right">EU-Umgebungslärm-RL · OSM Straßenklassen</td></tr>
-      <tr><td style="padding:2px 0;color:var(--text2);font-weight:700">Gebäude/CO₂</td><td style="text-align:right">IWU-Typologie 2023 · EPC-Register Hessen</td></tr>
-      <tr><td style="padding:2px 0;color:var(--text2);font-weight:700">Sozialdaten</td><td style="text-align:right">Statistikportal FFM/CBS · Zensus 2022</td></tr>
+      <tr><td style="padding:2px 0;color:var(--text2);font-weight:700">Gebäude/CO₂</td><td style="text-align:right">Utrecht: PDOK BAG (echtes Baujahr) · FFM: IWU-Typologie</td></tr>
+      <tr><td style="padding:2px 0;color:var(--text2);font-weight:700">Sozialdaten</td><td style="text-align:right">Utrecht: CBS Kerncijfers wijken · FFM: Statistikportal/Zensus</td></tr>
     </table>
   </div>
 
@@ -1128,6 +1128,18 @@ const DIMS=[
    src:"HLNUG Hochwassergefahrenkarte, Feuerwehr FFM, RP Darmstadt",bm:"EU Floods Dir. 2007/60/EG: Hochwasserrisikomanagement",
    ctx:s=>s<40?"<span class=cdot style=background:#dc2626></span> Erhöhtes Hochwasserrisiko und/oder eingeschränkte Infrastruktur.":s>65?"<span class=cdot style=background:#16a34a></span> Gute Resilienz, geringe Risiken.":"<span class=cdot style=background:#eab308></span> Mittleres Risikoprofil."},
 ];
+// Niederländische Quellen je Dimension (für Utrecht statt der FFM/DE-Quellen)
+const DIM_SRC_NL={
+  A:"Copernicus Sentinel-2, Klimaateffectatlas, CBS",
+  B:"RIVM Luchtmeetnet, GGD, EU-geluidskaart",
+  C:"OV-data GTFS, OpenStreetMap, CBS",
+  D:"DUO, CBS Kerncijfers wijken, UWV",
+  E:"CBS Wonen, Huurcommissie, Kadaster",
+  F:"Kiesraad, OpenStreetMap",
+  G:"Copernicus Sentinel-2, Gem. Utrecht bomenkaart",
+  H:"Risicokaart NL / LIWO, Veiligheidsregio Utrecht",
+};
+function dimSrc(dim){ return city==='utr' ? (DIM_SRC_NL[dim.k]||dim.src) : dim.src; }
 
 // ── EXPANDED MASSNAHMEN (15 items) ─────────────────────────
 const MASS=[
@@ -4162,8 +4174,8 @@ function openDrawer(name,d,skipZoom){
     <div class="kgrid">
       <div class="kpi"><div class="kval" style="color:${col}">${s}</div><div class="klbl">NICE Score</div><div class="ksub">Stadt-Ø: ${avgS} (${s>avgS?'+':''}${s-avgS})</div></div>
       <div class="kpi"><div class="kval">${d.wb}%</div><div class="klbl">Wahlbeteiligung</div><div class="ksub">Partizipations-Indikator</div></div>
-      ${d.mig?`<div class="kpi"><div class="kval">${d.mig}%</div><div class="klbl">Migrationshintergrund</div><div class="ksub">Zensus 2022</div></div>`:''}
-      <div class="kpi"><div class="kval">${(d.pop/1000).toFixed(0)}k</div><div class="klbl">Einwohner</div><div class="ksub">Statistikportal</div></div>
+      ${d.mig?`<div class="kpi"><div class="kval">${d.mig}%</div><div class="klbl">Migrationshintergrund</div><div class="ksub">${city==='utr'?'CBS 2023':'Zensus 2022'}</div></div>`:''}
+      <div class="kpi"><div class="kval">${(d.pop/1000).toFixed(0)}k</div><div class="klbl">Einwohner</div><div class="ksub">${city==='utr'?'CBS':'Statistikportal'}</div></div>
     </div>
     ${risks.length?`<div class="sec">Identifizierte Risiken</div>
     <div class="ibox"><b>Aktive Risikolagen in ${name}:</b><br>${risks.join('<br>')}
@@ -4201,7 +4213,7 @@ function openDrawer(name,d,skipZoom){
       </div>
     </div>
     <div class="kgrid" style="grid-template-columns:1fr">
-      <div class="kpi"><div class="kval">${d.abitur}%</div><div class="klbl">Abiturquote</div><div class="ksub">Schulabschlüsse · Bildungsmonitoring</div></div>
+      <div class="kpi"><div class="kval">${d.abitur}%</div><div class="klbl">Abiturquote</div><div class="ksub">${city==='utr'?'Diploma\'s · DUO/CBS':'Schulabschlüsse · Bildungsmonitoring'}</div></div>
     </div>
     ${d.sgb2>=25||d.kinderarmut>=35?`<div class="soc-risk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg> <b>Soziale Risikolage:</b> Überdurchschnittliche Armutsquoten. Handlungsbedarf bei Bildung, Sozialinfrastruktur und Einkommensförderung. Kandidat für ESF+, ERDF Soziale Infrastruktur (80% Förderquote).</div>`:d.sgb2<=8&&d.einkommen>=45000?`<div class="soc-good"><b>Stabile Soziallage:</b> Unterdurchschnittliche Armutsquoten und überdurchschnittliches Einkommen. Gute Bildungsvoraussetzungen.</div>`:''}
     <div style="font-size:8px;color:var(--muted);margin-top:6px;padding:6px 8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
@@ -4371,14 +4383,14 @@ function openDrawer(name,d,skipZoom){
       <div class="dhdr">
           <div class="dico">${ic(dim.icon,14)}</div>
           <div class="dnm">${dim.name}
-            <span class="ib" data-tip="<b>${dim.name}</b><br>${dim.desc}<br><br><b>Quelle:</b> ${dim.src}<br><b>Benchmark:</b> ${dim.bm}">i</span>
+            <span class="ib" data-tip="<b>${dim.name}</b><br>${dim.desc}<br><br><b>Quelle:</b> ${dimSrc(dim)}<br><b>Benchmark:</b> ${dim.bm}">i</span>
           </div>
           <div class="dval" style="color:${dim.col}">${d[dim.k]}</div>
         </div>
       <div class="dtrack"><div class="dfill" style="width:${d[dim.k]}%;background:linear-gradient(90deg,${dim.col}30,${dim.col})"></div></div>
       <div class="dctx">${dim.ctx(d[dim.k])}</div>
       <div class="dsrc" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span>Quelle: <b>${dim.src.split(',')[0]}</b></span>
+        <span>Quelle: <b>${dimSrc(dim).split(',')[0]}</b></span>
         <span style="color:var(--muted)">Stand ${dim.stand||'—'}</span>
         ${cbadge(dim.prov||'modeled')}
       </div>
