@@ -557,7 +557,7 @@ function buildDashboard(){
   document.getElementById('h-avg').textContent=avgScore;
   document.getElementById('h-crit').textContent=critCount;
   document.getElementById('h-mass').textContent=MASS.length;
-  document.getElementById('heroDesc').innerHTML=`Normative Grundlage: EU Green Deal · SDG 11/13 · ${CITY.plan} · NICE Score 117 Indikatoren in 8 Dimensionen. Benchmarks: DUH Hitze-Check 2026 + SKL Glücksatlas. Ergebnisse, Maßnahmen und Förderprogramme für alle ${N} ${CITYKEY==='utr'?'Wijken':'Stadtteile'}.`;
+  document.getElementById('heroDesc').innerHTML=`Normative Grundlage: EU Green Deal · SDG 11/13 · ${CITY.plan} · NICE Score: 29 Indikatoren in 8 Dimensionen, über 30 Datenebenen. Benchmarks: DUH Hitze-Check 2026 + SKL Glücksatlas. Ergebnisse, Maßnahmen und Förderprogramme für alle ${N} ${CITYKEY==='utr'?'Wijken':'Stadtteile'}.`;
 
   // GHG-Banner
   const pct=Math.round((2026-2020)/(CITY.neutralYear-2020)*100);
