@@ -496,6 +496,7 @@ body.embed .embed-logo{display:block}
 <div class="area-panel" id="streetPanel"></div>
 <div class="area-panel" id="heatPanel"></div>
 <div class="area-panel" id="mitPanel"></div>
+<div class="area-panel" id="biodivPanel"></div>
 
 
 <div class="left">
@@ -620,6 +621,11 @@ body.embed .embed-logo{display:block}
     <button class="ltoggle" id="tog-dv_waste"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M8 6V4h8v2"/></svg> Entsorgen &amp; Recyceln</span>
     <span class="lstatus" id="st-dv_waste"></span>
+  </div>
+  <div class="lrow" onclick="toggleBiodiv()">
+    <button class="ltoggle" id="tog-biodiv"></button>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M11 20A7 7 0 0 1 4 13C4 7 9 3 20 4c1 11-3 16-9 16Z"/><path d="M4 21c4-4 7-6 12-8"/></svg> Heimische Arten (GBIF)</span>
+    <span class="lstatus" id="st-biodiv"></span>
   </div>
 
   <div class="lp-section"><span data-i18n="sec_infra">Infrastruktur (OSM Overpass)</span></div>
@@ -3148,6 +3154,35 @@ function renderDV(id,statusEl,cats){
     });
     grp.addTo(map);layerObjs[id]=grp;
     if(statusEl)statusEl.textContent=pts.length?('✓ '+pts.length):'—';
+  });
+}
+// ── Heimische Arten (GBIF) ────────────────────────────────────────────────
+let BIODIV_CACHE={};
+function loadBiodivData(){
+  if(BIODIV_CACHE[city])return Promise.resolve(BIODIV_CACHE[city]);
+  return fetch(`${DATA_BASE}/biodiv_${city}.json`).then(r=>r.ok?r.json():null).then(d=>{BIODIV_CACHE[city]=d;return d;}).catch(()=>null);
+}
+function toggleBiodiv(){
+  const P=document.getElementById('biodivPanel'), t=document.getElementById('tog-biodiv');
+  if(P.classList.contains('open')){P.classList.remove('open');if(t)t.classList.remove('on');return;}
+  if(t)t.classList.add('on'); P.classList.add('open'); renderBiodiv();
+}
+function renderBiodiv(){
+  const P=document.getElementById('biodivPanel');
+  const ttl=lang==='nl'?'Inheemse soorten':lang==='en'?'Native species':'Heimische Arten';
+  P.innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${ttl}</div><div class="ap-sub">Utrecht · GBIF</div></div><button class="ap-x" onclick="toggleBiodiv()">✕</button></div><div class="ap-body"><div style="text-align:center;padding:16px 0"><span class="loading-dot"></span></div></div>`;
+  loadBiodivData().then(b=>{
+    if(!b){P.querySelector('.ap-body').innerHTML=`<div style="font-size:11px;color:var(--muted);padding:10px 0">${lang==='nl'?'Geen soortdata voor deze stad.':lang==='en'?'No species data for this city.':'Keine Artendaten für diese Stadt.'}</div>`;return;}
+    const G=[['birds',{de:'Vögel',en:'Birds',nl:'Vogels'}],['mammals',{de:'Säugetiere',en:'Mammals',nl:'Zoogdieren'}],['insects',{de:'Insekten',en:'Insects',nl:'Insecten'}],['herps',{de:'Amphibien & Reptilien',en:'Amphibians & reptiles',nl:'Amfibieën & reptielen'}],['plants',{de:'Pflanzen',en:'Plants',nl:'Planten'}],['fungi',{de:'Pilze',en:'Fungi',nl:'Paddenstoelen'}]];
+    let body='';
+    G.forEach(([k,lbl])=>{const arr=(b.groups[k]||[]);if(!arr.length)return;
+      body+=`<div class="sec">${lbl[lang]||lbl.de}</div>`;
+      body+=arr.map(s=>{const nm=lang==='nl'?(s.nl||s.sci):lang==='de'?(s.de||s.nl||s.sci):(s.en||s.nl||s.sci);
+        return `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="font-size:11.5px;color:var(--text)"><b>${nm}</b> <i style="color:var(--muted);font-size:9.5px">${s.sci}</i></span><b style="font-size:10px;color:var(--social);white-space:nowrap">${(s.obs/1000).toFixed(1)}k</b></div>`;}).join('');
+    });
+    const note=lang==='nl'?`Bron: GBIF — ${(b.total/1e6).toFixed(1)} mln waarnemingen in het stadsgebied. Meest waargenomen soorten per groep; getal = aantal waarnemingen.`:lang==='en'?`Source: GBIF — ${(b.total/1e6).toFixed(1)} M observations in the city area. Most-recorded species per group; number = observations.`:`Quelle: GBIF — ${(b.total/1e6).toFixed(1)} Mio. Beobachtungen im Stadtgebiet. Häufigste Arten je Gruppe; Zahl = Beobachtungen.`;
+    body+=`<div style="font-size:9px;color:var(--muted);margin-top:12px;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);line-height:1.5">${note}</div>`;
+    P.querySelector('.ap-body').innerHTML=body;
   });
 }
 function renderOSMLive(id,statusEl){
