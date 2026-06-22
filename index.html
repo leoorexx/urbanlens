@@ -449,6 +449,28 @@ body.embed .embed-logo{display:block}
 .heat-legend-label{font-size:9px;color:var(--muted);margin-right:4px;font-weight:600}
 .heat-legend-bar{flex:1;height:8px;border-radius:3px;background:linear-gradient(to right,#4ade80,#a3e635,#fde68a,#f97316,#ef4444,#7f1d1d)}
 .heat-legend-labs{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);padding:0 12px 8px;flex-shrink:0}
+#introOverlay{position:fixed;inset:0;z-index:2000;background:rgba(26,26,46,0.55);display:none;align-items:center;justify-content:center;padding:20px;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+#introOverlay.on{display:flex}
+.intro-card{background:var(--surface);border-radius:20px;max-width:520px;width:100%;padding:30px 32px 26px;box-shadow:0 24px 70px rgba(0,0,0,0.35);position:relative;max-height:92vh;overflow-y:auto}
+.intro-x{position:absolute;top:14px;right:17px;cursor:pointer;color:var(--muted);font-size:17px;line-height:1;font-weight:700}
+.intro-brand{display:flex;align-items:center;gap:9px;margin-bottom:16px}
+.intro-brand .bw{font-size:18px;font-weight:800;letter-spacing:-.3px;color:var(--text)}
+.intro-brand .bw span{color:var(--eco)}
+.intro-brand .tg{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-left:auto;text-align:right;max-width:160px;line-height:1.3}
+.intro-h{font-family:var(--font-serif);font-size:25px;font-weight:500;line-height:1.2;letter-spacing:-.01em;margin-bottom:12px;color:var(--text)}
+.intro-aud{font-size:12.5px;color:var(--text2);line-height:1.6;margin-bottom:16px}
+.intro-aud b{color:var(--text)}
+.intro-pillars{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px}
+.intro-pill{font-size:10.5px;font-weight:700;padding:5px 11px;border-radius:20px}
+.intro-nice{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--social);border-radius:0 12px 12px 0;padding:12px 15px;margin-bottom:20px}
+.intro-nice b{font-size:11.5px;color:var(--text);display:block;margin-bottom:2px}
+.intro-nice span{font-size:11.5px;color:var(--text2);line-height:1.55}
+.intro-foot{display:flex;align-items:center;gap:16px}
+.intro-cta{background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:11px 24px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.intro-method{font-size:11px;color:var(--muted);text-decoration:none}
+.intro-method:hover{color:var(--text)}
+.nav-help{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;flex:none}
+.nav-help:hover{background:var(--text);color:#fff;border-color:var(--text)}
 </style>
 </head>
 <body>
@@ -468,6 +490,7 @@ body.embed .embed-logo{display:block}
   <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> <span data-i18n="nav_dashboard">Dashboard</span></a>
   <div class="ninfo">NICE Score — <b>29 <span data-i18n="nav_indicators">Indikatoren</span></b></div>
   <div class="nav-r">
+    <button class="nav-help" onclick="openIntro()" title="Was ist nice here?" aria-label="Info">?</button>
     <div class="lang-switch">
       <button class="lg on" id="lg-de" onclick="setLang('de')">DE</button>
       <button class="lg" id="lg-en" onclick="setLang('en')">EN</button>
@@ -480,6 +503,10 @@ body.embed .embed-logo{display:block}
     <div class="lpill"><div class="dot"></div><span data-i18n="nav_live">Open Data Live</span></div>
   </div>
 </nav>
+
+<div id="introOverlay" onclick="if(event.target===this)closeIntro()">
+  <div class="intro-card" id="introCard"></div>
+</div>
 
 <div class="wind-popup" id="windPopup">
   <div style="font-size:11px;font-weight:800;margin-bottom:8px;color:#1a1a2e">Live Wind — Frankfurt Flughafen</div>
@@ -5282,6 +5309,29 @@ function exit3D(){
   document.getElementById('m3loader').style.display='none';
 }
 if(new URLSearchParams(location.search).get('view')==='3d')setTimeout(()=>{try{enter3D();}catch(e){}},700);
+
+// ── Intro-Karte (Wertversprechen, einmalig beim ersten Besuch) ─────────────
+const INTRO_TXT={
+ de:{tag:'Urbaner Entscheidungs-Zwilling',h:'Welche Stadtteile sind am stärksten belastet — und welche geförderten Maßnahmen wirken dort zuerst?',aud:'Für <b>Social Urban Developer &amp; Kommunen</b>: diagnostizieren · priorisieren · Bewohner beteiligen · Mittel begründen.',niceT:'Der NICE Score (0–100, höher = besser)',nice:'verdichtet 29 Indikatoren zu 8 Dimensionen über 30+ Datenebenen — und macht aus Rohdaten priorisierte Handlungsräume.',cta:'Los geht\'s',method:'Methodik &amp; Datenquellen →',pillars:['Klima &amp; Energie','Wasser &amp; Ökologie','Soziales &amp; Teilhabe']},
+ en:{tag:'Urban Decision Twin',h:'Which neighbourhoods are most burdened — and which funded measures work there first?',aud:'For <b>social urban developers &amp; municipalities</b>: diagnose · prioritise · involve residents · justify funding.',niceT:'The NICE Score (0–100, higher = better)',nice:'condenses 29 indicators into 8 dimensions across 30+ data layers — turning raw data into prioritised areas for action.',cta:'Let\'s go',method:'Methodology &amp; sources →',pillars:['Climate &amp; energy','Water &amp; ecology','Social &amp; participation']},
+ nl:{tag:'Stedelijke beslis-tweeling',h:'Welke wijken zijn het zwaarst belast — en welke gesubsidieerde maatregelen werken daar het eerst?',aud:'Voor <b>social urban developers &amp; gemeenten</b>: diagnosticeren · prioriteren · bewoners betrekken · middelen onderbouwen.',niceT:'De NICE Score (0–100, hoger = beter)',nice:'verdicht 29 indicatoren tot 8 dimensies over 30+ datalagen — en maakt van ruwe data geprioriteerde handelingsruimtes.',cta:'Aan de slag',method:'Methodiek &amp; bronnen →',pillars:['Klimaat &amp; energie','Water &amp; ecologie','Sociaal &amp; participatie']}
+};
+const INTRO_PCOL=[['var(--climate)','#fff'],['var(--eco)','#08403d'],['var(--social)','#fff']];
+const INTRO_NODE='<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="flex:none"><line x1="5" y1="7" x2="12" y2="4" stroke="#36d5d0" stroke-width="1.3"/><line x1="12" y1="4" x2="17" y2="11" stroke="#a60ba6" stroke-width="1.3"/><line x1="5" y1="7" x2="8" y2="15" stroke="#ff8210" stroke-width="1.3"/><line x1="8" y1="15" x2="17" y2="11" stroke="#36d5d0" stroke-width="1.3"/><circle cx="5" cy="7" r="2.4" fill="#ff8210"/><circle cx="12" cy="4" r="1.9" fill="#36d5d0"/><circle cx="17" cy="11" r="2.7" fill="#a60ba6"/><circle cx="8" cy="15" r="2" fill="#36d5d0"/></svg>';
+function renderIntro(){const t=INTRO_TXT[lang]||INTRO_TXT.de;
+  document.getElementById('introCard').innerHTML=
+    `<span class="intro-x" onclick="closeIntro()">✕</span>`+
+    `<div class="intro-brand">${INTRO_NODE}<span class="bw">nice <span>here</span></span><span class="tg">${t.tag}<br>Utrecht &amp; Frankfurt</span></div>`+
+    `<div class="intro-h">${t.h}</div>`+
+    `<div class="intro-aud">${t.aud}</div>`+
+    `<div class="intro-pillars">${t.pillars.map((p,i)=>`<span class="intro-pill" style="background:${INTRO_PCOL[i][0]};color:${INTRO_PCOL[i][1]}">${p}</span>`).join('')}</div>`+
+    `<div class="intro-nice"><b>${t.niceT}</b><span>${t.nice}</span></div>`+
+    `<div class="intro-foot"><button class="intro-cta" onclick="closeIntro()">${t.cta}</button><a class="intro-method" href="methodik.html">${t.method}</a></div>`;
+}
+function showIntro(force){ if(!force){try{if(localStorage.getItem('nh_intro_v1'))return;}catch(e){}} renderIntro(); document.getElementById('introOverlay').classList.add('on'); }
+function closeIntro(){ document.getElementById('introOverlay').classList.remove('on'); try{localStorage.setItem('nh_intro_v1','1');}catch(e){} }
+function openIntro(){ showIntro(true); }
+setTimeout(()=>{try{showIntro(false);}catch(e){}},600);
 </script>
 
 </body>
