@@ -129,6 +129,7 @@ td.muted{color:var(--muted)}
 .fpill{padding:2px 7px;border-radius:8px;font-size:9px;font-weight:700}
 .fpill.eu{background:rgba(37,99,235,0.1);color:var(--accent)}
 .fpill.bund{background:rgba(22,163,74,0.1);color:#15803d}
+.fpill.kfw{background:rgba(166,11,166,0.09);color:#a60ba6}
 .fpill.land{background:rgba(202,138,4,0.1);color:#92400e}
 .fpill.kfw{background:rgba(220,38,38,0.08);color:#b91c1c}
 .kosten-cell{white-space:nowrap}
@@ -428,6 +429,11 @@ const MASS = [
   {id:"H08",icon:"shield",name:"Resiliente Quartiers-Infrastruktur",typ:"strukturell",dims:["H","F"],kosten:300000,roi:850000,desc:"Notstrom-Inseln (PV+Speicher) an Schulen als Katastrophen-Anlaufstellen.",foerder:[{eb:"Bund",prog:"BBK Leuchtturm-Programm",pct:60},{eb:"Bund",prog:"KfW 432 Quartierskonzept",pct:75}]},
   {id:"G01",icon:"leaf",name:"Biotopverbund & Wildwiesen",typ:"quick_win",dims:["G","A"],kosten:55000,roi:190000,desc:"20.000 m² Schnittrasen zu Wildblumenwiesen — −40% Pflegekosten.",foerder:[{eb:"EU",prog:"LIFE+ Biodiversität",pct:60},{eb:"Bund",prog:"Biologische Vielfalt (BfN)",pct:75}]},
   {id:"B05",icon:"walk",name:"Superblock / Verkehrsberuhigtes Quartier",typ:"strukturell",dims:["B","C","A"],kosten:450000,roi:1600000,desc:"Modale Filter, Begrünung, Spielstraßen nach Barcelona-Vorbild: −25% NO2, −5dB.",foerder:[{eb:"EU",prog:"EUI Innovative Actions",pct:80},{eb:"Bund",prog:"Nationale Klimaschutzinitiative",pct:70}]},
+  {id:"C04",icon:"bike",name:"Verkehrsberuhigung & Tempo 30 (Verkeersluw)",typ:"strukturell",dims:["C","B","A"],kosten:120000,roi:280000,desc:"Modale Filter, Tempo 30 & Schulstraßen (CROW). Tempo 30: −40% schwere Unfälle (SWOV), −2–3 dB Lärm.",foerder:[{eb:"Gemeente",prog:"Utrecht Mobiliteitsplan",pct:null},{eb:"Rijk",prog:"SPV Verkeersveiligheid",pct:50}]},
+  {id:"G02",icon:"tree",name:"Entsiegelung & Tegelwippen",typ:"quick_win",dims:["G","H","A"],kosten:60000,roi:150000,desc:"Steine raus, Beet & Versickerung rein. Senkt Hitze & Überflutung, entlastet das Mischkanalsystem.",foerder:[{eb:"Gemeente",prog:"Utrecht Steenbreek/Tegelwippen",pct:null},{eb:"Waterschap",prog:"HDSR afkoppelen",pct:null}]},
+  {id:"G03",icon:"tree",name:"Heimische Bepflanzung & Biodiversität",typ:"quick_win",dims:["G"],kosten:35000,roi:90000,desc:"Heimische Arten (GBIF/NDFF) als Nahrung für Igel, Vögel & Hummeln — senkt Pflege-/Bewässerungskosten.",foerder:[{eb:"Provincie",prog:"Groen Groeit Mee",pct:50},{eb:"Gemeente",prog:"Initiatievenfonds",pct:null}]},
+  {id:"H09",icon:"shield",name:"Regenwasser-Rückhalt (Wadi's & Afkoppelen)",typ:"strukturell",dims:["H","G"],kosten:180000,roi:420000,desc:"Wadi's, Gründächer & Abkopplung vom Mischsystem. Puffert Starkregen, entlastet Kanalisation.",foerder:[{eb:"Waterschap",prog:"HDSR afkoppelen regenwater",pct:null},{eb:"Gemeente",prog:"Utrecht Klimaatadaptatie",pct:null}]},
+  {id:"A06",icon:"thermo",name:"Helle & durchlässige Beläge (Cool/Permeable Pavement)",typ:"strukturell",dims:["A","H"],kosten:220000,roi:380000,desc:"Heller, reflektierender & wasserdurchlässiger Belag statt dunklem Asphalt: −5–10 °C Oberfläche (UBA/JRC), Versickerung.",foerder:[{eb:"Gemeente",prog:"Utrecht Klimaatadaptatie",pct:null},{eb:"EU",prog:"LIFE / Mission Adaptation",pct:60}]},
 ];
 
 function nice(d){ return Math.round((d.A+d.B+d.C+d.D+d.E+d.F+d.G+d.H)/8); }
