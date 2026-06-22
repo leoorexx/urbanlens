@@ -13,6 +13,7 @@
   --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
   --text:#1a1a2e;--text2:#4a4a6a;--muted:#8888aa;
   --accent:#2563eb;--yellow:#FFD600;
+  --climate:#ff8210;--eco:#36d5d0;--social:#a60ba6;
   --r1:#dc2626;--r2:#ea580c;--r3:#ca8a04;--r4:#16a34a;--r5:#15803d;
   --sh:0 1px 2px rgba(0,0,0,0.05);
   --shl:0 3px 14px rgba(0,0,0,0.10);
@@ -40,7 +41,7 @@ body.embed .page{padding-top:20px}
 /* PAGE */
 .page{max-width:1280px;margin:0 auto;padding:32px 24px 80px}
 .section{margin-bottom:48px}
-.section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:var(--text2);margin-bottom:16px;display:flex;align-items:center;gap:10px}
 .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* HERO */
@@ -56,7 +57,7 @@ body.embed .page{padding-top:20px}
 /* KPI ROW */
 .kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:48px}
 .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;box-shadow:var(--sh)}
-.kpi .val{font-size:26px;font-weight:900;line-height:1;color:var(--text)}
+.kpi .val{font-size:27px;font-weight:900;line-height:1;letter-spacing:-.025em;color:var(--text)}
 .kpi .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:5px}
 .kpi .sub{font-size:9px;color:var(--muted);margin-top:3px}
 .kpi.warn .val{color:var(--r1)}
@@ -72,7 +73,7 @@ body.embed .page{padding-top:20px}
 
 /* NORMATIVER RAHMEN */
 .challenges{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 22px;box-shadow:var(--sh)}
-.challenges h3{font-size:13px;font-weight:800;margin-bottom:4px}
+.challenges h3{font-family:var(--font-serif);font-size:19px;font-weight:500;letter-spacing:-.01em;margin-bottom:5px;line-height:1.1}
 .challenges .csub{font-size:11px;color:var(--muted);margin-bottom:12px}
 .ch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .ch-item{background:#fef2f2;border:1px solid #fecaca;border-radius:11px;padding:11px 13px}
@@ -136,9 +137,10 @@ td.muted{color:var(--muted)}
 /* CITY SUMMARY */
 .city-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .city-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px;box-shadow:var(--sh)}
-.city-card h3{font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px}
-.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
-.bar-label{font-size:10px;color:var(--text2);width:110px;flex-shrink:0}
+.city-card h3{font-family:var(--font-serif);font-size:19px;font-weight:500;letter-spacing:-.01em;color:var(--text);margin-bottom:14px;line-height:1.1}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;border-left:3px solid var(--border2);padding-left:9px}
+.bar-row.p-clim{border-left-color:var(--climate)}.bar-row.p-eco{border-left-color:var(--eco)}.bar-row.p-soc{border-left-color:var(--social)}
+.bar-label{font-size:10px;color:var(--text2);width:104px;flex-shrink:0}
 .bar-track{flex:1;height:10px;background:var(--bg);border-radius:99px;overflow:hidden}
 .bar-fill{height:100%;border-radius:99px}
 .bar-val{font-size:10px;font-weight:700;color:var(--text);width:32px;text-align:right;flex-shrink:0}
@@ -589,7 +591,8 @@ function buildDashboard(){
   dimAvgs={}; dimKeys.forEach(k=>{ dimAvgs[k]=Math.round(entries.reduce((s,[,d])=>s+d[k],0)/N); });
   const worstDims=[...dimKeys].sort((a,b)=>dimAvgs[a]-dimAvgs[b]).slice(0,4);
   const bestDims=[...dimKeys].sort((a,b)=>dimAvgs[b]-dimAvgs[a]).slice(0,4);
-  const bar=k=>`<div class="bar-row"><div class="bar-label">${ic(dimIcons[k],12)} ${dimNames[k]}</div><div class="bar-track"><div class="bar-fill" style="width:${dimAvgs[k]}%;background:${scoreColor(dimAvgs[k])}"></div></div><div class="bar-val" style="color:${scoreColor(dimAvgs[k])}">${dimAvgs[k]}</div></div>`;
+  const DIM_PILLAR={A:'clim',B:'clim',C:'eco',D:'soc',E:'soc',F:'soc',G:'eco',H:'eco'};
+  const bar=k=>`<div class="bar-row p-${DIM_PILLAR[k]||''}"><div class="bar-label">${ic(dimIcons[k],12)} ${dimNames[k]}</div><div class="bar-track"><div class="bar-fill" style="width:${dimAvgs[k]}%;background:${scoreColor(dimAvgs[k])}"></div></div><div class="bar-val" style="color:${scoreColor(dimAvgs[k])}">${dimAvgs[k]}</div></div>`;
   document.getElementById('cityGrid').innerHTML=`
     <div class="city-card"><h3>Durchschnitt aller 8 Dimensionen — ${cityName}</h3>${dimKeys.map(bar).join('')}</div>
     <div class="city-card"><h3>Größter Handlungsbedarf — Dimensionsranking</h3>
