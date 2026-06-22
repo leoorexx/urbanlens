@@ -224,7 +224,7 @@ body.embed .embed-logo{display:block}
 .tp{display:none}.tp.on{display:block}
 
 /* Components */
-.sec{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;display:flex;align-items:center;gap:6px}
+.sec{font-size:9.5px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.16em;margin:20px 0 10px;padding-top:11px;border-top:1px solid var(--border2);display:flex;align-items:center;gap:7px}
 .sec:first-child{margin-top:0}.sec::after{content:"";flex:1;height:1px;background:var(--border)}
 .ib{display:inline-flex;width:16px;height:16px;border-radius:50%;background:rgba(255,214,0,0.12);border:1px solid rgba(255,214,0,0.3);font-size:8px;font-weight:800;color:var(--accent);align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0;vertical-align:middle;margin-left:5px;transition:all .12s}
 .ib:hover{background:var(--accent);color:#1a1a2e}
@@ -235,10 +235,11 @@ body.embed .embed-logo{display:block}
 .kval{font-size:18px;font-weight:800;line-height:1.1}.klbl{font-size:9px;color:var(--muted);margin-top:2px;font-weight:500}.ksub{font-size:8px;color:var(--muted);margin-top:1px}
 .ibox{font-size:10px;color:var(--muted);line-height:1.6;background:var(--surface2);padding:10px 12px;border-radius:9px;border:1px solid var(--border);margin-bottom:10px}
 .ibox b{color:var(--text2)}
-.drow{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.drow{margin-bottom:12px;padding:2px 0 12px 12px;border-bottom:1px solid var(--border);border-left:3px solid var(--border2)}
+.drow.p-clim{border-left-color:var(--climate)}.drow.p-eco{border-left-color:var(--eco)}.drow.p-soc{border-left-color:var(--social)}
 .drow:last-child{border:none;margin-bottom:0;padding-bottom:0}
 .dhdr{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.dico{font-size:14px}.dnm{font-size:11px;font-weight:600;flex:1}.dval{font-size:13px;font-weight:800}
+.dico{font-size:14px}.dnm{font-size:11px;font-weight:700;flex:1;letter-spacing:.01em}.dval{font-size:21px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .dtrack{height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:4px}
 .dfill{height:100%;border-radius:4px;transition:width .6s ease}
 .dctx{font-size:10px;color:var(--muted);line-height:1.4}.dsrc{font-size:8px;color:var(--muted);margin-top:2px}.dsrc b{color:var(--text2)}
@@ -4421,8 +4422,9 @@ function openDrawer(name,d,skipZoom){
     })():''}`;
 
   // TAB 1 — Dimensionen
+  const DIM_PILLAR={A:'clim',B:'clim',C:'eco',D:'soc',E:'soc',F:'soc',G:'eco',H:'eco'};
   document.getElementById('tp1').innerHTML=DIMS.map(dim=>`
-    <div class="drow">
+    <div class="drow p-${DIM_PILLAR[dim.k]||''}">
       <div class="dhdr">
           <div class="dico">${ic(dim.icon,14)}</div>
           <div class="dnm">${dim.name}
@@ -4443,7 +4445,7 @@ function openDrawer(name,d,skipZoom){
   const hb2 = d.versieg!=null ? hitzebetroffenheit(d) : 0;
   const heatRelM = hb2>=45 ? MASS.filter(m=>m.id.startsWith('H')||m.id==='D02') : [];
   document.getElementById('tp2').innerHTML=`
-    <div class="ibox">Empfehlungen basieren auf den <b>schwächsten Dimensionen</b>. Alle Kosten und ROI sind methodisch belegt (ℹ️ aufklappbar). Institutionelle Quellen: Fraunhofer IBP · JRC EU · BBSR · WHO Europa · UBA · DWD.</div>
+    <div class="ibox">Empfehlungen basieren auf den <b>schwächsten Dimensionen</b>. Alle Kosten und ROI sind methodisch belegt (Quellen aufklappbar). Institutionelle Quellen: Fraunhofer IBP · JRC EU · BBSR · WHO Europa · UBA · DWD.</div>
     ${heatRelM.length?`
     <div style="font-size:10px;font-weight:800;color:#ef4444;text-transform:uppercase;letter-spacing:.07em;margin:0 0 8px;display:flex;align-items:center;gap:6px">
       <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s-4 4-4 8a4 4 0 0 0 8 0c0-1.5-.7-3-1.5-4C14 8.5 13 10 12 10c-.8 0-1-2.5 0-7Z"/></svg> Hitzeschutz — Priorität ${hb2>=65?'HOCH':'MITTEL'}</span>
@@ -4471,7 +4473,7 @@ function openDrawer(name,d,skipZoom){
       </div>
       <div class="mwhy"><b>Institutionelle Grundlage:</b> ${m.kw.split('.')[0]}.</div>
     </div>`).join('')}
-    <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px">⚙️ Weitere Maßnahmen nach NICE-Score</div>`:''}
+    <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px">Weitere Maßnahmen nach NICE-Score</div>`:''}
     ${relM.map(m=>`
     <div class="mcard">
       <div class="mtop">
