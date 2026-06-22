@@ -2922,22 +2922,25 @@ function diagRun(){
     diagStatus(lang==='de'?'näher zoomen':lang==='nl'?'zoom in':'zoom in'); return; }
   diagStatus('<span class="loading-dot"></span>');
   const b=map.getBounds();
+  // Puffer um den Ausschnitt (~550 m) — damit Grün knapp außerhalb mitzählt
+  const bb=L.latLngBounds([b.getSouth()-0.006,b.getWest()-0.009],[b.getNorth()+0.006,b.getEast()+0.009]);
+  const view={s:b.getSouth(),w:b.getWest(),n:b.getNorth(),e:b.getEast()};
   const key=city+'@'+[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(3)).join(',');
   if(DIAG.cache[key]){ diagRender(DIAG.cache[key]); return; }
   // Schneller Pfad: vorab gebündelte Stadtdaten (FFM/UTR) — kein Overpass
   if(hasBundle){
     loadCityBundle(city).then(bundle=>{
       if(!DIAG.active)return;
-      if(!bundle){diagRunLive(b,key);return;}
-      const data=diagBuildGrid(b,bundleToEls(bundle,b));
+      if(!bundle){diagRunLive(bb,view,key);return;}
+      const data=diagBuildGrid(bb,bundleToEls(bundle,bb)); data.view=view;
       DIAG.cache[key]=data; diagRender(data);
     });
     return;
   }
-  diagRunLive(b,key);
+  diagRunLive(bb,view,key);
 }
-function diagRunLive(b,key){
-  const bbox=`${b.getSouth().toFixed(5)},${b.getWest().toFixed(5)},${b.getNorth().toFixed(5)},${b.getEast().toFixed(5)}`;
+function diagRunLive(bb,view,key){
+  const bbox=`${bb.getSouth().toFixed(5)},${bb.getWest().toFixed(5)},${bb.getNorth().toFixed(5)},${bb.getEast().toFixed(5)}`;
   const q=`[out:json][timeout:30];(node["natural"="tree"](${bbox});node["amenity"="bench"](${bbox});node["shop"](${bbox});node["amenity"~"^(cafe|restaurant|bar|fast_food|bank|pharmacy)$"](${bbox});node["amenity"~"^(drinking_water|fountain)$"](${bbox});way["leisure"~"park|garden|playground|pitch|common"](${bbox});way["landuse"~"grass|recreation_ground|forest|meadow|village_green|cemetery"](${bbox}););out geom 7000;`;
   fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q))
     .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();})
@@ -2954,7 +2957,7 @@ function diagRunLive(b,key){
           els.green.push(e.geometry.map(g=>[g.lat,g.lon]));
         }
       });
-      const data=diagBuildGrid(b,els);
+      const data=diagBuildGrid(bb,els); data.view=view;
       DIAG.cache[key]=data;
       diagRender(data);
     })
@@ -2962,12 +2965,13 @@ function diagRunLive(b,key){
 }
 
 function diagBuildGrid(bounds,els,targetM=72){
-  const s=bounds.getSouth(),w=bounds.getWest(),n=bounds.getNorth(),e=bounds.getEast();
-  const midLat=(s+n)/2, mPerLat=111320, mPerLon=111320*Math.cos(midLat*Math.PI/180);
-  const rows=Math.max(4,Math.min(64,Math.round((n-s)*mPerLat/targetM)));
-  const cols=Math.max(4,Math.min(64,Math.round((e-w)*mPerLon/targetM)));
-  const cellH=(n-s)/rows, cellW=(e-w)/cols;
-  const cellM=Math.round((cellH*mPerLat+cellW*mPerLon)/2);
+  const bs=bounds.getSouth(),bw=bounds.getWest(),bn=bounds.getNorth(),be=bounds.getEast();
+  const mPerLat=111320, mPerLon=111320*Math.cos(51*Math.PI/180);     // FESTE Referenzbreite → global konsistentes Raster (FFM/UTR)
+  const cellH=targetM/mPerLat, cellW=targetM/mPerLon;                 // feste Zellgröße (Meter), zoomunabhängig
+  const s=Math.floor(bs/cellH)*cellH, w=Math.floor(bw/cellW)*cellW;   // an globales Raster snappen → stabil bei Pan/Zoom
+  const rows=Math.max(4,Math.min(130,Math.ceil((bn-s)/cellH)));
+  const cols=Math.max(4,Math.min(130,Math.ceil((be-w)/cellW)));
+  const cellM=targetM;
   const grid=[];
   for(let r=0;r<rows;r++){grid.push([]);for(let c=0;c<cols;c++)grid[r].push({r,c,trees:0,benches:0,shops:0,water:0,green:false,lat:s+(r+0.5)*cellH,lon:w+(c+0.5)*cellW});}
   const idx=(lat,lon)=>{const r=Math.floor((lat-s)/cellH),c=Math.floor((lon-w)/cellW);return(r>=0&&r<rows&&c>=0&&c<cols)?grid[r][c]:null;};
@@ -2976,11 +2980,15 @@ function diagBuildGrid(bounds,els,targetM=72){
   els.shops.forEach(p=>{const g=idx(p[0],p[1]);if(g)g.shops++;});
   els.water.forEach(p=>{const g=idx(p[0],p[1]);if(g)g.water++;});
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const g=grid[r][c];for(const poly of els.green){if(diagPointInPoly(g.lat,g.lon,poly)){g.green=true;break;}}}
-  // BFS Grün-Distanz (Zellen)
-  const dist=grid.map(row=>row.map(g=>g.green?0:Infinity));
-  const q=[];for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)if(grid[r][c].green)q.push([r,c]);
-  let h=0;while(h<q.length){const[r,c]=q[h++];[[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([nr,nc])=>{if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&dist[nr][nc]===Infinity){dist[nr][nc]=dist[r][c]+1;q.push([nr,nc]);}});}
-  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)grid[r][c].greenDistM=dist[r][c]===Infinity?9999:dist[r][c]*cellM;
+  // Grün-Distanz: direkte Euklid-Distanz zur nächsten Grün-Zelle (gitter-extent-unabhängig
+  // → stabil bei Pan/Zoom, statt BFS, deren Pfad am Gitterrand gekappt würde)
+  const greenCells=[];
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)if(grid[r][c].green)greenCells.push(grid[r][c]);
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const g=grid[r][c];
+    if(g.green){g.greenDistM=0;continue;}
+    let best=Infinity;
+    for(const gc of greenCells){const dy=(gc.lat-g.lat)*mPerLat,dx=(gc.lon-g.lon)*mPerLon;const d=dx*dx+dy*dy;if(d<best)best=d;}
+    g.greenDistM=greenCells.length?Math.round(Math.sqrt(best)):9999;}
   // Nachbarschafts-Aggregate (3×3) für Bäume/Bänke/Shops
   const sum=(r,c,f)=>{let t=0;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<rows&&nc>=0&&nc<cols)t+=grid[nr][nc][f];}return t;};
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const g=grid[r][c];g.nTrees=sum(r,c,'trees');g.nBench=sum(r,c,'benches');g.nShop=sum(r,c,'shops');g.nWater=sum(r,c,'water');}
@@ -3008,6 +3016,7 @@ function diagRender(data){
   let flagged=0,total=0;
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
     const g=grid[r][c];
+    if(data.view&&(g.lat<data.view.s||g.lat>data.view.n||g.lon<data.view.w||g.lon>data.view.e))continue;
     if(!diagHasContext(g))continue;
     total++;
     let col,op=0.42,problem=false;
