@@ -609,6 +609,19 @@ body.embed .embed-logo{display:block}
     <span class="lstatus" id="st-bike"></span>
   </div>
 
+  <div class="lp-section s-eco">Daseinsvorsorge &amp; Kreislauf (OSM)</div>
+
+  <div class="lrow" onclick="toggleLayer('dv_repair')">
+    <button class="ltoggle" id="tog-dv_repair"></button>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg> Reparieren &amp; Wiederverwenden</span>
+    <span class="lstatus" id="st-dv_repair"></span>
+  </div>
+  <div class="lrow" onclick="toggleLayer('dv_waste')">
+    <button class="ltoggle" id="tog-dv_waste"></button>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M8 6V4h8v2"/></svg> Entsorgen &amp; Recyceln</span>
+    <span class="lstatus" id="st-dv_waste"></span>
+  </div>
+
   <div class="lp-section"><span data-i18n="sec_infra">Infrastruktur (OSM Overpass)</span></div>
 
   <div class="lrow" onclick="toggleLayer('parks')">
@@ -1887,6 +1900,8 @@ function loadLayer(id,statusEl){
     case 'osm_trees': case 'osm_drinking': case 'osm_benches':
     case 'osm_schools': case 'osm_health': case 'osm_transit': case 'osm_lamps':
       return renderOSMLive(id,statusEl);
+    case 'dv_repair': return renderDV(id,statusEl,['repair','reuse']);
+    case 'dv_waste':  return renderDV(id,statusEl,['milieu','recycling','waste']);
     case 'flood':    return loadLocal(`flood_exposure_${city}.geojson`,id,statusEl,renderFloodExposure);
     case 'floodex':  return loadLocal(`waterways_${city}.geojson`,id,statusEl,renderFloodZones);
     case 'heat':     return loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,renderHeatExposure);
@@ -3104,6 +3119,35 @@ function toggleDensity(ev){
   document.getElementById('tog-density').classList.toggle('on',window.densityMode);
   ['osm_trees','osm_benches','osm_drinking','osm_schools','osm_health','osm_transit','osm_lamps'].forEach(id=>{
     if(activeLayers[id])loadOSMLiveViewport(id,document.getElementById('st-'+id));
+  });
+}
+// ── Daseinsvorsorge / Kreislauf (vorab gebündelte OSM-Daten) ─────────────
+let DV_CACHE={};
+function loadDVData(){
+  if(DV_CACHE[city])return Promise.resolve(DV_CACHE[city]);
+  return fetch(`${DATA_BASE}/daseinsvorsorge_${city}.json`).then(r=>r.ok?r.json():[]).then(d=>{DV_CACHE[city]=d;return d;}).catch(()=>[]);
+}
+const DV_STYLE={
+  repair:   {c:'#16a34a',r:5,  bd:1, lbl:{de:'Reparatur',en:'Repair',nl:'Reparatie'}},
+  reuse:    {c:'#0d9488',r:5,  bd:1, lbl:{de:'Wiederverwendung',en:'Reuse',nl:'Kringloop'}},
+  milieu:   {c:'#a60ba6',r:8,  bd:1.5,lbl:{de:'Recyclinghof (Milieustraat)',en:'Recycling centre',nl:'Milieustraat'}},
+  recycling:{c:'#7c3aed',r:3,  bd:0, lbl:{de:'Sammelcontainer',en:'Recycling point',nl:'Inzamelpunt'}},
+  waste:    {c:'#9ca3af',r:2.5,bd:0, lbl:{de:'Abfall',en:'Waste',nl:'Afval'}},
+};
+function renderDV(id,statusEl,cats){
+  loadDVData().then(data=>{
+    if(!activeLayers[id])return;
+    if(layerObjs[id])map.removeLayer(layerObjs[id]);
+    const grp=L.layerGroup();
+    const pts=data.filter(o=>cats.includes(o.c));
+    pts.forEach(o=>{const st=DV_STYLE[o.c];if(!st)return;
+      const m=L.circleMarker([o.y,o.x],{renderer:window.canvasRenderer,radius:st.r,fillColor:st.c,fillOpacity:0.85,color:'#fff',weight:st.bd});
+      const mat=o.m?'<br><span style="color:#8888aa">'+o.m+'</span>':'';
+      m.bindTooltip(`<b>${st.lbl[lang]||st.lbl.de}</b>${o.n?'<br>'+o.n:''}${mat}`,{sticky:true});
+      m.addTo(grp);
+    });
+    grp.addTo(map);layerObjs[id]=grp;
+    if(statusEl)statusEl.textContent=pts.length?('✓ '+pts.length):'—';
   });
 }
 function renderOSMLive(id,statusEl){
