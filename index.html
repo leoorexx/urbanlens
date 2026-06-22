@@ -1987,7 +1987,7 @@ function loadLayer(id,statusEl){
       return;
     case 'noise_residential':
       loadLocal(`noise_roads_${city}.geojson`,id,statusEl,noise=>{
-        loadLocal(`buildings_${city}.geojson`,id,statusEl,buildings=>{
+        loadLocal(city==='utr'?`co2_buildings_utr.geojson`:`buildings_${city}.geojson`,id,statusEl,buildings=>{
           renderNoiseResidential(noise,buildings,id,statusEl);
         });
       });
@@ -4002,8 +4002,8 @@ function renderBenchesLayer(geojson){
     const q=f.properties._quality||'ok';
     const cfg=QUALITY[q]||QUALITY.ok;
     counts[q]=(counts[q]||0)+1;
-    const covered=f.properties.covered==='yes'?'☂️ Überdacht · ':'';
-    const wc=f.properties.wheelchair==='yes'?'♿ Barrierefrei · ':'';
+    const covered=f.properties.covered==='yes'?'Überdacht · ':'';
+    const wc=f.properties.wheelchair==='yes'?'Barrierefrei · ':'';
     const backrest=f.properties.backrest==='yes'?'↩ Mit Rückenlehne · ':'';
     const m=L.circleMarker([lat,lon],{radius:cfg.size,fillColor:cfg.color,color:'#fff',weight:1.5,fillOpacity:.9});
     m.bindTooltip(
@@ -4041,7 +4041,7 @@ function renderFootwaysQuality(geojson){
       const q=f.properties._quality||'ok';const cfg=QUALITY[q];
       const surface=f.properties.surface||'unbekannt';
       const width=f.properties.width||'?';
-      const wc=f.properties.wheelchair==='yes'?'♿ Barrierefrei · ':'';
+      const wc=f.properties.wheelchair==='yes'?'Barrierefrei · ':'';
       const lit=f.properties.lit==='yes'?'Beleuchtet · ':'';
       l.bindTooltip(
         `<b>${cfg.label}</b><br>${f.properties.name||f.properties.highway||'Fußweg'}<br>`+
