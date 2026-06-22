@@ -2,7 +2,9 @@
 // mit wissenschaftlichem + niederländischem/deutschem Namen.
 // → public/data/layers/biodiv_utr.json
 const fs=require('fs');
-const BBOX='decimalLatitude=52.04,52.14&decimalLongitude=5.05,5.20&hasCoordinate=true';
+const CITY=process.argv[2]||'utr';
+const AREA={utr:{ll:'52.04,52.14',lo:'5.05,5.20',name:'Utrecht'},ffm:{ll:'50.02,50.23',lo:'8.47,8.80',name:'Frankfurt'}}[CITY];
+const BBOX=`decimalLatitude=${AREA.ll}&decimalLongitude=${AREA.lo}&hasCoordinate=true`;
 const GROUP=(k,cl)=>{
   if(cl==='Aves')return 'birds';
   if(cl==='Mammalia')return 'mammals';
@@ -32,7 +34,7 @@ async function jget(u,tries=3){for(let t=0;t<tries;t++){try{const r=await fetch(
   }
   // je Gruppe nach Beobachtungen sortieren, top 10
   for(const g in byGroup)byGroup[g]=byGroup[g].sort((a,b)=>b.obs-a.obs).slice(0,10);
-  const out={area:'Utrecht', total:fc&&fc.count, source:'GBIF', groups:byGroup};
-  fs.writeFileSync('public/data/layers/biodiv_utr.json',JSON.stringify(out));
-  console.log('FERTIG → biodiv_utr.json',Object.entries(byGroup).map(([g,a])=>g+':'+a.length).join(' '));
+  const out={area:AREA.name, total:fc&&fc.count, source:'GBIF', groups:byGroup};
+  fs.writeFileSync(`public/data/layers/biodiv_${CITY}.json`,JSON.stringify(out));
+  console.log(`FERTIG → biodiv_${CITY}.json`,Object.entries(byGroup).map(([g,a])=>g+':'+a.length).join(' '));
 })();
