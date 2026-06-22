@@ -28,19 +28,29 @@
 body{font-family:'Archivo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
 #map{position:fixed;inset:0;z-index:1}
 #map3d-overlay{position:fixed;inset:0;z-index:990;display:none}
-.m3mode{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.72);border:none;padding:6px 13px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
-.m3mode.on{background:#fff;color:#0d1117}
-.m3exit{margin-left:auto;background:none;border:1px solid rgba(255,255,255,0.28);color:#fff;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
-#m3legend{margin-left:14px;display:flex;gap:10px;flex-wrap:wrap}
-#m3legend .m3l{display:flex;align-items:center;gap:5px;font-size:9.5px;color:rgba(255,255,255,0.78)}
-#m3legend .m3c{width:12px;height:8px;border-radius:2px;flex:none}
+.m3mode{background:none;color:var(--text2);border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.m3mode.on{background:#1a1a2e;color:#FFD600}
+.m3exit{background:none;border:none;border-left:1px solid var(--border);color:var(--muted);padding:6px 8px 6px 11px;margin-left:2px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.m3exit:hover{color:var(--text)}
+#m3legend{position:fixed;bottom:24px;left:12px;z-index:1010;display:none;flex-direction:column;gap:4px;background:rgba(255,253,248,0.96);border:1px solid var(--border);border-radius:12px;padding:10px 13px;box-shadow:var(--shl);max-width:210px}
+#m3legend.active{display:flex}
+#m3legend .m3lh{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px}
+#m3legend .m3l{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)}
+#m3legend .m3c{width:13px;height:8px;border-radius:2px;flex:none}
+#m3info{position:fixed;top:66px;right:12px;z-index:1010;width:236px;display:none;background:rgba(255,253,248,0.97);border:1px solid var(--border);border-radius:12px;padding:13px 15px;box-shadow:var(--shl)}
+#m3info.active{display:block}
+#m3info h4{font-size:14px;font-weight:800;text-transform:capitalize;margin-bottom:7px}
+#m3info .r{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)}
+#m3info .r:last-child{border-bottom:none}
+#m3info .r span{color:var(--muted)}
+#m3info .x{position:absolute;top:8px;right:10px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:700}
 #m3loader{position:fixed;inset:54px 0 0 0;z-index:995;background:rgba(13,17,23,0.82);display:none;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-direction:column;gap:12px}
 #m3loader .lring{border-color:rgba(255,255,255,0.2);border-top-color:#fff}
 .layer-btn-3d{position:fixed;top:62px;left:10px;z-index:1006;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:8px 14px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;box-shadow:var(--sh);display:none;align-items:center;gap:6px;transition:all .15s;margin-top:8px}
 .layer-btn-3d.active{display:flex}
 .layer-btn-3d:hover{background:var(--surface2)}
 .layer-panel-3d-pos{top:116px!important;left:10px!important}
-.mode-bar-3d{position:fixed;top:54px;left:0;right:0;z-index:1010;display:none;align-items:center;padding:8px 20px;gap:6px;overflow-x:auto;background:#0d1117;backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06)}
+.mode-bar-3d{position:fixed;top:66px;left:12px;z-index:1010;display:none;align-items:center;gap:3px;padding:5px;background:rgba(255,253,248,0.96);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl)}
 .mode-bar-3d.active{display:flex}
 .mode-btn-3d{padding:7px 18px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid rgba(255,255,255,0.12);cursor:pointer;transition:all .2s;color:rgba(255,255,255,0.6);background:transparent;white-space:nowrap;flex-shrink:0}
 .mode-btn-3d.on{background:#FFD600;color:#0d1117;border-color:#FFD600;box-shadow:0 0 16px rgba(255,214,0,0.25)}
@@ -488,9 +498,10 @@ body.embed .embed-logo{display:block}
   <button class="m3mode on" data-m="co2" onclick="set3DMode('co2')">CO₂</button>
   <button class="m3mode" data-m="heat" onclick="set3DMode('heat')">Hitze</button>
   <button class="m3mode" data-m="flood" onclick="set3DMode('flood')">Hochwasser</button>
-  <div id="m3legend"></div>
-  <button class="m3exit" onclick="exit3D()">← 2D-Karte</button>
+  <button class="m3exit" onclick="exit3D()" title="Zurück zur 2D-Karte">✕ 2D</button>
 </div>
+<div id="m3legend"></div>
+<div id="m3info"></div>
 <div id="m3loader"><div class="lring"></div><div id="m3loaderTxt">3D-Stadtmodell wird geladen…</div></div>
 <div id="mapLegend" class="map-legend" style="display:none"></div>
 <button class="tool-btn" id="tool-analyse" style="top:116px" onclick="toggleAnalyse()" title="Analyse: Straßenzug anklicken (Maßnahmen) oder freie Fläche (Punkt-Umfeld)">
@@ -5206,7 +5217,7 @@ function m3load(){
     else{
       M3.map.addSource('b3d',{type:'geojson',data:gj});
       M3.map.addLayer({id:'b3d',type:'fill-extrusion',source:'b3d',paint:{'fill-extrusion-color':['get','_c'],'fill-extrusion-height':['get','_h'],'fill-extrusion-base':0,'fill-extrusion-opacity':0.93}});
-      M3.map.on('click','b3d',m3popup);
+      M3.map.on('click','b3d',m3info);
       M3.map.on('mouseenter','b3d',()=>M3.map.getCanvas().style.cursor='pointer');
       M3.map.on('mouseleave','b3d',()=>M3.map.getCanvas().style.cursor='');
     }
@@ -5214,12 +5225,23 @@ function m3load(){
   }).catch(()=>{document.getElementById('m3loaderTxt').textContent='Daten konnten nicht geladen werden.';});
 }
 function m3apply(){if(!M3.features||!M3.map)return;for(const f of M3.features)f.properties._c=m3color(f.properties);const s=M3.map.getSource('b3d');if(s)s.setData({type:'FeatureCollection',features:M3.features});}
-function m3popup(e){const p=e.features[0].properties;new maplibregl.Popup({maxWidth:'220px'}).setLngLat(e.lngLat).setHTML(`<div style="font-family:inherit;font-size:11px"><b style="text-transform:capitalize">${p.use||'Gebäude'}</b><br>CO₂ ${p.co2!=null&&p.co2!==''?p.co2+' kg/m²·a':'—'} · Hitze ${p.lst!=null&&p.lst!==''?'+'+p.lst+'°C':'—'}<br>Höhe ~${Math.round(p._h)} m${p.era?' · '+p.era:''}</div>`).addTo(M3.map);}
+const M3_USE={res:'Wohnen',off:'Büro',ret:'Handel',ind:'Industrie',hea:'Gesundheit',edu:'Bildung',asm:'Versammlung',hot:'Beherbergung',spo:'Sport',oth:'sonstige','':'Nebengebäude'};
+function m3info(e){const p=e.features[0].properties, el=document.getElementById('m3info');
+  const fl=p.flood?({high:'hoch',medium:'mittel',low:'gering'})[p.flood]:'—';
+  el.innerHTML=`<span class="x" onclick="document.getElementById('m3info').classList.remove('active')">✕</span>`+
+    `<h4>${M3_USE[p.use]||p.use||'Gebäude'}</h4>`+
+    `<div class="r"><span>Baujahr-Epoche</span><b>${p.era&&p.era!=='unbekannt'?p.era.replace(/_/g,'–'):'—'}</b></div>`+
+    `<div class="r"><span>CO₂</span><b>${p.co2!=null&&p.co2!==''?p.co2+' kg/m²·a':'—'}</b></div>`+
+    `<div class="r"><span>Hitze ΔLST</span><b>${p.lst!=null&&p.lst!==''?'+'+p.lst+' °C':'—'}</b></div>`+
+    `<div class="r"><span>Hochwasser</span><b>${fl}</b></div>`+
+    `<div class="r"><span>Höhe (Proxy)</span><b>~${Math.round(p._h)} m</b></div>`;
+  el.classList.add('active');
+}
 function m3legend(){
-  const R=M3.mode==='co2'?[['#86efac','<20'],['#fbbf24','28–36'],['#f97316','36–42'],['#dc2626','42–46'],['#7f1d1d','≥46'],[M3_GREY,'Nebengeb.']]
-    :M3.mode==='heat'?[[M3_GREY,'<1,2'],['#fbbf24','1,2–1,8'],['#f97316','1,8–2,3'],['#dc2626','2,3–3'],['#7f1d1d','>3']]
-    :[['#1d4ed8','hoch'],['#3b82f6','mittel'],['#93c5fd','gering'],[M3_GREY,'außerh.']];
-  document.getElementById('m3legend').innerHTML=R.map(r=>`<span class="m3l"><span class="m3c" style="background:${r[0]}"></span>${r[1]}</span>`).join('');
+  const cfg=M3.mode==='co2'?{h:'CO₂ Gebäude (kg/m²·a)',r:[['#86efac','< 20 · effizient'],['#bef264','20–28'],['#fbbf24','28–36'],['#f97316','36–42'],['#dc2626','42–46'],['#7f1d1d','≥ 46 · ineffizient'],[M3_GREY,'Nebengebäude']]}
+    :M3.mode==='heat'?{h:'Hitze ΔLST (°C)',r:[[M3_GREY,'< 1,2 · unauffällig'],['#fbbf24','1,2–1,8'],['#f97316','1,8–2,3'],['#dc2626','2,3–3'],['#7f1d1d','> 3 · Hotspot']]}
+    :{h:'Hochwasser-Nähe',r:[['#1d4ed8','hoch'],['#3b82f6','mittel'],['#93c5fd','gering'],[M3_GREY,'außerhalb']]};
+  document.getElementById('m3legend').innerHTML='<div class="m3lh">'+cfg.h+'</div>'+cfg.r.map(r=>`<div class="m3l"><span class="m3c" style="background:${r[0]}"></span>${r[1]}</div>`).join('');
 }
 function set3DMode(m){M3.mode=m;document.querySelectorAll('.m3mode').forEach(b=>b.classList.toggle('on',b.dataset.m===m));m3apply();m3legend();}
 function enter3D(){
@@ -5227,19 +5249,19 @@ function enter3D(){
   const c=map.getCenter(), z=map.getZoom();
   document.getElementById('map3d-overlay').style.display='block';
   document.getElementById('modeBar3d').classList.add('active');
-  m3legend();
+  m3legend(); document.getElementById('m3legend').classList.add('active');
   ensureMapLibre().then(()=>{
     if(!M3.active)return;
     if(!M3.map){
       M3.map=new maplibregl.Map({container:'map3d-overlay',style:{version:8,
         sources:{carto:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO · Gebäude: PDOK BAG'}},
         layers:[{id:'carto',type:'raster',source:'carto'}]},
-        center:[c.lng,c.lat],zoom:Math.max(14,z-0.3),pitch:55,bearing:-17,maxPitch:80,antialias:true});
+        center:[c.lng,c.lat],zoom:Math.max(15.2,z),pitch:58,bearing:-18,maxPitch:80,antialias:true});
       M3.map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
       M3.map.once('load',()=>{M3.map.resize();m3load();});
     } else {
       M3.map.resize();
-      M3.map.jumpTo({center:[c.lng,c.lat],zoom:Math.max(14,z-0.3),pitch:55});
+      M3.map.flyTo({center:[c.lng,c.lat],zoom:Math.max(15.2,z),pitch:58,bearing:-18,duration:600});
       m3load();
     }
   }).catch(()=>{document.getElementById('m3loaderTxt').textContent='3D konnte nicht geladen werden (Netz?).';});
@@ -5249,6 +5271,8 @@ function exit3D(){
   if(M3.map){const c=M3.map.getCenter();try{map.setView([c.lat,c.lng],Math.round(M3.map.getZoom()));}catch(e){}}
   document.getElementById('map3d-overlay').style.display='none';
   document.getElementById('modeBar3d').classList.remove('active');
+  document.getElementById('m3legend').classList.remove('active');
+  document.getElementById('m3info').classList.remove('active');
   document.getElementById('m3loader').style.display='none';
 }
 if(new URLSearchParams(location.search).get('view')==='3d')setTimeout(()=>{try{enter3D();}catch(e){}},700);
