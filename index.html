@@ -27,7 +27,15 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Archivo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
 #map{position:fixed;inset:0;z-index:1}
-#map3d-overlay{position:fixed;inset:0;z-index:2;display:none}
+#map3d-overlay{position:fixed;inset:0;z-index:990;display:none}
+.m3mode{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.72);border:none;padding:6px 13px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.m3mode.on{background:#fff;color:#0d1117}
+.m3exit{margin-left:auto;background:none;border:1px solid rgba(255,255,255,0.28);color:#fff;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+#m3legend{margin-left:14px;display:flex;gap:10px;flex-wrap:wrap}
+#m3legend .m3l{display:flex;align-items:center;gap:5px;font-size:9.5px;color:rgba(255,255,255,0.78)}
+#m3legend .m3c{width:12px;height:8px;border-radius:2px;flex:none}
+#m3loader{position:fixed;inset:54px 0 0 0;z-index:995;background:rgba(13,17,23,0.82);display:none;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-direction:column;gap:12px}
+#m3loader .lring{border-color:rgba(255,255,255,0.2);border-top-color:#fff}
 .layer-btn-3d{position:fixed;top:62px;left:10px;z-index:1006;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:8px 14px;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;box-shadow:var(--sh);display:none;align-items:center;gap:6px;transition:all .15s;margin-top:8px}
 .layer-btn-3d.active{display:flex}
 .layer-btn-3d:hover{background:var(--surface2)}
@@ -445,7 +453,7 @@ body.embed .embed-logo{display:block}
 <nav class="nav">
   <a href="index.html" style="text-decoration:none"><div class="logo"><svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true" style="vertical-align:-4px;margin-right:6px"><line x1="5" y1="7" x2="12" y2="4" stroke="#36d5d0" stroke-width="1.3"/><line x1="12" y1="4" x2="17" y2="11" stroke="#a60ba6" stroke-width="1.3"/><line x1="5" y1="7" x2="8" y2="15" stroke="#ff8210" stroke-width="1.3"/><line x1="8" y1="15" x2="17" y2="11" stroke="#36d5d0" stroke-width="1.3"/><circle cx="5" cy="7" r="2.4" fill="#ff8210"/><circle cx="12" cy="4" r="1.9" fill="#36d5d0"/><circle cx="17" cy="11" r="2.7" fill="#a60ba6"/><circle cx="8" cy="15" r="2" fill="#36d5d0"/></svg>nice <span>here</span></div></a>
   <div class="nsep"></div>
-  <a href="3d.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg> 3D</a>
+  <a class="bbrille-btn" onclick="enter3D()" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg> 3D</a>
   <a href="methodik.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg> Methodik</a>
   <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> <span data-i18n="nav_dashboard">Dashboard</span></a>
   <div class="ninfo">NICE Score — <b>117 <span data-i18n="nav_indicators">Indikatoren</span></b></div>
@@ -475,6 +483,15 @@ body.embed .embed-logo{display:block}
 </div>
 
 <div id="map"></div>
+<div id="map3d-overlay"></div>
+<div class="mode-bar-3d" id="modeBar3d">
+  <button class="m3mode on" data-m="co2" onclick="set3DMode('co2')">CO₂</button>
+  <button class="m3mode" data-m="heat" onclick="set3DMode('heat')">Hitze</button>
+  <button class="m3mode" data-m="flood" onclick="set3DMode('flood')">Hochwasser</button>
+  <div id="m3legend"></div>
+  <button class="m3exit" onclick="exit3D()">← 2D-Karte</button>
+</div>
+<div id="m3loader"><div class="lring"></div><div id="m3loaderTxt">3D-Stadtmodell wird geladen…</div></div>
 <div id="mapLegend" class="map-legend" style="display:none"></div>
 <button class="tool-btn" id="tool-analyse" style="top:116px" onclick="toggleAnalyse()" title="Analyse: Straßenzug anklicken (Maßnahmen) oder freie Fläche (Punkt-Umfeld)">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/><path d="M11 8v6M8 11h6"/></svg>
@@ -1751,6 +1768,8 @@ function switchCity(c){
   if(typeof loadCityBundle==='function')setTimeout(()=>loadCityBundle(c),300);
   if(typeof loadCityMobility==='function')setTimeout(()=>loadCityMobility(c),600);
   loadCity(c);
+  // Stadt im 3D-Modus gewechselt → 3D-Modell der neuen Stadt laden
+  if(M3.active&&M3.map){const cc=CITY_CFG[c].center;M3.map.flyTo({center:[cc[1],cc[0]],zoom:15,pitch:55,duration:900});m3load();}
 }
 
 
@@ -5153,6 +5172,86 @@ document.getElementById('stList').addEventListener('click',e=>{
   const d=CITY_CFG[city].data[name];
   if(d)openDrawer(name,d);
 });
+
+// ── 3D-Modus (MapLibre, in die Hauptkarte integriert statt separate Seite) ──
+function ensureMapLibre(){
+  if(window.maplibregl)return Promise.resolve();
+  if(window.__mlPromise)return window.__mlPromise;
+  window.__mlPromise=new Promise((res,rej)=>{
+    const css=document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.css';document.head.appendChild(css);
+    const s=document.createElement('script');s.src='https://unpkg.com/maplibre-gl@3/dist/maplibre-gl.js';s.onload=()=>res();s.onerror=rej;document.head.appendChild(s);
+  });
+  return window.__mlPromise;
+}
+const M3={map:null,mode:'co2',features:null,active:false};
+const M3_GREY='#cfc9bf';
+function m3co2(v){if(v==null||v==='')return M3_GREY;return v>=46?'#7f1d1d':v>=42?'#dc2626':v>=36?'#f97316':v>=28?'#fbbf24':v>=20?'#bef264':'#86efac';}
+function m3heat(d){if(d==null||d==='')return M3_GREY;return d<1.2?M3_GREY:d<1.8?'#fbbf24':d<2.3?'#f97316':d<3?'#dc2626':'#7f1d1d';}
+function m3flood(f){return f==='high'?'#1d4ed8':f==='medium'?'#3b82f6':f==='low'?'#93c5fd':M3_GREY;}
+function m3color(p){return M3.mode==='co2'?m3co2(p.co2):M3.mode==='heat'?m3heat(p.lst):m3flood(p.flood);}
+const M3_HFFM={apartments:18,residential:12,house:9,detached:9,terrace:11,commercial:14,retail:8,office:24,industrial:10,public:16,school:12,hospital:20,church:22,hotel:24,train_station:18,parking:9,garage:3,roof:4};
+function m3features(data,isUtr){
+  if(isUtr)return data.map(b=>({type:'Feature',geometry:{type:'Polygon',coordinates:[b.g.concat([b.g[0]])]},properties:{co2:b.co2,lst:b.lst,flood:b.flood,era:b.era,use:b.u,_h:b.h}}));
+  return (data.features||[]).map(f=>{const p=f.properties||{};return {type:'Feature',geometry:f.geometry,properties:{co2:p.co2_kg_m2??null,lst:p.lst_delta??null,flood:p.flood_risk??null,era:p.age_class||'',use:p.building||'',_h:M3_HFFM[p.building]||10}};});
+}
+function m3load(){
+  const isUtr=(city==='utr');
+  document.getElementById('m3loader').style.display='flex';
+  fetch(isUtr?`${DATA_BASE}/bag_utr.json`:`${DATA_BASE}/co2_buildings_${city}.geojson`).then(r=>r.json()).then(data=>{
+    if(!M3.map)return;
+    M3.features=m3features(data,isUtr);
+    for(const f of M3.features)f.properties._c=m3color(f.properties);
+    const gj={type:'FeatureCollection',features:M3.features};
+    if(M3.map.getSource('b3d'))M3.map.getSource('b3d').setData(gj);
+    else{
+      M3.map.addSource('b3d',{type:'geojson',data:gj});
+      M3.map.addLayer({id:'b3d',type:'fill-extrusion',source:'b3d',paint:{'fill-extrusion-color':['get','_c'],'fill-extrusion-height':['get','_h'],'fill-extrusion-base':0,'fill-extrusion-opacity':0.93}});
+      M3.map.on('click','b3d',m3popup);
+      M3.map.on('mouseenter','b3d',()=>M3.map.getCanvas().style.cursor='pointer');
+      M3.map.on('mouseleave','b3d',()=>M3.map.getCanvas().style.cursor='');
+    }
+    document.getElementById('m3loader').style.display='none';
+  }).catch(()=>{document.getElementById('m3loaderTxt').textContent='Daten konnten nicht geladen werden.';});
+}
+function m3apply(){if(!M3.features||!M3.map)return;for(const f of M3.features)f.properties._c=m3color(f.properties);const s=M3.map.getSource('b3d');if(s)s.setData({type:'FeatureCollection',features:M3.features});}
+function m3popup(e){const p=e.features[0].properties;new maplibregl.Popup({maxWidth:'220px'}).setLngLat(e.lngLat).setHTML(`<div style="font-family:inherit;font-size:11px"><b style="text-transform:capitalize">${p.use||'Gebäude'}</b><br>CO₂ ${p.co2!=null&&p.co2!==''?p.co2+' kg/m²·a':'—'} · Hitze ${p.lst!=null&&p.lst!==''?'+'+p.lst+'°C':'—'}<br>Höhe ~${Math.round(p._h)} m${p.era?' · '+p.era:''}</div>`).addTo(M3.map);}
+function m3legend(){
+  const R=M3.mode==='co2'?[['#86efac','<20'],['#fbbf24','28–36'],['#f97316','36–42'],['#dc2626','42–46'],['#7f1d1d','≥46'],[M3_GREY,'Nebengeb.']]
+    :M3.mode==='heat'?[[M3_GREY,'<1,2'],['#fbbf24','1,2–1,8'],['#f97316','1,8–2,3'],['#dc2626','2,3–3'],['#7f1d1d','>3']]
+    :[['#1d4ed8','hoch'],['#3b82f6','mittel'],['#93c5fd','gering'],[M3_GREY,'außerh.']];
+  document.getElementById('m3legend').innerHTML=R.map(r=>`<span class="m3l"><span class="m3c" style="background:${r[0]}"></span>${r[1]}</span>`).join('');
+}
+function set3DMode(m){M3.mode=m;document.querySelectorAll('.m3mode').forEach(b=>b.classList.toggle('on',b.dataset.m===m));m3apply();m3legend();}
+function enter3D(){
+  if(M3.active)return; M3.active=true;
+  const c=map.getCenter(), z=map.getZoom();
+  document.getElementById('map3d-overlay').style.display='block';
+  document.getElementById('modeBar3d').classList.add('active');
+  m3legend();
+  ensureMapLibre().then(()=>{
+    if(!M3.active)return;
+    if(!M3.map){
+      M3.map=new maplibregl.Map({container:'map3d-overlay',style:{version:8,
+        sources:{carto:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO · Gebäude: PDOK BAG'}},
+        layers:[{id:'carto',type:'raster',source:'carto'}]},
+        center:[c.lng,c.lat],zoom:Math.max(14,z-0.3),pitch:55,bearing:-17,maxPitch:80,antialias:true});
+      M3.map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
+      M3.map.once('load',()=>{M3.map.resize();m3load();});
+    } else {
+      M3.map.resize();
+      M3.map.jumpTo({center:[c.lng,c.lat],zoom:Math.max(14,z-0.3),pitch:55});
+      m3load();
+    }
+  }).catch(()=>{document.getElementById('m3loaderTxt').textContent='3D konnte nicht geladen werden (Netz?).';});
+}
+function exit3D(){
+  if(!M3.active)return; M3.active=false;
+  if(M3.map){const c=M3.map.getCenter();try{map.setView([c.lat,c.lng],Math.round(M3.map.getZoom()));}catch(e){}}
+  document.getElementById('map3d-overlay').style.display='none';
+  document.getElementById('modeBar3d').classList.remove('active');
+  document.getElementById('m3loader').style.display='none';
+}
+if(new URLSearchParams(location.search).get('view')==='3d')setTimeout(()=>{try{enter3D();}catch(e){}},700);
 </script>
 
 </body>
