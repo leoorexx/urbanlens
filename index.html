@@ -481,6 +481,12 @@ body.embed .embed-logo{display:block}
 .intro-role .rt span{font-size:11px;color:var(--muted);line-height:1.35}
 .intro-role .ra{color:var(--muted);font-size:17px;flex:none}
 .intro-role:hover .ra{color:var(--text)}
+.intro-demo{background:var(--surface2);border:1px solid var(--border);border-left:3px solid #1a1a2e;border-radius:0 12px 12px 0;padding:11px 14px;margin-bottom:18px}
+.intro-demoeye{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px}
+.intro-demotx{font-size:12px;color:var(--text2);line-height:1.45;margin-bottom:9px}
+.intro-demotx b{color:var(--text)}
+.intro-demobtn{background:#1a1a2e;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.intro-demobtn.solo{margin-bottom:18px}
 </style>
 </head>
 <body>
@@ -5322,11 +5328,25 @@ if(new URLSearchParams(location.search).get('view')==='3d')setTimeout(()=>{try{e
 
 // ── Intro-Karte (Wertversprechen, einmalig beim ersten Besuch) ─────────────
 const INTRO_TXT={
- de:{tag:'Urbaner Entscheidungs-Zwilling',h:'Welche Stadtteile sind am stärksten belastet — und welche geförderten Maßnahmen wirken dort zuerst?',aud:'Für <b>Social Urban Developer &amp; Kommunen</b>: diagnostizieren · priorisieren · Bewohner beteiligen · Mittel begründen.',niceT:'Der NICE Score (0–100, höher = besser)',nice:'verdichtet 29 Indikatoren zu 8 Dimensionen über 30+ Datenebenen — und macht aus Rohdaten priorisierte Handlungsräume.',pillars:['Klima &amp; Energie','Wasser &amp; Ökologie','Soziales &amp; Teilhabe'],roleQ:'Wofür bist du hier?',roles:[{b:'Ich arbeite in einer Stadtverwaltung',s:'Prioritäten, Maßnahmen &amp; Förderlogik → Dashboard',go:'admin'},{b:'Ich bin Bürger:in oder Initiative',s:'Versteh, warum dein Viertel belastet ist → Karte',go:'map'},{b:'Ich bin Planer:in, Forscher:in oder Berater:in',s:'Methodik, Datenqualität &amp; Quellen → Methodik',go:'method'}]},
- en:{tag:'Urban Decision Twin',h:'Which neighbourhoods are most burdened — and which funded measures work there first?',aud:'For <b>social urban developers &amp; municipalities</b>: diagnose · prioritise · involve residents · justify funding.',niceT:'The NICE Score (0–100, higher = better)',nice:'condenses 29 indicators into 8 dimensions across 30+ data layers — turning raw data into prioritised areas for action.',pillars:['Climate &amp; energy','Water &amp; ecology','Social &amp; participation'],roleQ:'What brings you here?',roles:[{b:'I work in city administration',s:'Priorities, measures &amp; funding logic → Dashboard',go:'admin'},{b:'I\'m a resident or initiative',s:'Understand why your area is burdened → Map',go:'map'},{b:'I\'m a planner, researcher or consultant',s:'Methodology, data quality &amp; sources → Methodology',go:'method'}]},
- nl:{tag:'Stedelijke beslis-tweeling',h:'Welke wijken zijn het zwaarst belast — en welke gesubsidieerde maatregelen werken daar het eerst?',aud:'Voor <b>social urban developers &amp; gemeenten</b>: diagnosticeren · prioriteren · bewoners betrekken · middelen onderbouwen.',niceT:'De NICE Score (0–100, hoger = beter)',nice:'verdicht 29 indicatoren tot 8 dimensies over 30+ datalagen — en maakt van ruwe data geprioriteerde handelingsruimtes.',pillars:['Klimaat &amp; energie','Water &amp; ecologie','Sociaal &amp; participatie'],roleQ:'Waarvoor ben je hier?',roles:[{b:'Ik werk bij een gemeente',s:'Prioriteiten, maatregelen &amp; subsidielogica → Dashboard',go:'admin'},{b:'Ik ben bewoner of initiatief',s:'Begrijp waarom jouw wijk belast is → Kaart',go:'map'},{b:'Ik ben planner, onderzoeker of adviseur',s:'Methodiek, datakwaliteit &amp; bronnen → Methodiek',go:'method'}]}
+ de:{tag:'Urbaner Entscheidungs-Zwilling',h:'Welche Stadtteile sind am stärksten belastet — und welche geförderten Maßnahmen wirken dort zuerst?',aud:'Für <b>Social Urban Developer &amp; Kommunen</b>: diagnostizieren · priorisieren · Bewohner beteiligen · Mittel begründen.',niceT:'Der NICE Score (0–100, höher = besser)',nice:'verdichtet 29 Indikatoren zu 8 Dimensionen über 30+ Datenebenen — und macht aus Rohdaten priorisierte Handlungsräume.',pillars:['Klima &amp; Energie','Wasser &amp; Ökologie','Soziales &amp; Teilhabe'],roleQ:'Wofür bist du hier?',roles:[{b:'Ich arbeite in einer Stadtverwaltung',s:'Prioritäten, Maßnahmen &amp; Förderlogik → Dashboard',go:'admin'},{b:'Ich bin Bürger:in oder Initiative',s:'Versteh, warum dein Viertel belastet ist → Karte',go:'map'},{b:'Ich bin Planer:in, Forscher:in oder Berater:in',s:'Methodik, Datenqualität &amp; Quellen → Methodik',go:'method'}],demoEye:'Beispiel',demoBurden:'größte Belastung',demoBtn:'Auf der Karte ansehen →',demoGeneric:'Stärkst belasteten Stadtteil ansehen →'},
+ en:{tag:'Urban Decision Twin',h:'Which neighbourhoods are most burdened — and which funded measures work there first?',aud:'For <b>social urban developers &amp; municipalities</b>: diagnose · prioritise · involve residents · justify funding.',niceT:'The NICE Score (0–100, higher = better)',nice:'condenses 29 indicators into 8 dimensions across 30+ data layers — turning raw data into prioritised areas for action.',pillars:['Climate &amp; energy','Water &amp; ecology','Social &amp; participation'],roleQ:'What brings you here?',roles:[{b:'I work in city administration',s:'Priorities, measures &amp; funding logic → Dashboard',go:'admin'},{b:'I\'m a resident or initiative',s:'Understand why your area is burdened → Map',go:'map'},{b:'I\'m a planner, researcher or consultant',s:'Methodology, data quality &amp; sources → Methodology',go:'method'}],demoEye:'Example',demoBurden:'biggest burden',demoBtn:'View on the map →',demoGeneric:'See the most burdened district →'},
+ nl:{tag:'Stedelijke beslis-tweeling',h:'Welke wijken zijn het zwaarst belast — en welke gesubsidieerde maatregelen werken daar het eerst?',aud:'Voor <b>social urban developers &amp; gemeenten</b>: diagnosticeren · prioriteren · bewoners betrekken · middelen onderbouwen.',niceT:'De NICE Score (0–100, hoger = beter)',nice:'verdicht 29 indicatoren tot 8 dimensies over 30+ datalagen — en maakt van ruwe data geprioriteerde handelingsruimtes.',pillars:['Klimaat &amp; energie','Water &amp; ecologie','Sociaal &amp; participatie'],roleQ:'Waarvoor ben je hier?',roles:[{b:'Ik werk bij een gemeente',s:'Prioriteiten, maatregelen &amp; subsidielogica → Dashboard',go:'admin'},{b:'Ik ben bewoner of initiatief',s:'Begrijp waarom jouw wijk belast is → Kaart',go:'map'},{b:'Ik ben planner, onderzoeker of adviseur',s:'Methodiek, datakwaliteit &amp; bronnen → Methodiek',go:'method'}],demoEye:'Voorbeeld',demoBurden:'grootste belasting',demoBtn:'Bekijk op de kaart →',demoGeneric:'Bekijk de zwaarst belaste wijk →'}
 };
 function introGo(w){ try{localStorage.setItem('nh_intro_v1','1');}catch(e){} if(w==='admin')location.href='dashboard.html'; else if(w==='method')location.href='methodik.html'; else closeIntro(); }
+function introTrName(s){ try{ return (lang!=='de'&&typeof TR!=='undefined'&&TR[s]&&TR[s][lang])?TR[s][lang]:s; }catch(e){ return s; } }
+function introWorst(){
+  try{
+    const data=CITY_CFG[city]&&CITY_CFG[city].data; if(!data)return null;
+    const ents=Object.entries(data); if(!ents.length)return null;
+    let worst=null,ws=999;
+    for(const [n,d] of ents){ const s=nice(d); if(s<ws){ws=s;worst={name:n,d,score:s};} }
+    if(!worst)return null;
+    worst.weak=DIMS.slice().sort((a,b)=>worst.d[a.k]-worst.d[b.k]).slice(0,2);
+    worst.cityName=CITY_CFG[city].name;
+    return worst;
+  }catch(e){ return null; }
+}
+function introDemoGo(){ const w=introWorst(); try{localStorage.setItem('nh_intro_v1','1');}catch(e){} closeIntro(); if(w&&typeof openDrawer==='function'){ try{openDrawer(w.name,w.d);}catch(e){} } }
 const ROLE_IC=['<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg>','<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.3"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/></svg>','<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>'];
 const INTRO_PCOL=[['var(--climate)','#fff'],['var(--eco)','#08403d'],['var(--social)','#fff']];
 const INTRO_NODE='<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="flex:none"><line x1="5" y1="7" x2="12" y2="4" stroke="#36d5d0" stroke-width="1.3"/><line x1="12" y1="4" x2="17" y2="11" stroke="#a60ba6" stroke-width="1.3"/><line x1="5" y1="7" x2="8" y2="15" stroke="#ff8210" stroke-width="1.3"/><line x1="8" y1="15" x2="17" y2="11" stroke="#36d5d0" stroke-width="1.3"/><circle cx="5" cy="7" r="2.4" fill="#ff8210"/><circle cx="12" cy="4" r="1.9" fill="#36d5d0"/><circle cx="17" cy="11" r="2.7" fill="#a60ba6"/><circle cx="8" cy="15" r="2" fill="#36d5d0"/></svg>';
@@ -5338,6 +5358,9 @@ function renderIntro(){const t=INTRO_TXT[lang]||INTRO_TXT.de;
     `<div class="intro-aud">${t.aud}</div>`+
     `<div class="intro-pillars">${t.pillars.map((p,i)=>`<span class="intro-pill" style="background:${INTRO_PCOL[i][0]};color:${INTRO_PCOL[i][1]}">${p}</span>`).join('')}</div>`+
     `<div class="intro-nice"><b>${t.niceT}</b><span>${t.nice}</span></div>`+
+    (function(){const w=introWorst(); return w
+      ? `<div class="intro-demo"><div class="intro-demoeye">${t.demoEye} · ${w.cityName}</div><div class="intro-demotx"><b>${w.name}</b> · NICE ${w.score} — ${t.demoBurden}: ${introTrName(w.weak[0].name)} &amp; ${introTrName(w.weak[1].name)}</div><button class="intro-demobtn" onclick="introDemoGo()">${t.demoBtn}</button></div>`
+      : `<button class="intro-demobtn solo" onclick="introDemoGo()">${t.demoGeneric}</button>`; })()+
     `<div class="intro-rolesq">${t.roleQ}</div>`+
     `<div class="intro-roles">${t.roles.map((r,i)=>`<button class="intro-role" onclick="introGo('${r.go}')"><span class="ri">${ROLE_IC[i]}</span><span class="rt"><b>${r.b}</b><span>${r.s}</span></span><span class="ra">→</span></button>`).join('')}</div>`;
 }
