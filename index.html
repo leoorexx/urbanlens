@@ -1822,20 +1822,40 @@ function initMap(){
 }
 
 // ── Stadt-Suche: Utrecht/Frankfurt = volle Daten · alle anderen via OSM ──
-let FREE=null, CS_TIMER=null;
+let FREE=null, CS_TIMER=null, CS_ABORT=null; const CS_CACHE={};
 const CS_FULL=[{key:'utr',name:'Utrecht'},{key:'ffm',name:'Frankfurt am Main'}];
 const ANYWHERE_LAYERS=['osm_trees','osm_drinking','osm_benches','osm_schools','osm_health','osm_transit','osm_lamps','raumklang'];
 function csTxt(de,en,nl){return lang==='nl'?nl:lang==='en'?en:de;}
-function citySearchInput(q){ q=(q||'').trim(); renderCsDrop(q,null); clearTimeout(CS_TIMER); if(q.length>=3)CS_TIMER=setTimeout(()=>geocodeCity(q),350); }
+function citySearchInput(q){ q=(q||'').trim(); renderCsDrop(q,null,q.length>=3); clearTimeout(CS_TIMER); if(q.length>=3)CS_TIMER=setTimeout(()=>geocodeCity(q),450); }
 function geocodeCity(q){
-  fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q='+encodeURIComponent(q),{headers:{'Accept-Language':lang}})
-    .then(r=>r.ok?r.json():[]).then(res=>{ const seen={};
-      const cities=(res||[]).map(r=>{const p=r.display_name.split(',');const s=p.length>1?p[0].trim()+', '+p[p.length-1].trim():p[0].trim();return {name:s,lat:+r.lat,lon:+r.lon};})
-        .filter(c=>{const k=c.name.toLowerCase();if(seen[k])return false;seen[k]=1;return true;}).slice(0,6);
-      renderCsDrop(q,cities);
-    }).catch(()=>{});
+  const key=q.toLowerCase();
+  if(CS_CACHE[key]){ renderCsDrop(q,CS_CACHE[key]); return; }
+  if(CS_ABORT){try{CS_ABORT.abort();}catch(e){}}
+  const ac=(typeof AbortController!=='undefined')?new AbortController():null; CS_ABORT=ac;
+  const sig=ac?ac.signal:undefined;
+  // Photon (Komoot) primär — für Autocomplete gebaut, tolerantere Limits; Nominatim als Fallback
+  photonGeocode(q,sig).then(cities=>{
+    if(cities&&cities.length){ CS_CACHE[key]=cities; renderCsDrop(q,cities); return; }
+    return nominatimGeocode(q,sig).then(c2=>{ CS_CACHE[key]=c2||[]; renderCsDrop(q,c2||[]); });
+  }).catch(e=>{ if(e&&e.name==='AbortError')return; nominatimGeocode(q).then(c2=>{CS_CACHE[key]=c2||[];renderCsDrop(q,c2||[]);}).catch(()=>renderCsDrop(q,[])); });
 }
-function renderCsDrop(q,geo){
+function photonGeocode(q,signal){
+  const plang=lang==='de'?'de':lang==='en'?'en':'default';
+  return fetch('https://photon.komoot.io/api/?limit=6&lang='+plang+'&q='+encodeURIComponent(q),{signal}).then(r=>r.ok?r.json():null).then(j=>{
+    if(!j||!j.features)return [];
+    const PL=['city','town','village','municipality','hamlet','suburb','borough','quarter'], seen={};
+    return j.features.filter(f=>{const p=f.properties||{};return p.osm_key==='place'||PL.indexOf(p.osm_value)>=0||PL.indexOf(p.type)>=0;})
+      .map(f=>{const p=f.properties||{},nm=p.name||'',reg=p.state||p.country||'';return {name:nm+(reg&&reg!==nm?', '+reg:''),lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0]};})
+      .filter(c=>{const k=c.name.toLowerCase();if(!c.name||seen[k])return false;seen[k]=1;return true;}).slice(0,6);
+  });
+}
+function nominatimGeocode(q,signal){
+  return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&featureType=settlement&q='+encodeURIComponent(q),{headers:{'Accept-Language':lang},signal}).then(r=>r.ok?r.json():[]).then(res=>{ const seen={};
+    return (res||[]).map(r=>{const p=r.display_name.split(',');const s=p.length>1?p[0].trim()+', '+p[p.length-1].trim():p[0].trim();return {name:s,lat:+r.lat,lon:+r.lon};})
+      .filter(c=>{const k=c.name.toLowerCase();if(seen[k])return false;seen[k]=1;return true;}).slice(0,6);
+  });
+}
+function renderCsDrop(q,geo,loading){
   const drop=document.getElementById('citySearchDrop'); if(!drop)return;
   const ql=(q||'').toLowerCase();
   const full=CS_FULL.filter(c=>!ql||c.name.toLowerCase().includes(ql));
@@ -1844,6 +1864,8 @@ function renderCsDrop(q,geo){
     h+=full.map(c=>'<button class="csitem" onclick="pickFull(\''+c.key+'\')"><span class="csn">'+c.name+'</span><span class="csbadge full">'+csTxt('komplett','full','volledig')+'</span></button>').join(''); }
   if(geo&&geo.length){ h+='<div class="cshead">'+csTxt('Andere Städte (OSM-Modus)','Other cities (OSM mode)','Andere steden (OSM-modus)')+'</div>';
     h+=geo.map(c=>'<button class="csitem" onclick="pickFree('+c.lat+','+c.lon+',\''+c.name.replace(/['\\]/g,'')+'\')"><span class="csn">'+c.name+'</span><span class="csbadge osm">OSM</span></button>').join(''); }
+  else if(loading){ h+='<div style="padding:10px 13px;font-size:11px;color:var(--muted)"><span class="loading-dot"></span> '+csTxt('Städte suchen…','Searching cities…','Steden zoeken…')+'</div>'; }
+  else if(geo&&geo.length===0&&ql.length>=3){ h+='<div style="padding:10px 13px;font-size:11px;color:var(--muted)">'+csTxt('Keine weitere Stadt gefunden','No other city found','Geen andere stad gevonden')+'</div>'; }
   drop.innerHTML=h; drop.classList.add('on');
 }
 function closeCsDrop(){ const d=document.getElementById('citySearchDrop'); if(d)d.classList.remove('on'); }
