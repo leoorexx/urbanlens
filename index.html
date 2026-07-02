@@ -5541,13 +5541,38 @@ function introDemoGo(){ const w=introWorst(); try{localStorage.setItem('nh_intro
 const ROLE_IC=['<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg>','<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.3"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/></svg>','<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>'];
 const INTRO_PCOL=[['var(--climate)','#fff'],['var(--eco)','#08403d'],['var(--social)','#fff']];
 const INTRO_NODE='<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="flex:none"><line x1="5" y1="7" x2="12" y2="4" stroke="#36d5d0" stroke-width="1.3"/><line x1="12" y1="4" x2="17" y2="11" stroke="#a60ba6" stroke-width="1.3"/><line x1="5" y1="7" x2="8" y2="15" stroke="#ff8210" stroke-width="1.3"/><line x1="8" y1="15" x2="17" y2="11" stroke="#36d5d0" stroke-width="1.3"/><circle cx="5" cy="7" r="2.4" fill="#ff8210"/><circle cx="12" cy="4" r="1.9" fill="#36d5d0"/><circle cx="17" cy="11" r="2.7" fill="#a60ba6"/><circle cx="8" cy="15" r="2" fill="#36d5d0"/></svg>';
+function introHero(){const t1=csTxt('HEUTE','TODAY','NU'),t2=csTxt('MÖGLICH','POSSIBLE','MOGELIJK');
+ return '<svg viewBox="0 0 680 330" width="100%" style="display:block;border-radius:14px" role="img" aria-label="'+csTxt('Straße heute heiß und grau, möglich begrünt','Street hot and grey today, possible green','Straat nu heet en grijs, mogelijk groen')+'">'+
+ '<defs><linearGradient id="ihH" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd39a"/><stop offset="1" stop-color="#ffe9cf"/></linearGradient>'+
+ '<linearGradient id="ihC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe9ec"/><stop offset="1" stop-color="#eaf5f0"/></linearGradient>'+
+ '<clipPath id="ihL"><rect x="0" y="0" width="316" height="290" rx="16"/></clipPath><clipPath id="ihR"><rect x="364" y="0" width="316" height="290" rx="16"/></clipPath></defs>'+
+ '<g clip-path="url(#ihL)"><rect x="0" y="0" width="316" height="290" fill="url(#ihH)"/><circle cx="60" cy="55" r="26" fill="#ff8210"/>'+
+ '<g stroke="#ff8210" stroke-width="3" stroke-linecap="round" opacity="0.8"><line x1="60" y1="14" x2="60" y2="4"/><line x1="24" y1="30" x2="17" y2="23"/><line x1="96" y1="30" x2="103" y2="23"/><line x1="20" y1="55" x2="10" y2="55"/></g>'+
+ '<g stroke="#ff8210" stroke-width="2" fill="none" opacity="0.5"><path d="M150 60 q6 -8 12 0 q6 8 12 0"/><path d="M200 48 q6 -8 12 0 q6 8 12 0"/></g>'+
+ '<rect x="20" y="120" width="70" height="120" fill="#cdc7ba"/><rect x="100" y="90" width="60" height="150" fill="#d6d0c4"/><rect x="172" y="135" width="55" height="105" fill="#c8c1b3"/><rect x="238" y="105" width="66" height="135" fill="#d2ccbf"/>'+
+ '<g fill="#b7b0a1"><rect x="34" y="135" width="12" height="16"/><rect x="60" y="135" width="12" height="16"/><rect x="114" y="110" width="12" height="16"/><rect x="140" y="110" width="12" height="16"/><rect x="186" y="150" width="11" height="15"/><rect x="252" y="122" width="12" height="16"/><rect x="278" y="122" width="12" height="16"/></g>'+
+ '<rect x="0" y="240" width="316" height="50" fill="#52525b"/><g stroke="#8a8a94" stroke-width="3" stroke-dasharray="14 12" stroke-linecap="round"><line x1="0" y1="265" x2="316" y2="265"/></g><circle cx="150" cy="230" r="6" fill="#9a9384"/><rect x="148" y="230" width="4" height="12" fill="#7a7466"/></g>'+
+ '<g transform="translate(340,145)"><circle r="17" fill="#1a1a2e"/><path d="M-6 0 H6 M2 -5 L7 0 L2 5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>'+
+ '<g clip-path="url(#ihR)"><rect x="364" y="0" width="316" height="290" fill="url(#ihC)"/><circle cx="618" cy="52" r="22" fill="#fbbf24" opacity="0.55"/>'+
+ '<rect x="384" y="120" width="70" height="120" fill="#d6d0c4"/><rect x="464" y="90" width="60" height="150" fill="#dcd6ca"/><rect x="536" y="135" width="55" height="105" fill="#d2ccbf"/><rect x="602" y="105" width="66" height="135" fill="#d8d2c6"/>'+
+ '<g fill="#36d5d0" opacity="0.9"><rect x="384" y="112" width="70" height="9" rx="3"/><rect x="464" y="82" width="60" height="9" rx="3"/><rect x="602" y="97" width="66" height="9" rx="3"/></g>'+
+ '<g fill="#4ade80" opacity="0.85"><circle cx="470" cy="150" r="5"/><circle cx="470" cy="168" r="5"/><circle cx="470" cy="186" r="5"/></g>'+
+ '<rect x="364" y="240" width="316" height="50" fill="#7d8a72"/><rect x="364" y="240" width="316" height="8" fill="#8fa27f"/>'+
+ '<g><rect x="437" y="205" width="6" height="35" fill="#8a6d4a"/><circle cx="440" cy="196" r="24" fill="#16a34a"/><circle cx="426" cy="204" r="16" fill="#22c55e"/><circle cx="454" cy="204" r="16" fill="#36d5d0"/></g>'+
+ '<g><rect x="560" y="212" width="6" height="28" fill="#8a6d4a"/><circle cx="563" cy="204" r="20" fill="#22c55e"/><circle cx="550" cy="210" r="13" fill="#16a34a"/><circle cx="576" cy="210" r="13" fill="#4ade80"/></g>'+
+ '<ellipse cx="440" cy="243" rx="34" ry="5" fill="#000" opacity="0.10"/><ellipse cx="563" cy="243" rx="26" ry="4" fill="#000" opacity="0.10"/>'+
+ '<rect x="495" y="230" width="26" height="4" rx="2" fill="#a60ba6"/><rect x="497" y="234" width="3" height="8" fill="#a60ba6"/><rect x="516" y="234" width="3" height="8" fill="#a60ba6"/>'+
+ '<circle cx="503" cy="222" r="4" fill="#1a1a2e"/><rect x="500" y="226" width="6" height="6" rx="2" fill="#ff8210"/></g>'+
+ '<text x="158" y="312" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12" font-weight="700" fill="#8a5a2a" letter-spacing="1.5">'+t1+'</text>'+
+ '<text x="522" y="312" text-anchor="middle" font-family="Archivo,sans-serif" font-size="12" font-weight="700" fill="#0f7a4a" letter-spacing="1.5">'+t2+'</text></svg>';
+}
 function renderIntro(){const t=INTRO_TXT[lang]||INTRO_TXT.de;
   document.getElementById('introCard').innerHTML=
     `<span class="intro-x" onclick="closeIntro()">✕</span>`+
     `<div class="intro-brand">${INTRO_NODE}<span class="bw">nice <span>here</span></span><span class="tg">${t.tag}<br>Utrecht &amp; Frankfurt</span></div>`+
     `<div class="intro-h">${t.h}</div>`+
     `<div class="intro-aud">${t.aud}</div>`+
-    `<div class="intro-pillars">${t.pillars.map((p,i)=>`<span class="intro-pill" style="background:${INTRO_PCOL[i][0]};color:${INTRO_PCOL[i][1]}">${p}</span>`).join('')}</div>`+
+    `<div style="margin:2px 0 15px">${introHero()}</div>`+
     `<div class="intro-nice"><b>${t.niceT}</b><span>${t.nice}</span></div>`+
     (function(){const w=introWorst(); return w
       ? `<div class="intro-demo"><div class="intro-demoeye">${t.demoEye} · ${w.cityName}</div><div class="intro-demotx"><b>${w.name}</b> · NICE ${w.score} — ${t.demoBurden}: ${introTrName(w.weak[0].name)} &amp; ${introTrName(w.weak[1].name)}</div><button class="intro-demobtn" onclick="introDemoGo()">${t.demoBtn}</button></div>`
