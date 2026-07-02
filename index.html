@@ -2557,6 +2557,24 @@ function mitTab(k){ MIT.tab=k; map.getContainer().style.cursor=(k==='report'&&MI
 // Grünfläche −1,5°C (lokale Lufttemperatur).
 // ══════════════════════════════════════════════════════════════
 let HEAT={active:false, data:null, layer:null, hooked:false, timer:null, cool:{trees:0,deseal:0,green:0}};
+// Echtes Satelliten-LST-Feld (gemessen) als Basis der Hitze-Sim — statt Proxy aus Ladendichte
+let HEAT_FIELD={};
+function loadHeatField(){
+  if(HEAT_FIELD[city]!==undefined)return Promise.resolve(HEAT_FIELD[city]);
+  if(FREE){HEAT_FIELD[city]=null;return Promise.resolve(null);}
+  return fetch(`${DATA_BASE}/heat_exposure_${city}.geojson`).then(r=>r.ok?r.json():null).then(gj=>{
+    if(!gj||!gj.features){HEAT_FIELD[city]=null;return null;}
+    const cell=0.004,idx=new Map();
+    gj.features.forEach(f=>{const p=f.properties||{};if(p.lst_delta==null)return;const c=geoCentroid(f.geometry.coordinates);if(!c)return;const k=Math.round(c[1]/cell)+'_'+Math.round(c[0]/cell);let a=idx.get(k);if(!a){a=[];idx.set(k,a);}a.push([c[1],c[0],+p.lst_delta]);});
+    const field=idx.size?{idx,cell}:null; HEAT_FIELD[city]=field; return field;
+  }).catch(()=>{HEAT_FIELD[city]=null;return null;});
+}
+function sampleLst(field,lat,lon){
+  if(!field)return null; const {idx,cell}=field; let best=null,bd=1e9;
+  const kr=Math.round(lat/cell),kc=Math.round(lon/cell);
+  for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){const a=idx.get((kr+dr)+'_'+(kc+dc));if(!a)continue;for(const p of a){const dy=(p[0]-lat)*111320,dx=(p[1]-lon)*70000,d=dx*dx+dy*dy;if(d<bd){bd=d;best=p;}}}
+  return best?best[2]:null;
+}
 function toggleHeatSim(){
   HEAT.active=!HEAT.active;
   document.getElementById('tool-heatsim').classList.toggle('on',HEAT.active);
@@ -2579,17 +2597,21 @@ function heatRun(){
   if(map.getZoom()<(hasBundle?13:14)){ if(HEAT.layer){map.removeLayer(HEAT.layer);HEAT.layer=null;} heatPanel('zoom'); return; }
   heatPanel('load');
   const b=map.getBounds();
-  if(hasBundle){
-    loadCityBundle(city).then(bn=>{ if(!HEAT.active)return; if(!bn){heatPanel('err');return;} HEAT.data=heatGrid(b,bundleToEls(bn,b)); heatRender(); }); return;
-  }
-  getAreaEls(b).then(els=>{ if(!HEAT.active)return; if(!els){heatPanel('err');return;} HEAT.data=heatGrid(b,els); heatRender(); });
+  const view={s:b.getSouth(),w:b.getWest(),n:b.getNorth(),e:b.getEast()};
+  const bb=L.latLngBounds([b.getSouth()-0.004,b.getWest()-0.006],[b.getNorth()+0.004,b.getEast()+0.006]);
+  const elsP = hasBundle ? loadCityBundle(city).then(bn=>bn?bundleToEls(bn,bb):null) : getAreaEls(bb);
+  Promise.all([elsP, loadHeatField()]).then(([els,field])=>{
+    if(!HEAT.active)return; if(!els){heatPanel('err');return;}
+    HEAT.data=heatGrid(bb,els,field,view); heatRender();
+  });
 }
-function heatGrid(b,els,targetM=62){
-  const s=b.getSouth(),w=b.getWest(),n=b.getNorth(),e=b.getEast();
-  const mLat=111320,mLon=111320*Math.cos((s+n)/2*Math.PI/180);
-  const rows=Math.max(5,Math.min(64,Math.round((n-s)*mLat/targetM)));
-  const cols=Math.max(5,Math.min(64,Math.round((e-w)*mLon/targetM)));
-  const cellH=(n-s)/rows,cellW=(e-w)/cols;
+function heatGrid(b,els,field,view,targetM=62){
+  // Festes, an globales Raster (51°-Referenz) gesnapptes Gitter → stabil bei Pan/Zoom
+  const mLat=111320,mLon=111320*Math.cos(51*Math.PI/180);
+  const cellH=targetM/mLat,cellW=targetM/mLon;
+  const s=Math.floor(b.getSouth()/cellH)*cellH, w=Math.floor(b.getWest()/cellW)*cellW;
+  const rows=Math.max(5,Math.min(170,Math.ceil((b.getNorth()-s)/cellH)));
+  const cols=Math.max(5,Math.min(170,Math.ceil((b.getEast()-w)/cellW)));
   const grid=[];
   for(let r=0;r<rows;r++){grid.push([]);for(let c=0;c<cols;c++)grid[r].push({trees:0,shops:0,green:false,lat:s+(r+0.5)*cellH,lon:w+(c+0.5)*cellW,bnds:[[s+r*cellH,w+c*cellW],[s+(r+1)*cellH,w+(c+1)*cellW]]});}
   const idx=(la,lo)=>{const r=Math.floor((la-s)/cellH),c=Math.floor((lo-w)/cellW);return(r>=0&&r<rows&&c>=0&&c<cols)?grid[r][c]:null;};
@@ -2600,13 +2622,15 @@ function heatGrid(b,els,targetM=62){
   const cells=[];
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
     const g=grid[r][c];
+    if(view && (g.lat<view.s||g.lat>view.n||g.lon<view.w||g.lon>view.e))continue;  // nur sichtbare Zellen
     const treeN=sum(r,c,'trees'), shopN=sum(r,c,'shops');
     const builtUp=Math.min(1,shopN/8);
     const greenCov=g.green?1:0;
-    if(!(treeN||shopN||greenCov))continue;
-    let dt0=0.6+builtUp*2.8-greenCov*2.2-Math.min(1.2,treeN*0.04);
-    dt0=Math.max(-0.5,Math.min(5,dt0));
-    cells.push({bnds:g.bnds,dt0,builtUp,greenCov,treeN});
+    const realLst=sampleLst(field,g.lat,g.lon);
+    let dt0, measured;
+    if(realLst!=null){ dt0=Math.max(-1,Math.min(6,realLst)); measured=true; }        // ECHT: gemessene Satelliten-LST
+    else { if(!(treeN||shopN||greenCov))continue; dt0=Math.max(-0.5,Math.min(5,0.6+builtUp*2.8-greenCov*2.2-Math.min(1.2,treeN*0.04))); measured=false; }  // Fallback (OSM-Städte): geschätzt
+    cells.push({bnds:g.bnds,dt0,builtUp,greenCov,treeN,measured});
   }
   return {cells};
 }
@@ -2631,7 +2655,7 @@ function heatRender(){
         `<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa">${lang==='en'?'Heat · ~60 m cell':lang==='nl'?'Hitte · ~60 m cel':'Hitze · ~60-m-Zelle'}</div>`+
         `<div style="font-size:18px;font-weight:800;color:${heatColor(dt)};margin:3px 0">+${dt.toFixed(1)} °C <span style="font-size:10px;color:#8888aa">ΔT</span></div>`+
         (HEAT.cool.trees||HEAT.cool.deseal||HEAT.cool.green?`<div style="font-size:10px;color:#15803d">${lang==='en'?'cooled from':lang==='nl'?'gekoeld van':'gekühlt von'} +${c.dt0.toFixed(1)} °C</div>`:'')+
-        `<div style="font-size:8.5px;color:#8888aa;margin-top:6px;border-top:1px solid #eee;padding-top:5px">${lang==='en'?'Model: sealing + green proximity + canopy. Cooling per BBSR/UBA.':lang==='nl'?'Model: verharding + groen + kronen. Koeling volgens BBSR/UBA.':'Modell: Versiegelung + Grünnähe + Kronendach. Kühlung nach BBSR/UBA.'}</div></div>`
+        `<div style="font-size:8.5px;color:#8888aa;margin-top:6px;border-top:1px solid #eee;padding-top:5px">${c.measured?(lang==='en'?'Basis: measured satellite LST (Copernicus). Cooling per BBSR/UBA.':lang==='nl'?'Basis: gemeten satelliet-LST (Copernicus). Koeling volgens BBSR/UBA.':'Basis: gemessene Satelliten-LST (Copernicus). Kühlung nach BBSR/UBA.'):(lang==='en'?'Estimated from sealing + green (no satellite data for this city).':lang==='nl'?'Geschat uit verharding + groen (geen satellietdata).':'Geschätzt aus Versiegelung + Grün (keine Satellitendaten für diese Stadt).')}</div></div>`
       ).openOn(map);
     });
     rect.addTo(grp);
