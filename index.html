@@ -487,6 +487,24 @@ body.embed .embed-logo{display:block}
 .intro-demotx b{color:var(--text)}
 .intro-demobtn{background:#1a1a2e;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
 .intro-demobtn.solo{margin-bottom:18px}
+.citysearch{position:relative}
+.citysearch input{width:200px;height:32px;border:1px solid var(--border2);border-radius:16px;padding:0 14px;font-size:12px;font-family:inherit;color:var(--text);background:var(--surface);outline:none;transition:border .15s}
+.citysearch input:focus{border-color:var(--text);width:230px}
+.csdrop{position:absolute;top:38px;right:0;width:290px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shl);overflow:hidden;display:none;z-index:1200;max-height:360px;overflow-y:auto}
+.csdrop.on{display:block}
+.cshead{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:9px 13px 4px}
+.csitem{display:flex;align-items:center;gap:8px;padding:9px 13px;cursor:pointer;font-size:12.5px;color:var(--text);border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.csitem:hover{background:var(--surface2)}
+.csitem .csn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.csbadge{font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:10px;flex:none}
+.csbadge.full{background:rgba(54,213,208,0.2);color:#0c4a47}
+.csbadge.osm{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+#freeBanner{position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:1100;background:#1a1a2e;color:#fff;border-radius:12px;padding:9px 15px;box-shadow:var(--shl);display:none;align-items:center;gap:12px;max-width:calc(100vw - 40px)}
+#freeBanner.on{display:flex}
+#freeBanner .fbtx{font-size:11.5px;line-height:1.4}
+#freeBanner .fbtx b{color:var(--eco)}
+#freeBanner button{background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex:none}
+body.free-mode .left{display:none}
 </style>
 </head>
 <body>
@@ -512,9 +530,9 @@ body.embed .embed-logo{display:block}
       <button class="lg" id="lg-en" onclick="setLang('en')">EN</button>
       <button class="lg" id="lg-nl" onclick="setLang('nl')">NL</button>
     </div>
-    <div class="city-toggle">
-      <div class="ct" id="ct-ffm" onclick="switchCity('ffm')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/></svg> Frankfurt am Main</div>
-      <div class="ct" id="ct-utr" onclick="switchCity('utr')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/></svg> Utrecht</div>
+    <div class="citysearch">
+      <input id="citySearch" placeholder="Suche deine Stadt…" oninput="citySearchInput(this.value)" onfocus="citySearchInput(this.value)" autocomplete="off" spellcheck="false">
+      <div id="citySearchDrop" class="csdrop"></div>
     </div>
     <div class="lpill"><div class="dot"></div><span data-i18n="nav_live">Open Data Live</span></div>
   </div>
@@ -523,6 +541,7 @@ body.embed .embed-logo{display:block}
 <div id="introOverlay" onclick="if(event.target===this)closeIntro()">
   <div class="intro-card" id="introCard"></div>
 </div>
+<div id="freeBanner"></div>
 
 <div class="wind-popup" id="windPopup">
   <div style="font-size:11px;font-weight:800;margin-bottom:8px;color:#1a1a2e">Live Wind — Frankfurt Flughafen</div>
@@ -1794,8 +1813,55 @@ function initMap(){
   loadCity(startCity);
 }
 
+// ── Stadt-Suche: Utrecht/Frankfurt = volle Daten · alle anderen via OSM ──
+let FREE=null, CS_TIMER=null;
+const CS_FULL=[{key:'utr',name:'Utrecht'},{key:'ffm',name:'Frankfurt am Main'}];
+const ANYWHERE_LAYERS=['osm_trees','osm_drinking','osm_benches','osm_schools','osm_health','osm_transit','osm_lamps','raumklang'];
+function csTxt(de,en,nl){return lang==='nl'?nl:lang==='en'?en:de;}
+function citySearchInput(q){ q=(q||'').trim(); renderCsDrop(q,null); clearTimeout(CS_TIMER); if(q.length>=3)CS_TIMER=setTimeout(()=>geocodeCity(q),350); }
+function geocodeCity(q){
+  fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q='+encodeURIComponent(q),{headers:{'Accept-Language':lang}})
+    .then(r=>r.ok?r.json():[]).then(res=>{ const seen={};
+      const cities=(res||[]).map(r=>{const p=r.display_name.split(',');const s=p.length>1?p[0].trim()+', '+p[p.length-1].trim():p[0].trim();return {name:s,lat:+r.lat,lon:+r.lon};})
+        .filter(c=>{const k=c.name.toLowerCase();if(seen[k])return false;seen[k]=1;return true;}).slice(0,6);
+      renderCsDrop(q,cities);
+    }).catch(()=>{});
+}
+function renderCsDrop(q,geo){
+  const drop=document.getElementById('citySearchDrop'); if(!drop)return;
+  const ql=(q||'').toLowerCase();
+  const full=CS_FULL.filter(c=>!ql||c.name.toLowerCase().includes(ql));
+  let h='';
+  if(full.length){ h+='<div class="cshead">'+csTxt('Vollständige Daten','Full data','Volledige data')+'</div>';
+    h+=full.map(c=>'<button class="csitem" onclick="pickFull(\''+c.key+'\')"><span class="csn">'+c.name+'</span><span class="csbadge full">'+csTxt('komplett','full','volledig')+'</span></button>').join(''); }
+  if(geo&&geo.length){ h+='<div class="cshead">'+csTxt('Andere Städte (OSM-Modus)','Other cities (OSM mode)','Andere steden (OSM-modus)')+'</div>';
+    h+=geo.map(c=>'<button class="csitem" onclick="pickFree('+c.lat+','+c.lon+',\''+c.name.replace(/['\\]/g,'')+'\')"><span class="csn">'+c.name+'</span><span class="csbadge osm">OSM</span></button>').join(''); }
+  drop.innerHTML=h; drop.classList.add('on');
+}
+function closeCsDrop(){ const d=document.getElementById('citySearchDrop'); if(d)d.classList.remove('on'); }
+function pickFull(key){ closeCsDrop(); const inp=document.getElementById('citySearch'); if(inp)inp.value=''; switchCity(key); }
+function pickFree(lat,lon,name){
+  closeCsDrop(); const inp=document.getElementById('citySearch'); if(inp){inp.value='';inp.placeholder=name;}
+  FREE={name,lat,lon}; selected=null; if(typeof closeDrawer==='function')closeDrawer();
+  Object.keys(layerObjs).forEach(k=>{if(layerObjs[k])map.removeLayer(layerObjs[k]);delete layerObjs[k];});
+  Object.keys(activeLayers).forEach(k=>delete activeLayers[k]);
+  document.querySelectorAll('.ltoggle').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.lstatus').forEach(el=>el.textContent='');
+  activeCount=0; const lc=document.getElementById('layerCount'); if(lc)lc.textContent='0';
+  if(geoLayer){map.removeLayer(geoLayer);}
+  if(typeof DIAG!=='undefined'&&DIAG.active&&typeof diagClear==='function')diagClear();
+  document.body.classList.add('free-mode');
+  map.flyTo([lat,lon],14,{duration:1.1});
+  const b=document.getElementById('freeBanner');
+  b.innerHTML='<span class="fbtx">'+csTxt('OSM-Modus: <b>'+name+'</b> — nur Open-Data-Layer &amp; Analyse-Werkzeuge. NICE-Layer gibt es nur für Utrecht &amp; Frankfurt.','OSM mode: <b>'+name+'</b> — only open-data layers &amp; analysis tools. NICE layers only for Utrecht &amp; Frankfurt.','OSM-modus: <b>'+name+'</b> — alleen open-data-lagen &amp; analyse-tools. NICE-lagen alleen voor Utrecht &amp; Frankfurt.')+'</span><button onclick="pickFull(\'utr\')">'+csTxt('Zurück zu Utrecht','Back to Utrecht','Terug naar Utrecht')+'</button>';
+  b.classList.add('on');
+}
+function exitFree(){ if(!FREE)return; FREE=null; document.body.classList.remove('free-mode'); const b=document.getElementById('freeBanner'); if(b)b.classList.remove('on'); const inp=document.getElementById('citySearch'); if(inp)inp.placeholder='Suche deine Stadt…'; }
+document.addEventListener('click',e=>{ const cs=document.querySelector('.citysearch'); if(cs&&!cs.contains(e.target))closeCsDrop(); });
+
 function switchCity(c){
-  if(city===c)return;
+  const wasFree=!!FREE; if(FREE)exitFree();
+  if(city===c && !wasFree)return;
   city=c;selected=null;closeDrawer();
   document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
   const btn=document.getElementById('ct-'+c);
@@ -1995,6 +2061,7 @@ function loadLocal(filename, id, statusEl, onData){
 }
 
 function loadLayer(id,statusEl){
+  if(FREE && !ANYWHERE_LAYERS.includes(id)){ if(statusEl)statusEl.textContent=csTxt('nur Utrecht/FFM','Utrecht/FFM only','alleen Utrecht/FFM'); return; }
   const c=CITY_CFG[city];
   switch(id){
     case 'duh_ampel':       return renderDUHAmpel(id,statusEl);
@@ -2117,7 +2184,7 @@ function renderRaumklang(id,statusEl){
   const bb=L.latLngBounds([b.getSouth()-0.0035,b.getWest()-0.005],[b.getNorth()+0.0035,b.getEast()+0.005]);
   const key=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(x=>x.toFixed(3)).join(',');
   if(raumCache[key]){ drawRaum(raumCache[key],id,statusEl); return; }
-  if(CITY_MOBILITY[city]){ loadCityMobility(city).then(mob=>{ if(!mob||!activeLayers['raumklang'])return; const roads=roadsInView(mob,bb); const data=raumGrid(bb,roads,view); raumCache[key]=data; drawRaum(data,id,statusEl); }); return; }
+  if(CITY_MOBILITY[city]&&!FREE){ loadCityMobility(city).then(mob=>{ if(!mob||!activeLayers['raumklang'])return; const roads=roadsInView(mob,bb); const data=raumGrid(bb,roads,view); raumCache[key]=data; drawRaum(data,id,statusEl); }); return; }
   const bbox=`${bb.getSouth().toFixed(5)},${bb.getWest().toFixed(5)},${bb.getNorth().toFixed(5)},${bb.getEast().toFixed(5)}`;
   const q=`[out:json][timeout:30];way["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street)$"](${bbox});out geom 2500;`;
   fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q)).then(r=>r.json()).then(j=>{
@@ -2508,7 +2575,7 @@ function heatColor(dt){ // ΔT °C → blau (kühl) … rot (heiß)
 }
 function heatRun(){
   if(!HEAT.active)return;
-  const hasBundle=!!CITY_BUNDLE[city];
+  const hasBundle=!!CITY_BUNDLE[city]&&!FREE;
   if(map.getZoom()<(hasBundle?13:14)){ if(HEAT.layer){map.removeLayer(HEAT.layer);HEAT.layer=null;} heatPanel('zoom'); return; }
   heatPanel('load');
   const b=map.getBounds();
@@ -3041,7 +3108,7 @@ function diagStatus(txt){
 
 function diagRun(){
   if(!DIAG.active)return;
-  const hasBundle=!!CITY_BUNDLE[city];
+  const hasBundle=!!CITY_BUNDLE[city]&&!FREE;
   const minZoom=hasBundle?13:14;
   if(map.getZoom()<minZoom){ if(DIAG.layer){map.removeLayer(DIAG.layer);DIAG.layer=null;} if(DIAG.under){map.removeLayer(DIAG.under);DIAG.under=null;}
     diagStatus(lang==='de'?'näher zoomen':lang==='nl'?'zoom in':'zoom in'); return; }
