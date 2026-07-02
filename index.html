@@ -505,6 +505,13 @@ body.embed .embed-logo{display:block}
 #freeBanner .fbtx b{color:var(--eco)}
 #freeBanner button{background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex:none}
 body.free-mode .left{display:none}
+#heatWarn{position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:1090;background:#b91c1c;color:#fff;border-radius:12px;padding:9px 15px;box-shadow:var(--shl);display:none;align-items:center;gap:11px;max-width:calc(100vw - 40px)}
+#heatWarn.on{display:flex}
+body.free-mode #heatWarn{top:106px}
+#heatWarn .hwi{flex:none;display:flex}
+#heatWarn .hwtx{font-size:11.5px;line-height:1.4}
+#heatWarn .hwtx b{color:#fde68a}
+#heatWarn button{background:rgba(255,255,255,0.16);color:#fff;border:none;border-radius:8px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex:none}
 </style>
 </head>
 <body>
@@ -542,6 +549,7 @@ body.free-mode .left{display:none}
   <div class="intro-card" id="introCard"></div>
 </div>
 <div id="freeBanner"></div>
+<div id="heatWarn"></div>
 
 <div class="wind-popup" id="windPopup">
   <div style="font-size:11px;font-weight:800;margin-bottom:8px;color:#1a1a2e">Live Wind — Frankfurt Flughafen</div>
@@ -1855,9 +1863,34 @@ function pickFree(lat,lon,name){
   const b=document.getElementById('freeBanner');
   b.innerHTML='<span class="fbtx">'+csTxt('OSM-Modus: <b>'+name+'</b> — nur Open-Data-Layer &amp; Analyse-Werkzeuge. NICE-Layer gibt es nur für Utrecht &amp; Frankfurt.','OSM mode: <b>'+name+'</b> — only open-data layers &amp; analysis tools. NICE layers only for Utrecht &amp; Frankfurt.','OSM-modus: <b>'+name+'</b> — alleen open-data-lagen &amp; analyse-tools. NICE-lagen alleen voor Utrecht &amp; Frankfurt.')+'</span><button onclick="pickFull(\'utr\')">'+csTxt('Zurück zu Utrecht','Back to Utrecht','Terug naar Utrecht')+'</button>';
   b.classList.add('on');
+  setTimeout(loadHeatWarn,300);
 }
 function exitFree(){ if(!FREE)return; FREE=null; document.body.classList.remove('free-mode'); const b=document.getElementById('freeBanner'); if(b)b.classList.remove('on'); const inp=document.getElementById('citySearch'); if(inp)inp.placeholder='Suche deine Stadt…'; }
 document.addEventListener('click',e=>{ const cs=document.querySelector('.citysearch'); if(cs&&!cs.contains(e.target))closeCsDrop(); });
+
+// ── Hitzewarnung (Live-Temperatur via open-meteo) ─────────────────────────
+function heatLevel(t){ return t>=35?3:t>=30?2:t>=27?1:0; }
+function loadHeatWarn(){
+  const cc = FREE ? [FREE.lat,FREE.lon] : (CITY_CFG[city]?CITY_CFG[city].center:[52.0907,5.1214]);
+  const name = FREE ? String(FREE.name).split(',')[0] : (CITY_CFG[city]?CITY_CFG[city].name:'');
+  fetch('https://api.open-meteo.com/v1/forecast?latitude='+cc[0]+'&longitude='+cc[1]+'&current=temperature_2m&daily=temperature_2m_max&timezone=auto&forecast_days=1')
+    .then(r=>r.ok?r.json():null).then(j=>{
+      const el=document.getElementById('heatWarn'); if(!el)return;
+      if(!j||!j.daily||!j.daily.temperature_2m_max){el.classList.remove('on');return;}
+      const tmax=Math.round(j.daily.temperature_2m_max[0]); const tnow=(j.current&&j.current.temperature_2m!=null)?Math.round(j.current.temperature_2m):null;
+      const lvl=heatLevel(tmax);
+      if(lvl===0){el.classList.remove('on');return;}
+      const dkey='nh_hw_'+new Date().toISOString().slice(0,10)+'_'+(FREE?'free':city);
+      try{if(localStorage.getItem(dkey)){el.classList.remove('on');return;}}catch(e){}
+      const lt=lvl>=3?csTxt('Extreme Hitze','Extreme heat','Extreme hitte'):lvl>=2?csTxt('Hitze','Heat','Hitte'):csTxt('Warm','Warm','Warm');
+      const adv=csTxt('Achte auf Ältere & Kinder · genug trinken · Schatten suchen.','Watch elderly & children · drink enough · seek shade.','Let op ouderen & kinderen · drink genoeg · zoek schaduw.');
+      const upto=csTxt('heute bis','today up to','vandaag tot'), nowW=csTxt('jetzt','now','nu');
+      el.style.background=lvl>=3?'#7f1d1d':lvl>=2?'#b91c1c':'#c2410c';
+      el.innerHTML='<span class="hwi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg></span><span class="hwtx"><b>'+lt+(name?' · '+name:'')+'</b> — '+upto+' '+tmax+' °C'+(tnow!=null?' ('+nowW+' '+tnow+' °C)':'')+'. '+adv+'</span><button onclick="dismissHeatWarn(\''+dkey+'\')" aria-label="schließen">✕</button>';
+      el.classList.add('on');
+    }).catch(()=>{});
+}
+function dismissHeatWarn(dkey){ const el=document.getElementById('heatWarn'); if(el)el.classList.remove('on'); try{localStorage.setItem(dkey,'1');}catch(e){} }
 
 function switchCity(c){
   const wasFree=!!FREE; if(FREE)exitFree();
@@ -1888,6 +1921,7 @@ function switchCity(c){
   if(typeof loadCityBundle==='function')setTimeout(()=>loadCityBundle(c),300);
   if(typeof loadCityMobility==='function')setTimeout(()=>loadCityMobility(c),600);
   loadCity(c);
+  setTimeout(loadHeatWarn,300);
   // Stadt im 3D-Modus gewechselt → 3D-Modell der neuen Stadt laden
   if(M3.active&&M3.map){const cc=CITY_CFG[c].center;M3.map.flyTo({center:[cc[1],cc[0]],zoom:15,pitch:55,duration:900});m3load();}
 }
@@ -5306,6 +5340,7 @@ async function loadLiveWind(){
 setTimeout(()=>{
   loadLiveWind();
   setInterval(loadLiveWind, 15*60*1000);
+  setTimeout(loadHeatWarn, 1400);
 }, 2000);
 
 // Embed-Modus: ?embed=1 blendet die Navigation aus (für iframe-Einbettung)
