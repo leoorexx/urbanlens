@@ -512,8 +512,6 @@ body.free-mode #heatWarn{top:106px}
 #heatWarn .hwtx{font-size:11.5px;line-height:1.4}
 #heatWarn .hwtx b{color:#fde68a}
 #heatWarn button{background:rgba(255,255,255,0.16);color:#fff;border:none;border-radius:8px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex:none}
-/* Gestaltete Basiskarte: warm getönt, gedämpft — Daten & Markenfarben poppen */
-.leaflet-tile-pane{filter:sepia(0.16) saturate(0.82) brightness(1.03) contrast(0.94)}
 .leaflet-control-attribution{background:rgba(245,243,238,0.72)!important;color:var(--muted)!important;font-size:9px!important;border-radius:8px 0 0 0!important;padding:2px 8px!important;backdrop-filter:blur(2px)}
 .leaflet-control-attribution a{color:var(--muted)!important;text-decoration:none}
 .leaflet-container{background:#f5f3ee}
@@ -1813,7 +1811,7 @@ function initMap(){
   map.createPane('choropleth');
   map.getPane('choropleth').style.zIndex=200;
   map.getPane('choropleth').style.pointerEvents='none'; // clicks pass through to map
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png',
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     {attribution:'© OpenStreetMap © CARTO',maxZoom:19,pane:'tilePane'}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
   map.on('click',e=>{ if(INSPECT.active)inspectAt(e.latlng); if(typeof MIT!=='undefined'&&MIT.active&&MIT.tab==='report')reportPick(e.latlng); });
@@ -5494,7 +5492,7 @@ function enter3D(){
     if(!M3.active)return;
     if(!M3.map){
       M3.map=new maplibregl.Map({container:'map3d-overlay',style:{version:8,
-        sources:{carto:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO · Gebäude: PDOK BAG'}},
+        sources:{carto:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO · Gebäude: PDOK BAG'}},
         layers:[{id:'carto',type:'raster',source:'carto'}]},
         center:[c.lng,c.lat],zoom:Math.max(15.2,z),pitch:58,bearing:-18,maxPitch:80,antialias:true});
       M3.map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
