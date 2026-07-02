@@ -1493,6 +1493,7 @@ const FOERDER_DB=[
 // STATE & ENGINE
 // ══════════════════════════════════════════════════════════════
 let map, geoLayer, city='utr', selected=null, geoFeatures=[];
+try{if(localStorage.getItem('nh_city')==='ffm')city='ffm';}catch(e){}   // Stadt seitenübergreifend merken
 const activeLayers={}, layerObjs={};
 let activeCount=0;
 
@@ -1816,7 +1817,7 @@ function initMap(){
   L.control.zoom({position:'bottomright'}).addTo(map);
   map.on('click',e=>{ if(INSPECT.active)inspectAt(e.latlng); if(typeof MIT!=='undefined'&&MIT.active&&MIT.tab==='report')reportPick(e.latlng); });
   const urlCity=new URLSearchParams(location.search).get('city');
-  const startCity=CITY_CFG[urlCity]?urlCity:'utr';
+  const startCity=CITY_CFG[urlCity]?urlCity:city;   // URL-Param > gemerkte Stadt (localStorage) > utr
   // Nav-Status + Frankfurt-only Layer für Startstadt setzen
   document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
   const cb=document.getElementById('ct-'+startCity); if(cb)cb.classList.add('on');
@@ -1921,6 +1922,7 @@ function switchCity(c){
   const wasFree=!!FREE; if(FREE)exitFree();
   if(city===c && !wasFree)return;
   city=c;selected=null;closeDrawer();
+  try{localStorage.setItem('nh_city',c);}catch(e){}   // merken für Dashboard/Methodik
   document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
   const btn=document.getElementById('ct-'+c);
   if(btn)btn.classList.add('on');

@@ -461,6 +461,7 @@ const SDG_DIM={A:[13,11],B:[3],C:[11],D:[4],E:[11,1],F:[16],G:[15],H:[13,11]};
 function setCity(key){
   if(!ALLCITIES[key])return;
   CITYKEY=key; CITY=ALLCITIES[key]; DISTRICTS=CITY.districts;
+  try{localStorage.setItem('nh_city',key);}catch(e){}   // seitenübergreifend merken
   document.querySelectorAll('.ct').forEach(b=>b.classList.remove('on'));
   const cb=document.getElementById('ct-'+key); if(cb)cb.classList.add('on');
   try{ if(history.replaceState)history.replaceState(null,'','?city='+key); }catch(e){}
@@ -802,7 +803,8 @@ function cityPDF(){
 // ── LOADER ──
 fetch(DATA_BASE+'/cities.json').then(r=>r.json()).then(all=>{
   ALLCITIES=all;
-  const init=new URLSearchParams(location.search).get('city');
+  let init=new URLSearchParams(location.search).get('city');
+  if(!ALLCITIES[init]){try{init=localStorage.getItem('nh_city');}catch(e){}}   // aus Karte übernehmen
   setCity(ALLCITIES[init]?init:'utr');
   setLang(lang);
 }).catch(()=>{ document.getElementById('kpiRow').innerHTML='<div style="padding:20px;color:var(--muted)">Daten konnten nicht geladen werden.</div>'; });
