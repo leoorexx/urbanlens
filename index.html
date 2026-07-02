@@ -2590,7 +2590,7 @@ function mitTab(k){ MIT.tab=k; map.getContainer().style.cursor=(k==='report'&&MI
 // Modell angelehnt an BBSR/UBA: Bäume −1–2,5°C, Entsiegelung −1,8°C,
 // Grünfläche −1,5°C (lokale Lufttemperatur).
 // ══════════════════════════════════════════════════════════════
-let HEAT={active:false, data:null, layer:null, hooked:false, timer:null, cool:{trees:0,deseal:0,green:0}};
+let HEAT={active:false, data:null, layer:null, hooked:false, timer:null, view:'potential', cool:{trees:0,deseal:0,green:0}};
 // Echtes Satelliten-LST-Feld (gemessen) als Basis der Hitze-Sim — statt Proxy aus Ladendichte
 let HEAT_FIELD={};
 function loadHeatField(){
@@ -2598,9 +2598,9 @@ function loadHeatField(){
   if(FREE){HEAT_FIELD[city]=null;return Promise.resolve(null);}
   return fetch(`${DATA_BASE}/heat_exposure_${city}.geojson`).then(r=>r.ok?r.json():null).then(gj=>{
     if(!gj||!gj.features){HEAT_FIELD[city]=null;return null;}
-    const cell=0.004,idx=new Map();
-    gj.features.forEach(f=>{const p=f.properties||{};if(p.lst_delta==null)return;const c=geoCentroid(f.geometry.coordinates);if(!c)return;const k=Math.round(c[1]/cell)+'_'+Math.round(c[0]/cell);let a=idx.get(k);if(!a){a=[];idx.set(k,a);}a.push([c[1],c[0],+p.lst_delta]);});
-    const field=idx.size?{idx,cell}:null; HEAT_FIELD[city]=field; return field;
+    const cell=0.004,idx=new Map(),pts=[];
+    gj.features.forEach(f=>{const p=f.properties||{};if(p.lst_delta==null)return;const c=geoCentroid(f.geometry.coordinates);if(!c)return;const k=Math.round(c[1]/cell)+'_'+Math.round(c[0]/cell);let a=idx.get(k);if(!a){a=[];idx.set(k,a);}a.push([c[1],c[0],+p.lst_delta]);pts.push([c[1],c[0]]);});
+    const field=idx.size?{idx,cell,pts}:null; HEAT_FIELD[city]=field; return field;
   }).catch(()=>{HEAT_FIELD[city]=null;return null;});
 }
 function sampleLst(field,lat,lon){
@@ -2651,6 +2651,7 @@ function heatGrid(b,els,field,view,targetM=62){
   const idx=(la,lo)=>{const r=Math.floor((la-s)/cellH),c=Math.floor((lo-w)/cellW);return(r>=0&&r<rows&&c>=0&&c<cols)?grid[r][c]:null;};
   (els.trees||[]).forEach(p=>{const g=idx(p[0],p[1]);if(g)g.trees++;});
   (els.shops||[]).forEach(p=>{const g=idx(p[0],p[1]);if(g)g.shops++;});
+  if(field&&field.pts){field.pts.forEach(p=>{const g=idx(p[0],p[1]);if(g)g.bcount=(g.bcount||0)+1;});}   // Gebäude-Dichte je Zelle
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const g=grid[r][c];for(const poly of (els.green||[])){if(diagPointInPoly(g.lat,g.lon,poly)){g.green=true;break;}}}
   const sum=(r,c,f)=>{let t=0;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<rows&&nc>=0&&nc<cols)t+=grid[nr][nc][f];}return t;};
   const cells=[];
@@ -2663,8 +2664,13 @@ function heatGrid(b,els,field,view,targetM=62){
     const realLst=sampleLst(field,g.lat,g.lon);
     let dt0, measured;
     if(realLst!=null){ dt0=Math.max(-1,Math.min(6,realLst)); measured=true; }        // ECHT: gemessene Satelliten-LST
-    else { if(!(treeN||shopN||greenCov))continue; dt0=Math.max(-0.5,Math.min(5,0.6+builtUp*2.8-greenCov*2.2-Math.min(1.2,treeN*0.04))); measured=false; }  // Fallback (OSM-Städte): geschätzt
-    cells.push({bnds:g.bnds,dt0,builtUp,greenCov,treeN,measured});
+    else { if(!(treeN||shopN||greenCov||g.bcount))continue; dt0=Math.max(-0.5,Math.min(5,0.6+builtUp*2.8-greenCov*2.2-Math.min(1.2,treeN*0.04))); measured=false; }  // Fallback (OSM-Städte): geschätzt
+    // Kühl-Potenzial: viel Platz (wenig Gebäude, kein Grün) × Hitze → wo Bäume/Entsiegelung möglich UND wirksam
+    const bden=g.bcount||0;
+    const room=Math.max(0,1-bden/7-greenCov-Math.min(0.5,treeN*0.05));
+    const heatN=Math.max(0,Math.min(1,(dt0-0.3)/1.5));   // an echte LST-Spanne (0–1,8) angepasst
+    const pot=(greenCov>0.5||bden>=7)?0:room*(0.25+0.75*heatN);   // heiß × Platz → Priorität
+    cells.push({bnds:g.bnds,dt0,builtUp,greenCov,treeN,measured,bden,pot});
   }
   return {cells};
 }
@@ -2676,26 +2682,43 @@ function heatCooled(cell){
   dt-= green*(1-cell.greenCov)*1.5;                  // Grünfläche
   return Math.max(-1,dt);
 }
+function potInfo(c){
+  if(c.greenCov>0.5)return{cls:'green',color:'#15803d',op:0.42};
+  if(c.bden>=7)return{cls:'dense',color:'#94a3b8',op:0.24};
+  const p=c.pot;
+  if(p<0.18)return{cls:'low',color:'#cbd5e1',op:0.12};
+  return{cls:'pot',color:p>0.5?'#15803d':p>0.32?'#4ade80':'#bbf7d0',op:0.5};
+}
 function heatRender(){
   if(HEAT.layer)map.removeLayer(HEAT.layer);
   const grp=L.layerGroup();
-  let hot0=0,hot1=0,sum0=0,sum1=0,nn=0;
+  const potView=HEAT.view==='potential';
+  let hot0=0,hot1=0,sum0=0,sum1=0,nn=0,npot=0,ndense=0,ngreen=0;
   HEAT.data.cells.forEach(c=>{
-    const dt=heatCooled(c);
-    if(c.dt0>=2.5)hot0++; if(dt>=2.5)hot1++; sum0+=c.dt0; sum1+=dt; nn++;
-    const rect=L.rectangle(c.bnds,{renderer:window.canvasRenderer,color:heatColor(dt),weight:0,fillColor:heatColor(dt),fillOpacity:0.46});
-    rect.on('click',()=>{
-      L.popup({maxWidth:230}).setLatLng([(c.bnds[0][0]+c.bnds[1][0])/2,(c.bnds[0][1]+c.bnds[1][1])/2]).setContent(
-        `<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa">${lang==='en'?'Heat · ~60 m cell':lang==='nl'?'Hitte · ~60 m cel':'Hitze · ~60-m-Zelle'}</div>`+
-        `<div style="font-size:18px;font-weight:800;color:${heatColor(dt)};margin:3px 0">+${dt.toFixed(1)} °C <span style="font-size:10px;color:#8888aa">ΔT</span></div>`+
-        (HEAT.cool.trees||HEAT.cool.deseal||HEAT.cool.green?`<div style="font-size:10px;color:#15803d">${lang==='en'?'cooled from':lang==='nl'?'gekoeld van':'gekühlt von'} +${c.dt0.toFixed(1)} °C</div>`:'')+
-        `<div style="font-size:8.5px;color:#8888aa;margin-top:6px;border-top:1px solid #eee;padding-top:5px">${c.measured?(lang==='en'?'Basis: measured satellite LST (Copernicus). Cooling per BBSR/UBA.':lang==='nl'?'Basis: gemeten satelliet-LST (Copernicus). Koeling volgens BBSR/UBA.':'Basis: gemessene Satelliten-LST (Copernicus). Kühlung nach BBSR/UBA.'):(lang==='en'?'Estimated from sealing + green (no satellite data for this city).':lang==='nl'?'Geschat uit verharding + groen (geen satellietdata).':'Geschätzt aus Versiegelung + Grün (keine Satellitendaten für diese Stadt).')}</div></div>`
-      ).openOn(map);
-    });
+    let color,op;
+    if(potView){ const pi=potInfo(c); color=pi.color; op=pi.op; if(pi.cls==='pot')npot++; else if(pi.cls==='dense')ndense++; else if(pi.cls==='green')ngreen++; }
+    else { const dt=heatCooled(c); if(c.dt0>=2.5)hot0++; if(dt>=2.5)hot1++; sum0+=c.dt0; sum1+=dt; nn++; color=heatColor(dt); op=0.46; }
+    const rect=L.rectangle(c.bnds,{renderer:window.canvasRenderer,color,weight:0,fillColor:color,fillOpacity:op});
+    rect.on('click',()=>heatCellPopup(c));
     rect.addTo(grp);
   });
   grp.addTo(map); HEAT.layer=grp;
-  heatPanel('ok',{hot0,hot1,avg0:nn?sum0/nn:0,avg1:nn?sum1/nn:0,n:nn});
+  if(potView)heatPanel('ok',{potView:true,npot,ndense,ngreen});
+  else heatPanel('ok',{hot0,hot1,avg0:nn?sum0/nn:0,avg1:nn?sum1/nn:0,n:nn});
+}
+function heatCellPopup(c){
+  const mid=[(c.bnds[0][0]+c.bnds[1][0])/2,(c.bnds[0][1]+c.bnds[1][1])/2];
+  let html;
+  if(HEAT.view==='potential'){
+    const pi=potInfo(c);
+    const lbl=pi.cls==='green'?csTxt('Schon grün','Already green','Al groen'):pi.cls==='dense'?csTxt('Dicht bebaut — wenig Platz','Densely built — little room','Dicht bebouwd — weinig ruimte'):pi.cls==='pot'?(c.pot>0.4?csTxt('Hohes Kühl-Potenzial','High cooling potential','Hoog koelpotentieel'):csTxt('Kühl-Potenzial','Cooling potential','Koelpotentieel')):csTxt('Wenig Potenzial','Low potential','Weinig potentieel');
+    const act=pi.cls==='pot'?csTxt('Hier möglich: Straßenbäume, Entsiegelung, Fahrbahn verschmälern.','Possible here: street trees, de-sealing, narrowing the carriageway.','Mogelijk hier: straatbomen, ontharding, rijbaan versmallen.'):'';
+    html='<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa">'+csTxt('Kühl-Potenzial · ~60-m-Zelle','Cooling potential · ~60 m cell','Koelpotentieel · ~60 m cel')+'</div><div style="font-size:14px;font-weight:800;color:'+pi.color+';margin:3px 0">'+lbl+'</div>'+(act?'<div style="font-size:10px;color:#374151;line-height:1.4">'+act+'</div>':'')+'<div style="font-size:9px;color:#8888aa;margin-top:6px">'+csTxt('Hitze','Heat','Hitte')+' +'+c.dt0.toFixed(1)+' °C · '+csTxt('Gebäude','buildings','gebouwen')+' '+c.bden+'</div></div>';
+  } else {
+    const dt=heatCooled(c);
+    html='<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa">'+csTxt('Hitze · ~60-m-Zelle','Heat · ~60 m cell','Hitte · ~60 m cel')+'</div><div style="font-size:18px;font-weight:800;color:'+heatColor(dt)+';margin:3px 0">+'+dt.toFixed(1)+' °C</div>'+((HEAT.cool.trees||HEAT.cool.deseal||HEAT.cool.green)?'<div style="font-size:10px;color:#15803d">'+csTxt('gekühlt von','cooled from','gekoeld van')+' +'+c.dt0.toFixed(1)+' °C</div>':'')+'<div style="font-size:8.5px;color:#8888aa;margin-top:6px;border-top:1px solid #eee;padding-top:5px">'+(c.measured?csTxt('Basis: gemessene Satelliten-LST (Copernicus).','Basis: measured satellite LST (Copernicus).','Basis: gemeten satelliet-LST (Copernicus).'):csTxt('Geschätzt aus Versiegelung + Grün.','Estimated from sealing + green.','Geschat uit verharding + groen.'))+'</div></div>';
+  }
+  L.popup({maxWidth:235}).setLatLng(mid).setContent(html).openOn(map);
 }
 function heatPanel(state,st){
   const P=document.getElementById('heatPanel'); P.classList.add('open');
@@ -2708,7 +2731,21 @@ function heatPanel(state,st){
   if(state==='err'){P.innerHTML=head+`<div class="ap-body"><div style="font-size:11px;color:var(--muted);padding:10px 0">${T.err}</div></div>`;return;}
   const C=HEAT.cool;
   const slider=(id,lbl,val)=>`<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:3px"><span>${lbl}</span><span style="color:var(--accent)">${Math.round(val*100)}%</span></div><input type="range" min="0" max="100" value="${Math.round(val*100)}" oninput="setHeatCool('${id}',this.value)" style="width:100%;accent-color:#16a34a"></div>`;
-  let body=`<div class="ap-body">
+  const vbtn=(v,l)=>`<button onclick="setHeatView('${v}')" style="flex:1;border:none;border-radius:8px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:${HEAT.view===v?'#1a1a2e':'var(--surface2)'};color:${HEAT.view===v?'#fff':'var(--text2)'}">${l}</button>`;
+  const toggle=`<div style="display:flex;gap:6px;margin-bottom:12px">${vbtn('potential',csTxt('Kühl-Potenzial','Cooling potential','Koelpotentieel'))}${vbtn('heat',csTxt('Hitze','Heat','Hitte'))}</div>`;
+  if(st&&st.potView){
+    let body=`<div class="ap-body">${toggle}<div class="diag-hint">${csTxt('Wo ist Platz für Bäume, Entsiegelung & schmalere Fahrbahnen — grün = Potenzial (je kräftiger, desto heißer & mehr Platz).','Where there is room for trees, de-sealing & narrower carriageways — green = potential (stronger = hotter & more room).','Waar is ruimte voor bomen, ontharding & smallere rijbanen — groen = potentieel (feller = heter & meer ruimte).')}</div>
+      <div class="ap-stats" style="grid-template-columns:1fr 1fr;margin-top:10px">
+        <div class="ap-stat"><div class="v" style="color:#16a34a">${st.npot}</div><div class="l">${csTxt('Zellen mit Potenzial','cells w/ potential','cellen met potentieel')}</div></div>
+        <div class="ap-stat"><div class="v" style="color:#94a3b8">${st.ndense}</div><div class="l">${csTxt('dicht bebaut','densely built','dicht bebouwd')}</div></div>
+      </div>
+      <div class="ap-sec">${csTxt('Legende','Legend','Legenda')}</div>`;
+    const leg=[['#15803d',csTxt('hoch / schon grün','high / already green','hoog / al groen')],['#4ade80',csTxt('mittel','medium','gemiddeld')],['#bbf7d0',csTxt('gering','low','laag')],['#94a3b8',csTxt('dicht bebaut — wenig Platz','densely built — little room','dicht bebouwd — weinig ruimte')]];
+    body+=`<div style="display:flex;flex-direction:column;gap:5px">`+leg.map(l=>`<div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2)"><span style="width:14px;height:9px;border-radius:2px;background:${l[0]};flex:none"></span>${l[1]}</div>`).join('')+`</div>`;
+    body+=`<div style="font-size:9px;color:var(--muted);margin-top:12px;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);line-height:1.5">${csTxt('Klick auf eine Fläche = konkrete Maßnahmen. Basis: Satelliten-LST + Gebäude-/Grün-Dichte.','Click an area for concrete measures. Basis: satellite LST + building/green density.','Klik op een vlak voor maatregelen. Basis: satelliet-LST + gebouw-/groendichtheid.')}</div></div>`;
+    P.innerHTML=head+body; return;
+  }
+  let body=`<div class="ap-body">${toggle}
     <div class="ap-stats" style="grid-template-columns:1fr 1fr">
       <div class="ap-stat"><div class="v" style="color:${st.hot1<st.hot0?'#16a34a':'var(--text)'}">${st.hot1}${st.hot1<st.hot0?` <span style="font-size:10px;color:#8888aa">(${st.hot0})</span>`:''}</div><div class="l">${T.hot}</div></div>
       <div class="ap-stat"><div class="v">+${st.avg1.toFixed(1)}°C</div><div class="l">${T.avg}${st.avg1<st.avg0?` · −${(st.avg0-st.avg1).toFixed(1)}`:''}</div></div>
@@ -2726,6 +2763,7 @@ function heatPanel(state,st){
   body+='</div>';
   P.innerHTML=head+body;
 }
+function setHeatView(v){ HEAT.view=v; if(HEAT.data)heatRender(); }
 function setHeatCool(k,v){ HEAT.cool[k]=Math.max(0,Math.min(1,v/100)); heatRender(); }
 
 // ══════════════════════════════════════════════════════════════
