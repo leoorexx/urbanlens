@@ -2454,12 +2454,17 @@ function districtPDF(name){
   const doc=pdfDoc(); if(!doc){alert('PDF-Bibliothek lädt noch.');return;}
   const cfg=CITY_CFG[city], d=cfg.data[name]; if(!d)return;
   const s=nice(d); const today=new Date().toLocaleDateString('de-DE');
+  const allS=Object.values(cfg.data).map(nice); const avgS=Math.round(allS.reduce((a,b)=>a+b,0)/allS.length); const rank=allS.filter(x=>x<s).length+1, N=allS.length;
+  const gr=(typeof grade==='function')?grade(s):{g:'',lbl:''}; const isDouble=s<45&&d.wb<50;
+  const risks=[]; if(d.hw)risks.push(lang==='en'?'Flood risk (HQ100)':lang==='nl'?'Overstromingsrisico':'Hochwasserrisiko HQ100'); if(d.heat)risks.push(lang==='en'?'Heat island':lang==='nl'?'Hitte-eiland':'Hitzeinsel'); if(d.noise>70)risks.push('Lärm '+d.noise+' dB'); if(d.B<40)risks.push(lang==='en'?'Air quality critical':lang==='nl'?'Luchtkwaliteit kritiek':'Luftqualität kritisch'); if(isDouble)risks.push(lang==='en'?'Structural double disadvantage':lang==='nl'?'Structurele dubbele achterstand':'Strukturelle Doppelbenachteiligung');
   let y=pdfHeader(doc, (lang==='en'?'NICE Score report':lang==='nl'?'NICE Score rapport':'NICE Score Bericht'), cfg.name);
   doc.setTextColor(26,26,46); doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.text(name,14,y); y+=8;
   doc.setFontSize(11); doc.setTextColor(90,90,110); doc.setFont('helvetica','normal');
-  doc.text(`NICE Score ${s}/100  ·  ${(d.pop||0).toLocaleString('de-DE')} ${lang==='nl'?'inwoners':'Einwohner'}`,14,y); y+=10;
+  doc.text(`NICE Score ${s}/100${gr.g?'  ·  '+gr.g+' — '+gr.lbl:''}  ·  ${(d.pop||0).toLocaleString('de-DE')} ${lang==='nl'?'inwoners':'Einwohner'}`,14,y); y+=6;
+  doc.setFontSize(9.5); doc.setTextColor(120,120,130); doc.text(`${lang==='en'?'Priority':lang==='nl'?'Prioriteit':'Priorität'} ${rank} / ${N} · ${lang==='en'?'city avg':lang==='nl'?'stad gem.':'Stadt-Ø'} ${avgS}`,14,y); y+=10;
   const sec=(t)=>{ doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(26,26,46); doc.text(t,14,y); y+=2; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=6; doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(60,60,70); };
   const DN={A:'Klimagerechtigkeit',B:'Gesundheit',C:'Mobilität',D:'Bildung',E:'Wohnen',F:'Demokratie',G:'Ökosystem',H:'Resilienz'};
+  if(risks.length){ sec(lang==='en'?'Identified burdens':lang==='nl'?'Vastgestelde belastingen':'Identifizierte Belastungen'); const rl=doc.splitTextToSize(risks.join('   ·   '),182); doc.text(rl,14,y); y+=rl.length*5+6; }
   sec(lang==='en'?'8 dimensions':lang==='nl'?'8 dimensies':'8 Dimensionen');
   ['A','B','C','D','E','F','G','H'].forEach((k,i)=>{ const col=i%2, x=14+col*92; if(col===0&&i>0)y+=6; doc.text(`${k} · ${DN[k]}`,x,y); doc.setFont('helvetica','bold'); doc.text(String(d[k]),x+86,y,{align:'right'}); doc.setFont('helvetica','normal'); }); y+=10;
   sec(lang==='en'?'Social indicators':lang==='nl'?'Sociale indicatoren':'Soziale Indikatoren');
@@ -2470,7 +2475,9 @@ function districtPDF(name){
   const weak=DIMS.slice().sort((a,b)=>d[a.k]-d[b.k]).slice(0,4).map(x=>x.k);
   const rec=MASS.filter(m=>m.dims.some(k=>weak.includes(k))).slice(0,5);
   sec(lang==='en'?'Recommended measures':lang==='nl'?'Aanbevolen maatregelen':'Empfohlene Maßnahmen');
-  rec.forEach(m=>{ if(y>265){doc.addPage();y=20;} doc.setFont('helvetica','bold'); doc.text('• '+m.name,14,y); doc.setFont('helvetica','normal'); doc.setTextColor(120,120,130); doc.text(`${fmt(m.kosten)} → ROI ${fmt(m.roi)} · ${m.foerder&&m.foerder[0]?m.foerder[0].pct+'% förderbar':''}`,196,y,{align:'right'}); doc.setTextColor(60,60,70); y+=6; });
+  let totInv=0,totRoi=0;
+  rec.forEach(m=>{ if(y>258){doc.addPage();y=20;} const nm=(typeof localize==='function'?localize(m.name):m.name); doc.setFont('helvetica','bold'); doc.setTextColor(60,60,70); doc.text('• '+nm,14,y); doc.setFont('helvetica','normal'); doc.setTextColor(120,120,130); const f=m.foerder&&m.foerder[0]; doc.text(`${fmt(m.kosten)} → ROI ${fmt(m.roi)}${f?' · '+f.eb+(f.pct?' '+f.pct+'%':''):''}`,196,y,{align:'right'}); totInv+=m.kosten; totRoi+=m.roi; y+=6; });
+  y+=2; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=5; doc.setFont('helvetica','bold'); doc.setTextColor(26,26,46); doc.text(`${lang==='en'?'Total':lang==='nl'?'Totaal':'Summe'}: ${fmt(totInv)} → ${fmt(totRoi)} ROI (10 J)`,14,y); doc.setFont('helvetica','normal'); y+=8;
   pdfFooter(doc, `nice here (2026): ${name}, ${cfg.name}. NICE Score ${s}. ${lang==='nl'?'Opgehaald':'Abgerufen'} ${today}.`);
   doc.save(`nicehere_${name.replace(/[^\w]/g,'_')}.pdf`);
 }
@@ -4699,7 +4706,8 @@ function openDrawer(name,d,skipZoom){
       </div>
       ${city==='utr'?`<div style="font-size:9px;color:var(--muted);margin-top:5px">${lang==='nl'?'NL biedt open misdaaddata per buurt — integratie als nächster Schritt möglich.':lang==='en'?'NL offers open per-neighbourhood crime data — integration possible as a next step.':'NL bietet offene Kriminalitätsdaten pro Buurt — Integration als nächster Schritt möglich.'}</div>`:''}
     </div>
-    <div class="sec">Zitieren & Teilen</div>
+    <div class="sec">${lang==='en'?'Report, cite & share':lang==='nl'?'Rapport, citeren & delen':'Bericht, Zitieren & Teilen'}</div>
+    <button onclick="districtPDF('${name.replace(/'/g,"\\'")}')" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">${ic('download',15)} ${lang==='en'?'District report (PDF)':lang==='nl'?'Wijkrapport (PDF)':'Stadtteil-Bericht (PDF)'}</button>
     <div class="ibox" style="padding-bottom:10px">
       <div style="font-size:10px;color:var(--muted);line-height:1.5">Konfidenz & Datenstand je Dimension siehe Tab „Dimensionen". Vollständige Methodik & Quellen auf der <a href="methodik.html" target="_blank" style="color:var(--accent);font-weight:700">Methodikseite</a>.</div>
       <div class="cite-row">
