@@ -174,6 +174,19 @@ td.muted{color:var(--muted)}
   .city-grid{grid-template-columns:1fr}
   .hero{flex-direction:column}.hero-stats{gap:16px}
 }
+.prio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.prio-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:var(--sh)}
+.prio-card .ph{font-size:14px;font-weight:800;margin-bottom:2px}
+.prio-card .psub{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.4}
+.prio-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--border)}
+.prio-row:last-child{border-bottom:none}
+.prio-row.link{cursor:pointer}.prio-row.link:hover{opacity:.7}
+.prio-rank{font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--muted);min-width:24px;flex:none;text-align:center}
+.prio-main{flex:1;min-width:0}
+.prio-main b{font-size:13px;font-weight:700;display:block}
+.prio-main span{font-size:11px;color:var(--text2);line-height:1.35}
+.prio-val{font-size:15px;font-weight:800;flex:none}
+@media(max-width:900px){.prio-grid{grid-template-columns:1fr}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -214,6 +227,16 @@ td.muted{color:var(--muted)}
 
   <!-- KPIs -->
   <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- PRIORITÄTEN — ENTSCHEIDUNGSSEITE -->
+  <div class="section" id="prioSection">
+    <div class="section-title" id="prioTitle">Prioritäten — wo zuerst handeln?</div>
+    <div class="prio-grid">
+      <div class="prio-card" id="prioDistricts"></div>
+      <div class="prio-card" id="prioMeasures"></div>
+      <div class="prio-card" id="prioOverlap"></div>
+    </div>
+  </div>
 
   <!-- GHG / KLIMAZIEL -->
   <div class="section"><div id="ghgBanner"></div></div>
@@ -545,8 +568,30 @@ function renderRahmen(){
     ch.i.map(x=>`<div class="ch-item"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('')+`</div></div>`;
 }
 
+function dt(de,en,nl){return lang==='nl'?nl:lang==='en'?en:de;}
+function weakestDim(d){let mk='A',mv=999;['A','B','C','D','E','F','G','H'].forEach(k=>{if(d[k]<mv){mv=d[k];mk=k;}});return dimNames[mk];}
+function isVuln(d){return (d.kinderarmut>=15||d.sgb2>=6||d.einkommen<28000);}
+function riskFlags(d){const f=[];if(d.heat||d.lst_delta>=2)f.push(dt('Hitze','Heat','Hitte'));if(d.hw)f.push(dt('Hochwasser','Flood','Overstroming'));if(d.noise>=70)f.push(dt('Lärm','Noise','Geluid'));if(isVuln(d))f.push(dt('sozial','social','sociaal'));if(d.G<40)f.push(dt('wenig Grün','little green','weinig groen'));return f;}
+function goDistrict(n){return 'location.href=\'index.html#'+CITYKEY+'/'+encodeURIComponent(n).replace(/\x27/g,'')+'\'';}
+function renderDecisions(){
+  if(!DISTRICTS)return; const ds=Object.entries(DISTRICTS);
+  const pt=document.getElementById('prioTitle'); if(pt)pt.textContent=dt('Prioritäten — wo zuerst handeln?','Priorities — where to act first?','Prioriteiten — waar eerst handelen?');
+  const worst=ds.map(([n,d])=>({n,d,s:nice(d)})).sort((a,b)=>a.s-b.s).slice(0,5);
+  document.getElementById('prioDistricts').innerHTML=
+    '<div class="ph">'+dt('Diese Stadtteile zuerst','These districts first','Deze wijken eerst')+'</div><div class="psub">'+dt('Niedrigster NICE-Score = höchster Handlungsbedarf.','Lowest NICE score = highest need to act.','Laagste NICE-score = grootste noodzaak.')+'</div>'+
+    worst.map((w,i)=>'<div class="prio-row link" onclick="'+goDistrict(w.n)+'"><div class="prio-rank">'+(i+1)+'</div><div class="prio-main"><b>'+w.n+'</b><span>'+dt('schwächste','weakest','zwakste')+': '+weakestDim(w.d)+(isVuln(w.d)?' · '+dt('sozial verletzlich','socially vulnerable','sociaal kwetsbaar'):'')+'</span></div><div class="prio-val" style="color:'+scoreColor(w.s)+'">'+w.s+'</div></div>').join('');
+  const cb=MASS.map(m=>({m,r:m.roi/m.kosten})).sort((a,b)=>b.r-a.r).slice(0,7);
+  document.getElementById('prioMeasures').innerHTML=
+    '<div class="ph">'+dt('Beste Maßnahmen','Best measures','Beste maatregelen')+'</div><div class="psub">'+dt('Nach Kosten-Nutzen (ROI je € Investition).','By cost-benefit (ROI per € invested).','Op kosten-baten (ROI per € investering).')+'</div>'+
+    cb.map((x,i)=>'<div class="prio-row"><div class="prio-rank">'+(i+1)+'</div><div class="prio-main"><b>'+localize(x.m.name)+'</b><span>'+fmt(x.m.kosten)+' → '+fmt(x.m.roi)+'</span></div><div class="prio-val" style="color:#15803d">'+x.r.toFixed(1)+'×</div></div>').join('');
+  const ov=ds.map(([n,d])=>({n,d,f:riskFlags(d)})).filter(x=>x.f.length>=3).sort((a,b)=>b.f.length-a.f.length||nice(a.d)-nice(b.d)).slice(0,5);
+  document.getElementById('prioOverlap').innerHTML=
+    '<div class="ph">'+dt('Mehrfachbelastung','Overlapping burdens','Meervoudige belasting')+'</div><div class="psub">'+dt('Wo mehrere Risiken zusammentreffen.','Where several risks overlap.','Waar meerdere risico\'s samenkomen.')+'</div>'+
+    (ov.length?ov.map(x=>'<div class="prio-row link" onclick="'+goDistrict(x.n)+'"><div class="prio-rank">'+x.f.length+'×</div><div class="prio-main"><b>'+x.n+'</b><span>'+x.f.join(' · ')+'</span></div></div>').join(''):'<div style="font-size:12px;color:var(--muted);padding:8px 0">'+dt('Keine Wijk mit 3+ überlagerten Risiken.','No district with 3+ overlapping risks.','Geen wijk met 3+ risico\'s.')+'</div>');
+}
 function buildDashboard(){
   entries=Object.entries(DISTRICTS);
+  renderDecisions();
   allScores=entries.map(([,d])=>nice(d));
   avgScore=Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length);
   critCount=allScores.filter(s=>s<40).length;
