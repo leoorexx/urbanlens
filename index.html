@@ -515,6 +515,12 @@ body.free-mode #heatWarn{top:106px}
 .leaflet-control-attribution{background:rgba(245,243,238,0.72)!important;color:var(--muted)!important;font-size:9px!important;border-radius:8px 0 0 0!important;padding:2px 8px!important;backdrop-filter:blur(2px)}
 .leaflet-control-attribution a{color:var(--muted)!important;text-decoration:none}
 .leaflet-container{background:#f5f3ee}
+.lens-bar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:2px 0 4px}
+.lens-btn2{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 6px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;color:var(--text2);transition:all .12s}
+.lens-btn2:hover{border-color:var(--text2);color:var(--text)}
+.lens-btn2.on{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.lens-btn2 .lc{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
+.lens-adv{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:14px 0 2px;border-top:1px solid var(--border2);padding-top:11px}
 </style>
 </head>
 <body>
@@ -645,6 +651,14 @@ body.free-mode #heatWarn{top:106px}
   <div style="font-size:9px;color:var(--muted);margin-bottom:8px;padding:5px 7px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
     <span data-i18n="hint_layers">Stadtteil-Füllung blendet sich automatisch aus wenn Layer aktiv sind — die Karte bleibt lesbar.</span>
   </div>
+
+  <div class="lens-bar" id="lensBar">
+    <button class="lens-btn2" data-lens="hitze" onclick="activateLens('hitze')"><span class="lc" style="background:var(--climate)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg></span><span data-i18n="lens_heat">Hitze</span></button>
+    <button class="lens-btn2" data-lens="wasser" onclick="activateLens('wasser')"><span class="lc" style="background:#3b82f6"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/></svg></span><span data-i18n="lens_water">Wasser</span></button>
+    <button class="lens-btn2" data-lens="laerm" onclick="activateLens('laerm')"><span class="lc" style="background:#6b7280"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></span><span data-i18n="lens_noise">Lärm</span></button>
+    <button class="lens-btn2" data-lens="leben" onclick="activateLens('leben')"><span class="lc" style="background:var(--social)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.3"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/></svg></span><span data-i18n="lens_life">Lebensqualität</span></button>
+  </div>
+  <div class="lens-adv" data-i18n="lens_adv">Erweitert — einzelne Ebenen</div>
 
     <div class="lp-section"><span data-i18n="sec_diag">Diagnose — Probleme erkennen</span></div>
   <div class="diag-hint" data-i18n="diag_hint">Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.</div>
@@ -1028,7 +1042,7 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',
+ de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Wasser',lens_noise:'Lärm',lens_life:'Lebensqualität',lens_adv:'Erweitert — einzelne Ebenen',
      search_ph:'Stadtteil suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
@@ -1039,7 +1053,7 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',
+ en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Water',lens_noise:'Noise',lens_life:'Livability',lens_adv:'Advanced — individual layers',
      search_ph:'Search district…',list_sub:'Relative ranking within the city · quintiles',
      loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
@@ -1050,7 +1064,7 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',
+ nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Water',lens_noise:'Geluid',lens_life:'Leefkwaliteit',lens_adv:'Uitgebreid — losse lagen',
      search_ph:'Zoek wijk…',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
@@ -2053,6 +2067,17 @@ function toggleLayerPanel(){
 
 // Layer, die erst ab einer Zoomstufe Daten zeigen (Overpass-Schutz / Rastergröße)
 const ZOOM_GATE={traffic_co2:14,raumklang:15,osm_trees:14,osm_benches:14,osm_drinking:14,osm_schools:14,osm_health:14,osm_transit:14,osm_lamps:14};
+// 4 Hauptlinsen: je eine kuratierte Sicht statt Layer-Wust. Rest bleibt unter „Erweitert".
+const LENS_SETS={hitze:['heat'],wasser:['flood'],laerm:['noise'],leben:['social']};
+function activateLens(lens){
+  const set=LENS_SETS[lens]||[];
+  const wasThis=set.length && set.every(id=>activeLayers[id]);
+  Object.keys(activeLayers).slice().forEach(id=>{ if(activeLayers[id])try{toggleLayer(id);}catch(e){} });   // saubere Fläche
+  document.querySelectorAll('.lens-btn2').forEach(b=>b.classList.remove('on'));
+  if(wasThis)return;   // war aktiv → erneuter Klick schaltet aus
+  set.forEach(id=>{ if(!activeLayers[id])try{toggleLayer(id);}catch(e){} });
+  const btn=document.querySelector('.lens-btn2[data-lens="'+lens+'"]'); if(btn)btn.classList.add('on');
+}
 function toggleLayer(id){
   const tog=document.getElementById('tog-'+id);
   const st=document.getElementById('st-'+id);
