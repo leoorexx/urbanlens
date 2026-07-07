@@ -5474,16 +5474,17 @@ function m3heat(d){if(d==null||d==='')return M3_GREY;return d<1.2?M3_GREY:d<1.8?
 function m3flood(f){return f==='high'?'#1d4ed8':f==='medium'?'#3b82f6':f==='low'?'#93c5fd':M3_GREY;}
 function m3color(p){return M3.mode==='co2'?m3co2(p.co2):M3.mode==='heat'?m3heat(p.lst):m3flood(p.flood);}
 const M3_HFFM={apartments:18,residential:12,house:9,detached:9,terrace:11,commercial:14,retail:8,office:24,industrial:10,public:16,school:12,hospital:20,church:22,hotel:24,train_station:18,parking:9,garage:3,roof:4};
-function m3features(data,isUtr){
-  if(isUtr)return data.map(b=>({type:'Feature',geometry:{type:'Polygon',coordinates:[b.g.concat([b.g[0]])]},properties:{co2:b.co2,lst:b.lst,flood:b.flood,era:b.era,use:b.u,_h:b.h}}));
+const M3_BAG={utr:1,ffm:1};   // Städte mit echtem Gebäudemodell (kompakt {g,co2,lst,flood,era,u,h})
+function m3features(data){
+  if(Array.isArray(data))return data.map(b=>({type:'Feature',geometry:{type:'Polygon',coordinates:[b.g.concat([b.g[0]])]},properties:{co2:b.co2,lst:b.lst,flood:b.flood,era:b.era,use:b.u,_h:b.h}}));
   return (data.features||[]).map(f=>{const p=f.properties||{};return {type:'Feature',geometry:f.geometry,properties:{co2:p.co2_kg_m2??null,lst:p.lst_delta??null,flood:p.flood_risk??null,era:p.age_class||'',use:p.building||'',_h:M3_HFFM[p.building]||10}};});
 }
 function m3load(){
-  const isUtr=(city==='utr');
   document.getElementById('m3loader').style.display='flex';
-  fetch(isUtr?`${DATA_BASE}/bag_utr.json`:`${DATA_BASE}/co2_buildings_${city}.geojson`).then(r=>r.json()).then(data=>{
+  const url=M3_BAG[city]?`${DATA_BASE}/bag_${city}.json`:`${DATA_BASE}/co2_buildings_${city}.geojson`;
+  fetch(url).then(r=>r.json()).then(data=>{
     if(!M3.map)return;
-    M3.features=m3features(data,isUtr);
+    M3.features=m3features(data);
     for(const f of M3.features)f.properties._c=m3color(f.properties);
     const gj={type:'FeatureCollection',features:M3.features};
     if(M3.map.getSource('b3d'))M3.map.getSource('b3d').setData(gj);
@@ -5507,7 +5508,7 @@ function m3info(e){const p=e.features[0].properties, el=document.getElementById(
     `<div class="r"><span>CO₂</span><b>${p.co2!=null&&p.co2!==''?p.co2+' kg/m²·a':'—'}</b></div>`+
     `<div class="r"><span>Hitze ΔLST</span><b>${p.lst!=null&&p.lst!==''?'+'+p.lst+' °C':'—'}</b></div>`+
     `<div class="r"><span>Hochwasser</span><b>${fl}</b></div>`+
-    `<div class="r"><span>Höhe (Proxy)</span><b>~${Math.round(p._h)} m</b></div>`;
+    `<div class="r"><span>Höhe</span><b>${M3_BAG[city]?Math.round(p._h)+' m':'~'+Math.round(p._h)+' m'}</b></div>`;
   el.classList.add('active');
 }
 function m3legend(){
