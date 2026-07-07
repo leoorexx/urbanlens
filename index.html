@@ -5616,7 +5616,7 @@ function renderIntro(){const t=INTRO_TXT[lang]||INTRO_TXT.de;
 function showIntro(force){ if(!force){try{if(localStorage.getItem('nh_intro_v1'))return;}catch(e){}} renderIntro(); document.getElementById('introOverlay').classList.add('on'); }
 function closeIntro(){ document.getElementById('introOverlay').classList.remove('on'); try{localStorage.setItem('nh_intro_v1','1');}catch(e){} }
 function openIntro(){ showIntro(true); }
-setTimeout(()=>{try{showIntro(false);}catch(e){}},600);
+if(!document.body.classList.contains('embed'))setTimeout(()=>{try{showIntro(false);}catch(e){}},600);   // Intro nicht im iframe/Embed automatisch zeigen
 </script>
 
 </body>
