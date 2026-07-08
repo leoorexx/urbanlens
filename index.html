@@ -1127,6 +1127,7 @@ function preloadAllCities(){
 const CITY_CFG={
   ffm:{
     name:"Frankfurt am Main",center:[50.1109,8.6821],zoom:12,
+    skyline:[50.1118,8.6705,15.3],   // Bankenviertel-Vantage → 3D-Skyline beim Öffnen
     bbox:"50.05,8.55,50.22,8.82",
     geojson:(location.hostname==='localhost'||location.hostname==='127.0.0.1'?'data/layers/stadtteile_ffm.geojson':'/urbanlens/data/layers/stadtteile_ffm.geojson'),
     nameProp:"name",
@@ -1836,6 +1837,8 @@ function initMap(){
   document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
   const cb=document.getElementById('ct-'+startCity); if(cb)cb.classList.add('on');
   document.querySelectorAll('.ffm-only').forEach(el=>el.style.display = startCity==='ffm' ? '' : 'none');
+  // Skyline-Stadt per Deep-Link geöffnet → Skyline zeigen (nur wenn kein Intro dazwischenfunkt)
+  try{ if(CITY_CFG[startCity].skyline && localStorage.getItem('nh_intro_v1') && !document.body.classList.contains('embed')) skylineWanted=true; }catch(e){}
   loadCity(startCity);
 }
 
@@ -1963,8 +1966,10 @@ function switchCity(c){
   if(typeof loadCityMobility==='function')setTimeout(()=>loadCityMobility(c),600);
   loadCity(c);
   setTimeout(loadHeatWarn,300);
-  // Stadt im 3D-Modus gewechselt → 3D-Modell der neuen Stadt laden
-  if(M3.active&&M3.map){const cc=CITY_CFG[c].center;M3.map.flyTo({center:[cc[1],cc[0]],zoom:15,pitch:55,duration:900});m3load();}
+  // Skyline-Stadt (Frankfurt): beim Wechsel einmal pro Sitzung die 3D-Skyline zeigen
+  if(CITY_CFG[c].skyline && !skylineShown){ skylineWanted=true; }
+  // sonst: Stadt im 3D-Modus gewechselt → 3D-Modell der neuen Stadt laden
+  else if(M3.active&&M3.map){const cc=CITY_CFG[c].center;M3.map.flyTo({center:[cc[1],cc[0]],zoom:15,pitch:55,duration:900});m3load();}
 }
 
 
@@ -1995,6 +2000,7 @@ function loadCity(c){
       const kdCountEl=document.getElementById('kdCount');if(kdCountEl)kdCountEl.textContent=k1.length+k2.length;
       if(kdPanelOpen){renderKDPanel();renderKDMarkers();}
       map.setView(cfg.center,cfg.zoom);
+      if(skylineWanted&&cfg.skyline){ skylineWanted=false; setTimeout(showcaseSkyline,650); }
       document.getElementById('loader').style.display='none';
     })
     .catch(()=>{
@@ -5528,7 +5534,7 @@ function enter3D(){
     if(!M3.active)return;
     if(!M3.map){
       M3.map=new maplibregl.Map({container:'map3d-overlay',style:{version:8,
-        sources:{carto:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO · Gebäude: PDOK BAG'}},
+        sources:{carto:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO · Gebäude: '+(city==='utr'?'PDOK BAG':'OpenStreetMap')}},
         layers:[{id:'carto',type:'raster',source:'carto'}]},
         center:[c.lng,c.lat],zoom:Math.max(15.2,z),pitch:58,bearing:-18,maxPitch:80,antialias:true});
       M3.map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
@@ -5548,6 +5554,15 @@ function exit3D(){
   document.getElementById('m3legend').classList.remove('active');
   document.getElementById('m3info').classList.remove('active');
   document.getElementById('m3loader').style.display='none';
+}
+// Skyline-Städte (z.B. Frankfurt) beim Öffnen direkt in der 3D-Skyline zeigen
+let skylineWanted=false, skylineShown=false;
+function showcaseSkyline(){
+  const sk=CITY_CFG[city]&&CITY_CFG[city].skyline; if(!sk)return;
+  skylineShown=true;
+  if(M3.active){ if(M3.map){M3.map.flyTo({center:[sk[1],sk[0]],zoom:sk[2],pitch:58,bearing:-18,duration:1000}); m3load();} return; }
+  try{ map.setView([sk[0],sk[1]],sk[2]); }catch(e){}
+  try{ enter3D(); }catch(e){}
 }
 if(new URLSearchParams(location.search).get('view')==='3d')setTimeout(()=>{try{enter3D();}catch(e){}},700);
 
