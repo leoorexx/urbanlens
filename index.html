@@ -2481,6 +2481,7 @@ function pdfFooter(doc,cite){
   doc.setTextColor(130,130,140); doc.setFontSize(7);
   doc.text(cite,14,288); doc.text('leoorexx.github.io/urbanlens/methodik.html',196,288,{align:'right'});
 }
+function pdfSec(doc,y,t){ doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(26,26,46); doc.text(t,14,y); y+=2; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=6; doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(60,60,70); return y; }
 function districtPDF(name){
   const doc=pdfDoc(); if(!doc){alert('PDF-Bibliothek lädt noch.');return;}
   const cfg=CITY_CFG[city], d=cfg.data[name]; if(!d)return;
@@ -2495,6 +2496,16 @@ function districtPDF(name){
   doc.setFontSize(9.5); doc.setTextColor(120,120,130); doc.text(`${lang==='en'?'Priority':lang==='nl'?'Prioriteit':'Priorität'} ${rank} / ${N} · ${lang==='en'?'city avg':lang==='nl'?'stad gem.':'Stadt-Ø'} ${avgS}`,14,y); y+=10;
   const sec=(t)=>{ doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(26,26,46); doc.text(t,14,y); y+=2; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=6; doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(60,60,70); };
   const DN={A:'Klimagerechtigkeit',B:'Gesundheit',C:'Mobilität',D:'Bildung',E:'Wohnen',F:'Demokratie',G:'Ökosystem',H:'Resilienz'};
+  const L2=(de,en,nl)=>lang==='en'?en:lang==='nl'?nl:de;
+  const DNL={A:L2('Klimagerechtigkeit','Climate justice','Klimaatrechtvaardigheid'),B:L2('Gesundheit','Health','Gezondheid'),C:L2('Mobilität','Mobility','Mobiliteit'),D:L2('Bildung','Education','Onderwijs'),E:L2('Wohnen','Housing','Wonen'),F:L2('Demokratie','Democracy','Democratie'),G:L2('Ökosystem','Ecosystem','Ecosysteem'),H:L2('Resilienz','Resilience','Veerkracht')};
+  // Zusammenfassung / Diagnose (spiegelt die Infobox)
+  sec(L2('Zusammenfassung','Summary','Samenvatting'));
+  const wk=['A','B','C','D','E','F','G','H'].slice().sort((a,b)=>d[a]-d[b]).slice(0,3).map(k=>DNL[k]);
+  const summ=[];
+  if(isDouble)summ.push(L2(`Strukturelle Doppelbenachteiligung: Score ${s} bei nur ${d.wb}% Wahlbeteiligung — höchster Handlungsbedarf bei geringster politischer Gegenwehr.`,`Structural double disadvantage: score ${s} at only ${d.wb}% turnout — highest need for action, lowest political pushback.`,`Structurele dubbele achterstand: score ${s} bij slechts ${d.wb}% opkomst — hoogste handelingsdruk, laagste tegendruk.`));
+  summ.push(L2(`Priorität ${rank} von ${N} im Stadtvergleich (Stadt-Ø ${avgS}, ${s>=avgS?'über':'unter'} dem Schnitt).`,`Priority ${rank} of ${N} in the city (avg ${avgS}, ${s>=avgS?'above':'below'} average).`,`Prioriteit ${rank} van ${N} (gem. ${avgS}, ${s>=avgS?'boven':'onder'} gemiddeld).`));
+  summ.push(L2(`Schwächste Dimensionen: ${wk.join(', ')} — die empfohlenen Maßnahmen setzen genau hier an.`,`Weakest dimensions: ${wk.join(', ')} — the recommended measures target exactly these.`,`Zwakste dimensies: ${wk.join(', ')} — de aanbevolen maatregelen richten zich hierop.`));
+  summ.forEach(t=>{ if(y>264){doc.addPage();y=20;} const tl=doc.splitTextToSize('•  '+t,180); doc.text(tl,14,y); y+=tl.length*5+1.5; }); y+=6;
   if(risks.length){ sec(lang==='en'?'Identified burdens':lang==='nl'?'Vastgestelde belastingen':'Identifizierte Belastungen'); const rl=doc.splitTextToSize(risks.join('   ·   '),182); doc.text(rl,14,y); y+=rl.length*5+6; }
   sec(lang==='en'?'8 dimensions':lang==='nl'?'8 dimensies':'8 Dimensionen');
   ['A','B','C','D','E','F','G','H'].forEach((k,i)=>{ const col=i%2, x=14+col*92; if(col===0&&i>0)y+=6; doc.text(`${k} · ${DN[k]}`,x,y); doc.setFont('helvetica','bold'); doc.text(String(d[k]),x+86,y,{align:'right'}); doc.setFont('helvetica','normal'); }); y+=10;
@@ -2514,17 +2525,32 @@ function districtPDF(name){
 }
 function areaPDF(){
   if(!areaStats){return;} const doc=pdfDoc(); if(!doc){alert('PDF-Bibliothek lädt noch.');return;}
+  const L=(de,en,nl)=>lang==='en'?en:lang==='nl'?nl:de;
   const st=areaStats, sc=areaScore(st), today=new Date().toLocaleDateString('de-DE');
-  let y=pdfHeader(doc,(lang==='en'?'Area analysis':lang==='nl'?'Gebiedsanalyse':'Gebiets-Analyse'),CITY_CFG[city].name);
-  doc.setTextColor(26,26,46); doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text((lang==='en'?'Drawn area':lang==='nl'?'Getekend gebied':'Gezeichnetes Gebiet'),14,y); y+=8;
+  const band=sc<45?L('kritisch','critical','kritiek'):sc<65?L('mittel','moderate','matig'):L('gut','good','goed');
+  let y=pdfHeader(doc,L('Gebiets-Analyse','Area analysis','Gebiedsanalyse'),CITY_CFG[city].name);
+  doc.setTextColor(26,26,46); doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(L('Gezeichnetes Gebiet','Drawn area','Getekend gebied'),14,y); y+=8;
   doc.setFontSize(11); doc.setTextColor(90,90,110); doc.setFont('helvetica','normal');
-  doc.text(`${st.ha.toFixed(1)} ha  ·  ${lang==='en'?'Place index':lang==='nl'?'Verblijfsindex':'Aufenthalts-Index'} ${sc}/100`,14,y); y+=12;
-  const rows=[['Bäume / trees',st.trees],['Bäume/ha',st.treesPerHa],['Bänke / benches',st.benches],['Grünanteil',st.greenPct+'%'],['Geschäfte / shops',st.shops],['Trinkbrunnen',st.water]];
-  doc.setFontSize(10);
-  rows.forEach((r,i)=>{ const col=i%2,x=14+col*92; if(col===0&&i>0)y+=8; doc.setTextColor(90,90,110); doc.text(r[0],x,y); doc.setFont('helvetica','bold'); doc.setTextColor(26,26,46); doc.text(String(r[1]),x+86,y,{align:'right'}); doc.setFont('helvetica','normal'); }); y+=14;
-  doc.setFontSize(8); doc.setTextColor(120,120,130);
-  doc.text((lang==='en'?'Source: bundled/live OpenStreetMap. Norms: WHO 300 m green, 15-minute city.':lang==='nl'?'Bron: OpenStreetMap. Normen: WHO 300 m groen, 15-minutenstad.':'Quelle: OpenStreetMap. Normen: WHO 300 m Grün, 15-Minuten-Stadt.'),14,y);
-  pdfFooter(doc,`nice here (2026): ${lang==='nl'?'Gebiedsanalyse':'Gebiets-Analyse'}, ${CITY_CFG[city].name}. ${today}.`);
+  doc.text(`${st.ha.toFixed(1)} ha  ·  ${L('Aufenthalts-Index','Place index','Verblijfsindex')} ${sc}/100 (${band})`,14,y); y+=11;
+  // Diagnose (Klartext-Befunde — wie in der Infobox)
+  y=pdfSec(doc,y,L('Diagnose','Diagnosis','Diagnose'));
+  areaFindings(st).forEach(f=>{ if(y>262){doc.addPage();y=20;} const fl=doc.splitTextToSize('•  '+f,180); doc.setTextColor(60,60,70); doc.text(fl,14,y); y+=fl.length*5+1; }); y+=6;
+  // Bilanz
+  y=pdfSec(doc,y,L('Bilanz','Balance','Balans'));
+  const rows=[[L('Bäume','Trees','Bomen'),st.trees],[L('Bäume/ha','Trees/ha','Bomen/ha'),st.treesPerHa],[L('Bänke','Benches','Bankjes'),st.benches],[L('Grünanteil','Green cover','Groen'),st.greenPct+'%'],[L('Geschäfte','Shops','Winkels'),st.shops],[L('Trinkbrunnen','Fountains','Fonteinen'),st.water]];
+  rows.forEach((r,i)=>{ const col=i%2,x=14+col*92; if(col===0&&i>0)y+=6; doc.setFont('helvetica','normal'); doc.setTextColor(60,60,70); doc.text(String(r[0]),x,y); doc.setFont('helvetica','bold'); doc.setTextColor(26,26,46); doc.text(String(r[1]),x+86,y,{align:'right'}); }); y+=11;
+  // Maßnahmen (dieselben wie die Infobox vorschlägt)
+  const applicable=(typeof AREA_MEASURES!=='undefined')?AREA_MEASURES.filter(m=>m.cond(st)):[];
+  if(applicable.length){
+    y=pdfSec(doc,y,L('Empfohlene Maßnahmen','Recommended measures','Aanbevolen maatregelen'));
+    let totInv=0,totRoi=0;
+    applicable.forEach(m=>{ if(y>258){doc.addPage();y=20;} const mo=MASS.find(x=>x.id===m.id); const nm=mo?(typeof localize==='function'?localize(mo.name):mo.name):m.id; doc.setFont('helvetica','bold'); doc.setTextColor(60,60,70); doc.text('• '+nm,14,y); if(mo){ doc.setFont('helvetica','normal'); doc.setTextColor(120,120,130); const f=mo.foerder&&mo.foerder[0]; doc.text(`${fmt(mo.kosten)} → ROI ${fmt(mo.roi)}${f&&f.pct?' · '+f.pct+'% '+L('förderbar','fundable','subsidiabel'):''}`,196,y,{align:'right'}); totInv+=mo.kosten; totRoi+=mo.roi; } y+=6; });
+    if(totInv){ y+=2; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=5; doc.setFont('helvetica','bold'); doc.setTextColor(26,26,46); doc.text(`${L('Summe','Total','Totaal')}: ${fmt(totInv)} → ${fmt(totRoi)} ROI (10 J)`,14,y); y+=7; }
+    const anyApplied=Object.values(areaApplied).some(Boolean);
+    if(anyApplied&&typeof projectedStats==='function'){ const sc1=areaScore(projectedStats()); doc.setFont('helvetica','normal'); doc.setTextColor(21,128,61); doc.text(`${L('Projektion nach Maßnahmen','Projection after measures','Projectie na maatregelen')}: ${L('Index','Index','Index')} ${sc} → ${sc1}/100`,14,y); y+=8; }
+  }
+  if(y<270){ doc.setFontSize(8); doc.setTextColor(120,120,130); doc.text(L('Quelle: OpenStreetMap. Normen: WHO 300 m Grün, 15-Minuten-Stadt.','Source: OpenStreetMap. Norms: WHO 300 m green, 15-minute city.','Bron: OpenStreetMap. Normen: WHO 300 m groen, 15-minutenstad.'),14,y); }
+  pdfFooter(doc,`nice here (2026): ${L('Gebiets-Analyse','Area analysis','Gebiedsanalyse')}, ${CITY_CFG[city].name}. ${L('Index','Index','Index')} ${sc}. ${today}.`);
   doc.save('nicehere_Gebiet.pdf');
 }
 
@@ -3124,15 +3150,19 @@ function projectedStats(){
   return st;
 }
 
+function areaFindings(st){
+  const f=[];
+  if(st.greenPct<25)f.push(lang==='en'?`Only ${st.greenPct}% green cover — below a healthy neighbourhood share.`:lang==='nl'?`Slechts ${st.greenPct}% groen — onder een gezond wijkaandeel.`:`Nur ${st.greenPct}% Grünanteil — unter gesundem Quartiersniveau.`);
+  if(st.shops>=4&&st.benches<2)f.push(lang==='en'?`Commercial but few benches — passing-through, not lingering.`:lang==='nl'?`Commercieel maar weinig bankjes — doorgangsruimte.`:`Kommerziell, kaum Bänke — Durchgangsraum statt Verweilort.`);
+  if(st.treesPerHa<8)f.push(lang==='en'?`${st.treesPerHa} trees/ha — low canopy, heat-prone.`:lang==='nl'?`${st.treesPerHa} bomen/ha — weinig beschaduwing.`:`${st.treesPerHa} Bäume/ha — wenig Beschattung, hitzeanfällig.`);
+  if(!f.length)f.push(lang==='en'?'Balanced: green, seating and canopy present.':lang==='nl'?'Evenwichtig: groen, zitplekken en bomen aanwezig.':'Ausgewogen: Grün, Sitzgelegenheiten und Bäume vorhanden.');
+  return f;
+}
 function renderAreaPanel(){
   const st=areaStats;
   const sc0=areaScore(st);
   const scoreCol=s=>s<45?'#dc2626':s<65?'#eab308':'#16a34a';
-  const findings=[];
-  if(st.greenPct<25)findings.push((lang==='en'?`Only ${st.greenPct}% green cover — below a healthy neighbourhood share.`:lang==='nl'?`Slechts ${st.greenPct}% groen — onder een gezond wijkaandeel.`:`Nur ${st.greenPct}% Grünanteil — unter gesundem Quartiersniveau.`));
-  if(st.shops>=4&&st.benches<2)findings.push((lang==='en'?`Commercial but few benches — passing-through, not lingering.`:lang==='nl'?`Commercieel maar weinig bankjes — doorgangsruimte.`:`Kommerziell, kaum Bänke — Durchgangsraum statt Verweilort.`));
-  if(st.treesPerHa<8)findings.push((lang==='en'?`${st.treesPerHa} trees/ha — low canopy, heat-prone.`:lang==='nl'?`${st.treesPerHa} bomen/ha — weinig beschaduwing.`:`${st.treesPerHa} Bäume/ha — wenig Beschattung, hitzeanfällig.`));
-  if(!findings.length)findings.push((lang==='en'?'Balanced: green, seating and canopy present.':lang==='nl'?'Evenwichtig: groen, zitplekken en bomen aanwezig.':'Ausgewogen: Grün, Sitzgelegenheiten und Bäume vorhanden.'));
+  const findings=areaFindings(st);
   const diagBad=sc0<65;
   const applicable=AREA_MEASURES.filter(m=>m.cond(st));
   const L0=(k)=>({de:{stats:'Bilanz',trees:'Bäume',benches:'Bänke',water:'Brunnen',shops:'Geschäfte',green:'Grünanteil',tph:'Bäume/ha',diag:'Diagnose',meas:'Maßnahmen anwenden',proj:'Projektion nach Maßnahmen',score:'Aufenthalts-Index',none:'Keine Maßnahme nötig — gute Werte.'},
