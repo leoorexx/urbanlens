@@ -1,68 +1,80 @@
-# nice here auf deiner Wix-Seite veröffentlichen
+# nice here — Wix-Startpaket
 
-Die App liegt live auf GitHub Pages:
-
-- **Startseite / Erklärseite:** `https://leoorexx.github.io/urbanlens/start.html`
-- **Tool (Karte):** `https://leoorexx.github.io/urbanlens/`
-- **Karte eingebettet (ohne Navigation):** `https://leoorexx.github.io/urbanlens/?embed=1`
-
-Es gibt zwei Wege — beide brauchen **kein** Wix-Premium und keinen Code von dir.
+Alles kopierfertig. Die App läuft live auf GitHub Pages, Einbetten in Wix ist
+technisch freigegeben (kein `X-Frame-Options`, geprüft ✓).
 
 ---
 
-## Weg 1 — Verlinken (empfohlen, beste Bedienung)
+## 1 · Die Links (zum Kopieren)
 
-Ein interaktives Vollbild-Tool fühlt sich im Vollbild am besten an. Bau die
-Vermarktung in Wix (oder nutze unsere `start.html`) und setze einen Button, der
-das Tool öffnet.
+| Zweck | URL |
+|---|---|
+| **Erklär-/Startseite** (scrollt, erklärt, Button „Karte öffnen") | `https://leoorexx.github.io/urbanlens/start.html` |
+| **Tool / Karte** (Vollbild) | `https://leoorexx.github.io/urbanlens/` |
+| **Karte eingebettet** (ohne obere Leiste) | `https://leoorexx.github.io/urbanlens/?embed=1` |
+| Karte eingebettet, direkt **Frankfurt** | `https://leoorexx.github.io/urbanlens/?embed=1&city=ffm` |
+| **Dashboard** (Entscheidungsseite) | `https://leoorexx.github.io/urbanlens/dashboard.html` |
+| **Methodik & Quellen** | `https://leoorexx.github.io/urbanlens/methodik.html` |
+| Direkt zu einem Stadtteil (Beispiel) | `https://leoorexx.github.io/urbanlens/#utr/Overvecht` |
+
+---
+
+## 2 · Weg A — Verlinken (empfohlen, beste Bedienung)
+
+Ein interaktives Vollbild-Tool fühlt sich im Vollbild am besten an.
 
 1. Wix-Editor → **Hinzufügen → Button**.
-2. Button-Text z. B. **„Karte öffnen"** / **„Tool starten"**.
-3. Button anklicken → **Link** → **Webadresse (URL)** →
-   `https://leoorexx.github.io/urbanlens/`
+2. Button-Text z. B. **„Karte öffnen"** / **„Zur Analyse"**.
+3. Button → **Link → Webadresse** → `https://leoorexx.github.io/urbanlens/`
 4. **„Öffnen in: Neues Fenster"** wählen.
 
-Fertig. Optional zeigst du auf der Wix-Seite als Vorschau einen Screenshot der
-Karte.
+> Tipp: Als Vorschau daneben einen Screenshot der Karte zeigen.
 
 ---
 
-## Weg 2 — Direkt einbetten (Karte in der Wix-Seite)
+## 3 · Weg B — Direkt einbetten (Karte in der Wix-Seite)
 
-Zeigt die Karte direkt in einer Wix-Sektion (im iframe).
-
+**Variante 1 — „Website einbetten" (am einfachsten):**
 1. Wix-Editor → **Hinzufügen → Einbetten → Website einbetten (Embed a Site / iFrame)**.
-2. Im Feld **„Website-Adresse"** eintragen:
-   `https://leoorexx.github.io/urbanlens/?embed=1`
-   *(der Zusatz `?embed=1` blendet die obere Leiste aus, damit es sauber im
-   Rahmen sitzt)*
-3. Das Element **groß** ziehen — eine Karte braucht Höhe. Empfehlung:
-   **Höhe ≥ 650 px**, Breite volle Sektionsbreite. Auf einer eigenen Unterseite
-   ruhig **Vollhöhe** (z. B. 800 px).
-4. Auf Mobil separat prüfen und die Höhe dort auf ~520 px setzen.
+2. Adresse: `https://leoorexx.github.io/urbanlens/?embed=1`
+3. Element **groß** ziehen — **Höhe ≥ 700 px**, volle Sektionsbreite. Mobil ~520 px.
 
-> Tipp: Willst du die **Erklärseite** einbetten statt der nackten Karte, nimm
-> `https://leoorexx.github.io/urbanlens/start.html` als URL (scrollt, erklärt,
+**Variante 2 — „HTML-Code einbetten" (mehr Kontrolle):**
+Wix-Editor → **Einbetten → HTML-Code einbetten**, dann exakt einfügen:
+
+```html
+<iframe
+  src="https://leoorexx.github.io/urbanlens/?embed=1"
+  title="nice here — Stadtanalyse Utrecht & Frankfurt"
+  style="width:100%; height:760px; border:0; border-radius:14px"
+  loading="lazy"
+  allow="geolocation"
+></iframe>
+```
+
+> Willst du statt der nackten Karte die **Erklärseite** einbetten, nimm
+> `https://leoorexx.github.io/urbanlens/start.html` als `src` (scrollt, erklärt,
 > hat unten „Karte öffnen").
 
 ---
 
-## Direkte Deep-Links (praktisch für Buttons)
+## 4 · Was der Embed-Modus macht
 
-- Karte, direkt in **Frankfurt**: `…/urbanlens/?city=ffm`
-- Karte, direkt zu einem Stadtteil (Beispiel Overvecht): `…/urbanlens/#utr/Overvecht`
-- **Dashboard** (Entscheidungsseite): `…/urbanlens/dashboard.html`
-- **Methodik & Quellen:** `…/urbanlens/methodik.html`
+`?embed=1` blendet die obere Navigationsleiste aus, zeigt nur eine kleine
+„nice here"-Marke, rückt die Werkzeuge an den Kartenrand und unterdrückt das
+Intro-Fenster — sauber für den Rahmen. Suche, Layer, 3D-Skyline, Analyse und
+PDF-Bericht funktionieren im Embed normal.
 
 ---
 
-## Häufige Stolpersteine
+## 5 · Häufige Stolpersteine
 
-- **Nichts zu sehen / grauer Kasten:** Das iframe-Element ist zu klein — Höhe
-  hochsetzen (≥ 650 px).
-- **Zwei Navigationsleisten:** Du hast die volle URL statt `?embed=1` genommen.
-- **Eigene Domain gewünscht:** Möglich über eine Subdomain (z. B.
-  `tool.deine-domain.de`), die per DNS auf GitHub Pages zeigt — sag Bescheid,
-  dann richte ich die Schritte dafür ein.
+- **Grauer Kasten / nichts zu sehen:** iframe zu klein → Höhe ≥ 700 px.
+- **Zwei Navigationsleisten:** volle URL statt `?embed=1` genutzt.
+- **Auf dem Handy abgeschnitten:** eigene Höhe fürs Mobil-Layout setzen (~520 px).
+- **Eigene Domain** (z. B. `tool.deine-domain.de`): via Subdomain per DNS auf
+  GitHub Pages möglich — sag Bescheid, dann liefere ich die DNS-Schritte.
 
-Fragen offen? Schick mir einen Screenshot vom Wix-Editor, dann lotse ich dich durch.
+---
+
+Fragen? Schick einen Screenshot vom Wix-Editor, dann lotse ich dich Klick für Klick.
