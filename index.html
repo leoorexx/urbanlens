@@ -515,6 +515,11 @@ body.free-mode #heatWarn{top:106px}
 .leaflet-control-attribution{background:rgba(245,243,238,0.72)!important;color:var(--muted)!important;font-size:9px!important;border-radius:8px 0 0 0!important;padding:2px 8px!important;backdrop-filter:blur(2px)}
 .leaflet-control-attribution a{color:var(--muted)!important;text-decoration:none}
 .leaflet-container{background:#f5f3ee}
+.addr-pin{background:none!important;border:none!important}
+.addr-pin svg{filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));animation:addrDrop .4s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes addrDrop{0%{transform:translateY(-14px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.addr-tip{background:#1a1a2e!important;color:#fff!important;border:none!important;font-weight:700;font-size:11px;border-radius:7px;box-shadow:var(--shl)}
+.addr-tip::before{border-top-color:#1a1a2e!important}
 .lens-bar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:2px 0 4px}
 .lens-btn2{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 6px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;color:var(--text2);transition:all .12s}
 .lens-btn2:hover{border-color:var(--text2);color:var(--text)}
@@ -547,7 +552,7 @@ body.free-mode #heatWarn{top:106px}
       <button class="lg" id="lg-nl" onclick="setLang('nl')">NL</button>
     </div>
     <div class="citysearch">
-      <input id="citySearch" placeholder="Suche deine Stadt…" oninput="citySearchInput(this.value)" onfocus="citySearchInput(this.value)" autocomplete="off" spellcheck="false">
+      <input id="citySearch" placeholder="Adresse oder Stadt suchen…" data-i18n-ph="search_city_ph" oninput="citySearchInput(this.value)" onfocus="citySearchInput(this.value)" autocomplete="off" spellcheck="false">
       <div id="citySearchDrop" class="csdrop"></div>
     </div>
     <div class="lpill"><div class="dot"></div><span data-i18n="nav_live">Open Data Live</span></div>
@@ -1048,7 +1053,7 @@ function ic(name,size=14){
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
  de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Wasser',lens_noise:'Lärm',lens_life:'Lebensqualität',lens_adv:'Erweitert — einzelne Ebenen',
-     search_ph:'Stadtteil suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
+     search_ph:'Stadtteil suchen…',search_city_ph:'Adresse oder Stadt suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',lay_paw:'Pflanzenverfügbares Wasser — Dürre',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
      sec_social:'Soziale Infrastruktur',sec_europe:'Europa-Modus — Live aus OpenStreetMap',
@@ -1059,7 +1064,7 @@ const STR={
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
  en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Water',lens_noise:'Noise',lens_life:'Livability',lens_adv:'Advanced — individual layers',
-     search_ph:'Search district…',list_sub:'Relative ranking within the city · quintiles',
+     search_ph:'Search district…',search_city_ph:'Search address or city…',list_sub:'Relative ranking within the city · quintiles',
      loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',lay_paw:'Plant-available water — drought',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
      sec_social:'Social infrastructure',sec_europe:'Europe mode — live from OpenStreetMap',
@@ -1070,7 +1075,7 @@ const STR={
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
  nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Water',lens_noise:'Geluid',lens_life:'Leefkwaliteit',lens_adv:'Uitgebreid — losse lagen',
-     search_ph:'Zoek wijk…',list_sub:'Relatieve positie binnen de stad · kwintielen',
+     search_ph:'Zoek wijk…',search_city_ph:'Zoek adres of stad…',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',lay_paw:'Plantbeschikbaar water — droogte',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
      sec_social:'Sociale infrastructuur',sec_europe:'Europa-modus — live uit OpenStreetMap',
@@ -1867,19 +1872,42 @@ function geocodeCity(q){
 }
 function photonGeocode(q,signal){
   const plang=lang==='de'?'de':lang==='en'?'en':'default';
-  return fetch('https://photon.komoot.io/api/?limit=6&lang='+plang+'&q='+encodeURIComponent(q),{signal}).then(r=>r.ok?r.json():null).then(j=>{
+  return fetch('https://photon.komoot.io/api/?limit=7&lang='+plang+'&q='+encodeURIComponent(q),{signal}).then(r=>r.ok?r.json():null).then(j=>{
     if(!j||!j.features)return [];
-    const PL=['city','town','village','municipality','hamlet','suburb','borough','quarter'], seen={};
-    return j.features.filter(f=>{const p=f.properties||{};return p.osm_key==='place'||PL.indexOf(p.osm_value)>=0||PL.indexOf(p.type)>=0;})
-      .map(f=>{const p=f.properties||{},nm=p.name||'',reg=p.state||p.country||'';return {name:nm+(reg&&reg!==nm?', '+reg:''),lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0]};})
-      .filter(c=>{const k=c.name.toLowerCase();if(!c.name||seen[k])return false;seen[k]=1;return true;}).slice(0,6);
+    const seen={},out=[];
+    for(const f of j.features){
+      const p=f.properties||{}, lat=f.geometry.coordinates[1], lon=f.geometry.coordinates[0];
+      let label,isAddr=false;
+      if(p.housenumber||p.street){                       // echte Adresse
+        const road=p.street||p.name||''; const place=p.city||p.district||p.county||p.postcode||'';
+        label=(road+(p.housenumber?' '+p.housenumber:''))+(place?', '+place:''); isAddr=true;
+      } else {                                            // Ort / Stadt / Straße ohne Nr.
+        const nm=p.name||''; const reg=p.city||p.state||p.country||'';
+        label=nm+(reg&&reg!==nm?', '+reg:''); isAddr=(p.osm_key==='highway');
+      }
+      if(!label)continue; const k=label.toLowerCase(); if(seen[k])continue; seen[k]=1;
+      out.push({name:label,lat,lon,addr:isAddr});
+    }
+    return out.slice(0,7);
   });
 }
 function nominatimGeocode(q,signal){
-  return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&featureType=settlement&q='+encodeURIComponent(q),{headers:{'Accept-Language':lang},signal}).then(r=>r.ok?r.json():[]).then(res=>{ const seen={};
-    return (res||[]).map(r=>{const p=r.display_name.split(',');const s=p.length>1?p[0].trim()+', '+p[p.length-1].trim():p[0].trim();return {name:s,lat:+r.lat,lon:+r.lon};})
-      .filter(c=>{const k=c.name.toLowerCase();if(seen[k])return false;seen[k]=1;return true;}).slice(0,6);
+  return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=7&addressdetails=1&q='+encodeURIComponent(q),{headers:{'Accept-Language':lang},signal}).then(r=>r.ok?r.json():[]).then(res=>{ const seen={},out=[];
+    for(const r of (res||[])){
+      const a=r.address||{}; const road=a.road||a.pedestrian||a.footway; let label,isAddr=false;
+      if(road){ const place=a.city||a.town||a.village||a.municipality||a.suburb||a.county||''; label=road+(a.house_number?' '+a.house_number:'')+(place?', '+place:''); isAddr=true; }
+      else { const p=r.display_name.split(','); label=p.length>1?p[0].trim()+', '+p[p.length-1].trim():p[0].trim(); }
+      const k=label.toLowerCase(); if(seen[k])continue; seen[k]=1;
+      out.push({name:label,lat:+r.lat,lon:+r.lon,addr:isAddr});
+    }
+    return out.slice(0,7);
   });
+}
+// Liegt der Punkt in einer Voll-Daten-Stadt (Utrecht/Frankfurt)?  → 'utr'|'ffm'|null
+function inCityBbox(lat,lon){
+  for(const k of ['utr','ffm']){ const bb=CITY_CFG[k]&&CITY_CFG[k].bbox; if(!bb)continue; const p=bb.split(',').map(Number);
+    if(lat>=p[0]&&lat<=p[2]&&lon>=p[1]&&lon<=p[3])return k; }
+  return null;
 }
 function renderCsDrop(q,geo,loading){
   const drop=document.getElementById('citySearchDrop'); if(!drop)return;
@@ -1888,15 +1916,18 @@ function renderCsDrop(q,geo,loading){
   let h='';
   if(full.length){ h+='<div class="cshead">'+csTxt('Vollständige Daten','Full data','Volledige data')+'</div>';
     h+=full.map(c=>'<button class="csitem" onclick="pickFull(\''+c.key+'\')"><span class="csn">'+c.name+'</span><span class="csbadge full">'+csTxt('komplett','full','volledig')+'</span></button>').join(''); }
-  if(geo&&geo.length){ h+='<div class="cshead">'+csTxt('Andere Städte (OSM-Modus)','Other cities (OSM mode)','Andere steden (OSM-modus)')+'</div>';
-    h+=geo.map(c=>'<button class="csitem" onclick="pickFree('+c.lat+','+c.lon+',\''+c.name.replace(/['\\]/g,'')+'\')"><span class="csn">'+c.name+'</span><span class="csbadge osm">OSM</span></button>').join(''); }
-  else if(loading){ h+='<div style="padding:10px 13px;font-size:11px;color:var(--muted)"><span class="loading-dot"></span> '+csTxt('Städte suchen…','Searching cities…','Steden zoeken…')+'</div>'; }
-  else if(geo&&geo.length===0&&ql.length>=3){ h+='<div style="padding:10px 13px;font-size:11px;color:var(--muted)">'+csTxt('Keine weitere Stadt gefunden','No other city found','Geen andere stad gevonden')+'</div>'; }
+  if(geo&&geo.length){ h+='<div class="cshead">'+csTxt('Adressen & Orte','Addresses & places','Adressen & plaatsen')+'</div>';
+    h+=geo.map(c=>{ const bc=inCityBbox(c.lat,c.lon);
+      const badge=bc?'<span class="csbadge full">'+CITY_CFG[bc].name.split(' ')[0]+'</span>':'<span class="csbadge osm">OSM</span>';
+      const pin=c.addr?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;opacity:.55;margin-right:5px"><path d="M12 21s7-6.5 7-12A7 7 0 0 0 5 9c0 5.5 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>':'';
+      return '<button class="csitem" onclick="pickGeo('+c.lat+','+c.lon+',\''+c.name.replace(/['\\]/g,'')+'\')"><span class="csn">'+pin+c.name+'</span>'+badge+'</button>'; }).join(''); }
+  else if(loading){ h+='<div style="padding:10px 13px;font-size:11px;color:var(--muted)"><span class="loading-dot"></span> '+csTxt('Adresse oder Ort suchen…','Searching address or place…','Adres of plaats zoeken…')+'</div>'; }
+  else if(geo&&geo.length===0&&ql.length>=3){ h+='<div style="padding:10px 13px;font-size:11px;color:var(--muted)">'+csTxt('Nichts gefunden — Straße + Nr. + Stadt versuchen','Nothing found — try street + no. + city','Niets gevonden — probeer straat + nr. + stad')+'</div>'; }
   drop.innerHTML=h; drop.classList.add('on');
 }
 function closeCsDrop(){ const d=document.getElementById('citySearchDrop'); if(d)d.classList.remove('on'); }
 function pickFull(key){ closeCsDrop(); const inp=document.getElementById('citySearch'); if(inp)inp.value=''; switchCity(key); }
-function pickFree(lat,lon,name){
+function pickFree(lat,lon,name,zoom){
   closeCsDrop(); const inp=document.getElementById('citySearch'); if(inp){inp.value='';inp.placeholder=name;}
   FREE={name,lat,lon}; selected=null; if(typeof closeDrawer==='function')closeDrawer();
   Object.keys(layerObjs).forEach(k=>{if(layerObjs[k])map.removeLayer(layerObjs[k]);delete layerObjs[k];});
@@ -1907,13 +1938,37 @@ function pickFree(lat,lon,name){
   if(geoLayer){map.removeLayer(geoLayer);}
   if(typeof DIAG!=='undefined'&&DIAG.active&&typeof diagClear==='function')diagClear();
   document.body.classList.add('free-mode');
-  map.flyTo([lat,lon],14,{duration:1.1});
+  map.flyTo([lat,lon],zoom||14,{duration:1.1});
   const b=document.getElementById('freeBanner');
   b.innerHTML='<span class="fbtx">'+csTxt('OSM-Modus: <b>'+name+'</b> — nur Open-Data-Layer &amp; Analyse-Werkzeuge. NICE-Layer gibt es nur für Utrecht &amp; Frankfurt.','OSM mode: <b>'+name+'</b> — only open-data layers &amp; analysis tools. NICE layers only for Utrecht &amp; Frankfurt.','OSM-modus: <b>'+name+'</b> — alleen open-data-lagen &amp; analyse-tools. NICE-lagen alleen voor Utrecht &amp; Frankfurt.')+'</span><button onclick="pickFull(\'utr\')">'+csTxt('Zurück zu Utrecht','Back to Utrecht','Terug naar Utrecht')+'</button>';
   b.classList.add('on');
   setTimeout(loadHeatWarn,300);
 }
-function exitFree(){ if(!FREE)return; FREE=null; document.body.classList.remove('free-mode'); const b=document.getElementById('freeBanner'); if(b)b.classList.remove('on'); const inp=document.getElementById('citySearch'); if(inp)inp.placeholder='Suche deine Stadt…'; }
+// Adress-/Ort-Treffer wählen: in Utrecht/Frankfurt → volle Daten + zur Adresse zoomen;
+// sonst OSM-Modus. Immer ein Pin an der exakten Stelle.
+let ADDR_MARKER=null;
+function dropAddrPin(lat,lon,name){
+  try{ if(ADDR_MARKER)map.removeLayer(ADDR_MARKER); }catch(e){}
+  const icon=L.divIcon({className:'addr-pin',html:'<svg width="30" height="30" viewBox="0 0 24 24" fill="#a60ba6" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"><path d="M12 21.5s7-6.7 7-12A7 7 0 0 0 5 9.5c0 5.3 7 12 7 12Z"/><circle cx="12" cy="9.3" r="2.5" fill="#fff" stroke="none"/></svg>',iconSize:[30,30],iconAnchor:[15,28],popupAnchor:[0,-26]});
+  ADDR_MARKER=L.marker([lat,lon],{icon,zIndexOffset:1200}).addTo(map);
+  ADDR_MARKER.bindTooltip(name,{direction:'top',offset:[0,-24],className:'addr-tip'}).openTooltip();
+}
+function clearAddrPin(){ try{ if(ADDR_MARKER){map.removeLayer(ADDR_MARKER);ADDR_MARKER=null;} }catch(e){} }
+function pickGeo(lat,lon,name){
+  closeCsDrop(); const inp=document.getElementById('citySearch'); if(inp)inp.value='';
+  const bc=inCityBbox(lat,lon);
+  if(bc){                                              // Adresse in Utrecht/Frankfurt → volle Daten
+    if(FREE)exitFree();
+    if(inp)inp.placeholder=name;
+    if(city!==bc){ skylineShown=true; switchCity(bc); }  // Skyline-Auto-3D beim Adress-Sprung unterdrücken
+    const delay=(city!==bc)?1300:120;
+    setTimeout(()=>{ try{map.flyTo([lat,lon],17,{duration:1.1});}catch(e){} dropAddrPin(lat,lon,name); },delay);
+  } else {                                             // außerhalb → OSM-Modus, näher heran
+    pickFree(lat,lon,name,16);
+    setTimeout(()=>dropAddrPin(lat,lon,name),150);
+  }
+}
+function exitFree(){ if(!FREE)return; FREE=null; document.body.classList.remove('free-mode'); const b=document.getElementById('freeBanner'); if(b)b.classList.remove('on'); const inp=document.getElementById('citySearch'); if(inp)inp.placeholder=t('search_city_ph'); }
 document.addEventListener('click',e=>{ const cs=document.querySelector('.citysearch'); if(cs&&!cs.contains(e.target))closeCsDrop(); });
 
 // ── Hitzewarnung (Live-Temperatur via open-meteo) ─────────────────────────
@@ -1943,7 +1998,7 @@ function dismissHeatWarn(dkey){ const el=document.getElementById('heatWarn'); if
 function switchCity(c){
   const wasFree=!!FREE; if(FREE)exitFree();
   if(city===c && !wasFree)return;
-  city=c;selected=null;closeDrawer();
+  city=c;selected=null;closeDrawer();try{clearAddrPin();}catch(e){}
   try{localStorage.setItem('nh_city',c);}catch(e){}   // merken für Dashboard/Methodik
   document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
   const btn=document.getElementById('ct-'+c);
