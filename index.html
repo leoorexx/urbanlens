@@ -706,6 +706,11 @@ body.free-mode #heatWarn{top:106px}
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> Hitzeinsel — Gebäude-Level</span>
     <span class="lstatus" id="st-heat"></span>
   </div>
+  <div class="lrow" onclick="toggleLayer('paw')">
+    <button class="ltoggle" id="tog-paw"></button>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/><path d="M9.5 13.5 12 11l2.5 2.5"/></svg> <span data-i18n="lay_paw">Pflanzenverfügbares Wasser — Dürre</span></span>
+    <span class="lstatus" id="st-paw"></span>
+  </div>
   <div class="lrow" onclick="toggleLayer('noise')">
     <button class="ltoggle" id="tog-noise"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg> Lärmbelastung Straße</span>
@@ -1044,7 +1049,7 @@ function ic(name,size=14){
 const STR={
  de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Wasser',lens_noise:'Lärm',lens_life:'Lebensqualität',lens_adv:'Erweitert — einzelne Ebenen',
      search_ph:'Stadtteil suchen…',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
-     loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',
+     loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',lay_paw:'Pflanzenverfügbares Wasser — Dürre',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
      sec_social:'Soziale Infrastruktur',sec_europe:'Europa-Modus — Live aus OpenStreetMap',
      hint_layers:'Stadtteil-Füllung blendet sich automatisch aus wenn Layer aktiv sind — die Karte bleibt lesbar.',
@@ -1055,7 +1060,7 @@ const STR={
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
  en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Water',lens_noise:'Noise',lens_life:'Livability',lens_adv:'Advanced — individual layers',
      search_ph:'Search district…',list_sub:'Relative ranking within the city · quintiles',
-     loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',
+     loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',lay_paw:'Plant-available water — drought',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
      sec_social:'Social infrastructure',sec_europe:'Europe mode — live from OpenStreetMap',
      hint_layers:'District fill fades out automatically while layers are active — the map stays readable.',
@@ -1066,7 +1071,7 @@ const STR={
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
  nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Water',lens_noise:'Geluid',lens_life:'Leefkwaliteit',lens_adv:'Uitgebreid — losse lagen',
      search_ph:'Zoek wijk…',list_sub:'Relatieve positie binnen de stad · kwintielen',
-     loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',
+     loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',lay_paw:'Plantbeschikbaar water — droogte',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
      sec_social:'Sociale infrastructuur',sec_europe:'Europa-modus — live uit OpenStreetMap',
      hint_layers:'De wijkvulling verdwijnt automatisch zodra lagen actief zijn — de kaart blijft leesbaar.',
@@ -2168,6 +2173,7 @@ function loadLayer(id,statusEl){
     case 'flood':    return loadLocal(`flood_exposure_${city}.geojson`,id,statusEl,renderFloodExposure);
     case 'floodex':  return loadLocal(`waterways_${city}.geojson`,id,statusEl,renderFloodZones);
     case 'heat':     return loadLocal(`heat_exposure_${city}.geojson`,id,statusEl,renderHeatExposure);
+    case 'paw':      return loadLocal(`green_${city}.geojson`,id,statusEl,renderPawLayer);
     case 'noise':    return loadLocal(`noise_roads_${city}.geojson`,id,statusEl,renderNoiseLayer);
     case 'flight_noise': return loadLocal(`flight_noise_${city}.geojson`,id,statusEl,renderFlightNoise);
     case 'co2':      return loadLocal(`co2_buildings_${city}.geojson`,id,statusEl,renderCO2Layer);
@@ -2345,6 +2351,7 @@ const LAYER_LEGEND={
  duh_ampel:{t:'DUH Hitze-Check',i:[['#dc2626','Rote Karte'],['#eab308','Gelbe Karte'],['#16a34a','Grüne Karte']]},
  co2:{t:'Gebäude-CO₂ (kg/m²)',i:[['#1e3a8a','< 30'],['#fbbf24','60–100'],['#7f1d1d','> 140']]},
  heat:{t:'Hitzeinsel (LST)',i:[['#4ade80','kühl'],['#fbbf24','mittel'],['#7f1d1d','heiß']]},
+ paw:{t:'Pflanzenverf. Wasser',i:[['#0e7490','wassergesichert'],['#3fa3a0','ausreichend'],['#cdb87a','grenzwertig'],['#c2843e','Trockenstress'],['#8a4b1e','vertrocknet zuerst']]},
  flood:{t:'Hochwasser HQ100',i:[['#fbbf24','gering'],['#ef4444','hoch'],['#7f1d1d','kritisch']]},
  noise:{t:'Lärmbelastung',i:[['#16a34a','leise'],['#f97316','laut'],['#dc2626','> 70 dB']]},
  bike:{t:'Radwege',i:[['#16a34a','getrennt'],['#eab308','Schutzstreifen'],['#dc2626','fehlt']]},
@@ -4515,6 +4522,75 @@ function renderParkingLayer(geojson){
 }
 
 
+// ── PFLANZENVERFÜGBARES WASSER / VEGETATIONS-DÜRRESTRESS ─────────────
+// Nach der Hitze kommt die Dürre. Zeigt, wo Vegetation am wenigsten
+// pflanzenverfügbares Wasser hat und in Trockenperioden zuerst vertrocknet.
+// Ehrlich als Komposit ausgewiesen: Vegetationstyp (Wurzeltiefe/Bodenspeicher)
+// − Versiegelung im Umfeld (Infiltration) − Hitze/Verdunstung (LST-Feld)
+// − kleine/isolierte Flächen (Straßenbegleitgrün trocknet schneller).
+const PAW_BASE={forest:92,wood:92,nature_reserve:88,scrub:62,heath:55,park:74,
+  cemetery:68,grave_yard:68,garden:64,allotments:60,recreation_ground:56,
+  meadow:56,grass:46,village_green:48,greenfield:50,flowerbed:38,'default':58};
+function pawType(p){return p.landuse||p.leisure||p.natural||p.amenity||'park';}
+function pawFirstRing(coords){ let r=coords&&coords[0]; if(r&&r[0]&&Array.isArray(r[0][0]))r=r[0]; return (r&&r.length>2&&typeof r[0][0]==='number')?r:null; }
+function ringAreaM2(coords){ const r=pawFirstRing(coords); if(!r)return 6000;
+  let s=0; for(let i=0,j=r.length-1;i<r.length;j=i++){const xi=r[i][0]*111320*Math.cos(r[i][1]*Math.PI/180),yi=r[i][1]*110540,xj=r[j][0]*111320*Math.cos(r[j][1]*Math.PI/180),yj=r[j][1]*110540;s+=xj*yi-xi*yj;}
+  return Math.abs(s/2);
+}
+function pawPipRing(ring,lon,lat){let inside=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];if(((yi>lat)!==(yj>lat))&&(lon<(xj-xi)*(lat-yi)/(yj-yi)+xi))inside=!inside;}return inside;}
+let PAW_DIST_CACHE={};
+function pawDistrictAt(lat,lon){ // Stadtteil-Daten (Versiegelung/Hitze) am Punkt — gecacht auf ~400 m Raster
+  const key=Math.round(lat/0.004)+'_'+Math.round(lon/0.004);
+  if(PAW_DIST_CACHE[key]!==undefined)return PAW_DIST_CACHE[key];
+  const cfg=CITY_CFG[city]; let res=null;
+  if(geoFeatures&&geoFeatures.length){
+    const findKey=raw=>Object.keys(cfg.data).find(k=>raw===k)||Object.keys(cfg.data).find(k=>raw.includes(k)||k.includes(raw));
+    outer: for(const f of geoFeatures){ const g=f.geometry; if(!g)continue;
+      const polys=g.type==='MultiPolygon'?g.coordinates:[g.coordinates];
+      for(const poly of polys){ if(poly[0]&&pawPipRing(poly[0],lon,lat)){ const k=findKey(f.properties[cfg.nameProp]||''); res=k?cfg.data[k]:null; break outer; } }
+    }
+  }
+  PAW_DIST_CACHE[key]=res; return res;
+}
+function pawScore(p,lat,lon,areaM2,field){
+  const t=pawType(p);
+  let paw=PAW_BASE[t]!=null?PAW_BASE[t]:PAW_BASE['default'];
+  const d=pawDistrictAt(lat,lon);
+  const versieg=d&&d.versieg!=null?d.versieg:60;
+  let lst=sampleLst(field,lat,lon); if(lst==null&&d)lst=d.lst_delta;
+  // Exposition: Versiegelung (Infiltration) + Hitze (Verdunstung) kombiniert & gedeckelt
+  const sealF=Math.max(0,Math.min(1,(versieg-45)/55));
+  const heatF=Math.max(0,Math.min(1,(lst||0)/3.5));
+  paw-=(0.6*sealF+0.4*heatF)*34;
+  // kleine/isolierte Flächen (Straßenbegleitgrün) trocknen schneller
+  if(areaM2<300)paw-=14; else if(areaM2<1500)paw-=8; else if(areaM2<6000)paw-=3;
+  return Math.max(5,Math.min(100,Math.round(paw)));
+}
+const PAW_BANDS=[[65,'#0e7490'],[52,'#3fa3a0'],[40,'#cdb87a'],[28,'#c2843e'],[0,'#8a4b1e']];
+function pawColor(v){for(const b of PAW_BANDS)if(v>=b[0])return b[1];return '#8a4b1e';}
+function pawRiskTxt(v){ const i=lang==='en'?1:lang==='nl'?2:0;
+  return (v>=65?['wassergesichert','water-secure','watervast']:v>=52?['ausreichend','sufficient','voldoende']:v>=40?['grenzwertig','marginal','matig']:v>=28?['Trockenstress','drought stress','droogtestress']:['vertrocknet zuerst','dries first','verdroogt eerst'])[i];}
+function renderPawLayer(geojson){
+  const id='paw'; if(!activeLayers[id])return;
+  PAW_DIST_CACHE={};
+  loadHeatField().then(field=>{
+    if(!activeLayers[id])return;
+    const t3=(de,en,nl)=>lang==='en'?en:lang==='nl'?nl:de;
+    const layer=L.geoJSON(geojson,{
+      style:f=>{ const c=geoCentroid(f.geometry.coordinates); if(!c)return{opacity:0,fillOpacity:0};
+        const v=pawScore(f.properties||{},c[1],c[0],ringAreaM2(f.geometry.coordinates),field); f.__paw=v;
+        return{fillColor:pawColor(v),color:pawColor(v),fillOpacity:0.58,weight:0.4,opacity:0.6}; },
+      onEachFeature:(f,l)=>{ const v=f.__paw!=null?f.__paw:50; const nm=(f.properties&&f.properties.name)||pawType(f.properties||{});
+        l.bindTooltip(`<b>${nm}</b><br>${t3('Pflanzenverf. Wasser','Plant-available water','Plantbeschikbaar water')}: <b>${v}/100</b> · <span style="color:${pawColor(v)};font-weight:700">${pawRiskTxt(v)}</span><br><small>${t3('Komposit: Vegetationstyp + Versiegelung + Hitze','Composite: vegetation type + sealing + heat','Composiet: vegetatietype + verharding + hitte')}</small>`,{sticky:true});
+        if(v<40)l.on('click',()=>{ const m=t3('Priorität: bewässern / Baumrigolen / entsiegeln — hier vertrocknet Grün zuerst.','Priority: irrigation / tree trenches / de-sealing — vegetation dries here first.','Prioriteit: bewateren / boomrigolen / ontharden — groen verdroogt hier eerst.');
+          L.popup({maxWidth:250}).setLatLng(l.getBounds().getCenter()).setContent(`<div style="font-family:inherit;min-width:200px"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8a4b1e">${t3('Dürre-Hotspot','Drought hotspot','Droogte-hotspot')}</div><div style="font-size:14px;font-weight:800;margin:2px 0 4px">${nm}</div><div style="font-size:12px;color:#1a1a2e;line-height:1.5">${t3('Pflanzenverf. Wasser','Plant-available water','Plantbeschikbaar water')} <b>${v}/100</b><br>${m}</div></div>`).openOn(map);
+        });
+      }
+    }).addTo(map);
+    layerObjs[id]=layer;
+    if(typeof updateMapLegend==='function')updateMapLegend();
+  });
+}
 function renderGreenLayer(geojson){
   const id='parks';if(!activeLayers[id])return;
   const S={
