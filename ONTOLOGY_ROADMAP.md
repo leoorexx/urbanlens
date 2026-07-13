@@ -1,7 +1,9 @@
-# UrbanLens — Urban Ontology & Roadmap
+# UrbanLens — Utrecht Urban Ontology & Roadmap
 
 *Arbeitsdokument. Von „Daten anzeigen" zu „eine kommunale Entscheidung vollständig begleiten".*
-Fokus-Stadt: **Utrecht** (Launch-Priorität), Frankfurt als Fast-Follow.
+Verankert in Utrechts eigener Strategie **„Healthy Urban Living / Ruimtelijke Strategie 2040".**
+
+Datenstand-Legende: ✅ heute live · ⚠️ teilweise/ableitbar · ❌ braucht Utrecht als Partner
 
 ---
 
@@ -10,188 +12,219 @@ Fokus-Stadt: **Utrecht** (Launch-Priorität), Frankfurt als Fast-Follow.
 **Heute:** UrbanLens zeigt, *wo* Probleme liegen.
 **Ziel:** UrbanLens zeigt *was zu tun ist, wer es tut, was es kostet, welche Wirkung entsteht — und ob es umgesetzt wurde.*
 
-Der Burggraben ist nicht „mehr Layer" (wir sind bewusst schon von „117 Indikatoren" auf „29 dokumentierte Indikatoren" gegangen). Der Burggraben ist die **Ontology**: reale kommunale Objekte, ihre Beziehungen und die daran hängenden Aktionen — plus der durchgängige Weg *Problem → Optionen → Entscheidung → Auftrag → Wirkung*.
-
-Drei Ebenen, die UrbanLens künftig trennen muss:
-
-| Ebene | Frage | Status heute |
-|---|---|---|
-| **Deskriptiv** | Wie ist der Zustand? | ✅ stark (NICE Score, Layer, Diagnosen) |
-| **Normativ** | Welche Ziele/Grenzwerte gelten? | ⚠️ teilweise (WHO 300 m Grün, EU-Lärm …) |
-| **Operativ** | Welche Intervention ändert den Zustand — mit welchem Aufwand? | ⚠️ Bausteine da (Maßnahmen, Förderung), aber nicht verkettet |
+Der Burggraben ist nicht „mehr Layer", sondern die **Ontology** (reale Objekte, Beziehungen, Aktionen) plus der durchgängige Weg *Problem → Optionen → Entscheidung → Auftrag → Wirkung*. Drei Ebenen, die UrbanLens trennt: **deskriptiv** (Zustand ✅) · **normativ** (Utrechts Ziele ⚠️) · **operativ** (Intervention & Aufwand ⚠️).
 
 ---
 
-## 1 · Die Urban Ontology
+## 1 · Warum Utrecht
 
-Nicht Datensätze stehen im Mittelpunkt, sondern **reale Objekte** und ihre **Beziehungen**. Beziehungen sind wertvoller als Objekte.
+Utrecht denkt seine Entwicklung **integriert**: Wachstum, Wohnen, Gesundheit, Grün, Mobilität, Energie und Teilhabe werden nicht getrennt geplant. Die Ruimtelijke Strategie 2040 verfolgt u. a. die 10-Minuten-Stadt, neue urbane Zentren, Mobilitätswende, mehr Grün und Wasser, klimafeste Infrastruktur und eine inklusive, bezahlbare Stadt.
 
-### Objekttypen (mit ehrlichem Datenstand für Utrecht)
+Deshalb bauen wir **nicht** viele getrennte Dashboards, sondern **eine gemeinsame Utrecht Urban Ontology**, auf die alle Missionen zugreifen.
 
-| Kategorie | Objekte | Datenstand heute |
-|---|---|---|
-| **Raum** | Stadt · Stadtteil (Wijk) · Quartier · Block · Grundstück · Straße · Grünfläche | ✅ Wijk-Ebene · ⚠️ Block/Grundstück fehlt |
-| **Gebäude/Infra** | Wohngebäude · **Schule (156)** · Kita · Pflege · Krankenhaus · Haltestelle · Radweg · Baum · Trinkbrunnen | ✅ BAG-Gebäude, POIs, Bäume · ⚠️ Nutzung teils grob |
-| **Bevölkerung** (aggregiert!) | Einwohnergruppe · Altersgruppe · einkommensschwacher Haushalt · Hitzebelastete | ✅ Wijk-Aggregat (CBS) · ⚠️ nur Stadtteil, nicht Block |
-| **Risiko** | Hitze · Hochwasser · Starkregen · Lärm · Luft · **Dürre/Vegetationsstress** · soziale Verwundbarkeit | ✅ als Layer/Score da |
-| **Maßnahme** | Baumpflanzung · Entsiegelung · Verschattung · Sanierung · Schwammstadt · … | ✅ MASS-Katalog mit Kosten/ROI/Förderung |
-| **Organisation** | Amt · Eigenbetrieb · Wohnungsgesellschaft · Planungsbüro · Fördermittelgeber | ❌ **fehlt** (braucht kommunale Daten) |
-| **Entscheidung** | Problemfall · Maßnahmenvorschlag · Szenario · Beschluss · Budget · Förderantrag · Projekt · Meilenstein · Wirkungsmessung | ❌ **fehlt** (braucht Backend/Workflow) |
+**Utrechts eigene Zielwerte** werden zu normativen Objekten im System (der „normativ"-Ebene):
 
-> **Ehrliche Lücke:** „Wer ist zuständig", „wem gehört das Grundstück", „Projektstatus/Budget" haben wir **nicht** — das sind kommunale Verwaltungsdaten, die nur mit einer Kommune als Partner reinkommen. Genau das ist der Übergang vom Demo-Wert zum echten Betriebssystem.
+| Politikziel (Utrecht 2040) | Als Objekt im System |
+|---|---|
+| Kühle Grünfläche **innerhalb 200 m** | Green-access target |
+| **40 %** Grünflächenanteil | Green-surface target |
+| **≥ 30 %** Straßenverschattung (40 % auf Haupt-Geh/Radrouten) | Shade target |
+| Starkregen **bis 80 mm/h** bewältigen | Rain-resilience target |
+| **10-Minuten**-Erreichbarkeit | Accessibility target |
+| Gasfreie Gebäudewende · bezahlbarer Wohnraum | Transition / Housing target |
 
-### Die Beziehungen (das eigentliche Modell)
-
-Beispiel, vollständig aus **heute vorhandenen Utrecht-Daten** ableitbar:
-
-```
-Schule "X"  ──liegt_in──▶  Hitzezone (ΔLST +Y °C, aus Copernicus-Feld)
-   │                          
-   ├──im_Umfeld──▶  Versiegelung Z %  ·  nächste Grünfläche >300 m
-   ├──im_Stadtteil──▶  Wijk (Kinderarmut %, soziale Verwundbarkeit)
-   └──adressierbar_durch──▶  Maßnahme {Bäume, Entsiegelung, Verschattung}
-                                 │
-                                 ├──kostet──▶  Kostenkorridor
-                                 ├──förderbar_über──▶  Förderprogramm (%)
-                                 └──bewirkt──▶  erwartete ΔLST-Reduktion
-```
-
-Damit beantwortet UrbanLens Fragen, die klassische GIS-Dashboards nicht können:
-- *Welche Schulen mit 5 Mio € zuerst hitzeresilient machen?*
-- *Welche Maßnahmen verbessern gleichzeitig Gesundheit, Klima und soziale Gerechtigkeit?*
-- *Wo trifft Hitze auf die, die sich am wenigsten selbst schützen können?* (← unser Alleinstellungsmerkmal „doppelte Verwundbarkeit", schon vorhanden)
+Benannte Belastungsgebiete (aus Utrechts Analysen) werden zu Raum-Objekten mit Risiko-Beziehungen: **Overvecht, Zuilen, Tuindorp** (Starkregen) · **Zentrum, Rivierenwijk, Ondiep, Zuilen** (Hitzestress).
 
 ---
 
-## 2 · Aus „Layern" werden Missionen
+## 2 · Die sechs Utrecht-Missionen
 
-Layer sind für Experten. Entscheider brauchen **missionsorientierte** Sicht. Fünf Kandidaten, nach Umsetzbarkeit mit **heutigen** Daten:
+Alle greifen auf **dieselben Objekte** zu — ein Objekt kann mehreren Missionen dienen.
 
-| Mission | Kernfrage | Daten heute | Aufwand |
+| # | Mission | Kernfrage | Daten heute |
 |---|---|---|---|
-| **1 · Hitzesichere Schulen** ⭐ | Welche Schulen zuerst? | ✅ Schulen, LST, Versiegelung, Grün, Sozial, Maßnahmen | **niedrig** |
-| 2 · Schwammstadt | Wo entsiegeln/versickern? | ⚠️ Hochwasser/Versiegelung da, Kanal/Regen fehlt | mittel |
-| 3 · Klimaneutrale Quartiere | Welche Gebäude sanieren? | ⚠️ Gebäudealter/CO₂ da (FFM stärker), Heizung/Solar fehlt | mittel-hoch |
-| 4 · 15-Minuten-Stadt | Was fehlt wo? | ✅ POIs/Erreichbarkeit/Rad da | niedrig-mittel |
-| 5 · Gerechte Investitionsplanung | Wer bekam bisher wie viel? | ❌ Investitions-Historie fehlt | hoch |
+| **1** | **Klimafeste Stadt** | Wo zuerst entsiegeln, begrünen, verschatten, Wasser speichern? | ✅ Hitze, Versiegelung, Grün, Bäume, Wasser |
+| **2** | **Wachstum & bezahlbares Wohnen** | Wo Wohnungen schaffen, ohne Gesundheit/Klima/soziale Infra zu verschlechtern? | ⚠️ Gebäude/Dichte ✅, Entwicklungsgebiete ❌ |
+| **3** | **Gesunde & gerechte Stadt** | Welche Gruppen tragen mehrere Belastungen und profitieren zu wenig von Investitionen? | ✅ doppelte Verwundbarkeit · ❌ Investitions-Historie |
+| **4** | **Mobilitäts-/Erreichbarkeitswende** | Welche Quartiere erreichen Alltag nicht in 10 Min — und welche Intervention hilft am effizientesten? | ✅ POIs, Rad, Fußwege |
+| **5** | **Energiewende unter Netzrestriktionen** | Welche Quartiere wann dekarbonisieren, welche Infra, wo Netzengpässe/Energiearmut? | ⚠️ Gebäudealter/CO₂ ✅, Heizung/Netz/Solar ❌ |
+| **6** | **Koordinierte öffentliche Investitionen** | Welche Arbeiten räumlich/zeitlich bündeln, damit Straßen nicht mehrfach geöffnet werden? | ❌ geplante Tiefbauarbeiten (nur mit Stadt) |
 
-**Empfehlung:** Mission 1 als erster End-to-End-Fall — höchster Wert, niedrigster Aufwand, alle Daten live.
-
----
-
-## 3 · Der Maßnahmen-Compiler (Kern-Differenzierer)
-
-UrbanLens erkennt ein Problem und erzeugt daraus einen **strukturierten Maßnahmenfall** — es trifft *nicht* die politische Entscheidung, sondern strukturiert und dokumentiert die Grundlage.
-
-**Erkanntes Problem** (Beispiel Schule): 640 Kinder · +4,2 °C · 78 % versiegelt · kaum Schatten · sozial belastetes Umfeld · Grundstück der Stadt.
-
-**Automatisch erzeugte Optionen** — je Option: Kostenkorridor · Flächenbedarf · Realisierungsdauer · Zuständigkeit · Förderprogramm · erwartete Wirkung · Zielkonflikte · **Datenkonfidenz** · Beispiele aus anderen Städten.
+**Alleinstellungsmerkmal (schon vorhanden):** „doppelte Verwundbarkeit" — *wo trifft Belastung auf Menschen, die sich am wenigsten selbst schützen können?*
 
 ---
 
-## 4 · Szenario-/Simulationsengine (Baseline vs. Intervention)
+## 3 · Die gemeinsame Utrecht Ontology
 
-Der Bereich „Szenarien" wird zum zentralen Arbeitsraum. Regler: Budget · Anzahl Bäume · Entsiegelungsfläche · Sanierungsquote · Förderquote · Zeitraum. Ausgabe immer als **Baseline gegen Intervention**:
+### Objektkatalog (mit ehrlichem Datenstand)
 
-| Kennzahl | Heute | Szenario | Δ |
-|---|--:|--:|--:|
-| Menschen in starker Hitzezone | 74.000 | 49.000 | −34 % |
-| Kinder ohne schattigen Schulhof | 12.400 | 4.100 | −67 % |
-| Grünzugang < 300 m | 71 % | 83 % | +12 P |
-| Investitionsbedarf | – | 84 Mio € | – |
+**A · Raum** — Municipality · District · Neighbourhood (Wijk ✅) · Sub-neighbourhood ⚠️ · Urban block ❌ · Parcel ❌ · Street segment (✅ 1.907) · Public-space segment ⚠️ · Green space (✅) · Water body (✅) · Development area ❌ · Mobility hub ⚠️
 
-Plus Kosten je erreichtem Einwohner, Kosten je vermiedener Tonne CO₂, räumliche Gewinner/Verlierer.
+**B · Physisch** — Building (✅ BAG) · Dwelling ⚠️ · School (✅ 156) · Healthcare/Sports (✅ POIs) · Road (✅) · Cycle route (✅ 3.732) · Footpath (✅ 16.337) · Tree (✅ 16.923) · Green roof ❌ · Sewer/Drainage ❌ · Electricity substation ❌ · Heat-network ❌ · Solar installation ❌ · Mobility station ⚠️
+
+**C · Gesellschaft** (immer **aggregiert**, nie Einzelperson) — Population/Age/Income group · Household type · Mobility-limited · Social-housing residents · Students · Elderly · Energy-vulnerable households · (heute: ✅ Wijk-Aggregat CBS · ⚠️ nicht unter Wijk-Ebene)
+
+**D · Risiko** — Heat ✅ · Flooding ✅ · Drought ✅ (neu) · Air ⚠️ · Noise ✅ · Energy vulnerability ⚠️ · Housing pressure ⚠️ · Accessibility deficit ✅ · Green-space deficit ✅ · Health vulnerability ✅
+
+> Ein Risiko ist **kein Rasterwert**, sondern ein Objekt mit: Ort · Zeitraum · Intensität · betroffene Objekte · betroffene Einwohner · Datenquelle · Modellmethode · **Unsicherheit** · Schwellenwert · Trend.
+
+**E · Politikziel** (normativ, s. §1) — Policy goal · Target · Indicator · Threshold · Legal requirement · Planning standard · Programme · Budget · Funding scheme. Direkt verbunden mit Straßen, Quartieren, Gebäuden, Projekten.
+
+**F · Maßnahme** — Tree planting · Depaving · Pocket park · Water-storage · Green roof · Street redesign · Cycle-path improvement · Building retrofit · Heat-network connection · Solar · Housing project · School expansion · Health-service.
+> Jede Maßnahme braucht mind.: Location · Target group · **Responsible authority** ❌ · Estimated cost ✅ · Expected impact ⚠️ · Implementation time · Permits · Dependencies · **Funding eligibility** ✅ · Political approval ❌ · Project status ❌ · Measurement plan.
+
+**Die ehrliche Trennlinie:** Zustand, Risiko, Bevölkerung (aggregiert), Maßnahmen-Kataloge, Förderung → **haben wir**. Zuständigkeit, Eigentum, Untergrund-Leitungen, geplante Bauarbeiten, Budget, Projektstatus → **nur mit Utrecht als Partner**. Genau diese Linie ist der Übergang von Demo-Wert zu Betriebssystem.
 
 ---
 
-## 5 · Architektur-Stufen (ehrliche Phasierung)
+## 4 · Die entscheidenden Beziehungen
+
+Erst die Kanten machen UrbanLens operativ:
+
+```text
+Neighbourhood      HAS_RISK              Heat exposure
+Population group   IS_EXPOSED_TO         Heat exposure
+Street segment     HAS_SHADE_LEVEL       18 %
+Street segment     IS_SUITABLE_FOR       Tree planting
+Tree planting      CONTRIBUTES_TO        Shade target (30 %)
+Tree planting      REDUCES               Heat exposure
+Project            REQUIRES              Sewer replacement
+Project            IS_OWNED_BY           Public-Space Department
+Project            IS_ELIGIBLE_FOR       Funding programme
+Project            COMPETES_FOR          Budget 2027
+Project            BENEFITS              Population group
+Project            AFFECTS               Mobility route
+Project            CONTRIBUTES_TO        Policy goal
+```
+
+**Ein Objekt dient mehreren Missionen.** Beispiel:
+> Die Entsiegelung einer Straße in **Overvecht** reduziert Überflutungsrisiko, schafft Baumstandorte, verbessert Fußwege, senkt Hitze — und lässt sich mit einer ohnehin geplanten Kanalerneuerung kombinieren.
+
+Das ist wertvoller als fünf getrennte Layer.
+
+---
+
+## 5 · Der zentrale Datensatz: Urban Challenge Case
+
+Für jedes erkannte Problem erzeugt UrbanLens einen strukturierten Fall:
+
+```text
+Urban Challenge Case
+├── Location            ├── Available interventions
+├── Challenge type      ├── Cost range
+├── Current condition   ├── Expected effects
+├── Affected population  ├── Responsible organisations
+├── Affected assets     ├── Dependencies
+├── Policy targets      ├── Funding opportunities
+│     violated          ├── Data confidence
+├── Root causes         ├── Priority
+                        └── Implementation status
+```
+
+**Beispiel — Utrecht Heat Vulnerability Case (Zuilen, Block 184):**
+- Problem: hohe nächtliche Hitzebelastung
+- Treiber: 78 % versiegelt · 14 % Kronenbedeckung · geringe Durchlüftung · wenig private Außenflächen
+- Betroffene: 1.840 Einwohner · 310 Personen > 75 J. · viele alleinlebende Ältere
+- Zielabweichung: keine kühle Grünfläche < 200 m · Verschattung < 30 %
+- Optionen: 24 Bäume · 1.900 m² Entsiegelung · Pocket Park · Haltestellen-Verschattung · Fassadenbegrünung
+- Synergien: Kanalerneuerung 2028 · Radwegeplanung · Regenwasserabkopplung
+- Wirkung: mehr Schatten · geringere Oberflächentemperatur · mehr Wasserspeicherung · bessere Aufenthaltsqualität
+
+*(Betroffene/Untergrund/geplante Arbeiten in diesem Beispiel sind Zielwerte — heute teils geschätzt, voll belegbar erst mit Utrecht-Daten.)*
+
+---
+
+## 6 · Das Priorisierungsmodell (transparent)
+
+Kein abstraktes Ranking, sondern eine **Entscheidungsmatrix**. Ein einzelner Score darf **niemals die Begründung verdecken** — Komponenten immer getrennt zeigen.
+
+```text
+Priority =
+   Exposure × Vulnerability × People affected × Policy urgency
+   × Intervention effectiveness × Delivery feasibility × Synergy potential
+   ÷ Lifecycle cost
+```
+
+| Dimension | Beispiel |
+|---|--:|
+| Klimabelastung | 87/100 |
+| soziale Verwundbarkeit | 76/100 |
+| betroffene Einwohner | 81/100 |
+| Zielabweichung | 92/100 |
+| erwartete Wirkung | 78/100 |
+| Umsetzbarkeit | 64/100 |
+| Synergien | 91/100 |
+| Kostenwirksamkeit | 73/100 |
+
+> Erklärung des Systems: *„Die hohe Priorität entsteht nicht nur durch Hitze, sondern durch die Kombination aus älterer Bevölkerung, fehlendem Grünzugang und einer für 2028 geplanten Kanalerneuerung."*
+
+---
+
+## 7 · Drei erste Utrecht-Anwendungen
+
+| Anwendung | Ebene | Verbindet | Daten heute |
+|---|---|---|---|
+| **1 · Climate-Resilient Streets** ⭐ | Straßensegment | Klima + Mobilität + Infrastruktur | ✅ Straßen, Hitze, Versiegelung, Bäume/Schatten, Fuß/Rad · ❌ Untergrund, geplante Arbeiten |
+| **2 · Healthy Neighbourhoods** | Quartier | Grün, Luft, Lärm, Hitze, Versorgung, Isolation, Erreichbarkeit, Wohnkosten | ✅ meiste Layer · ⚠️ Investitionen |
+| **3 · Sustainable Urban Growth** | Entwicklungsgebiet | Wohnungen, Bezahlbarkeit, Energie, Grün, Schulen, Netz, Wasser | ⚠️ Bestand ✅, Neubaupläne ❌ |
+
+**Climate-Resilient Streets** ist der stärkste erste Use Case: pro Segment Hitze · Überflutung · Versiegelung · Schatten · Baumstandorte · (Untergrund/geplante Arbeiten) · Fuß-/Radverkehr · vulnerable Gruppen · mögliche Maßnahmen.
+
+---
+
+## 8 · Architektur-Stufen (ehrliche Phasierung)
 
 ```
 Kommunale Daten + Open Data + Sensorik + Satellit
-        ↓ Integration
-   Urban Ontology (Objekte · Beziehungen · Aktionen)
-        ↓
-   Analyse- & Simulationsengine
-        ↓ Maßnahmenlogik · Priorisierung · Fördermatching
-   Rollenbasierte Anwendungen
-        ↓
-   Beschluss · Projekt · Umsetzung · Wirkungsmessung
+  ↓ Integration → Urban Ontology (Objekte · Beziehungen · Aktionen)
+  ↓ Analyse- & Simulationsengine
+  ↓ Maßnahmenlogik · Priorisierung · Fördermatching
+  ↓ Rollenbasierte Anwendungen
+  ↓ Beschluss · Projekt · Umsetzung · Wirkungsmessung
 ```
 
-| Phase | Inhalt | Technik | Backend nötig? |
-|---|---|---|---|
+| Phase | Inhalt | Technik | Backend? |
+|---|---|---|:--:|
 | **P0 — heute** | Karte, Score, Layer, Diagnosen, PDF | Single-File-Frontend, GitHub Pages | nein |
-| **P1 — Mission-Demo** ⭐ | „Hitzesichere Schulen" end-to-end: Compiler + Priorität + Budget-Sim + Bericht | **Frontend**, Daten wie heute | **nein** |
-| **P2 — Objektmodell** | Daten aus dem HTML in eine API/DB ziehen; Objekt-/Beziehungsschema; Data-Lineage/Versionierung | **PostgreSQL/PostGIS** + API (Python/TS) | ja |
-| **P3 — Vorgänge & Rollen** | Problem→Vorgang, Status/Owner/Deadline/Audit-Trail; Rollen (OB, Fachamt, Kämmerei, Politik, Öffentlichkeit) | Workflow-Engine + Auth/Rechte | ja |
-| **P4 — Copilot** | Begründbare KI-Abfragen *über freigegebene Funktionen* — immer mit Quelle, Rechenweg, Konfidenz, menschlicher Freigabe | LLM als Oberfläche über P2/P3 | ja |
+| **P1 — Anwendungs-Demo** ⭐ | Climate-Resilient Streets (oder Hitzesichere Schulen) end-to-end: Challenge-Case + Priorität + Budget-Sim + Bericht | **Frontend**, heutige Daten | **nein** |
+| **P2 — Objektmodell** | Daten aus HTML → API/DB; Objekt-/Beziehungsschema; Data-Lineage/Versionierung | PostgreSQL/**PostGIS** + API | ja |
+| **P3 — Vorgänge & Rollen** | Problem→Vorgang, Status/Owner/Deadline/Audit; Rollen (OB, Fachamt, Kämmerei, Politik, Öffentlichkeit) | Workflow-Engine + Auth | ja |
+| **P4 — Copilot** | Begründbare KI *über freigegebene Funktionen* — Quelle, Rechenweg, Konfidenz, menschliche Freigabe | LLM als Oberfläche | ja |
 
-**Wichtig:** Graphdatenbank ist *nicht* der erste Schritt. Zuerst Objekte, Beziehungen und Aktionen sauber modellieren (P2). Der Copilot ist eine *Oberfläche*, kein Chatbot über Rohdaten.
-
----
-
-## 6 · Was heute geht vs. was Backend braucht
-
-| Fähigkeit | P1 Frontend (jetzt) | Braucht Backend (P2+) |
-|---|:--:|:--:|
-| Schulen nach Hitzerisiko priorisieren | ✅ | |
-| Maßnahmenpakete + Kosten + Förderung | ✅ | |
-| Budget-Simulation „5 Mio → Top 10" | ✅ | |
-| Baseline-vs-Szenario-Kennzahlen | ✅ | |
-| Mission-Bericht (PDF) | ✅ | |
-| Zuständiges Amt / Eigentümer | | ✅ |
-| Projektstatus / Beschluss / Deadline | | ✅ |
-| Mehrbenutzer, Rollen, Audit-Trail | | ✅ |
-| Wirkungsmessung über Jahre (Satellit) | | ✅ |
-
-→ **P1 beweist den Wert ohne Backend.** Erst wenn eine Kommune mitmacht, lohnt P2/P3.
+Graphdatenbank ist **nicht** der erste Schritt — zuerst Objekte/Beziehungen/Aktionen sauber modellieren (P2).
 
 ---
 
-## 7 · MVP-Spezifikation — „Hitzesichere Schulen Utrecht"
+## 9 · Sequenzierung
 
-**Belegte Datenbasis (heute live):** 156 Schulen/Kitas (`pois_utr`) · LST-Feld 20k (`heat_exposure_utr`) · Grün 4k (`green_utr`) · Versiegelung/Gebäude 20k · Sozial 8.781 · Maßnahmen mit Kosten/ROI/Förderung.
-
-**Pro Schule berechnet:**
-- ΔLST am Standort (Sampling aus dem Copernicus-Feld)
-- Entfernung zur nächsten Grünfläche / Schatten (Grün-Layer)
-- Versiegelung im Umfeld (Gebäude/District)
-- soziale Verwundbarkeit des Wijk (Kinderarmut, SGB-II-Pendant)
-- **Hitzerisiko-Prioritätswert** = Kombination der obigen (ehrlich als Komposit ausgewiesen)
-
-**Ausgabe:**
-1. **Prioritätenliste** aller Schulen (sortierbar) + Kartenansicht mit Pins
-2. Je Schule: 3 **standardisierte Maßnahmenpakete** (Bäume+Entsiegelung / Verschattung / Schwammstadt) mit Kostenkorridor + Förderfähigkeit + erwarteter ΔLST-Wirkung
-3. **Budget-Simulator:** *„Ich habe X Mio € — welche N Schulen zuerst?"* → Greedy-Auswahl nach Wirkung/€, Karte, Begründung
-4. **Mission-Bericht (PDF)** mit Quellen, Annahmen, Konfidenz
-
-**Nutzer-Satz, den das MVP beantwortet:**
-> „Ich habe 5 Mio €. Welche zehn Schulen sollte Utrecht bis 2028 zuerst umbauen?"
-
-Das ist der überzeugende „Palantir-Moment" — im bestehenden Tool, ohne Backend.
+1. **(dieses Dokument)** Ontology + Missionen + Utrecht-Ziele abstimmen ✅
+2. **Objektmodell definieren:** ~25 Kernobjekttypen · ~40 Beziehungen · ~15 Politikziele · ~10 Standardmaßnahmen · ein Datenqualitätsmodell
+3. **P1 — Climate-Resilient Streets** als erster vollständiger Prozess:
+   `Risiko erkennen → Segment wählen → Betroffene bestimmen → geplante Arbeiten prüfen → Maßnahmen vergleichen → Kosten/Wirkung simulieren → Projektvorschlag → Umsetzung verfolgen → Wirkung messen`
+4. **P1-Alternative (schmaler, schnellster Demo):** „Hitzesichere Schulen Utrecht" (156 Schulen) als tightester Palantir-Moment ohne Backend
+5. **Healthy Neighbourhoods** (Gesundheit/Soziales/Gerechtigkeit ergänzen)
+6. **Sustainable Urban Growth** (Neubau/Wohnen/Energie/Netz)
+7. Entscheidung Kommunen-Partner → P2/P3/P4 · dann weitere Städte
 
 ---
 
-## 8 · Roadmap / Sequenzierung
+## 10 · Zielbild für Utrecht
 
-1. **(dieses Dokument)** Ontology + Missionen + Architektur abstimmen ✅
-2. **P1a:** Schul-Scoring + Prioritätenliste + Karte (Mission-Modus)
-3. **P1b:** Maßnahmen-Compiler je Schule (3 Pakete, Kosten, Förderung, Wirkung)
-4. **P1c:** Budget-Simulator + Baseline-vs-Szenario + Mission-Bericht
-5. **Entscheidung:** Kommunen-Partner? → wenn ja, P2 (PostGIS/API/Objektmodell)
-6. P3 Vorgänge & Rollen · P4 Copilot
-7. erst danach weitere Städte/Missionen skalieren
+UrbanLens soll am Ende beantworten:
+
+> „Utrecht hat für 2028 **30 Mio €** für den öffentlichen Raum. Welche Projekte reduzieren die größten Klima- und Gesundheitsrisiken, erreichen besonders vulnerable Einwohner, lassen sich mit bereits geplanten Tiefbauarbeiten kombinieren und tragen zugleich zur 10-Minuten-Stadt bei?"
+
+Antwort: (1) priorisiertes Investitionsportfolio · (2) räumliche Verteilung · (3) betroffene Gruppen · (4) Kosten & Finanzierung · (5) erwartete Wirkungen · (6) Synergien & Zielkonflikte · (7) Zuständigkeiten & Zeitplan · (8) nachvollziehbare Begründung je Empfehlung.
+
+→ Kein weiteres Nachhaltigkeitsdashboard, sondern ein **Steuerungsmodell für Utrechts große Transformationen.**
 
 ---
 
-## 9 · Positionierung & Namensarchitektur
+## 11 · Positionierung & Namensarchitektur
 
-**Nicht** öffentlich „Palantir für Städte" (Verteidigungs-/Überwachungs-Konnotation). Besser:
+Nach außen **nicht** „Palantir für Städte" (Konnotation). Besser:
+> **UrbanLens — das Betriebssystem für nachhaltige Stadtentwicklung · *From urban data to urban action.***
 
-> **UrbanLens — das Betriebssystem für nachhaltige Stadtentwicklung**
-> *From urban data to urban action.*
-
-Markenarchitektur (Vorschlag):
 - **nice here Public** — öffentliche Karte (Bürger)
 - **UrbanLens Intelligence** — Analyse
 - **UrbanLens Operations** — Maßnahmen & Projekte
@@ -200,14 +233,13 @@ Markenarchitektur (Vorschlag):
 
 ---
 
-## 10 · Risiken & offene Entscheidungen
+## 12 · Risiken & Datenschutz
 
-- **Datenschutz:** durchgängig mit **aggregierten Gruppen** arbeiten, nie mit Einzelpersonen.
-- **Konfidenz sichtbar halten:** jede Zahl mit Quelle/Datenstand/„gemessen vs. modelliert vs. geschätzt" (haben wir schon — beibehalten).
-- **Kommunen-Abhängigkeit:** Zuständigkeit/Eigentum/Budget/Status gibt es nur mit einer Kommune als Partner. P1 muss so überzeugen, dass genau dieser Partner andockt.
-- **Nicht die Entscheidung ersetzen:** UrbanLens strukturiert und dokumentiert — die Freigabe bleibt beim Menschen.
-- **Offen:** Start-Mission (Empfehlung: Hitzesichere Schulen) · Utrecht bestätigt · wann P2 (Backend) beginnt.
+- **Datenschutz:** durchgängig **aggregierte Gruppen**, nie Einzelpersonen.
+- **Konfidenz sichtbar:** jede Zahl mit Quelle/Datenstand/„gemessen vs. modelliert vs. geschätzt" (haben wir — beibehalten).
+- **Partner-Abhängigkeit:** Zuständigkeit/Eigentum/Untergrund/geplante Arbeiten/Budget/Status gibt es nur mit Utrecht. P1 muss so überzeugen, dass genau dieser Partner andockt.
+- **Keine Entscheidung ersetzen:** UrbanLens strukturiert & dokumentiert — Freigabe bleibt beim Menschen.
 
 ---
 
-*Nächster Schritt bei Freigabe: P1a — der Mission-Modus „Hitzesichere Schulen Utrecht" mit Prioritätenliste + Karte.*
+*Nächster Schritt bei Freigabe: P1 — „Climate-Resilient Streets Utrecht" (oder als schmalerer Einstieg „Hitzesichere Schulen").*
