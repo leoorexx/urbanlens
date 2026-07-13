@@ -608,7 +608,7 @@ body.free-mode #heatWarn{top:106px}
 
 <div class="left">
   <div class="lhead">
-    <div class="ltitle" id="listTitle">46 Frankfurter Stadtteile</div>
+    <div class="ltitle" id="listTitle">Stadtteile</div>
     <div class="lsub" data-i18n="list_sub">Relative Einstufung im Stadtvergleich · Quintile</div>
     <div class="swrap">
       <span class="sicon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></span>
@@ -4658,7 +4658,7 @@ function renderPOILayer(geojson,id,allowedTypes){
 function renderList(filter=''){
   const cfg=CITY_CFG[city];
   const allS=Object.values(cfg.data).map(lensScore);
-  document.getElementById('listTitle').textContent=`${Object.keys(cfg.data).length} Frankfurter Stadtteile`;
+  document.getElementById('listTitle').textContent=`${Object.keys(cfg.data).length} ${t(city==='ffm'?'districts_ffm':'districts_utr')}`;
   const entries=Object.entries(cfg.data)
     .map(([n,d])=>({n,d,s:lensScore(d)}))
     .filter(e=>!filter||e.n.toLowerCase().includes(filter.toLowerCase()))
