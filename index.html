@@ -1878,8 +1878,12 @@ function csEnter(e){ if(e.key!=='Enter'&&e.keyCode!==13)return;
   if(first){ e.preventDefault(); first.click(); }
   else { const q=(e.target.value||'').trim(); if(q.length>=3){ clearTimeout(CS_TIMER); geocodeCity(q); } }  // noch keine Treffer → sofort suchen, Enter erneut
 }
+// Such-Bias: liegt man auf Utrecht/Frankfurt (oder einer gesuchten Stadt),
+// werden Adress-Vorschläge dort priorisiert → eigene Adresse schneller gefunden.
+function geoBiasCenter(){ if(FREE)return [FREE.lat,FREE.lon]; const c=CITY_CFG[city]; return c&&c.center?c.center:null; }
+function geoBiasViewbox(){ if(FREE)return ''; const c=CITY_CFG[city]; if(!c||!c.bbox)return ''; const p=c.bbox.split(','); /* s,w,n,e → w,s,e,n */ return '&viewbox='+p[1]+','+p[0]+','+p[3]+','+p[2]+'&bounded=0'; }
 function geocodeCity(q){
-  const key=q.toLowerCase();
+  const key=q.toLowerCase()+'@'+(FREE?'free':(CITY_CFG[city]?city:'x'));
   if(CS_CACHE[key]){ renderCsDrop(q,CS_CACHE[key]); return; }
   if(CS_ABORT){try{CS_ABORT.abort();}catch(e){}}
   const ac=(typeof AbortController!=='undefined')?new AbortController():null; CS_ABORT=ac;
@@ -1892,7 +1896,8 @@ function geocodeCity(q){
 }
 function photonGeocode(q,signal){
   const plang=lang==='de'?'de':lang==='en'?'en':'default';
-  return fetch('https://photon.komoot.io/api/?limit=7&lang='+plang+'&q='+encodeURIComponent(q),{signal}).then(r=>r.ok?r.json():null).then(j=>{
+  const bc=geoBiasCenter(); const bias=bc?('&lat='+bc[0]+'&lon='+bc[1]+'&zoom=13'):'';
+  return fetch('https://photon.komoot.io/api/?limit=7&lang='+plang+bias+'&q='+encodeURIComponent(q),{signal}).then(r=>r.ok?r.json():null).then(j=>{
     if(!j||!j.features)return [];
     const seen={},out=[];
     for(const f of j.features){
@@ -1912,7 +1917,7 @@ function photonGeocode(q,signal){
   });
 }
 function nominatimGeocode(q,signal){
-  return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=7&addressdetails=1&q='+encodeURIComponent(q),{headers:{'Accept-Language':lang},signal}).then(r=>r.ok?r.json():[]).then(res=>{ const seen={},out=[];
+  return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=7&addressdetails=1'+geoBiasViewbox()+'&q='+encodeURIComponent(q),{headers:{'Accept-Language':lang},signal}).then(r=>r.ok?r.json():[]).then(res=>{ const seen={},out=[];
     for(const r of (res||[])){
       const a=r.address||{}; const road=a.road||a.pedestrian||a.footway; let label,isAddr=false;
       if(road){ const place=a.city||a.town||a.village||a.municipality||a.suburb||a.county||''; label=road+(a.house_number?' '+a.house_number:'')+(place?', '+place:''); isAddr=true; }
