@@ -1138,6 +1138,9 @@ Object.assign(TR,{"/100 Hitzebetroffenheit":{"en":"/100 heat exposure","nl":"/10
 Object.keys(TR).forEach(k=>{if(k.indexOf("&")>=0){const k2=k.split("&").join("&amp;");if(!TR[k2])TR[k2]=TR[k];}});
 Object.assign(TR,{"Versiegelung ":{"en":"Sealing ","nl":"Verharding "},"NDVI-Mangel":{"en":"NDVI deficit","nl":"NDVI-tekort"},"LCZ-Einordnung: ":{"en":"LCZ class: ","nl":"LCZ-indeling: "},"Mitteldichte Bebauung":{"en":"Medium-density built form","nl":"Middeldichte bebouwing"},"Dichte Bebauung":{"en":"Dense built form","nl":"Dichte bebouwing"},"Offene Bebauung":{"en":"Open built form","nl":"Open bebouwing"},"Abweichung vom ":{"en":"deviation from the ","nl":"afwijking van het "},"Frankfurter ":{"en":"Frankfurt ","nl":"Frankfurter "},"Green volume":{"en":"Green volume","nl":"Groenvolume"}});
 Object.keys(TR).forEach(k=>{if(k.indexOf("&")>=0){const k2=k.split("&").join("&amp;");if(!TR[k2])TR[k2]=TR[k];}});
+// Sanitizer: nicht-idempotente Keys (Übersetzung enthält den Key selbst → würde bei
+// wiederholten localize-Pässen anwachsen, z.B. Typ→Type→Typee) überspringen
+Object.keys(TR).forEach(k=>{["en","nl"].forEach(l=>{const v=TR[k]&&TR[k][l];if(v&&v!==k&&v.indexOf(k)>=0)delete TR[k][l];});});
 const TR_KEYS=Object.keys(TR).sort((a,b)=>b.length-a.length);
 function localize(h){ if(lang==='de')return h; for(const k of TR_KEYS){ const v=TR[k][lang]; if(v&&h.indexOf(k)>=0)h=h.split(k).join(v); } return h; }
 
