@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>nice here — Methodik & Datenquellen</title>
+<title>Inspector Nice — Methodology &amp; data sources</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&display=swap" rel="stylesheet">
 <style>
@@ -24,7 +24,10 @@ svg.i{vertical-align:-2px}
 .logo span{color:#36d5d0}
 .nav-pill{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;text-decoration:none;border:1.5px solid var(--border);color:var(--text2);transition:all .15s;display:inline-flex;align-items:center;gap:6px}
 .nav-pill:hover,.nav-pill.active{background:var(--text);color:#fff;border-color:var(--text)}
-.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.lang-switch{display:flex;gap:2px;background:var(--surface2);padding:3px;border-radius:14px;border:1px solid var(--border)}
+.lg{border:none;background:transparent;padding:4px 9px;border-radius:11px;font-size:11px;font-weight:800;color:var(--muted);cursor:pointer;font-family:inherit}
+.lg.on{background:var(--text);color:#fff}
 .page{max-width:980px;margin:0 auto;padding:40px 24px 96px}
 .lede{font-size:13px;color:var(--text2);max-width:680px;margin-top:10px;line-height:1.7}
 h1{font-family:var(--font-serif);font-size:34px;font-weight:500;letter-spacing:-.01em;line-height:1.08}
@@ -68,151 +71,196 @@ a.ref:hover{text-decoration:underline}
 <body>
 <nav class="nav">
   <a href="index.html" class="logo"><svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true" style="vertical-align:-4px;margin-right:6px"><line x1="5" y1="7" x2="12" y2="4" stroke="#36d5d0" stroke-width="1.3"/><line x1="12" y1="4" x2="17" y2="11" stroke="#a60ba6" stroke-width="1.3"/><line x1="5" y1="7" x2="8" y2="15" stroke="#ff8210" stroke-width="1.3"/><line x1="8" y1="15" x2="17" y2="11" stroke="#36d5d0" stroke-width="1.3"/><circle cx="5" cy="7" r="2.4" fill="#ff8210"/><circle cx="12" cy="4" r="1.9" fill="#36d5d0"/><circle cx="17" cy="11" r="2.7" fill="#a60ba6"/><circle cx="8" cy="15" r="2" fill="#36d5d0"/></svg>nice <span>here</span></a>
-  <a href="index.html" class="nav-pill"><svg class="i" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m9 3-6 2v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16M15 5v16"/></svg> Karte</a>
+  <a href="index.html" class="nav-pill" id="navMap"><svg class="i" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m9 3-6 2v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16M15 5v16"/></svg> <span id="t_navMap">Map</span></a>
   <a href="dashboard.html" class="nav-pill"><svg class="i" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
-  <a href="methodik.html" class="nav-pill active">Methodik</a>
-  <div class="nav-r"><span id="mCityBadge" style="font-size:10px;font-weight:700;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:3px 10px;color:var(--text2)"></span><span style="font-size:10px;color:var(--muted)">Stand: Juni 2026 · v1.0</span></div>
+  <a href="methodik.html" class="nav-pill active" id="t_navMeth">Methodology</a>
+  <div class="nav-r">
+    <div class="lang-switch">
+      <button class="lg" id="lg-de" onclick="setLang('de')">DE</button>
+      <button class="lg on" id="lg-en" onclick="setLang('en')">EN</button>
+      <button class="lg" id="lg-nl" onclick="setLang('nl')">NL</button>
+    </div>
+    <span id="mCityBadge" style="font-size:10px;font-weight:700;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:3px 10px;color:var(--text2)"></span>
+    <span style="font-size:10px;color:var(--muted)" id="t_stand">As of July 2026 · v1.1</span>
+  </div>
 </nav>
 
 <div class="page">
 
-  <h1>Methodik &amp; Datenquellen</h1>
-  <p class="lede">nice here bewertet Stadtteile entlang des NICE Score — 8 Dimensionen, abgeleitet aus 29 dokumentierten Indikatoren über mehr als 30 Datenebenen. Diese Seite dokumentiert für jeden Indikator die Berechnungsformel, Primär- und Validierungsquelle, den normativen Bezugsrahmen, den Datenstand und den Konfidenzgrad. Sie ist als zitierfähige Referenz für Verwaltung, Planungsbüros und Forschung gedacht.</p>
+  <h1 id="t_h1">Methodology &amp; data sources</h1>
+  <p class="lede" id="t_lede"></p>
 
   <div class="section">
-    <div class="section-label">Konfidenzmodell — vier Stufen der Datengrundlage</div>
+    <div class="section-label" id="t_secConf"></div>
     <div class="conf-grid">
-      <div class="conf">
-        <span class="conf-dot d-live"></span>
-        <h3>Live</h3>
-        <p>Echtzeit aus OpenStreetMap-Overpass oder Sensorik. Wird beim Verschieben der Karte neu geladen. Aktualität maximal, Vollständigkeit je nach Kartierung.</p>
-      </div>
-      <div class="conf">
-        <span class="conf-dot d-measured"></span>
-        <h3>Gemessen</h3>
-        <p>Direkte amtliche Erhebung oder Satellitenmessung (Copernicus, Zensus, amtliche Hochwasserkarte). Höchste Sicherheit.</p>
-      </div>
-      <div class="conf">
-        <span class="conf-dot d-modeled"></span>
-        <h3>Modelliert</h3>
-        <p>Aus gemessenen Werten nach dokumentierter Methode berechnet (z.&nbsp;B. CO₂ aus echtem Baujahr × Energie-Intensität der Bauepoche). Mittlere Sicherheit.</p>
-      </div>
-      <div class="conf">
-        <span class="conf-dot d-estimated"></span>
-        <h3>Geschätzt</h3>
-        <p>Annahme- oder proxybasiert bei lückenhafter Datenlage. Als Schätzung gekennzeichnet, dient der Orientierung.</p>
-      </div>
+      <div class="conf"><span class="conf-dot d-live"></span><h3 id="t_cLiveH"></h3><p id="t_cLiveP"></p></div>
+      <div class="conf"><span class="conf-dot d-measured"></span><h3 id="t_cMeasH"></h3><p id="t_cMeasP"></p></div>
+      <div class="conf"><span class="conf-dot d-modeled"></span><h3 id="t_cModH"></h3><p id="t_cModP"></p></div>
+      <div class="conf"><span class="conf-dot d-estimated"></span><h3 id="t_cEstH"></h3><p id="t_cEstP"></p></div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-label">NICE Score — Berechnung der 8 Dimensionen</div>
-    <p class="lede" style="margin:0 0 14px">NICE Score = ungewichtetes Mittel der 8 Dimensionen (je 0–100, höher = besser). Die Kartenfarbe nutzt Quintile im Stadtvergleich, keinen absoluten Schwellwert.</p>
+    <div class="section-label" id="t_secNice"></div>
+    <p class="lede" style="margin:0 0 14px" id="t_niceLede"></p>
     <div style="overflow-x:auto">
     <table>
-      <thead><tr><th>Dimension</th><th>Formel (vereinfacht)</th><th>Primärquelle</th><th>Validierung</th><th>Normativer Bezug</th><th>Stand</th><th>Konfidenz</th></tr></thead>
+      <thead><tr id="dimHead"></tr></thead>
       <tbody id="dimBody"></tbody>
     </table>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-label">Umweltdaten — doppelt referenziert</div>
-    <p class="lede" style="margin:0 0 14px">Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung. So werden Messlücken erkannt und Referenzen abgesichert.</p>
+    <div class="section-label" id="t_secEnv"></div>
+    <p class="lede" style="margin:0 0 14px" id="t_envLede"></p>
     <div style="overflow-x:auto">
     <table>
-      <thead><tr><th>Indikator</th><th>Primärquelle</th><th>Validierungsquelle</th><th>Stand</th><th>Konfidenz</th></tr></thead>
+      <thead><tr id="envHead"></tr></thead>
       <tbody id="envBody"></tbody>
     </table>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-label">Benchmark-Studien — methodischer Anschluss</div>
+    <div class="section-label" id="t_secBench"></div>
     <div class="card" style="margin-bottom:14px">
       <h2>DUH Hitze-Check 2026</h2>
-      <p class="lede" style="margin-top:6px">Die Deutsche Umwelthilfe bewertet 195 Städte nach Versiegelung, Grünvolumen, Oberflächentemperatur und Bevölkerungsdichte (Ampelsystem rot/gelb/grün). nice here rechnet diese Methodik auf Stadtteilebene herunter — die DUH bewertet nur Gesamtstädte. Unser Hitzebetroffenheitsindex = 0,35·Versiegelung + 0,35·Oberflächentemperatur-Perzentil + 0,30·(invertiertes Grünvolumen). Grünvolumen geschätzt aus Versiegelungsgrad und Ökosystem-Score. <a class="ref" href="https://www.duh.de/hitze-check/" target="_blank" rel="noopener">duh.de/hitze-check ↗</a></p>
+      <p class="lede" style="margin-top:6px" id="t_duh"></p>
     </div>
     <div class="card">
       <h2>SKL Glücksatlas</h2>
-      <p class="lede" style="margin-top:6px">Universität Freiburg / IfD Allensbach erheben Lebenszufriedenheit (Skala 0–10) über 50 Indikatoren in 13 Kategorien. Kernbefund: entscheidend ist nicht der Durchschnitt, sondern das Zufriedenheitsgefälle — wo die Lücke zwischen zufriedenen und unzufriedenen Vierteln groß ist, sinkt das Glücksniveau der ganzen Stadt. nice here bildet dieses Gefälle als Kennzahl „Zufriedenheitsgefälle" ab (Spread zwischen bestem und schlechtestem Stadtteil). <a class="ref" href="https://www.skl-gluecksatlas.de/" target="_blank" rel="noopener">skl-gluecksatlas.de ↗</a></p>
+      <p class="lede" style="margin-top:6px" id="t_skl"></p>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-label">Datenstand — Übersicht</div>
-    <div class="card">
-      <div class="dl-row"><span>Satelliten-/Klimadaten (Copernicus Sentinel-2/-3)</span><b>2024</b></div>
-      <div class="dl-row"><span>Amtliche Hochwassergefahrenkarte (HLNUG / Risicokaart NL)</span><b>2023</b></div>
-      <div class="dl-row"><span>Gebäude &amp; Baujahr (Utrecht: PDOK BAG · FFM: IWU / EPC Hessen)</span><b>2024</b></div>
-      <div class="dl-row"><span>Sozialdaten (Utrecht: CBS Kerncijfers · FFM: Zensus/Statistikportal)</span><b>2023</b></div>
-      <div class="dl-row"><span>Wahlbeteiligung (letzte Bundestags- &amp; Kommunalwahl)</span><b>2021</b></div>
-      <div class="dl-row"><span>OpenStreetMap Live-Layer (Bäume, ÖPNV, Trinkbrunnen …)</span><b>Echtzeit</b></div>
-    </div>
+    <div class="section-label" id="t_secVintage"></div>
+    <div class="card" id="vintageCard"></div>
   </div>
 
   <div class="section">
-    <div class="section-label">Grenzen &amp; Haftung</div>
-    <div class="disclaimer">
-      nice here ist ein Analyse- und Orientierungswerkzeug, kein amtliches Gutachten. Modellierte und geschätzte Werte (siehe Konfidenzgrad) sind Annäherungen und ersetzen keine fachgutachterliche Prüfung, keinen Energieausweis und keine rechtsverbindliche Hochwasserbewertung. Förder- und Kostenangaben dienen der Orientierung; Konditionen können sich ändern und sind kein Ersatz für individuelle Beratung. Sozialindikatoren liegen amtlich nur auf Stadtteilebene vor; eine feinere Darstellung wäre Schätzung. Für Entscheidungen mit rechtlicher oder finanzieller Tragweite sind die jeweiligen amtlichen Primärquellen heranzuziehen.
-    </div>
+    <div class="section-label" id="t_secLimits"></div>
+    <div class="disclaimer" id="t_disclaimer"></div>
   </div>
 
   <div class="section">
-    <div class="section-label">Zitierweise</div>
+    <div class="section-label" id="t_secCite"></div>
     <div class="cite-box">
-      <span class="lbl">So zitieren Sie nice here</span>
-      nice here (2026): NICE Score &amp; Klimarisiko-Analyse, [Stadtteil], [Stadt]. Datenstand wie angegeben. Methodik: leoorexx.github.io/urbanlens/methodik.html. Abgerufen am [Datum].
+      <span class="lbl" id="t_citeLbl"></span>
+      <span id="t_cite"></span>
     </div>
-    <p class="muted-note">Jeder Stadtteil im Tool bietet ein vorformatiertes Zitat zum Kopieren sowie einen Permalink, der direkt diesen Stadtteil öffnet.</p>
+    <p class="muted-note" id="t_citeNote"></p>
   </div>
 
 </div>
 
 <script>
-// Aktuelle Stadt aus der Karte übernehmen (seitenübergreifend)
-(function(){var c='utr';try{if(localStorage.getItem('nh_city')==='ffm')c='ffm';}catch(e){}var el=document.getElementById('mCityBadge');if(el)el.textContent=(c==='ffm'?'Frankfurt am Main':'Utrecht');})();
+// Sprache: gespeicherte Wahl > Browser nl→NL / de→DE > EN (Launch-Markt EN/NL)
+let lang=localStorage.getItem('ul_lang')||(((navigator.language||'').slice(0,2)==='nl')?'nl':(((navigator.language||'').slice(0,2)==='de')?'de':'en'));
+function T3(de,en,nl){return lang==='en'?en:lang==='nl'?nl:de;}
+
 const ICONS={thermo:'<path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/>',lung:'<path d="M12 4v8M12 12c0 3-2 6-5 6s-4-2-4-5 1-7 3-7 3 2 3 4M12 12c0 3 2 6 5 6s4-2 4-5-1-7-3-7-3 2-3 4"/>',bike:'<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h2l-3.5 7H9l-2 4.5"/><path d="m9 13-2-7h3"/>',book:'<path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2Z"/>',home:'<path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-9Z"/>',vote:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',tree:'<path d="M12 3 8 9h2l-4 6h12l-4-6h2l-4-6Z"/><path d="M12 15v6"/>',shield:'<path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/>'};
 function ic(n){const p=ICONS[n];return p?`<svg class="i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`:'';}
-function cb(t){const m={measured:['d-measured','Gemessen'],modeled:['d-modeled','Modelliert'],estimated:['d-estimated','Geschätzt'],live:['d-live','Live']}[t];return `<span class="cbadge"><span class="d ${m[0]}"></span>${m[1]}</span>`;}
+function cb(t){const lbl={measured:T3('Gemessen','Measured','Gemeten'),modeled:T3('Modelliert','Modelled','Gemodelleerd'),estimated:T3('Geschätzt','Estimated','Geschat'),live:'Live'}[t];const cls={measured:'d-measured',modeled:'d-modeled',estimated:'d-estimated',live:'d-live'}[t];return `<span class="cbadge"><span class="d ${cls}"></span>${lbl}</span>`;}
 
+// Quellen-Spalten bewusst sprachneutral (Eigennamen + internationale Kurzbeschreibung)
 const DIMS=[
- {k:'A',icon:'thermo',name:'Klimagerechtigkeit',formula:'0,40·LST-Perzentil + 0,35·Versiegelung + 0,25·NDVI-Mangel',prim:'Copernicus Sentinel-3 (Oberflächentemperatur)',val:'DWD Klimaatlas · HLNUG Hitzestress Hessen',norm:'EU Renaturierungs-VO 2024/1991',stand:'2024',conf:'measured'},
- {k:'B',icon:'lung',name:'Gesundheitslast',formula:'Luftqualität (PM2.5+NO2 vs. EU-Grenzwert) + Lärm Lden + Atemwegsrate',prim:'HLNUG Luftmessnetz · EU-Umgebungslärm-Kartierung',val:'RKI Gesundheitsatlas',norm:'EU Air Quality Directive 2024',stand:'2023',conf:'modeled'},
- {k:'C',icon:'bike',name:'Mobilität',formula:'ÖPNV-Takt (GTFS) + Radweglänge/km² + 10-Min-Erreichbarkeit − Unfalldichte',prim:'RMV GTFS · OpenStreetMap Overpass',val:'Unfallatlas Deutschland (Destatis)',norm:'SDG 11.2 · 10-Minuten-Stadt',stand:'2024',conf:'modeled'},
- {k:'D',icon:'book',name:'Bildungsstart',formula:'Kita-Quote + (1−Abbrecherquote) + (1−Jugendarbeitslosigkeit) − Bijstand/SGB-II',prim:'Utrecht: DUO / CBS Kerncijfers wijken · FFM: Statistikportal/Jugendamt',val:'UWV / Bundesagentur für Arbeit',norm:'SDG 4 (Kita-Quote >90%)',stand:'2023',conf:'estimated'},
- {k:'E',icon:'home',name:'Wohn-Krise',formula:'Mietbelastungsquote + Gentrifizierungsdruck (5J) + Überbelegung',prim:'Utrecht: CBS Wonen · FFM: Statistikportal/Zensus',val:'Kadaster / ImmobilienScout24',norm:'Mietquote ≤30% (Wohngeldgesetz / NL Woningwet)',stand:'2023',conf:'estimated'},
- {k:'F',icon:'vote',name:'Demokratie & Teilhabe',formula:'Wahlbeteiligung + Vereinsdichte + Community Places/10.000 EW',prim:'Utrecht: Kiesraad · FFM: Stadtwahlamt',val:'Verenigingen/Vereinsregister · OSM',norm:'Aarhus-Konvention',stand:'2021',conf:'measured'},
- {k:'G',icon:'tree',name:'Ökosystem-Gesundheit',formula:'NDVI + Baumvitalität/Kronendichte + Biotopkonnektivität + Wasserretention',prim:'Copernicus Sentinel-2 (NDVI)',val:'Stadtbaumliste FFM · HLNUG Biotopkartierung',norm:'EU Renaturierungs-VO 2024',stand:'2024',conf:'measured'},
- {k:'H',icon:'shield',name:'Katastrophenresilienz',formula:'Hochwasserrisiko HQ100 (Flächenanteil) + kritische Infrastruktur + Reaktionszeit',prim:'HLNUG Hochwassergefahrenkarte · Risicokaart NL',val:'Feuerwehr FFM · RP Darmstadt',norm:'EU Floods Directive 2007/60/EG',stand:'2023',conf:'measured'},
+ {k:'A',icon:'thermo',name:['Klimagerechtigkeit','Climate justice','Klimaatrechtvaardigheid'],formula:['0,40·LST-Perzentil + 0,35·Versiegelung + 0,25·NDVI-Mangel','0.40·LST percentile + 0.35·sealing + 0.25·NDVI deficit','0,40·LST-percentiel + 0,35·verharding + 0,25·NDVI-tekort'],prim:'Copernicus Sentinel-3 (LST)',val:'DWD/KNMI Klimaatlas · HLNUG',norm:'EU Nature Restoration Reg. 2024/1991',stand:'2024',conf:'measured'},
+ {k:'B',icon:'lung',name:['Gesundheitslast','Health burden','Gezondheidslast'],formula:['Luftqualität (PM2.5+NO₂ vs. EU-Grenzwert) + Lärm Lden + Atemwegsrate','Air quality (PM2.5+NO₂ vs EU limit) + noise Lden + respiratory rate','Luchtkwaliteit (PM2.5+NO₂ vs EU-norm) + geluid Lden + luchtwegquote'],prim:'HLNUG/RIVM air network · EU noise mapping',val:'RKI Gesundheitsatlas / RIVM',norm:'EU Air Quality Directive 2024',stand:'2023',conf:'modeled'},
+ {k:'C',icon:'bike',name:['Mobilität','Mobility','Mobiliteit'],formula:['ÖPNV-Takt (GTFS) + Radweglänge/km² + 10-Min-Erreichbarkeit − Unfalldichte','Transit frequency (GTFS) + cycle-path length/km² + 10-min access − crash density','OV-frequentie (GTFS) + fietspad/km² + 10-min-bereik − ongevalsdichtheid'],prim:'GTFS (RMV / NS-OV) · OpenStreetMap',val:'Unfallatlas (Destatis) / SWOV',norm:'SDG 11.2 · 10-minute city',stand:'2024',conf:'modeled'},
+ {k:'D',icon:'book',name:['Bildungsstart','Education start','Onderwijsstart'],formula:['Kita-Quote + (1−Abbrecherquote) + (1−Jugendarbeitslosigkeit) − Sozialleistungsquote','Childcare rate + (1−dropout rate) + (1−youth unemployment) − social-assistance rate','Opvangquote + (1−uitval) + (1−jeugdwerkloosheid) − bijstandsquote'],prim:'Utrecht: DUO / CBS · FFM: Statistikportal',val:'UWV / Bundesagentur für Arbeit',norm:'SDG 4 (childcare >90%)',stand:'2023',conf:'estimated'},
+ {k:'E',icon:'home',name:['Wohn-Krise','Housing crisis','Wooncrisis'],formula:['Mietbelastungsquote + Gentrifizierungsdruck (5 J) + Überbelegung','Rent-burden ratio + gentrification pressure (5 yrs) + overcrowding','Huurquote + gentrificatiedruk (5 jr) + overbewoning'],prim:'Utrecht: CBS Wonen · FFM: Zensus',val:'Kadaster / ImmobilienScout24',norm:'Rent share ≤30% (NL Woningwet / DE WoGG)',stand:'2023',conf:'estimated'},
+ {k:'F',icon:'vote',name:['Demokratie & Teilhabe','Democracy & participation','Democratie & participatie'],formula:['Wahlbeteiligung + Vereinsdichte + Community Places / 10.000 EW','Voter turnout + association density + community places / 10k residents','Opkomst + verenigingsdichtheid + buurtplekken / 10k inw.'],prim:'Utrecht: Kiesraad · FFM: Stadtwahlamt',val:'Association registries · OSM',norm:'Aarhus Convention',stand:'2021',conf:'measured'},
+ {k:'G',icon:'tree',name:['Ökosystem-Gesundheit','Ecosystem health','Ecosysteemgezondheid'],formula:['NDVI + Baumvitalität/Kronendichte + Biotopkonnektivität + Wasserretention','NDVI + tree vitality/canopy + biotope connectivity + water retention','NDVI + boomvitaliteit/kroon + biotoopconnectiviteit + waterretentie'],prim:'Copernicus Sentinel-2 (NDVI)',val:'City tree registries · HLNUG',norm:'EU Nature Restoration Reg. 2024',stand:'2024',conf:'measured'},
+ {k:'H',icon:'shield',name:['Katastrophenresilienz','Disaster resilience','Rampbestendigheid'],formula:['Hochwasserrisiko HQ100 (Flächenanteil) + kritische Infrastruktur + Reaktionszeit','Flood risk HQ100 (area share) + critical infrastructure + response time','Overstromingsrisico HQ100 (aandeel) + kritieke infrastructuur + responstijd'],prim:'HLNUG flood maps · Risicokaart NL',val:'Fire services · RP Darmstadt',norm:'EU Floods Directive 2007/60/EC',stand:'2023',conf:'measured'},
 ];
-document.getElementById('dimBody').innerHTML=DIMS.map(d=>`<tr>
-  <td class="dim-name">${ic(d.icon)} ${d.k} · ${d.name}</td>
-  <td><span class="formula">${d.formula}</span></td>
-  <td class="src-prim">${d.prim}</td>
-  <td class="src-val">${d.val}</td>
-  <td style="font-size:10.5px;color:var(--text2)">${d.norm}</td>
-  <td class="vintage">${d.stand}</td>
-  <td>${cb(d.conf)}</td>
-</tr>`).join('');
-
 const ENV=[
- {n:'Oberflächentemperatur (LST)',prim:'Copernicus Sentinel-3',val:'DWD/KNMI Klimaatlas',stand:'2024',conf:'measured'},
- {n:'Versiegelungsgrad',prim:'Copernicus HRL Imperviousness',val:'DUH/LUP Hitze-Check 2026',stand:'2024',conf:'measured'},
- {n:'Grünvolumen / NDVI',prim:'Copernicus Sentinel-2',val:'Stadtbaumkataster FFM / Gem. Utrecht',stand:'2024',conf:'modeled'},
- {n:'Straßenbäume (Einzelbäume)',prim:'Stadtkataster FFM / Utrecht',val:'OpenStreetMap (live)',stand:'2024 / Echtzeit',conf:'live'},
- {n:'Hochwasser-Nähe',prim:'FFM: HWGK Hessen (HQ100)',val:'Utrecht: Näherung über Distanz zu Gewässern (kein Hydraulikmodell)',stand:'2023/24',conf:'estimated'},
- {n:'Lärmbelastung',prim:'EU-Umgebungslärm-Richtlinie',val:'OSM Straßenklassen-Modell',stand:'2022',conf:'modeled'},
- {n:'Gebäude-CO₂-Intensität',prim:'Utrecht: PDOK BAG — echtes Baujahr je Gebäude',val:'× Energie-Intensität der Bauepoche (RVO/WoON) · FFM: IWU-Typologie 2023',stand:'2024',conf:'modeled'},
- {n:'Sozialindikatoren',prim:'Utrecht: CBS Kerncijfers wijken 2023 · FFM: Zensus/Statistikportal',val:'UWV / Bundesagentur für Arbeit',stand:'2023',conf:'estimated'},
+ {n:['Oberflächentemperatur (LST)','Surface temperature (LST)','Oppervlaktetemperatuur (LST)'],prim:'Copernicus Sentinel-3',val:'DWD/KNMI Klimaatlas',stand:'2024',conf:'measured'},
+ {n:['Versiegelungsgrad','Surface sealing','Verhardingsgraad'],prim:'Copernicus HRL Imperviousness',val:'DUH/LUP Hitze-Check 2026',stand:'2024',conf:'measured'},
+ {n:['Grünvolumen / NDVI','Green volume / NDVI','Groenvolume / NDVI'],prim:'Copernicus Sentinel-2',val:'City tree registries (FFM / Utrecht)',stand:'2024',conf:'modeled'},
+ {n:['Straßenbäume (Einzelbäume)','Street trees (individual)','Straatbomen (individueel)'],prim:'City registries FFM / Utrecht',val:'OpenStreetMap (live)',stand:'2024 / realtime',conf:'live'},
+ {n:['Hochwasser-Nähe','Flood proximity','Overstromingsnabijheid'],prim:'FFM: HWGK Hessen (HQ100)',val:['Utrecht: Näherung über Gewässer-Distanz (kein Hydraulikmodell)','Utrecht: approximation via distance to waterways (no hydraulic model)','Utrecht: benadering via afstand tot water (geen hydraulisch model)'],stand:'2023/24',conf:'estimated'},
+ {n:['Lärmbelastung','Noise exposure','Geluidsbelasting'],prim:'EU Environmental Noise Directive',val:'OSM road-class model',stand:'2022',conf:'modeled'},
+ {n:['Gebäude-CO₂-Intensität','Building CO₂ intensity','Gebouw-CO₂-intensiteit'],prim:['Utrecht: PDOK BAG — echtes Baujahr je Gebäude','Utrecht: PDOK BAG — real construction year per building','Utrecht: PDOK BAG — echt bouwjaar per gebouw'],val:['× Energie-Intensität der Bauepoche (RVO/WoON) · FFM: IWU 2023','× energy intensity of the construction era (RVO/WoON) · FFM: IWU 2023','× energie-intensiteit van het bouwtijdperk (RVO/WoON) · FFM: IWU 2023'],stand:'2024',conf:'modeled'},
+ {n:['Sozialindikatoren','Social indicators','Sociale indicatoren'],prim:'Utrecht: CBS Kerncijfers wijken 2023 · FFM: Zensus',val:'UWV / Bundesagentur für Arbeit',stand:'2023',conf:'estimated'},
 ];
-document.getElementById('envBody').innerHTML=ENV.map(e=>`<tr>
-  <td class="dim-name">${e.n}</td>
-  <td class="src-prim">${e.prim}</td>
-  <td class="src-val">${e.val}</td>
-  <td class="vintage">${e.stand}</td>
-  <td>${cb(e.conf)}</td>
-</tr>`).join('');
+const pick=v=>Array.isArray(v)?T3(v[0],v[1],v[2]):v;
+
+function render(){
+  document.documentElement.lang=lang;
+  document.title=T3('Inspector Nice — Methodik & Datenquellen','Inspector Nice — Methodology & data sources','Inspector Nice — Methodiek & databronnen');
+  ['de','en','nl'].forEach(l=>{const b=document.getElementById('lg-'+l);if(b)b.classList.toggle('on',l===lang);});
+  const S=(id,html)=>{const el=document.getElementById(id);if(el)el.innerHTML=html;};
+  S('t_navMap',T3('Karte','Map','Kaart'));
+  S('t_navMeth',T3('Methodik','Methodology','Methodiek'));
+  S('t_stand',T3('Stand: Juli 2026 · v1.1','As of July 2026 · v1.1','Per juli 2026 · v1.1'));
+  S('t_h1',T3('Methodik &amp; Datenquellen','Methodology &amp; data sources','Methodiek &amp; databronnen'));
+  S('t_lede',T3(
+    'Inspector Nice bewertet Stadtteile entlang des NICE Score — 8 Dimensionen, abgeleitet aus 29 dokumentierten Indikatoren über mehr als 30 Datenebenen. Diese Seite dokumentiert für jeden Indikator die Berechnungsformel, Primär- und Validierungsquelle, den normativen Bezugsrahmen, den Datenstand und den Konfidenzgrad. Sie ist als zitierfähige Referenz für Verwaltung, Planungsbüros und Forschung gedacht.',
+    'Inspector Nice assesses neighbourhoods along the NICE score — 8 dimensions derived from 29 documented indicators across more than 30 data layers. For every indicator, this page documents the calculation formula, the primary and validation source, the normative frame of reference, the data vintage and the confidence class. It is meant as a citable reference for public administration, planning offices and research.',
+    'Inspector Nice beoordeelt wijken langs de NICE-score — 8 dimensies, afgeleid uit 29 gedocumenteerde indicatoren over meer dan 30 datalagen. Deze pagina documenteert per indicator de rekenformule, de primaire en validatiebron, het normatieve referentiekader, de datastand en de betrouwbaarheidsklasse. Bedoeld als citeerbare referentie voor overheid, planbureaus en onderzoek.'));
+  S('t_secConf',T3('Konfidenzmodell — vier Stufen der Datengrundlage','Confidence model — four classes of evidence','Betrouwbaarheidsmodel — vier klassen van bewijs'));
+  S('t_cLiveH','Live');
+  S('t_cLiveP',T3('Echtzeit aus OpenStreetMap-Overpass oder Sensorik. Wird beim Verschieben der Karte neu geladen. Aktualität maximal, Vollständigkeit je nach Kartierung.','Real-time from OpenStreetMap Overpass or sensors, reloaded as you move the map. Maximum currency; completeness depends on mapping coverage.','Realtime uit OpenStreetMap Overpass of sensoren, herladen bij het verschuiven van de kaart. Maximale actualiteit; volledigheid afhankelijk van de kartering.'));
+  S('t_cMeasH',T3('Gemessen','Measured','Gemeten'));
+  S('t_cMeasP',T3('Direkte amtliche Erhebung oder Satellitenmessung (Copernicus, Zensus, amtliche Hochwasserkarte). Höchste Sicherheit.','Direct official survey or satellite measurement (Copernicus, census, statutory flood map). Highest certainty.','Directe officiële meting of satellietmeting (Copernicus, census, officiële overstromingskaart). Hoogste zekerheid.'));
+  S('t_cModH',T3('Modelliert','Modelled','Gemodelleerd'));
+  S('t_cModP',T3('Aus gemessenen Werten nach dokumentierter Methode berechnet (z.&nbsp;B. CO₂ aus echtem Baujahr × Energie-Intensität der Bauepoche). Mittlere Sicherheit.','Computed from measured values via a documented method (e.g. CO₂ from real construction year × energy intensity of the era). Medium certainty.','Berekend uit gemeten waarden via een gedocumenteerde methode (bijv. CO₂ uit echt bouwjaar × energie-intensiteit van het tijdperk). Gemiddelde zekerheid.'));
+  S('t_cEstH',T3('Geschätzt','Estimated','Geschat'));
+  S('t_cEstP',T3('Annahme- oder proxybasiert bei lückenhafter Datenlage. Als Schätzung gekennzeichnet, dient der Orientierung.','Assumption- or proxy-based where data is incomplete. Flagged as an estimate; for orientation.','Aanname- of proxygebaseerd bij onvolledige data. Gemarkeerd als schatting; ter oriëntatie.'));
+  S('t_secNice',T3('NICE Score — Berechnung der 8 Dimensionen','NICE score — how the 8 dimensions are calculated','NICE-score — berekening van de 8 dimensies'));
+  S('t_niceLede',T3('NICE Score = ungewichtetes Mittel der 8 Dimensionen (je 0–100, höher = besser). Die Kartenfarbe nutzt Quintile im Stadtvergleich, keinen absoluten Schwellwert.','NICE score = unweighted mean of the 8 dimensions (0–100 each, higher = better). Map colours use quintiles within the city, not absolute thresholds.','NICE-score = ongewogen gemiddelde van de 8 dimensies (elk 0–100, hoger = beter). Kaartkleuren gebruiken kwintielen binnen de stad, geen absolute drempels.'));
+  S('dimHead','<th>'+[T3('Dimension','Dimension','Dimensie'),T3('Formel (vereinfacht)','Formula (simplified)','Formule (vereenvoudigd)'),T3('Primärquelle','Primary source','Primaire bron'),T3('Validierung','Validation','Validatie'),T3('Normativer Bezug','Normative reference','Normatief kader'),T3('Stand','Vintage','Stand'),T3('Konfidenz','Confidence','Betrouwbaarheid')].join('</th><th>')+'</th>');
+  document.getElementById('dimBody').innerHTML=DIMS.map(d=>`<tr>
+    <td class="dim-name">${ic(d.icon)} ${d.k} · ${pick(d.name)}</td>
+    <td><span class="formula">${pick(d.formula)}</span></td>
+    <td class="src-prim">${pick(d.prim)}</td>
+    <td class="src-val">${pick(d.val)}</td>
+    <td style="font-size:10.5px;color:var(--text2)">${pick(d.norm)}</td>
+    <td class="vintage">${d.stand}</td>
+    <td>${cb(d.conf)}</td></tr>`).join('');
+  S('t_secEnv',T3('Umweltdaten — doppelt referenziert','Environmental data — doubly referenced','Milieudata — dubbel gerefereerd'));
+  S('t_envLede',T3('Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung. So werden Messlücken erkannt und Referenzen abgesichert.','Every environmental indicator rests on two independent sources: an official primary source and a secondary source for validation. This surfaces measurement gaps and secures references.','Elke milieu-indicator steunt op twee onafhankelijke bronnen: een officiële primaire bron en een secundaire bron ter validatie. Zo worden meetgaten zichtbaar en referenties geborgd.'));
+  S('envHead','<th>'+[T3('Indikator','Indicator','Indicator'),T3('Primärquelle','Primary source','Primaire bron'),T3('Validierungsquelle','Validation source','Validatiebron'),T3('Stand','Vintage','Stand'),T3('Konfidenz','Confidence','Betrouwbaarheid')].join('</th><th>')+'</th>');
+  document.getElementById('envBody').innerHTML=ENV.map(e=>`<tr>
+    <td class="dim-name">${pick(e.n)}</td>
+    <td class="src-prim">${pick(e.prim)}</td>
+    <td class="src-val">${pick(e.val)}</td>
+    <td class="vintage">${e.stand}</td>
+    <td>${cb(e.conf)}</td></tr>`).join('');
+  S('t_secBench',T3('Benchmark-Studien — methodischer Anschluss','Benchmark studies — methodological anchoring','Benchmarkstudies — methodische aansluiting'));
+  S('t_duh',T3(
+    'Die Deutsche Umwelthilfe bewertet 195 deutsche Städte nach Versiegelung, Grünvolumen, Oberflächentemperatur und Bevölkerungsdichte (Ampelsystem rot/gelb/grün). Inspector Nice rechnet diese Methodik auf Stadtteilebene herunter — die DUH bewertet nur Gesamtstädte. Unser Hitzebetroffenheitsindex = 0,35·Versiegelung + 0,35·Oberflächentemperatur-Perzentil + 0,30·(invertiertes Grünvolumen). Grünvolumen geschätzt aus Versiegelungsgrad und Ökosystem-Score. <a class="ref" href="https://www.duh.de/hitze-check/" target="_blank" rel="noopener">duh.de/hitze-check ↗</a>',
+    'German Environmental Aid (DUH) rates 195 German cities on sealing, green volume, surface temperature and population density (red/amber/green). Inspector Nice scales this methodology down to district level — DUH only rates whole cities. Our heat-exposure index = 0.35·sealing + 0.35·surface-temperature percentile + 0.30·(inverted green volume). Green volume is estimated from sealing and the ecosystem score. <a class="ref" href="https://www.duh.de/hitze-check/" target="_blank" rel="noopener">duh.de/hitze-check ↗</a>',
+    'De Duitse milieuorganisatie DUH beoordeelt 195 Duitse steden op verharding, groenvolume, oppervlaktetemperatuur en bevolkingsdichtheid (rood/geel/groen). Inspector Nice schaalt deze methodiek terug naar wijkniveau — de DUH beoordeelt alleen hele steden. Onze hitte-index = 0,35·verharding + 0,35·temperatuurpercentiel + 0,30·(omgekeerd groenvolume). Groenvolume geschat uit verharding en de ecosysteemscore. <a class="ref" href="https://www.duh.de/hitze-check/" target="_blank" rel="noopener">duh.de/hitze-check ↗</a>'));
+  S('t_skl',T3(
+    'Universität Freiburg / IfD Allensbach erheben Lebenszufriedenheit (Skala 0–10) über 50 Indikatoren in 13 Kategorien. Kernbefund: entscheidend ist nicht der Durchschnitt, sondern das Zufriedenheitsgefälle — wo die Lücke zwischen zufriedenen und unzufriedenen Vierteln groß ist, sinkt das Glücksniveau der ganzen Stadt. Inspector Nice bildet dieses Gefälle als Kennzahl „Zufriedenheitsgefälle" ab (Spread zwischen bestem und schlechtestem Stadtteil). <a class="ref" href="https://www.skl-gluecksatlas.de/" target="_blank" rel="noopener">skl-gluecksatlas.de ↗</a>',
+    'The University of Freiburg / IfD Allensbach survey life satisfaction (scale 0–10) via 50 indicators in 13 categories. Core finding: what matters is not the average but the satisfaction gap — where the gap between satisfied and dissatisfied neighbourhoods is large, the whole city’s happiness drops. Inspector Nice mirrors this as the “satisfaction gap” metric (spread between the best and worst district). <a class="ref" href="https://www.skl-gluecksatlas.de/" target="_blank" rel="noopener">skl-gluecksatlas.de ↗</a>',
+    'De Universiteit van Freiburg / IfD Allensbach meten levens­tevredenheid (schaal 0–10) via 50 indicatoren in 13 categorieën. Kernbevinding: niet het gemiddelde telt, maar de tevredenheidskloof — waar de kloof tussen tevreden en ontevreden wijken groot is, daalt het geluksniveau van de hele stad. Inspector Nice toont dit als de maat “tevredenheidskloof” (spreiding tussen beste en slechtste wijk). <a class="ref" href="https://www.skl-gluecksatlas.de/" target="_blank" rel="noopener">skl-gluecksatlas.de ↗</a>'));
+  S('t_secVintage',T3('Datenstand — Übersicht','Data vintage — overview','Datastand — overzicht'));
+  document.getElementById('vintageCard').innerHTML=[
+    [T3('Satelliten-/Klimadaten (Copernicus Sentinel-2/-3)','Satellite/climate data (Copernicus Sentinel-2/-3)','Satelliet-/klimaatdata (Copernicus Sentinel-2/-3)'),'2024'],
+    [T3('Amtliche Hochwassergefahrenkarte (HLNUG / Risicokaart NL)','Statutory flood hazard maps (HLNUG / Risicokaart NL)','Officiële overstromingskaart (HLNUG / Risicokaart NL)'),'2023'],
+    [T3('Gebäude &amp; Baujahr (Utrecht: PDOK BAG · FFM: IWU/EPC)','Buildings &amp; construction year (Utrecht: PDOK BAG · FFM: IWU/EPC)','Gebouwen &amp; bouwjaar (Utrecht: PDOK BAG · FFM: IWU/EPC)'),'2024'],
+    [T3('Sozialdaten (Utrecht: CBS Kerncijfers · FFM: Zensus)','Social data (Utrecht: CBS Kerncijfers · FFM: census)','Sociale data (Utrecht: CBS Kerncijfers · FFM: census)'),'2023'],
+    [T3('Wahlbeteiligung (letzte nationale &amp; Kommunalwahl)','Voter turnout (last national &amp; municipal election)','Opkomst (laatste nationale &amp; gemeenteraadsverkiezing)'),'2021'],
+    [T3('OpenStreetMap Live-Layer (Bäume, ÖPNV, Trinkbrunnen …)','OpenStreetMap live layers (trees, transit, fountains …)','OpenStreetMap live-lagen (bomen, OV, fonteinen …)'),T3('Echtzeit','Real-time','Realtime')]
+  ].map(r=>'<div class="dl-row"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('');
+  S('t_secLimits',T3('Grenzen &amp; Haftung','Limitations &amp; liability','Grenzen &amp; aansprakelijkheid'));
+  S('t_disclaimer',T3(
+    'Inspector Nice ist ein Analyse- und Orientierungswerkzeug, kein amtliches Gutachten. Modellierte und geschätzte Werte (siehe Konfidenzgrad) sind Annäherungen und ersetzen keine fachgutachterliche Prüfung, keinen Energieausweis und keine rechtsverbindliche Hochwasserbewertung. Förder- und Kostenangaben dienen der Orientierung; Konditionen können sich ändern und sind kein Ersatz für individuelle Beratung. Sozialindikatoren liegen amtlich nur auf Stadtteilebene vor; eine feinere Darstellung wäre Schätzung. Für Entscheidungen mit rechtlicher oder finanzieller Tragweite sind die jeweiligen amtlichen Primärquellen heranzuziehen.',
+    'Inspector Nice is an analysis and orientation tool, not an official assessment. Modelled and estimated values (see confidence class) are approximations and do not replace expert review, an energy performance certificate, or a legally binding flood assessment. Funding and cost figures are indicative; conditions may change and are no substitute for individual advice. Social indicators are officially available at district level only; anything finer would be estimation. For decisions with legal or financial consequences, consult the respective official primary sources.',
+    'Inspector Nice is een analyse- en oriëntatie-instrument, geen officieel rapport. Gemodelleerde en geschatte waarden (zie betrouwbaarheidsklasse) zijn benaderingen en vervangen geen deskundigenonderzoek, geen energielabel en geen juridisch bindende overstromingsbeoordeling. Subsidie- en kostencijfers zijn indicatief; voorwaarden kunnen wijzigen en vervangen geen individueel advies. Sociale indicatoren zijn officieel alleen op wijkniveau beschikbaar; fijner zou schatting zijn. Raadpleeg voor besluiten met juridische of financiële gevolgen de officiële primaire bronnen.'));
+  S('t_secCite',T3('Zitierweise','How to cite','Citeerwijze'));
+  S('t_citeLbl',T3('So zitieren Sie Inspector Nice','How to cite Inspector Nice','Zo citeert u Inspector Nice'));
+  S('t_cite','nice here — Inspector Nice ('+new Date().getFullYear()+'): NICE Score &amp; '+T3('Klimarisiko-Analyse','climate-risk analysis','klimaatrisico-analyse')+', ['+T3('Stadtteil','district','wijk')+'], ['+T3('Stadt','city','stad')+']. '+T3('Datenstand wie angegeben','Data vintage as stated','Datastand zoals vermeld')+'. '+T3('Methodik','Methodology','Methodiek')+': leoorexx.github.io/urbanlens/methodik.html. '+T3('Abgerufen am','Accessed','Geraadpleegd op')+' ['+T3('Datum','date','datum')+'].');
+  S('t_citeNote',T3('Jeder Stadtteil im Tool bietet ein vorformatiertes Zitat zum Kopieren sowie einen Permalink, der direkt diesen Stadtteil öffnet.','Every district in the tool offers a preformatted citation to copy and a permalink that opens that district directly.','Elke wijk in de tool biedt een voorgeformatteerd citaat om te kopiëren en een permalink die direct die wijk opent.'));
+}
+function setLang(l){lang=l;try{localStorage.setItem('ul_lang',l);}catch(e){}render();}
+// Aktuelle Stadt aus der Karte übernehmen (seitenübergreifend)
+(function(){var c='utr';try{if(localStorage.getItem('nh_city')==='ffm')c='ffm';}catch(e){}var el=document.getElementById('mCityBadge');if(el)el.textContent=(c==='ffm'?'Frankfurt am Main':'Utrecht');})();
+render();
 </script>
 </body>
 </html>
