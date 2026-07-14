@@ -445,6 +445,10 @@ Object.assign(TR,{"Helle Oberflächenbeläge":{"en":"Light-coloured surfaces","n
 Object.keys(TR).forEach(k=>{if(k.indexOf("&")>=0){const k2=k.split("&").join("&amp;");if(!TR[k2])TR[k2]=TR[k];}});
 Object.assign(TR,{"Versiegelung / Grünvolumen / Oberflächentemperatur — auf alle ":{"en":"Sealing / green volume / surface temperature — scaled down to all ","nl":"Verharding / groenvolume / oppervlaktetemperatuur — teruggeschaald naar alle "}," heruntergebrochen (":{"en":" (","nl":" ("},"Utrechter ":{"en":"Utrecht ","nl":"Utrechtse "},"Frankfurter ":{"en":"Frankfurt ","nl":"Frankfurter "},"Regenwasser-Rückhalt (Wadi's & Afkoppelen)":{"en":"Rainwater retention (wadis & disconnection)","nl":"Regenwaterberging (wadi's & afkoppelen)"}});
 Object.keys(TR).forEach(k=>{if(k.indexOf("&")>=0){const k2=k.split("&").join("&amp;");if(!TR[k2])TR[k2]=TR[k];}});
+Object.assign(TR,{"Typ</th>":{"en":"Type</th>","nl":"Type</th>"}});
+// Sanitizer: nicht-idempotente Keys (Übersetzung enthält den Key selbst → würde bei
+// wiederholten localize-Pässen anwachsen, z.B. Typ→Type→Typee) überspringen
+Object.keys(TR).forEach(k=>{["en","nl"].forEach(l=>{const v=TR[k]&&TR[k][l];if(v&&v!==k&&v.indexOf(k)>=0)delete TR[k][l];});});
 const TR_KEYS=Object.keys(TR).sort((a,b)=>b.length-a.length);
 function localize(h){ if(lang==='de'||typeof h!=='string')return h; for(const k of TR_KEYS){const v=TR[k][lang]; if(v&&h.indexOf(k)>=0)h=h.split(k).join(v);} return h; }
 function localizeStatic(){ document.querySelectorAll('[data-de]').forEach(el=>{ el.textContent = lang==='de'?el.getAttribute('data-de'):(TR[el.getAttribute('data-de')]&&TR[el.getAttribute('data-de')][lang])||el.getAttribute('data-de'); }); document.querySelectorAll('[data-de-ph]').forEach(el=>{ const g=el.getAttribute('data-de-ph'); el.placeholder = lang==='de'?g:(TR[g]&&TR[g][lang])||g; }); }
