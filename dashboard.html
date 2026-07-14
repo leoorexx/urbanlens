@@ -187,6 +187,14 @@ td.muted{color:var(--muted)}
 .prio-main span{font-size:11px;color:var(--text2);line-height:1.35}
 .prio-val{font-size:15px;font-weight:800;flex:none}
 @media(max-width:900px){.prio-grid{grid-template-columns:1fr}}
+.pf-sub{font-size:12px;color:var(--muted);margin:-6px 0 10px;line-height:1.5;max-width:720px}
+.pf-ctl{display:flex;align-items:center;gap:12px;margin:0 0 14px;max-width:520px}
+.pf-ctl span{font-size:12px;color:var(--muted);white-space:nowrap}
+.pf-ctl input{flex:1}
+.pf-ctl b{font-size:14px;white-space:nowrap}
+.pf-chips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 12px}
+.pf-chip{font-size:10px;font-weight:700;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:3px 9px;color:var(--text2)}
+.pf-chip b{font-weight:800;color:var(--text)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -235,6 +243,18 @@ td.muted{color:var(--muted)}
       <div class="prio-card" id="prioDistricts"></div>
       <div class="prio-card" id="prioMeasures"></div>
       <div class="prio-card" id="prioOverlap"></div>
+    </div>
+  </div>
+
+  <!-- DECISION MODE — INVESTITIONS-PORTFOLIOS -->
+  <div class="section" id="pfSection">
+    <div class="section-title" id="pfTitle">Decision Mode — Investitions-Portfolios</div>
+    <div class="pf-sub" id="pfSub"></div>
+    <div class="pf-ctl"><span id="pfLbl"></span><input type="range" id="pfBudget" min="5" max="50" step="1" value="10" oninput="renderPortfolios()"><b id="pfVal">10 Mio €</b></div>
+    <div class="prio-grid">
+      <div class="prio-card" id="pfA"></div>
+      <div class="prio-card" id="pfB"></div>
+      <div class="prio-card" id="pfC"></div>
     </div>
   </div>
 
@@ -589,9 +609,78 @@ function renderDecisions(){
     '<div class="ph">'+dt('Mehrfachbelastung','Overlapping burdens','Meervoudige belasting')+'</div><div class="psub">'+dt('Wo mehrere Risiken zusammentreffen.','Where several risks overlap.','Waar meerdere risico\'s samenkomen.')+'</div>'+
     (ov.length?ov.map(x=>'<div class="prio-row link" onclick="'+goDistrict(x.n)+'"><div class="prio-rank">'+x.f.length+'×</div><div class="prio-main"><b>'+x.n+'</b><span>'+x.f.join(' · ')+'</span></div></div>').join(''):'<div style="font-size:12px;color:var(--muted);padding:8px 0">'+dt('Keine Wijk mit 3+ überlagerten Risiken.','No district with 3+ overlapping risks.','Geen wijk met 3+ risico\'s.')+'</div>');
 }
+// ── DECISION MODE — drei Portfolios auf dieselbe Budgetfrage ──────────────
+// Macht den politischen Zielkonflikt sichtbar, statt ihn hinter einem
+// Gesamtscore zu verstecken: Sozial vs. Klima vs. Umsetzbarkeit.
+function pfVuln(d){return Math.max(0,Math.min(1,((d.kinderarmut||10)-5)/30*0.4+((d.sgb2||4))/25*0.25+Math.max(0,(30000-(d.einkommen||30000))/30000)*0.2+Math.max(0,(60-(d.wb||60))/60)*0.15));}
+function pfClim(d){return Math.max(0,Math.min(1,Math.max(0,(d.lst_delta||0))/3.5*0.45+(d.heat?0.2:0)+(d.hw?0.15:0)+Math.max(0,((d.versieg||50)-40)/50)*0.15+(((d.G||50)<40)?0.05:0)));}
+function pfCandidates(){
+  const ds=Object.entries(DISTRICTS); const maxPop=Math.max(...ds.map(([,d])=>d.pop||1));
+  const out=[];
+  ds.forEach(([n,d])=>{
+    const weak=['A','B','C','D','E','F','G','H'].slice().sort((a,b)=>(d[a]||0)-(d[b]||0)).slice(0,4);
+    MASS.forEach(m=>{
+      if(!m.dims||!m.dims.some(k=>weak.includes(k)))return;   // Maßnahme muss die Schwäche des Wijks treffen
+      const fund=(m.foerder&&m.foerder.length)?Math.max(...m.foerder.map(f=>f.pct||0)):0;
+      const socialRel=m.dims.some(k=>['B','D','E','F'].includes(k))?1:(m.dims.includes('C')?0.6:0.35);
+      const climRel=m.dims.some(k=>['A','G','H'].includes(k))?1:(m.dims.includes('C')?0.6:0.35);
+      const costM=Math.max(0.05,m.kosten/1e6), reachN=(d.pop||0)/maxPop;
+      out.push({n,d,m,fund,cost:m.kosten,
+        sA:(0.55*pfVuln(d)+0.25*reachN+0.20*socialRel)/costM,
+        sB:(0.55*pfClim(d)+0.25*climRel+0.20*reachN)/costM,
+        sC:fund*10-costM});
+    });
+  });
+  return out;
+}
+function pfGreedy(cands,key,budget){
+  const sorted=cands.slice().sort((a,b)=>b[key]-a[key]);
+  const pick=[],perD={};let sum=0;const seen={};
+  for(const c of sorted){
+    const id=c.n+'|'+c.m.id; if(seen[id])continue;
+    if((perD[c.n]||0)>=2)continue;
+    if(sum+c.cost>budget)continue;
+    seen[id]=1;perD[c.n]=(perD[c.n]||0)+1;sum+=c.cost;pick.push(c);
+    if(pick.length>=24)break;
+  }
+  return {pick,sum};
+}
+function pfCard(el,title,sub,col,res,budget){
+  const {pick,sum}=res;
+  const dsts={};pick.forEach(c=>dsts[c.n]=c.d);
+  const reach=Object.values(dsts).reduce((s,d)=>s+(d.pop||0),0);
+  const vulnCost=pick.filter(c=>isVuln(c.d)).reduce((s,c)=>s+c.cost,0);
+  const vulnPct=sum?Math.round(vulnCost/sum*100):0;
+  const avgFund=pick.length?Math.round(pick.reduce((s,c)=>s+c.fund,0)/pick.length):0;
+  const show=pick.slice(0,7);
+  el.innerHTML='<div class="ph" style="color:'+col+'">'+title+'</div><div class="psub">'+sub+'</div>'+
+    '<div class="pf-chips">'+
+      '<span class="pf-chip"><b>'+pick.length+'</b> '+dt('Projekte','projects','projecten')+'</span>'+
+      '<span class="pf-chip"><b>'+(reach/1000).toFixed(0)+'k</b> '+dt('Einwohner erreicht','residents reached','inwoners bereikt')+'</span>'+
+      '<span class="pf-chip"><b>'+vulnPct+'%</b> '+dt('Mittel in vulnerable Wijken','funds to vulnerable districts','middelen naar kwetsbare wijken')+'</span>'+
+      '<span class="pf-chip"><b>'+avgFund+'%</b> '+dt('Ø Förderquote','avg funding rate','gem. subsidie')+'</span>'+
+      '<span class="pf-chip"><b>'+fmt(sum)+'</b> / '+fmt(budget)+'</span>'+
+    '</div>'+
+    show.map(c=>'<div class="prio-row link" onclick="'+goDistrict(c.n)+'"><div class="prio-main"><b>'+localize(c.m.name)+'</b><span>'+c.n+' · '+fmt(c.cost)+(c.fund?' · '+c.fund+'% '+dt('förderbar','fundable','subsidiabel'):'')+'</span></div></div>').join('')+
+    (pick.length>show.length?'<div style="font-size:11px;color:var(--muted);padding:8px 0 0">+'+(pick.length-show.length)+' '+dt('weitere','more','meer')+'</div>':'');
+}
+function renderPortfolios(){
+  if(!DISTRICTS||!Object.keys(DISTRICTS).length)return;
+  const el=document.getElementById('pfSection'); if(!el)return;
+  const B=(+document.getElementById('pfBudget').value)*1e6;
+  document.getElementById('pfVal').textContent=(B/1e6)+' Mio €';
+  document.getElementById('pfTitle').textContent=dt('Decision Mode — Investitions-Portfolios','Decision mode — investment portfolios','Decision mode — investeringsportfolio\'s');
+  document.getElementById('pfLbl').textContent=dt('Budget','Budget','Budget');
+  document.getElementById('pfSub').textContent=dt('Drei Antworten auf dieselbe Budgetfrage — der Zielkonflikt wird sichtbar, statt hinter einem Gesamtscore zu verschwinden. Maßnahmen werden nur Wijken zugeordnet, deren Schwächen sie adressieren.','Three answers to the same budget question — the trade-off becomes visible instead of hiding behind one score. Measures are only assigned to districts whose weaknesses they address.','Drie antwoorden op dezelfde budgetvraag — de afweging wordt zichtbaar in plaats van verborgen achter één score.');
+  const cands=pfCandidates();
+  pfCard(document.getElementById('pfA'),dt('A · Maximale soziale Wirkung','A · Maximum social impact','A · Maximale sociale impact'),dt('Priorisiert vulnerable Wijken & erreichte Menschen.','Prioritises vulnerable districts & people reached.','Prioriteert kwetsbare wijken & bereikte mensen.'),'#a60ba6',pfGreedy(cands,'sA',B),B);
+  pfCard(document.getElementById('pfB'),dt('B · Maximale Klimawirkung','B · Maximum climate impact','B · Maximale klimaatimpact'),dt('Priorisiert Hitze-/Wasser-Belastung & Klima-Maßnahmen.','Prioritises heat/water burden & climate measures.','Prioriteert hitte-/waterbelasting & klimaatmaatregelen.'),'#ff8210',pfGreedy(cands,'sB',B),B);
+  pfCard(document.getElementById('pfC'),dt('C · Maximale Umsetzbarkeit','C · Maximum feasibility','C · Maximale haalbaarheid'),dt('Priorisiert Förderquote & schnelle, günstige Projekte.','Prioritises funding rate & quick, low-cost projects.','Prioriteert subsidie & snelle, goedkope projecten.'),'#36d5d0',pfGreedy(cands,'sC',B),B);
+}
 function buildDashboard(){
   entries=Object.entries(DISTRICTS);
   renderDecisions();
+  renderPortfolios();
   allScores=entries.map(([,d])=>nice(d));
   avgScore=Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length);
   critCount=allScores.filter(s=>s<40).length;
