@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>nice here — Urbaner Entscheidungs-Zwilling (Utrecht & Frankfurt)</title>
+<title>Inspector Nice — nice here · Utrecht & Frankfurt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -2569,90 +2569,231 @@ function renderDUHAmpel(id,statusEl){
 // ══════════════════════════════════════════════════════════════
 // EXPORT — PDF-Bericht je Stadtteil / Gebiet
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════
+// INSPECTOR NICE — Berichts-Framework (A4 · sorgfältig · wissenschaftlich)
+// Marke: nice here · Produkt: Inspector Nice. jsPDF-Kernfonts (Times für
+// Display, Helvetica für Text), 20-mm-Satzspiegel, nummerierte Abschnitte,
+// Quellen + Konfidenzklassen je Bericht, Seitenzahlen, Report-ID.
+// ══════════════════════════════════════════════════════════════════════
 function pdfDoc(){ const J=(window.jspdf&&window.jspdf.jsPDF); return J?new J({unit:'mm',format:'a4'}):null; }
-function pdfHeader(doc,title,sub){
-  doc.setFillColor(26,26,46); doc.rect(0,0,210,26,'F');
-  doc.setTextColor(255,214,0); doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.text('nice here',14,14);
-  doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.text(title,14,20);
-  doc.setTextColor(150,150,160); doc.setFontSize(8); doc.text(sub,196,20,{align:'right'});
-  return 36;
+const PDFX={L:20,R:190,W:170,ink:[26,26,46],body:[60,60,70],sub:[108,108,124],mut:[148,148,158],line:[224,221,214],teal:[54,213,208],purple:[166,11,166],orange:[255,130,16]};
+function pdfL3(de,en,nl){return lang==='en'?en:lang==='nl'?nl:de;}
+function pC(doc,c){doc.setTextColor(c[0],c[1],c[2]);}
+function pD(doc,c){doc.setDrawColor(c[0],c[1],c[2]);}
+function pF(doc,c){doc.setFillColor(c[0],c[1],c[2]);}
+function pdfStrip(doc,y){ const t=PDFX.W/3;
+  pF(doc,PDFX.orange); doc.rect(PDFX.L,y,t,1.1,'F');
+  pF(doc,PDFX.teal);   doc.rect(PDFX.L+t,y,t,1.1,'F');
+  pF(doc,PDFX.purple); doc.rect(PDFX.L+2*t,y,t,1.1,'F'); }
+function pdfWordmark(doc,x,y,size){ doc.setFont('helvetica','bold'); doc.setFontSize(size);
+  pC(doc,PDFX.ink); doc.text('nice',x,y); const w=doc.getTextWidth('nice ');
+  pC(doc,PDFX.teal); doc.text('here',x+w,y); }
+function pdfMast(doc,kicker,title,meta){
+  pdfStrip(doc,14); pdfWordmark(doc,PDFX.L,24.5,13);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); pC(doc,PDFX.mut);
+  doc.text('I N S P E C T O R   N I C E',PDFX.R,21,{align:'right'});
+  doc.setFont('helvetica','normal'); pC(doc,PDFX.sub);
+  doc.text(kicker.toUpperCase(),PDFX.R,25,{align:'right'});
+  doc.setFont('times','bold'); doc.setFontSize(25); pC(doc,PDFX.ink);
+  const tl=doc.splitTextToSize(title,PDFX.W); doc.text(tl,PDFX.L,39);
+  let y=39+(tl.length-1)*10+7.5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); pC(doc,PDFX.sub);
+  doc.text(meta,PDFX.L,y);
+  pD(doc,PDFX.line); doc.setLineWidth(0.3); doc.line(PDFX.L,y+4,PDFX.R,y+4);
+  doc.setFontSize(9.5); pC(doc,PDFX.body);
+  return y+11;
 }
-function pdfFooter(doc,cite){
-  doc.setDrawColor(220,220,220); doc.line(14,283,196,283);
-  doc.setTextColor(130,130,140); doc.setFontSize(7);
-  doc.text(cite,14,288); doc.text('leoorexx.github.io/urbanlens/methodik.html',196,288,{align:'right'});
-}
-function pdfSec(doc,y,t){ doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(26,26,46); doc.text(t,14,y); y+=2; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=6; doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(60,60,70); return y; }
+function pdfCont(doc){ pdfStrip(doc,12); pdfWordmark(doc,PDFX.L,19.5,9);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); pC(doc,PDFX.mut);
+  doc.text('Inspector Nice',PDFX.R,19.5,{align:'right'});
+  doc.setFontSize(9.5); pC(doc,PDFX.body); return 30; }
+function pdfNeed(doc,y,need){ if(y+need>272){doc.addPage();return pdfCont(doc);} return y; }
+function pdfSecN(doc,y,num,txt){ y=pdfNeed(doc,y,16);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); pC(doc,PDFX.ink);
+  doc.text(num+' · '+txt,PDFX.L,y);
+  pD(doc,PDFX.line); doc.setLineWidth(0.25); doc.line(PDFX.L,y+1.8,PDFX.R,y+1.8);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); pC(doc,PDFX.body);
+  return y+8; }
+function pdfPara(doc,y,txt,size){ doc.setFontSize(size||9.5);
+  const l=doc.splitTextToSize(txt,PDFX.W); y=pdfNeed(doc,y,l.length*4.6);
+  doc.text(l,PDFX.L,y); doc.setFontSize(9.5); return y+l.length*4.6+2.5; }
+function pdfBullets(doc,y,arr){ for(const t of arr){ const l=doc.splitTextToSize(String(t),PDFX.W-6);
+  y=pdfNeed(doc,y,l.length*4.6+1.6); pF(doc,PDFX.ink); doc.circle(PDFX.L+1.1,y-1.1,0.55,'F');
+  doc.text(l,PDFX.L+5,y); y+=l.length*4.6+1.8; } return y+2.5; }
+function pdfGauge(doc,x,y,w,val,ref,refLbl,col){
+  pF(doc,[238,236,230]); doc.roundedRect(x,y,w,3.4,1.5,1.5,'F');
+  pF(doc,col); doc.roundedRect(x,y,Math.max(4,w*Math.min(100,val)/100),3.4,1.5,1.5,'F');
+  if(ref!=null){ const ax=x+w*Math.min(100,ref)/100; pD(doc,PDFX.ink); doc.setLineWidth(0.5); doc.line(ax,y-1.6,ax,y+5);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.8); pC(doc,PDFX.mut); doc.text(refLbl+' '+ref,Math.min(Math.max(ax,x+8),x+w-8),y+8.3,{align:'center'}); }
+  doc.setFontSize(6.5); pC(doc,PDFX.mut); doc.text('0',x,y+8.3); doc.text('100',x+w,y+8.3,{align:'right'});
+  doc.setFontSize(9.5); pC(doc,PDFX.body); }
+function pdfTHead(doc,y,cols){ y=pdfNeed(doc,y,10);
+  doc.setFont('helvetica','bold'); doc.setFontSize(7.4); pC(doc,PDFX.mut);
+  cols.forEach(c=>doc.text(String(c.t).toUpperCase(),c.x,y,{align:c.a||'left'}));
+  pD(doc,PDFX.line); doc.setLineWidth(0.3); doc.line(PDFX.L,y+1.6,PDFX.R,y+1.6);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); pC(doc,PDFX.body); return y+6; }
+function pdfTRow(doc,y,cols,cells,boldIdx){ y=pdfNeed(doc,y,5.6);
+  cells.forEach((cell,i)=>{ const c=cols[i]; if(boldIdx&&boldIdx.includes(i))doc.setFont('helvetica','bold');
+    doc.text(String(cell),c.x,y,{align:c.a||'left'}); doc.setFont('helvetica','normal'); });
+  pD(doc,[238,236,230]); doc.setLineWidth(0.2); doc.line(PDFX.L,y+1.7,PDFX.R,y+1.7); return y+5.6; }
+function pdfMethodBlock(doc,y,num,method,srcs,bench){
+  y=pdfSecN(doc,y,num,pdfL3('Methode, Daten & Konfidenz','Method, data & confidence','Methode, data & betrouwbaarheid'));
+  y=pdfPara(doc,y,method);
+  y=pdfPara(doc,y,pdfL3('Konfidenzklassen: gemessen (Satellit/Sensor) · amtlich (Register/Statistik) · modelliert (dokumentiertes Verfahren) · geschätzt (Bandbreite). Jede Kennzahl trägt genau eine Klasse; Details je Indikator auf der Methodikseite.','Confidence classes: measured (satellite/sensor) · official (registry/statistics) · modelled (documented procedure) · estimated (range). Every figure carries exactly one class; per-indicator details on the methodology page.','Betrouwbaarheidsklassen: gemeten (satelliet/sensor) · officieel (register/statistiek) · gemodelleerd (gedocumenteerde methode) · geschat (bandbreedte). Elke waarde draagt precies één klasse; details per indicator op de methodiekpagina.'),8.4);
+  if(bench)y=pdfPara(doc,y,pdfL3('Referenzrahmen: ','Benchmarks: ','Referentiekader: ')+bench,8.4);
+  y=pdfPara(doc,y,pdfL3('Quellen: ','Sources: ','Bronnen: ')+srcs,8.1);
+  return y; }
+function pdfDisclaimer(doc,y){ y=pdfNeed(doc,y,14);
+  doc.setFontSize(7.5); pC(doc,PDFX.mut);
+  const t=doc.splitTextToSize(pdfL3('Hinweis: Entscheidungsunterstützung auf Basis offener und amtlicher Daten; ersetzt keine förmliche Prüfung oder Fachplanung. Relative Einstufungen gelten innerhalb der jeweiligen Stadt (Quintile). Kosten- und Wirkungsangaben sind Korridore aus Vergleichsprojekten.','Note: decision support based on open and official data; not a substitute for statutory assessment or professional planning. Relative rankings apply within the respective city (quintiles). Cost and impact figures are corridors derived from reference projects.','Let op: beslissingsondersteuning op basis van open en officiële data; geen vervanging van formele toetsing of vakplanning. Relatieve indelingen gelden binnen de stad (kwintielen). Kosten en effecten zijn bandbreedtes uit referentieprojecten.'),PDFX.W);
+  doc.text(t,PDFX.L,y); doc.setFontSize(9.5); pC(doc,PDFX.body); return y+t.length*3.6+2; }
+function pdfFinish(doc,cite,repId){ const n=doc.getNumberOfPages();
+  for(let i=1;i<=n;i++){ doc.setPage(i);
+    pD(doc,PDFX.line); doc.setLineWidth(0.3); doc.line(PDFX.L,282,PDFX.R,282);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); pC(doc,PDFX.mut);
+    doc.text(cite,PDFX.L,286.4);
+    doc.setFont('helvetica','italic'); doc.text('Click. Inspect. Make it nice.',PDFX.L,290);
+    doc.setFont('helvetica','normal');
+    doc.text(repId,PDFX.R,286.4,{align:'right'});
+    doc.text(pdfL3('Seite','Page','Pagina')+' '+i+' / '+n,PDFX.R,290,{align:'right'}); } }
+function pdfRepId(tag){ const ds=new Date().toISOString().slice(0,10).replace(/-/g,''); return 'IN-'+String(city).toUpperCase()+'-'+tag+'-'+ds; }
+function pdfSlug(s){ return String(s).normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase(); }
+function pdfDate(){ return new Date().toLocaleDateString(lang==='en'?'en-GB':lang==='nl'?'nl-NL':'de-DE',{year:'numeric',month:'long',day:'numeric'}); }
+function pdfScoreCol(s){ return s<40?[220,38,38]:s<55?[234,88,12]:s<65?[202,138,4]:[21,128,61]; }
 function districtPDF(name){
   const doc=pdfDoc(); if(!doc){alert('PDF-Bibliothek lädt noch.');return;}
   const cfg=CITY_CFG[city], d=cfg.data[name]; if(!d)return;
-  const s=nice(d); const today=new Date().toLocaleDateString('de-DE');
-  const allS=Object.values(cfg.data).map(nice); const avgS=Math.round(allS.reduce((a,b)=>a+b,0)/allS.length); const rank=allS.filter(x=>x<s).length+1, N=allS.length;
+  const s=nice(d);
+  const ds=Object.values(cfg.data); const allS=ds.map(nice);
+  const avgS=Math.round(allS.reduce((a,b)=>a+b,0)/allS.length); const rank=allS.filter(x=>x<s).length+1, N=allS.length;
   const gr=(typeof grade==='function')?grade(s):{g:'',lbl:''}; const isDouble=s<45&&d.wb<50;
-  const risks=[]; if(d.hw)risks.push(lang==='en'?'Flood risk (HQ100)':lang==='nl'?'Overstromingsrisico':'Hochwasserrisiko HQ100'); if(d.heat)risks.push(lang==='en'?'Heat island':lang==='nl'?'Hitte-eiland':'Hitzeinsel'); if(d.noise>70)risks.push('Lärm '+d.noise+' dB'); if(d.B<40)risks.push(lang==='en'?'Air quality critical':lang==='nl'?'Luchtkwaliteit kritiek':'Luftqualität kritisch'); if(isDouble)risks.push(lang==='en'?'Structural double disadvantage':lang==='nl'?'Structurele dubbele achterstand':'Strukturelle Doppelbenachteiligung');
-  let y=pdfHeader(doc, (lang==='en'?'NICE Score report':lang==='nl'?'NICE Score rapport':'NICE Score Bericht'), cfg.name);
-  doc.setTextColor(26,26,46); doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.text(name,14,y); y+=8;
-  doc.setFontSize(11); doc.setTextColor(90,90,110); doc.setFont('helvetica','normal');
-  doc.text(`NICE Score ${s}/100${gr.g?'  ·  '+gr.g+' — '+gr.lbl:''}  ·  ${(d.pop||0).toLocaleString('de-DE')} ${lang==='nl'?'inwoners':'Einwohner'}`,14,y); y+=6;
-  doc.setFontSize(9.5); doc.setTextColor(120,120,130); doc.text(`${lang==='en'?'Priority':lang==='nl'?'Prioriteit':'Priorität'} ${rank} / ${N} · ${lang==='en'?'city avg':lang==='nl'?'stad gem.':'Stadt-Ø'} ${avgS}`,14,y); y+=10;
-  const sec=(t)=>{ doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(26,26,46); doc.text(t,14,y); y+=2; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=6; doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(60,60,70); };
-  const DN={A:'Klimagerechtigkeit',B:'Gesundheit',C:'Mobilität',D:'Bildung',E:'Wohnen',F:'Demokratie',G:'Ökosystem',H:'Resilienz'};
-  const L2=(de,en,nl)=>lang==='en'?en:lang==='nl'?nl:de;
+  const L2=pdfL3, isNL=cfg.country==='NL'||city==='utr';
   const DNL={A:L2('Klimagerechtigkeit','Climate justice','Klimaatrechtvaardigheid'),B:L2('Gesundheit','Health','Gezondheid'),C:L2('Mobilität','Mobility','Mobiliteit'),D:L2('Bildung','Education','Onderwijs'),E:L2('Wohnen','Housing','Wonen'),F:L2('Demokratie','Democracy','Democratie'),G:L2('Ökosystem','Ecosystem','Ecosysteem'),H:L2('Resilienz','Resilience','Veerkracht')};
-  // Zusammenfassung / Diagnose (spiegelt die Infobox)
-  sec(L2('Zusammenfassung','Summary','Samenvatting'));
+  const repId=pdfRepId(pdfSlug(name).slice(0,12).toUpperCase());
+  let y=pdfMast(doc,L2('Stadtteil-Bericht','District report','Wijkrapport'),name,
+    cfg.name+'  ·  '+(d.pop||0).toLocaleString('de-DE')+' '+L2('Einwohner','residents','inwoners')+'  ·  '+L2('Stand','As of','Per')+' '+pdfDate());
+  // ── Score-Panel: Wert + Skala mit Stadt-Ø ──
+  const scCol=pdfScoreCol(s);
+  doc.setFont('times','bold'); doc.setFontSize(34); pC(doc,scCol); doc.text(String(s),PDFX.L,y+9);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8.5); pC(doc,PDFX.ink);
+  doc.text('NICE score'+(gr.g?'  ·  '+gr.g+' — '+gr.lbl:''),PDFX.L,y+14.5);
+  pdfGauge(doc,PDFX.L+52,y+4.5,118,s,avgS,L2('Stadt-Ø','city avg','stadsgem.'),scCol);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); pC(doc,PDFX.sub);
+  doc.text(L2('Priorität','Priority','Prioriteit')+' '+rank+' / '+N+' · '+L2('Quintile im Stadtvergleich','quintiles within the city','kwintielen binnen de stad'),PDFX.L+52,y+16.5);
+  y+=25; doc.setFontSize(9.5); pC(doc,PDFX.body);
+  // ── 1 · Zusammenfassung ──
+  y=pdfSecN(doc,y,'1',L2('Zusammenfassung','Summary','Samenvatting'));
   const wk=['A','B','C','D','E','F','G','H'].slice().sort((a,b)=>d[a]-d[b]).slice(0,3).map(k=>DNL[k]);
   const summ=[];
-  if(isDouble)summ.push(L2(`Strukturelle Doppelbenachteiligung: Score ${s} bei nur ${d.wb}% Wahlbeteiligung — höchster Handlungsbedarf bei geringster politischer Gegenwehr.`,`Structural double disadvantage: score ${s} at only ${d.wb}% turnout — highest need for action, lowest political pushback.`,`Structurele dubbele achterstand: score ${s} bij slechts ${d.wb}% opkomst — hoogste handelingsdruk, laagste tegendruk.`));
-  summ.push(L2(`Priorität ${rank} von ${N} im Stadtvergleich (Stadt-Ø ${avgS}, ${s>=avgS?'über':'unter'} dem Schnitt).`,`Priority ${rank} of ${N} in the city (avg ${avgS}, ${s>=avgS?'above':'below'} average).`,`Prioriteit ${rank} van ${N} (gem. ${avgS}, ${s>=avgS?'boven':'onder'} gemiddeld).`));
-  summ.push(L2(`Schwächste Dimensionen: ${wk.join(', ')} — die empfohlenen Maßnahmen setzen genau hier an.`,`Weakest dimensions: ${wk.join(', ')} — the recommended measures target exactly these.`,`Zwakste dimensies: ${wk.join(', ')} — de aanbevolen maatregelen richten zich hierop.`));
-  summ.forEach(t=>{ if(y>264){doc.addPage();y=20;} const tl=doc.splitTextToSize('•  '+t,180); doc.text(tl,14,y); y+=tl.length*5+1.5; }); y+=6;
-  if(risks.length){ sec(lang==='en'?'Identified burdens':lang==='nl'?'Vastgestelde belastingen':'Identifizierte Belastungen'); const rl=doc.splitTextToSize(risks.join('   ·   '),182); doc.text(rl,14,y); y+=rl.length*5+6; }
-  sec(lang==='en'?'8 dimensions':lang==='nl'?'8 dimensies':'8 Dimensionen');
-  ['A','B','C','D','E','F','G','H'].forEach((k,i)=>{ const col=i%2, x=14+col*92; if(col===0&&i>0)y+=6; doc.text(`${k} · ${DN[k]}`,x,y); doc.setFont('helvetica','bold'); doc.text(String(d[k]),x+86,y,{align:'right'}); doc.setFont('helvetica','normal'); }); y+=10;
-  sec(lang==='en'?'Social indicators':lang==='nl'?'Sociale indicatoren':'Soziale Indikatoren');
-  const isNL=cfg.country==='NL'||city==='utr';
-  const soc=[['Wahlbeteiligung',d.wb+'%'],['Migration',d.mig+'%'],[isNL?'Bijstand':'SGB-II',d.sgb2+'%'],[isNL?'Laag inkomen':'Kinderarmut',d.kinderarmut+'%'],[isNL?'Inkomen/inw.':'Medianeinkommen',(d.einkommen/1000).toFixed(0)+'k€'],[isNL?'WW':'Arbeitslos.',d.arbeitslos+'%'],['Versiegelung',d.versieg+'%'],['ΔLST','+'+d.lst_delta+'°C']];
-  soc.forEach((r,i)=>{ const col=i%2,x=14+col*92; if(col===0&&i>0)y+=6; doc.text(r[0],x,y); doc.setFont('helvetica','bold'); doc.text(String(r[1]),x+86,y,{align:'right'}); doc.setFont('helvetica','normal'); }); y+=10;
-  // Maßnahmen
+  if(isDouble)summ.push(L2('Strukturelle Doppelbenachteiligung: Score '+s+' bei nur '+d.wb+' % Wahlbeteiligung — höchster Handlungsbedarf bei geringster politischer Gegenwehr.','Structural double disadvantage: score '+s+' at only '+d.wb+' % turnout — highest need for action, lowest political pushback.','Structurele dubbele achterstand: score '+s+' bij slechts '+d.wb+' % opkomst — hoogste handelingsdruk, laagste politieke tegendruk.'));
+  summ.push(L2('Priorität '+rank+' von '+N+' im Stadtvergleich (Stadt-Ø '+avgS+', '+(s>=avgS?'über':'unter')+' dem Schnitt).','Priority '+rank+' of '+N+' within the city (average '+avgS+', '+(s>=avgS?'above':'below')+' average).','Prioriteit '+rank+' van '+N+' binnen de stad (gemiddeld '+avgS+', '+(s>=avgS?'boven':'onder')+' gemiddeld).'));
+  summ.push(L2('Schwächste Dimensionen: '+wk.join(', ')+' — die empfohlenen Maßnahmen (Abschnitt 4) setzen genau hier an.','Weakest dimensions: '+wk.join(', ')+' — the recommended measures (section 4) target exactly these.','Zwakste dimensies: '+wk.join(', ')+' — de aanbevolen maatregelen (sectie 4) richten zich hierop.'));
+  const risks=[]; if(d.hw)risks.push(L2('Hochwasserrisiko HQ100','Flood risk (HQ100)','Overstromingsrisico HQ100')); if(d.heat)risks.push(L2('Hitzeinsel identifiziert','Heat island identified','Hitte-eiland vastgesteld')); if(d.noise>70)risks.push(L2('Lärm ','Noise ','Geluid ')+d.noise+' dB(A)'); if(d.B<40)risks.push(L2('Luftqualität kritisch','Air quality critical','Luchtkwaliteit kritiek'));
+  if(risks.length)summ.push(L2('Aktive Risikolagen: ','Active risk exposures: ','Actieve risico’s: ')+risks.join(' · ')+'.');
+  y=pdfBullets(doc,y,summ);
+  // ── 2 · Profil der 8 Dimensionen (Tabelle mit Balken) ──
+  y=pdfSecN(doc,y,'2',L2('Profil der 8 Dimensionen','Profile across the 8 dimensions','Profiel over de 8 dimensies'));
+  const avgDim={}; ['A','B','C','D','E','F','G','H'].forEach(k=>{avgDim[k]=Math.round(ds.reduce((a,x)=>a+(x[k]||0),0)/ds.length);});
+  ['A','B','C','D','E','F','G','H'].forEach(k=>{
+    y=pdfNeed(doc,y,6);
+    doc.setFontSize(9); pC(doc,PDFX.body); doc.text(k+' · '+DNL[k],PDFX.L,y);
+    const bx=PDFX.L+72,bw=76;
+    pF(doc,[238,236,230]); doc.roundedRect(bx,y-2.8,bw,3,1.2,1.2,'F');
+    pF(doc,pdfScoreCol(d[k])); doc.roundedRect(bx,y-2.8,Math.max(2.5,bw*(d[k]||0)/100),3,1.2,1.2,'F');
+    const dv=(d[k]||0)-avgDim[k];
+    doc.setFont('helvetica','bold'); doc.text(String(d[k]),PDFX.R-14,y,{align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); pC(doc,dv<0?[190,60,60]:[21,128,61]);
+    doc.text((dv>=0?'+':'')+dv,PDFX.R,y,{align:'right'}); pC(doc,PDFX.body);
+    y+=6; });
+  doc.setFontSize(7.2); pC(doc,PDFX.mut);
+  doc.text(L2('Balken = Score 0–100 · rechte Spalte: Abweichung vom Stadt-Ø','Bar = score 0–100 · right column: deviation from the city average','Balk = score 0–100 · rechterkolom: afwijking van het stadsgemiddelde'),PDFX.L,y); y+=7;
+  doc.setFontSize(9.5); pC(doc,PDFX.body);
+  // ── 3 · Soziale Indikatoren ──
+  y=pdfSecN(doc,y,'3',L2('Soziale Indikatoren','Social indicators','Sociale indicatoren'));
+  const soc=[
+    [L2('Wahlbeteiligung','Voter turnout','Opkomst'),d.wb+' %',L2('Migrationshintergrund','Migration background','Migratieachtergrond'),d.mig+' %'],
+    [isNL?L2('Bijstand (Sozialhilfe)','Social assistance (bijstand)','Bijstand'):L2('SGB-II-Quote','Social assistance (SGB II)','Bijstandsquote'),d.sgb2+' %',isNL?L2('Niedrigeinkommen','Low income','Laag inkomen'):L2('Kinderarmut','Child poverty','Kinderarmoede'),d.kinderarmut+' %'],
+    [L2('Einkommen p. P.','Income p.c.','Inkomen p.p.'),(d.einkommen/1000).toFixed(0)+'k €',L2('Arbeitslosigkeit','Unemployment','Werkloosheid'),d.arbeitslos+' %'],
+    [L2('Versiegelung','Surface sealing','Verharding'),d.versieg+' %',L2('Hitze-Anomalie (LST)','Heat anomaly (LST)','Hitte-anomalie (LST)'),(d.lst_delta>0?'+':'')+d.lst_delta+' °C']];
+  const c4=[{t:L2('Indikator','Indicator','Indicator'),x:PDFX.L},{t:L2('Wert','Value','Waarde'),x:PDFX.L+78,a:'right'},{t:L2('Indikator','Indicator','Indicator'),x:PDFX.L+92},{t:L2('Wert','Value','Waarde'),x:PDFX.R,a:'right'}];
+  y=pdfTHead(doc,y,c4);
+  soc.forEach(r=>{y=pdfTRow(doc,y,c4,r,[1,3]);});
+  doc.setFontSize(7.2); pC(doc,PDFX.mut);
+  doc.text(L2('Quellen: ','Sources: ','Bronnen: ')+(isNL?'CBS Wijkdata 2023':'Zensus 2022 / Statistikportal')+' · Copernicus (ΔLST) · Urban Atlas ('+L2('Versiegelung','sealing','verharding')+')',PDFX.L,y+1); y+=8;
+  doc.setFontSize(9.5); pC(doc,PDFX.body);
+  // ── 4 · Empfohlene Maßnahmen ──
+  y=pdfSecN(doc,y,'4',L2('Empfohlene Maßnahmen','Recommended measures','Aanbevolen maatregelen'));
   const weak=DIMS.slice().sort((a,b)=>d[a.k]-d[b.k]).slice(0,4).map(x=>x.k);
   const rec=MASS.filter(m=>m.dims.some(k=>weak.includes(k))).slice(0,5);
-  sec(lang==='en'?'Recommended measures':lang==='nl'?'Aanbevolen maatregelen':'Empfohlene Maßnahmen');
+  const cm=[{t:L2('Maßnahme','Measure','Maatregel'),x:PDFX.L},{t:L2('Kosten','Cost','Kosten'),x:PDFX.L+112,a:'right'},{t:'ROI 10 '+L2('J.','yrs','jr'),x:PDFX.L+140,a:'right'},{t:L2('Förderung','Funding','Subsidie'),x:PDFX.R,a:'right'}];
+  y=pdfTHead(doc,y,cm);
   let totInv=0,totRoi=0;
-  rec.forEach(m=>{ if(y>258){doc.addPage();y=20;} const nm=(typeof localize==='function'?localize(m.name):m.name); doc.setFont('helvetica','bold'); doc.setTextColor(60,60,70); doc.text('• '+nm,14,y); doc.setFont('helvetica','normal'); doc.setTextColor(120,120,130); const f=m.foerder&&m.foerder[0]; doc.text(`${fmt(m.kosten)} → ROI ${fmt(m.roi)}${f?' · '+f.eb+(f.pct?' '+f.pct+'%':''):''}`,196,y,{align:'right'}); totInv+=m.kosten; totRoi+=m.roi; y+=6; });
-  y+=2; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=5; doc.setFont('helvetica','bold'); doc.setTextColor(26,26,46); doc.text(`${lang==='en'?'Total':lang==='nl'?'Totaal':'Summe'}: ${fmt(totInv)} → ${fmt(totRoi)} ROI (10 J)`,14,y); doc.setFont('helvetica','normal'); y+=8;
-  pdfFooter(doc, `nice here (2026): ${name}, ${cfg.name}. NICE Score ${s}. ${lang==='nl'?'Opgehaald':'Abgerufen'} ${today}.`);
-  doc.save(`nicehere_${name.replace(/[^\w]/g,'_')}.pdf`);
+  rec.forEach(m=>{ const f=m.foerder&&m.foerder[0]; totInv+=m.kosten; totRoi+=m.roi;
+    const nm=(typeof localize==='function'?localize(m.name):m.name);
+    y=pdfTRow(doc,y,cm,[nm.length>52?nm.slice(0,50)+'…':nm,fmt(m.kosten),fmt(m.roi),f?(f.eb+(f.pct?' '+f.pct+' %':'')):'—']); });
+  y=pdfTRow(doc,y,cm,[L2('Summe','Total','Totaal'),fmt(totInv),fmt(totRoi),''],[0,1,2]); y+=3;
+  // ── 5 · Methode ──
+  y=pdfMethodBlock(doc,y,'5',
+    L2('Der NICE Score ist das ungewichtete Mittel von acht Dimensionen (je 0–100, höher = besser). Kartenfarben und Prioritäten beruhen auf Quintilen im Stadtvergleich, nicht auf absoluten Schwellwerten. Maßnahmen werden den schwächsten Dimensionen des Stadtteils zugeordnet.','The NICE score is the unweighted mean of eight dimensions (0–100 each, higher = better). Map colours and priorities are based on quintiles within the city, not absolute thresholds. Measures are matched to the district’s weakest dimensions.','De NICE-score is het ongewogen gemiddelde van acht dimensies (elk 0–100, hoger = beter). Kaartkleuren en prioriteiten zijn gebaseerd op kwintielen binnen de stad. Maatregelen worden gekoppeld aan de zwakste dimensies.'),
+    'Copernicus LST (Sentinel-3, 2023–2025) · '+(isNL?'CBS Wijkdata 2023':'Zensus 2022')+' · OpenStreetMap · Open-Meteo (live) · Urban Atlas 2018 · leoorexx.github.io/urbanlens/methodik.html',
+    L2('WHO (Grünzugang 300 m) · EU-Umgebungslärm (55 dB Lden) · Utrecht Ruimtelijke Strategie 2040 (200 m Kühlgrün, 30 % Verschattung)','WHO (green access 300 m) · EU environmental noise (55 dB Lden) · Utrecht Spatial Strategy 2040 (200 m cool green, 30 % shade)','WHO (groen 300 m) · EU-omgevingslawaai (55 dB Lden) · Utrecht RSU 2040 (200 m koelgroen, 30 % schaduw)'));
+  y=pdfDisclaimer(doc,y);
+  pdfFinish(doc,'nice here — Inspector Nice ('+new Date().getFullYear()+'): '+name+', '+cfg.name+'. NICE '+s+'/100.',repId);
+  doc.save('inspector-nice_'+city+'_'+pdfSlug(name)+'_'+new Date().toISOString().slice(0,10)+'.pdf');
 }
 function areaPDF(){
   if(!areaStats){return;} const doc=pdfDoc(); if(!doc){alert('PDF-Bibliothek lädt noch.');return;}
-  const L=(de,en,nl)=>lang==='en'?en:lang==='nl'?nl:de;
-  const st=areaStats, sc=areaScore(st), today=new Date().toLocaleDateString('de-DE');
+  const L=pdfL3, st=areaStats, sc=areaScore(st);
   const band=sc<45?L('kritisch','critical','kritiek'):sc<65?L('mittel','moderate','matig'):L('gut','good','goed');
-  let y=pdfHeader(doc,L('Gebiets-Analyse','Area analysis','Gebiedsanalyse'),CITY_CFG[city].name);
-  doc.setTextColor(26,26,46); doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(L('Gezeichnetes Gebiet','Drawn area','Getekend gebied'),14,y); y+=8;
-  doc.setFontSize(11); doc.setTextColor(90,90,110); doc.setFont('helvetica','normal');
-  doc.text(`${st.ha.toFixed(1)} ha  ·  ${L('Aufenthalts-Index','Place index','Verblijfsindex')} ${sc}/100 (${band})`,14,y); y+=11;
-  // Diagnose (Klartext-Befunde — wie in der Infobox)
-  y=pdfSec(doc,y,L('Diagnose','Diagnosis','Diagnose'));
-  areaFindings(st).forEach(f=>{ if(y>262){doc.addPage();y=20;} const fl=doc.splitTextToSize('•  '+f,180); doc.setTextColor(60,60,70); doc.text(fl,14,y); y+=fl.length*5+1; }); y+=6;
-  // Bilanz
-  y=pdfSec(doc,y,L('Bilanz','Balance','Balans'));
-  const rows=[[L('Bäume','Trees','Bomen'),st.trees],[L('Bäume/ha','Trees/ha','Bomen/ha'),st.treesPerHa],[L('Bänke','Benches','Bankjes'),st.benches],[L('Grünanteil','Green cover','Groen'),st.greenPct+'%'],[L('Geschäfte','Shops','Winkels'),st.shops],[L('Trinkbrunnen','Fountains','Fonteinen'),st.water]];
-  rows.forEach((r,i)=>{ const col=i%2,x=14+col*92; if(col===0&&i>0)y+=6; doc.setFont('helvetica','normal'); doc.setTextColor(60,60,70); doc.text(String(r[0]),x,y); doc.setFont('helvetica','bold'); doc.setTextColor(26,26,46); doc.text(String(r[1]),x+86,y,{align:'right'}); }); y+=11;
-  // Maßnahmen (dieselben wie die Infobox vorschlägt)
+  const repId=pdfRepId('AREA');
+  let y=pdfMast(doc,L('Gebiets-Untersuchung','Area investigation','Gebiedsonderzoek'),
+    L('Gezeichnetes Gebiet','Drawn area','Getekend gebied'),
+    CITY_CFG[city].name+'  ·  '+st.ha.toFixed(1)+' ha  ·  '+L('Stand','As of','Per')+' '+pdfDate());
+  // Score-Panel
+  const scCol=pdfScoreCol(sc);
+  doc.setFont('times','bold'); doc.setFontSize(34); pC(doc,scCol); doc.text(String(sc),PDFX.L,y+9);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8.5); pC(doc,PDFX.ink);
+  doc.text(L('Aufenthalts-Index','Place index','Verblijfsindex')+' · '+band,PDFX.L,y+14.5);
+  pdfGauge(doc,PDFX.L+52,y+4.5,118,sc,65,L('Ziel','target','doel'),scCol);
+  y+=25; doc.setFontSize(9.5); pC(doc,PDFX.body);
+  // 1 · Diagnose
+  y=pdfSecN(doc,y,'1',L('Diagnose','Diagnosis','Diagnose'));
+  y=pdfBullets(doc,y,areaFindings(st));
+  // 2 · Bestandsbilanz vs. Referenz
+  y=pdfSecN(doc,y,'2',L('Bestandsbilanz','Inventory balance','Inventarisatie'));
+  const cb=[{t:L('Indikator','Indicator','Indicator'),x:PDFX.L},{t:L('Wert','Value','Waarde'),x:PDFX.L+92,a:'right'},{t:L('Referenz','Benchmark','Referentie'),x:PDFX.R,a:'right'}];
+  y=pdfTHead(doc,y,cb);
+  [[L('Bäume im Gebiet','Trees in area','Bomen in gebied'),st.trees,'—'],
+   [L('Bäume je Hektar','Trees per hectare','Bomen per hectare'),st.treesPerHa,'min. 8'],
+   [L('Grünanteil','Green cover','Groenaandeel'),st.greenPct+' %','min. 25 %'],
+   [L('Bänke','Benches','Bankjes'),st.benches,st.shops>=4?'min. 2':'—'],
+   [L('Trinkbrunnen','Drinking fountains','Drinkfonteinen'),st.water,'—'],
+   [L('Geschäfte','Shops','Winkels'),st.shops,'—']].forEach(r=>{y=pdfTRow(doc,y,cb,r,[1]);});
+  y+=3;
+  // 3 · Empfohlene Maßnahmen
   const applicable=(typeof AREA_MEASURES!=='undefined')?AREA_MEASURES.filter(m=>m.cond(st)):[];
   if(applicable.length){
-    y=pdfSec(doc,y,L('Empfohlene Maßnahmen','Recommended measures','Aanbevolen maatregelen'));
+    y=pdfSecN(doc,y,'3',L('Empfohlene Maßnahmen','Recommended measures','Aanbevolen maatregelen'));
+    const cm=[{t:L('Maßnahme','Measure','Maatregel'),x:PDFX.L},{t:L('Kosten','Cost','Kosten'),x:PDFX.L+112,a:'right'},{t:'ROI 10 '+L('J.','yrs','jr'),x:PDFX.L+140,a:'right'},{t:L('Förderung','Funding','Subsidie'),x:PDFX.R,a:'right'}];
+    y=pdfTHead(doc,y,cm);
     let totInv=0,totRoi=0;
-    applicable.forEach(m=>{ if(y>258){doc.addPage();y=20;} const mo=MASS.find(x=>x.id===m.id); const nm=mo?(typeof localize==='function'?localize(mo.name):mo.name):m.id; doc.setFont('helvetica','bold'); doc.setTextColor(60,60,70); doc.text('• '+nm,14,y); if(mo){ doc.setFont('helvetica','normal'); doc.setTextColor(120,120,130); const f=mo.foerder&&mo.foerder[0]; doc.text(`${fmt(mo.kosten)} → ROI ${fmt(mo.roi)}${f&&f.pct?' · '+f.pct+'% '+L('förderbar','fundable','subsidiabel'):''}`,196,y,{align:'right'}); totInv+=mo.kosten; totRoi+=mo.roi; } y+=6; });
-    if(totInv){ y+=2; doc.setDrawColor(230,228,222); doc.line(14,y,196,y); y+=5; doc.setFont('helvetica','bold'); doc.setTextColor(26,26,46); doc.text(`${L('Summe','Total','Totaal')}: ${fmt(totInv)} → ${fmt(totRoi)} ROI (10 J)`,14,y); y+=7; }
+    applicable.forEach(m=>{ const mo=MASS.find(x=>x.id===m.id); if(!mo)return; const f=mo.foerder&&mo.foerder[0]; totInv+=mo.kosten; totRoi+=mo.roi;
+      const nm=(typeof localize==='function'?localize(mo.name):mo.name);
+      y=pdfTRow(doc,y,cm,[nm.length>52?nm.slice(0,50)+'…':nm,fmt(mo.kosten),fmt(mo.roi),f&&f.pct?f.pct+' %':'—']); });
+    if(totInv)y=pdfTRow(doc,y,cm,[L('Summe','Total','Totaal'),fmt(totInv),fmt(totRoi),''],[0,1,2]);
     const anyApplied=Object.values(areaApplied).some(Boolean);
-    if(anyApplied&&typeof projectedStats==='function'){ const sc1=areaScore(projectedStats()); doc.setFont('helvetica','normal'); doc.setTextColor(21,128,61); doc.text(`${L('Projektion nach Maßnahmen','Projection after measures','Projectie na maatregelen')}: ${L('Index','Index','Index')} ${sc} → ${sc1}/100`,14,y); y+=8; }
+    if(anyApplied&&typeof projectedStats==='function'){ const sc1=areaScore(projectedStats());
+      y+=2; y=pdfPara(doc,y,L('Projektion nach gewählten Maßnahmen: Index ','Projection after selected measures: index ','Projectie na gekozen maatregelen: index ')+sc+' → '+sc1+'/100.'); }
+    y+=2;
   }
-  if(y<270){ doc.setFontSize(8); doc.setTextColor(120,120,130); doc.text(L('Quelle: OpenStreetMap. Normen: WHO 300 m Grün, 15-Minuten-Stadt.','Source: OpenStreetMap. Norms: WHO 300 m green, 15-minute city.','Bron: OpenStreetMap. Normen: WHO 300 m groen, 15-minutenstad.'),14,y); }
-  pdfFooter(doc,`nice here (2026): ${L('Gebiets-Analyse','Area analysis','Gebiedsanalyse')}, ${CITY_CFG[city].name}. ${L('Index','Index','Index')} ${sc}. ${today}.`);
-  doc.save('nicehere_Gebiet.pdf');
+  // 4 · Methode
+  y=pdfMethodBlock(doc,y,applicable.length?'4':'3',
+    L('Der Aufenthalts-Index (0–100) bündelt Baumbestand, Verschattung, Sitzgelegenheiten, Grünanteil und Versorgung im gezeichneten Gebiet; Zählungen erfolgen live aus dem Datenbestand für die gewählte Fläche.','The place index (0–100) combines tree stock, shade, seating, green cover and amenities within the drawn area; counts are computed live for the selected polygon.','De verblijfsindex (0–100) bundelt bomen, schaduw, zitplekken, groen en voorzieningen binnen het getekende gebied; tellingen zijn live berekend voor de gekozen vlakte.'),
+    'OpenStreetMap ('+L('Bestand, live','inventory, live','inventaris, live')+') · Copernicus/Urban Atlas ('+L('Kontext','context','context')+')',
+    L('WHO (Grünzugang 300 m) · 15-Minuten-Stadt · Utrecht 2040 (200 m Kühlgrün)','WHO (green access 300 m) · 15-minute city · Utrecht 2040 (200 m cool green)','WHO (groen 300 m) · 15-minutenstad · Utrecht 2040 (200 m koelgroen)'));
+  y=pdfDisclaimer(doc,y);
+  pdfFinish(doc,'nice here — Inspector Nice ('+new Date().getFullYear()+'): '+L('Gebiets-Untersuchung','Area investigation','Gebiedsonderzoek')+', '+CITY_CFG[city].name+'. Index '+sc+'/100.',repId);
+  doc.save('inspector-nice_'+city+'_area_'+new Date().toISOString().slice(0,10)+'.pdf');
 }
 
 
@@ -3454,18 +3595,42 @@ function missionCase(i){
 }
 function missionPDF(){
   const doc=pdfDoc();if(!doc){alert('PDF-Bibliothek lädt noch.');return;}
-  const S=MISSION.schools;const {pick,sum}=missionBudgetCalc();const today=new Date().toLocaleDateString('de-DE');
-  let y=pdfHeader(doc,mT('Mission: Hitzesichere Schulen','Mission: Heat-safe schools','Missie: Hittebestendige scholen'),CITY_CFG[city].name);
-  doc.setTextColor(26,26,46);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text(mT('Prioritätenliste & Budget-Szenario','Priority list & budget scenario','Prioriteiten & budgetscenario'),14,y);y+=8;
-  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(90,90,110);
-  doc.text(`${S.length} ${mT('Schulen analysiert','schools analysed','scholen geanalyseerd')} · ${mT('Budget','Budget','Budget')} ${MISSION.budget} Mio € → ${pick.length} ${mT('Schulen','schools','scholen')} (${fmt(sum)}) · ~${(pick.length*350).toLocaleString('de-DE')} ${mT('Kinder','children','kinderen')}`,14,y);y+=10;
-  y=pdfSec(doc,y,mT('Top 10 nach Priorität','Top 10 by priority','Top 10 naar prioriteit'));
-  S.slice(0,10).forEach((s,i)=>{if(y>260){doc.addPage();y=20;}doc.setFont('helvetica','bold');doc.setTextColor(60,60,70);doc.text(`${i+1}. ${s.name}`.slice(0,52),14,y);doc.setFont('helvetica','normal');doc.setTextColor(120,120,130);doc.text(`${mT('Priorität','Priority','Prioriteit')} ${s.prio} · ${s.lst!=null?'+'+s.lst+' °C · ':''}${s.versieg!=null?s.versieg+' % · ':''}${mT('Grün','green','groen')} ${s.gd} m`,196,y,{align:'right'});y+=6;});
-  y+=4;y=pdfSec(doc,y,mT('Methode & Konfidenz','Method & confidence','Methode & betrouwbaarheid'));
-  const meth=doc.splitTextToSize(mT('Priorität = 35 % Hitze (Copernicus LST, gemessen) + 25 % soziale Verwundbarkeit (Kinderarmut, amtlich/Wijk) + 20 % Versiegelung + 20 % Grün-Distanz (OSM). Kosten = Korridore aus Vergleichsprojekten; Schülerzahlen geschätzt (350/Schule). Eigentum & Zuständigkeit erfordern kommunale Daten.','Priority = 35% heat (Copernicus LST, measured) + 25% social vulnerability (official) + 20% sealing + 20% green distance (OSM). Costs are corridors from reference projects; enrolment estimated (350/school). Ownership & responsibility require municipal data.','Prioriteit = 35% hitte (gemeten) + 25% sociale kwetsbaarheid + 20% verharding + 20% groenafstand. Kosten = bandbreedtes; leerlingaantallen geschat.'),182);
-  doc.text(meth,14,y);y+=meth.length*5;
-  pdfFooter(doc,`nice here (2026): Mission ${mT('Hitzesichere Schulen','Heat-safe schools','Hittebestendige scholen')}, ${CITY_CFG[city].name}. ${today}.`);
-  doc.save('nicehere_Mission_Schulen.pdf');
+  const L=pdfL3, S=MISSION.schools; const {pick,sum}=missionBudgetCalc();
+  const hot=S.filter(x=>x.prio>=50).length, noGreen=S.filter(x=>x.gd>200).length;
+  const repId=pdfRepId('MISSION-HEAT');
+  let y=pdfMast(doc,L('Missions-Bericht','Mission report','Missierapport'),
+    L('Hitzesichere Schulen','Heat-safe schools','Hittebestendige scholen'),
+    CITY_CFG[city].name+'  ·  '+S.length+' '+L('Schulen & Kitas analysiert','schools & childcare analysed','scholen & opvang geanalyseerd')+'  ·  '+L('Stand','As of','Per')+' '+pdfDate());
+  // 1 · Frage & Vorgehen
+  y=pdfSecN(doc,y,'1',L('Fragestellung & Vorgehen','Question & approach','Vraagstelling & aanpak'));
+  y=pdfPara(doc,y,L('Welche Schulen sollten zuerst hitzeresilient umgebaut werden — und was kostet das? Inspector Nice verknüpft dafür jeden Standort mit gemessener Oberflächentemperatur, Versiegelung und sozialer Verwundbarkeit des Umfelds sowie der Distanz zum nächsten Kühlgrün, und ordnet jedem Fall standardisierte Maßnahmenpakete mit Kostenkorridoren und Förderfähigkeit zu.','Which schools should be made heat-resilient first — and what does it cost? Inspector Nice links every location to measured surface temperature, surrounding sealing and social vulnerability, and the distance to the nearest cool green space, then assigns standardised action packages with cost corridors and funding eligibility to each case.','Welke scholen moeten het eerst hittebestendig worden — en wat kost dat? Inspector Nice koppelt elke locatie aan gemeten oppervlaktetemperatuur, verharding en sociale kwetsbaarheid van de omgeving plus de afstand tot het dichtstbijzijnde koelgroen, en wijst elk geval gestandaardiseerde maatregelpakketten met kostenbandbreedtes en subsidiekansen toe.'));
+  // 2 · Kennzahlen
+  y=pdfSecN(doc,y,'2',L('Kennzahlen','Key figures','Kerncijfers'));
+  const ck=[{t:L('Kennzahl','Figure','Cijfer'),x:PDFX.L},{t:L('Wert','Value','Waarde'),x:PDFX.R,a:'right'}];
+  y=pdfTHead(doc,y,ck);
+  [[L('Analysierte Schulen & Kitas','Schools & childcare analysed','Geanalyseerde scholen & opvang'),S.length],
+   [L('Hohe Hitze-Priorität (50+, relativ)','High heat priority (50+, relative)','Hoge hitteprioriteit (50+, relatief)'),hot],
+   [L('Ohne Kühlgrün < 200 m (Utrecht-Ziel 2040)','No cool green within 200 m (Utrecht 2040 target)','Zonder koelgroen < 200 m (doel 2040)'),noGreen],
+   [L('Budget-Szenario','Budget scenario','Budgetscenario'),MISSION.budget+' Mio €'],
+   [L('Damit finanzierbare Schulen','Schools fundable within budget','Financierbare scholen'),pick.length+'  ('+fmt(sum)+')'],
+   [L('Erreichte Kinder (Schätzwert 350/Schule)','Children reached (estimate 350/school)','Bereikte kinderen (schatting 350/school)'),'~'+(pick.length*350).toLocaleString('de-DE')]].forEach(r=>{y=pdfTRow(doc,y,ck,r,[1]);});
+  y+=3;
+  // 3 · Top 10 nach Priorität
+  y=pdfSecN(doc,y,'3',L('Prioritätenliste — Top 10','Priority list — Top 10','Prioriteitenlijst — Top 10'));
+  const ct=[{t:'#',x:PDFX.L},{t:L('Schule','School','School'),x:PDFX.L+8},{t:L('Priorität','Priority','Prioriteit'),x:PDFX.L+96,a:'right'},{t:'LST',x:PDFX.L+120,a:'right'},{t:L('Versieg.','Sealing','Verhard.'),x:PDFX.L+146,a:'right'},{t:L('Grün','Green','Groen'),x:PDFX.R,a:'right'}];
+  y=pdfTHead(doc,y,ct);
+  S.slice(0,10).forEach((s,i)=>{ y=pdfTRow(doc,y,ct,[i+1,(s.name.length>40?s.name.slice(0,38)+'…':s.name),s.prio,s.lst!=null?'+'+s.lst+' °C':'—',s.versieg!=null?s.versieg+' %':'—',s.gd+' m'],[2]); });
+  doc.setFontSize(7.2); pC(doc,PDFX.mut);
+  doc.text(L('Priorität relativ im Stadtvergleich skaliert (beste = 100) · Grün = Distanz zum nächsten Kühlgrün','Priority scaled relative within the city (top = 100) · green = distance to nearest cool green space','Prioriteit relatief geschaald binnen de stad (top = 100) · groen = afstand tot koelgroen'),PDFX.L,y+1); y+=8;
+  doc.setFontSize(9.5); pC(doc,PDFX.body);
+  // 4 · Methode
+  y=pdfMethodBlock(doc,y,'4',
+    L('Priorität = 35 % Hitze (Copernicus LST, gemessen) + 25 % soziale Verwundbarkeit (Kinderarmut, amtlich, Wijk-Aggregat) + 20 % Versiegelung + 20 % Grün-Distanz (OSM); anschließend relative Skalierung im Stadtvergleich. Kosten sind Korridore aus Vergleichsprojekten; Schülerzahlen sind Schätzwerte (350/Schule), da OSM keine Schülerzahlen führt. Eigentum und Zuständigkeit erfordern kommunale Daten (Phase 2).','Priority = 35 % heat (Copernicus LST, measured) + 25 % social vulnerability (official, district aggregate) + 20 % sealing + 20 % green distance (OSM); then scaled relative within the city. Costs are corridors from reference projects; enrolment figures are estimates (350/school) as OSM carries no enrolment. Ownership and responsibility require municipal data (phase 2).','Prioriteit = 35 % hitte (Copernicus LST, gemeten) + 25 % sociale kwetsbaarheid (officieel, wijkaggregaat) + 20 % verharding + 20 % groenafstand (OSM); daarna relatief geschaald. Kosten zijn bandbreedtes; leerlingaantallen zijn schattingen (350/school). Eigendom en bevoegdheid vergen gemeentedata (fase 2).'),
+    'Copernicus LST (Sentinel-3, 2023–2025) · '+(city==='utr'?'CBS Wijkdata 2023':'Zensus 2022')+' · OpenStreetMap ('+L('Schulen, Grün, Bäume','schools, green, trees','scholen, groen, bomen')+') · Urban Atlas 2018',
+    L('Utrecht Ruimtelijke Strategie 2040: Kühlgrün < 200 m · 30 % Straßenverschattung','Utrecht Spatial Strategy 2040: cool green < 200 m · 30 % street shade','Utrecht RSU 2040: koelgroen < 200 m · 30 % straatschaduw'));
+  y=pdfDisclaimer(doc,y);
+  pdfFinish(doc,'nice here — Inspector Nice ('+new Date().getFullYear()+'): '+L('Mission Hitzesichere Schulen','Heat-safe schools mission','Missie hittebestendige scholen')+', '+CITY_CFG[city].name+'.',repId);
+  doc.save('inspector-nice_'+city+'_mission-heat-schools_'+new Date().toISOString().slice(0,10)+'.pdf');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -5948,9 +6113,9 @@ if(new URLSearchParams(location.search).get('view')==='3d')setTimeout(()=>{try{e
 
 // ── Intro-Karte (Wertversprechen, einmalig beim ersten Besuch) ─────────────
 const INTRO_TXT={
- de:{tag:'Urbaner Entscheidungs-Zwilling',h:'Welche Stadtteile sind am stärksten belastet — und welche geförderten Maßnahmen wirken dort zuerst?',aud:'Für <b>Social Urban Developer &amp; Kommunen</b>: diagnostizieren · priorisieren · Bewohner beteiligen · Mittel begründen.',niceT:'Der NICE Score (0–100, höher = besser)',nice:'verdichtet 29 Indikatoren zu 8 Dimensionen über 30+ Datenebenen — und macht aus Rohdaten priorisierte Handlungsräume.',pillars:['Klima &amp; Energie','Wasser &amp; Ökologie','Soziales &amp; Teilhabe'],roleQ:'Wofür bist du hier?',roles:[{b:'Ich arbeite in einer Stadtverwaltung',s:'Prioritäten, Maßnahmen &amp; Förderlogik → Dashboard',go:'admin'},{b:'Ich bin Bürger:in oder Initiative',s:'Versteh, warum dein Viertel belastet ist → Karte',go:'map'},{b:'Ich bin Planer:in, Forscher:in oder Berater:in',s:'Methodik, Datenqualität &amp; Quellen → Methodik',go:'method'}],demoEye:'Beispiel',demoBurden:'größte Belastung',demoBtn:'Auf der Karte ansehen →',demoGeneric:'Stärkst belasteten Stadtteil ansehen →'},
- en:{tag:'Urban Decision Twin',h:'Which neighbourhoods are most burdened — and which funded measures work there first?',aud:'For <b>social urban developers &amp; municipalities</b>: diagnose · prioritise · involve residents · justify funding.',niceT:'The NICE Score (0–100, higher = better)',nice:'condenses 29 indicators into 8 dimensions across 30+ data layers — turning raw data into prioritised areas for action.',pillars:['Climate &amp; energy','Water &amp; ecology','Social &amp; participation'],roleQ:'What brings you here?',roles:[{b:'I work in city administration',s:'Priorities, measures &amp; funding logic → Dashboard',go:'admin'},{b:'I\'m a resident or initiative',s:'Understand why your area is burdened → Map',go:'map'},{b:'I\'m a planner, researcher or consultant',s:'Methodology, data quality &amp; sources → Methodology',go:'method'}],demoEye:'Example',demoBurden:'biggest burden',demoBtn:'View on the map →',demoGeneric:'See the most burdened district →'},
- nl:{tag:'Stedelijke beslis-tweeling',h:'Welke wijken zijn het zwaarst belast — en welke gesubsidieerde maatregelen werken daar het eerst?',aud:'Voor <b>social urban developers &amp; gemeenten</b>: diagnosticeren · prioriteren · bewoners betrekken · middelen onderbouwen.',niceT:'De NICE Score (0–100, hoger = beter)',nice:'verdicht 29 indicatoren tot 8 dimensies over 30+ datalagen — en maakt van ruwe data geprioriteerde handelingsruimtes.',pillars:['Klimaat &amp; energie','Water &amp; ecologie','Sociaal &amp; participatie'],roleQ:'Waarvoor ben je hier?',roles:[{b:'Ik werk bij een gemeente',s:'Prioriteiten, maatregelen &amp; subsidielogica → Dashboard',go:'admin'},{b:'Ik ben bewoner of initiatief',s:'Begrijp waarom jouw wijk belast is → Kaart',go:'map'},{b:'Ik ben planner, onderzoeker of adviseur',s:'Methodiek, datakwaliteit &amp; bronnen → Methodiek',go:'method'}],demoEye:'Voorbeeld',demoBurden:'grootste belasting',demoBtn:'Bekijk op de kaart →',demoGeneric:'Bekijk de zwaarst belaste wijk →'}
+ de:{tag:'Inspector Nice',h:'Welche Stadtteile sind am stärksten belastet — und welche geförderten Maßnahmen wirken dort zuerst?',aud:'Für <b>Social Urban Developer &amp; Kommunen</b>: diagnostizieren · priorisieren · Bewohner beteiligen · Mittel begründen.',niceT:'Der NICE Score (0–100, höher = besser)',nice:'verdichtet 29 Indikatoren zu 8 Dimensionen über 30+ Datenebenen — und macht aus Rohdaten priorisierte Handlungsräume.',pillars:['Klima &amp; Energie','Wasser &amp; Ökologie','Soziales &amp; Teilhabe'],roleQ:'Wofür bist du hier?',roles:[{b:'Ich arbeite in einer Stadtverwaltung',s:'Prioritäten, Maßnahmen &amp; Förderlogik → Dashboard',go:'admin'},{b:'Ich bin Bürger:in oder Initiative',s:'Versteh, warum dein Viertel belastet ist → Karte',go:'map'},{b:'Ich bin Planer:in, Forscher:in oder Berater:in',s:'Methodik, Datenqualität &amp; Quellen → Methodik',go:'method'}],demoEye:'Beispiel',demoBurden:'größte Belastung',demoBtn:'Auf der Karte ansehen →',demoGeneric:'Stärkst belasteten Stadtteil ansehen →'},
+ en:{tag:'Inspector Nice',h:'Which neighbourhoods are most burdened — and which funded measures work there first?',aud:'For <b>social urban developers &amp; municipalities</b>: diagnose · prioritise · involve residents · justify funding.',niceT:'The NICE Score (0–100, higher = better)',nice:'condenses 29 indicators into 8 dimensions across 30+ data layers — turning raw data into prioritised areas for action.',pillars:['Climate &amp; energy','Water &amp; ecology','Social &amp; participation'],roleQ:'What brings you here?',roles:[{b:'I work in city administration',s:'Priorities, measures &amp; funding logic → Dashboard',go:'admin'},{b:'I\'m a resident or initiative',s:'Understand why your area is burdened → Map',go:'map'},{b:'I\'m a planner, researcher or consultant',s:'Methodology, data quality &amp; sources → Methodology',go:'method'}],demoEye:'Example',demoBurden:'biggest burden',demoBtn:'View on the map →',demoGeneric:'See the most burdened district →'},
+ nl:{tag:'Inspector Nice',h:'Welke wijken zijn het zwaarst belast — en welke gesubsidieerde maatregelen werken daar het eerst?',aud:'Voor <b>social urban developers &amp; gemeenten</b>: diagnosticeren · prioriteren · bewoners betrekken · middelen onderbouwen.',niceT:'De NICE Score (0–100, hoger = beter)',nice:'verdicht 29 indicatoren tot 8 dimensies over 30+ datalagen — en maakt van ruwe data geprioriteerde handelingsruimtes.',pillars:['Klimaat &amp; energie','Water &amp; ecologie','Sociaal &amp; participatie'],roleQ:'Waarvoor ben je hier?',roles:[{b:'Ik werk bij een gemeente',s:'Prioriteiten, maatregelen &amp; subsidielogica → Dashboard',go:'admin'},{b:'Ik ben bewoner of initiatief',s:'Begrijp waarom jouw wijk belast is → Kaart',go:'map'},{b:'Ik ben planner, onderzoeker of adviseur',s:'Methodiek, datakwaliteit &amp; bronnen → Methodiek',go:'method'}],demoEye:'Voorbeeld',demoBurden:'grootste belasting',demoBtn:'Bekijk op de kaart →',demoGeneric:'Bekijk de zwaarst belaste wijk →'}
 };
 function introGo(w){ try{localStorage.setItem('nh_intro_v1','1');}catch(e){} if(w==='admin')location.href='dashboard.html'; else if(w==='method')location.href='methodik.html'; else closeIntro(); }
 function introTrName(s){ try{ return (lang!=='de'&&typeof TR!=='undefined'&&TR[s]&&TR[s][lang])?TR[s][lang]:s; }catch(e){ return s; } }
