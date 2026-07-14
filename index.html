@@ -551,7 +551,7 @@ body.free-mode #heatWarn{top:106px}
 <div class="loader" id="loader">
   <div class="lloogo">nice <span>here</span></div>
   <div class="lring"></div>
-  <div class="ltxt" id="loaderTxt" data-i18n="loading">Geodaten werden geladen…</div>
+  <div class="ltxt" id="loaderTxt" data-i18n="loading">Stadt wird gescannt — Hitze, Grün &amp; soziale Lage…</div>
 </div>
 
 <nav class="nav">
@@ -1077,7 +1077,7 @@ function ic(name,size=14){
 const STR={
  de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',tool_mission:'Mission',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Wasser',lens_noise:'Lärm',lens_life:'Lebensqualität',lens_adv:'Erweitert — einzelne Ebenen',
      search_ph:'Stadtteil suchen…',search_city_ph:'Adresse oder Stadt suchen…',bm_map:'Karte',bm_sat:'Satellit',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
-     loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',lay_paw:'Pflanzenverfügbares Wasser — Dürre',
+     loading:'Stadt wird gescannt — Hitze, Grün & soziale Lage…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',lay_paw:'Pflanzenverfügbares Wasser — Dürre',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
      sec_social:'Soziale Infrastruktur',sec_europe:'Europa-Modus — Live aus OpenStreetMap',
      hint_layers:'Stadtteil-Füllung blendet sich automatisch aus wenn Layer aktiv sind — die Karte bleibt lesbar.',
@@ -1088,7 +1088,7 @@ const STR={
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
  en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',tool_mission:'Mission',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Water',lens_noise:'Noise',lens_life:'Livability',lens_adv:'Advanced — individual layers',
      search_ph:'Search district…',search_city_ph:'Search address or city…',bm_map:'Map',bm_sat:'Satellite',list_sub:'Relative ranking within the city · quintiles',
-     loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',lay_paw:'Plant-available water — drought',
+     loading:'Scanning the city — heat, green & social fabric…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',lay_paw:'Plant-available water — drought',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
      sec_social:'Social infrastructure',sec_europe:'Europe mode — live from OpenStreetMap',
      hint_layers:'District fill fades out automatically while layers are active — the map stays readable.',
@@ -1099,7 +1099,7 @@ const STR={
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
  nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',tool_mission:'Missie',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Water',lens_noise:'Geluid',lens_life:'Leefkwaliteit',lens_adv:'Uitgebreid — losse lagen',
      search_ph:'Zoek wijk…',search_city_ph:'Zoek adres of stad…',bm_map:'Kaart',bm_sat:'Satelliet',list_sub:'Relatieve positie binnen de stad · kwintielen',
-     loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',lay_paw:'Plantbeschikbaar water — droogte',
+     loading:'Stad wordt gescand — hitte, groen & sociale situatie…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',lay_paw:'Plantbeschikbaar water — droogte',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
      sec_social:'Sociale infrastructuur',sec_europe:'Europa-modus — live uit OpenStreetMap',
      hint_layers:'De wijkvulling verdwijnt automatisch zodra lagen actief zijn — de kaart blijft leesbaar.',
@@ -3377,6 +3377,9 @@ function missionLoad(){
         c:{heat:Math.round(heat*100),seal:Math.round(seal*100),green:Math.round(green01*100),soc:Math.round(soc*100)}});
     });
     S.sort((x,y)=>y.prio-x.prio);
+    // Relative Skalierung im Stadtvergleich (wie Karten-Quintile) — sonst wirkt
+    // die grünste Stadt der NL absolut "unauffällig" und das Ranking verliert Kontrast
+    if(S.length>1){const mx=S[0].prio,mn=S[S.length-1].prio;if(mx>mn)S.forEach(s=>{s.prio=Math.round(((s.prio-mn)/(mx-mn))*100);});}
     MISSION.schools=S;MISSION.loaded=city;
     renderMission();
   }).catch(()=>{const b=document.getElementById('msBody');if(b)b.innerHTML='<div style="padding:14px;font-size:11px;color:var(--muted)">Daten konnten nicht geladen werden.</div>';});
@@ -3410,7 +3413,7 @@ function renderMission(){
    <div class="ap-sec">${mT('Prioritätenliste','Priority list','Prioriteitenlijst')} <span class="ms-badge">${mT('Klick öffnet Fall','click opens case','klik opent casus')}</span></div>
    ${S.slice(0,12).map((s,i)=>`<div class="ms-item" onclick="missionCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.versieg!=null?s.versieg+' % '+mT('vers.','sealed','verh.')+' · ':''}${mT('Grün','green','groen')} ${s.gd} m</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
    <div style="margin-top:10px"><button onclick="missionPDF()" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">${ic('download',13)} ${mT('Missions-Bericht (PDF)','Mission report (PDF)','Missierapport (PDF)')}</button></div>
-   <div style="font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">${mT('Priorität = 35 % Hitze (Copernicus LST, gemessen) + 25 % soziale Verwundbarkeit (Kinderarmut, amtlich/Wijk) + 20 % Versiegelung + 20 % Grün-Distanz (OSM). Komponenten je Fall sichtbar — der Score verdeckt nie die Begründung.','Priority = 35 % heat (Copernicus LST, measured) + 25 % social vulnerability (official, district) + 20 % sealing + 20 % green distance (OSM). Components visible per case — the score never hides the reasoning.','Prioriteit = 35 % hitte (gemeten) + 25 % sociale kwetsbaarheid + 20 % verharding + 20 % groenafstand. Componenten per casus zichtbaar.')}</div>`;
+   <div style="font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">${mT('Priorität = 35 % Hitze (Copernicus LST, gemessen) + 25 % soziale Verwundbarkeit (Kinderarmut, amtlich/Wijk) + 20 % Versiegelung + 20 % Grün-Distanz (OSM), relativ im Stadtvergleich skaliert. Komponenten je Fall sichtbar — der Score verdeckt nie die Begründung.','Priority = 35 % heat (Copernicus LST, measured) + 25 % social vulnerability (official, district) + 20 % sealing + 20 % green distance (OSM), scaled relative within the city. Components visible per case — the score never hides the reasoning.','Prioriteit = 35 % hitte (gemeten) + 25 % sociale kwetsbaarheid + 20 % verharding + 20 % groenafstand, relatief binnen de stad. Componenten per casus zichtbaar.')}</div>`;
 }
 function missionCase(i){
   const s=MISSION.schools[i];if(!s)return;
@@ -4930,6 +4933,27 @@ function showTab(i){
   document.querySelectorAll('.tp').forEach((p,idx)=>p.classList.toggle('on',idx===i));
 }
 
+// Storytelling: „Ein Sommertag in X" — übersetzt Kennzahlen in Alltag (Daily Life)
+function dailyStory(name,d){
+  const T=(de,en,nl)=>lang==='en'?en:lang==='nl'?nl:de;
+  const hot=(d.lst_delta||0)>=2||d.heat, sealed=(d.versieg||0)>=70, loud=(d.noise||0)>=70, green=(d.G||0)>=60;
+  const rows=[
+   ['08:00',(d.C>=55?T('Schul- und Alltagswege sind gut zu Fuß und mit dem Rad machbar','School and daily trips are walkable and bikeable','School- en dagelijkse ritten zijn goed lopend en fietsend te doen'):T('Alltagswege sind länger als im Stadtschnitt','Daily trips are longer than the city average','Dagelijkse ritten zijn langer dan gemiddeld'))+(sealed?T(' — aber über wenig beschattete Straßen.',' — but along poorly shaded streets.',' — maar via weinig beschaduwde straten.'):'.')],
+   ['14:00',(hot?T('Versiegelte Plätze heizen sich spürbar auf ('+(d.lst_delta>0?'+':'')+d.lst_delta+' °C Oberfläche)','Sealed squares heat up markedly ('+(d.lst_delta>0?'+':'')+d.lst_delta+' °C surface)','Verharde pleinen warmen sterk op ('+(d.lst_delta>0?'+':'')+d.lst_delta+' °C)'):T('Die Mittagshitze bleibt moderat','Midday heat stays moderate','De middaghitte blijft gematigd'))+(loud?T(' — dazu Straßenlärm um '+d.noise+' dB.',' — plus road noise around '+d.noise+' dB.',' — plus verkeerslawaai rond '+d.noise+' dB.'):'.')],
+   ['18:00',(green?T('Grünflächen sind vorhanden und meist gut erreichbar','Green spaces exist and are mostly within reach','Groen is aanwezig en meestal goed bereikbaar'):T('Erreichbares Abend-Grün ist knapp','Reachable evening green is scarce','Bereikbaar avondgroen is schaars'))+T(' — die Aufenthaltsqualität hängt an Bänken & Schatten.',' — staying quality depends on benches & shade.',' — verblijfskwaliteit hangt af van bankjes & schaduw.')]
+  ];
+  return '<div class="sec">'+T('Ein Sommertag in','A summer day in','Een zomerdag in')+' '+name+'</div><div class="ibox">'+rows.map(r=>'<b>'+r[0]+'</b> · '+r[1]).join('<br>')+'</div>';
+}
+// 8-Dimensionen-Radar — macht den NICE Score auf einen Blick greifbar
+function niceRadar(d,col){
+  const dims=['A','B','C','D','E','F','G','H'];const cx=110,cy=88,R=62;
+  const pt=(i,v)=>{const a=Math.PI*2*i/8-Math.PI/2;return [(cx+Math.cos(a)*R*v/100).toFixed(1),(cy+Math.sin(a)*R*v/100).toFixed(1)];};
+  const ring=r=>'<polygon points="'+dims.map((k,i)=>pt(i,r).join(',')).join(' ')+'" fill="none" stroke="var(--border2)" stroke-width="0.7"/>';
+  const axes=dims.map((k,i)=>{const p=pt(i,100);return '<line x1="'+cx+'" y1="'+cy+'" x2="'+p[0]+'" y2="'+p[1]+'" stroke="var(--border)" stroke-width="0.6"/>';}).join('');
+  const poly=dims.map((k,i)=>pt(i,Math.max(4,d[k]||0)).join(',')).join(' ');
+  const labels=dims.map((k,i)=>{const p=pt(i,124);return '<text x="'+p[0]+'" y="'+p[1]+'" font-size="9" font-weight="800" fill="var(--text2)" text-anchor="middle" dominant-baseline="middle">'+k+'<tspan font-weight="600" fill="var(--muted)"> '+(d[k]!=null?d[k]:'–')+'</tspan></text>';}).join('');
+  return '<svg viewBox="0 0 220 180" style="width:100%;max-width:230px;display:block;margin:2px auto 0">'+[25,50,75,100].map(ring).join('')+axes+'<polygon points="'+poly+'" fill="'+col+'2e" stroke="'+col+'" stroke-width="1.7" stroke-linejoin="round"/>'+labels+'</svg>';
+}
 function openDrawer(name,d,skipZoom){
   selected=name;
   try{ if(history.replaceState)history.replaceState(null,'','#'+city+'/'+encodeURIComponent(name)); }catch(e){}
@@ -4985,6 +5009,9 @@ function openDrawer(name,d,skipZoom){
       ${d.mig?`<div class="kpi"><div class="kval">${d.mig}%</div><div class="klbl">Migrationshintergrund</div><div class="ksub">${city==='utr'?'CBS 2023':'Zensus 2022'}</div></div>`:''}
       <div class="kpi"><div class="kval">${(d.pop/1000).toFixed(0)}k</div><div class="klbl">Einwohner</div><div class="ksub">${city==='utr'?'CBS':'Statistikportal'}</div></div>
     </div>
+    <div class="sec">${lang==='en'?'Profile — 8 dimensions':lang==='nl'?'Profiel — 8 dimensies':'Profil — 8 Dimensionen'}</div>
+    ${niceRadar(d,col)}
+    <div style="font-size:9px;color:var(--muted);text-align:center;margin:2px 0 10px">${lang==='en'?'Details per dimension in the “Dimensions” tab':lang==='nl'?'Details per dimensie in tab “Dimensies”':'Details je Dimension im Tab „Dimensionen"'}</div>
     ${risks.length?`<div class="sec">Identifizierte Risiken</div>
     <div class="ibox"><b>Aktive Risikolagen in ${name}:</b><br>${risks.join('<br>')}
     <br><br>Tipp: Schalte die entsprechenden <b>Karten-Layer</b> ein (Button unten links) um zu sehen wo genau diese Risiken auftreten.</div>`:''}
@@ -4996,6 +5023,7 @@ function openDrawer(name,d,skipZoom){
     <div class="sec">Hauptschwächen</div>
     <div class="ibox">Schwächste Dimensionen: <b>${weakKeys.map(k=>DIMS.find(x=>x.k===k)?.name).join(', ')}</b>.<br>
     Maßnahmen (Tab 3) adressieren genau diese Felder.</div>
+    ${dailyStory(name,d)}
     ${d.sgb2!=null?`
     <div class="sec"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/></svg> Soziale Lage</div>
     <div class="social-grid">
