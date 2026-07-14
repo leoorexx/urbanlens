@@ -88,7 +88,7 @@ body{font-family:'Archivo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 body.embed .nav{display:none}
 body.embed .left{top:10px!important}
 body.embed .layer-btn{top:10px!important}
-body.embed #tool-analyse{top:64px!important}body.embed #tool-heatsim{top:118px!important}body.embed #tool-mit{top:172px!important}body.embed #tool-area{top:226px!important}
+body.embed #tool-analyse{top:64px!important}body.embed #tool-heatsim{top:118px!important}body.embed #tool-mit{top:172px!important}body.embed #tool-area{top:226px!important}body.embed #tool-mission{top:280px!important}
 .embed-logo{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:1000;background:rgba(255,253,248,0.95);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:13px;font-weight:800;box-shadow:var(--sh);display:none}
 body.embed .embed-logo{display:block}
 .embed-logo span{color:var(--accent)}
@@ -524,6 +524,19 @@ body.free-mode #heatWarn{top:106px}
 #baseToggle button{border:none;background:none;padding:7px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
 #baseToggle button.on{background:var(--accent);color:#fff}
 #baseToggle button:not(.on):hover{background:var(--surface2)}
+/* Mission (Urban Challenge Cases) */
+.ms-kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.ms-kpi{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 10px}
+.ms-kpi .v{font-size:17px;font-weight:800;line-height:1.1}.ms-kpi .l{font-size:9px;color:var(--muted);margin-top:2px;line-height:1.3}
+.ms-item{display:flex;align-items:center;gap:8px;padding:7px 6px;border-bottom:1px solid var(--border);cursor:pointer;font-size:11.5px}
+.ms-item:hover{background:var(--surface2)}
+.ms-rank{width:21px;height:21px;border-radius:50%;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.ms-badge{font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);flex:none}
+.ms-comp{display:flex;gap:4px;margin:6px 0 10px}
+.ms-comp span{flex:1;text-align:center;font-size:9px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 2px;line-height:1.4}
+.ms-comp b{font-size:13px;color:var(--text)}
+.ms-opt{border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px;font-size:11px;line-height:1.5}
+.ms-back{background:none;border:none;color:var(--accent);font-weight:700;font-size:11px;cursor:pointer;padding:0;font-family:inherit}
 .lens-bar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:2px 0 4px}
 .lens-btn2{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;color:var(--text2);transition:all .12s}
 .lens-btn2:hover{border-color:var(--text2);color:var(--text)}
@@ -609,7 +622,12 @@ body.free-mode #heatWarn{top:106px}
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 14h6v6h-6zM10 7h7v7"/></svg>
   <span data-i18n="tool_area">Gebiet</span>
 </button>
+<button class="tool-btn" id="tool-mission" style="top:332px" onclick="toggleMission()" title="Mission: Hitzesichere Schulen — priorisieren & Budget simulieren">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="M3 8v5M7 10.5V15c0 1 2.2 2.5 5 2.5s5-1.5 5-2.5v-4.5"/></svg>
+  <span data-i18n="tool_mission">Mission</span>
+</button>
 <div class="area-panel" id="areaPanel"></div>
+<div class="area-panel" id="missionPanel"></div>
 <div class="area-panel" id="streetPanel"></div>
 <div class="area-panel" id="heatPanel"></div>
 <div class="area-panel" id="mitPanel"></div>
@@ -1057,7 +1075,7 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Wasser',lens_noise:'Lärm',lens_life:'Lebensqualität',lens_adv:'Erweitert — einzelne Ebenen',
+ de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',tool_mission:'Mission',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Wasser',lens_noise:'Lärm',lens_life:'Lebensqualität',lens_adv:'Erweitert — einzelne Ebenen',
      search_ph:'Stadtteil suchen…',search_city_ph:'Adresse oder Stadt suchen…',bm_map:'Karte',bm_sat:'Satellit',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Geodaten werden geladen…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',lay_paw:'Pflanzenverfügbares Wasser — Dürre',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
@@ -1068,7 +1086,7 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Water',lens_noise:'Noise',lens_life:'Livability',lens_adv:'Advanced — individual layers',
+ en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',tool_mission:'Mission',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Water',lens_noise:'Noise',lens_life:'Livability',lens_adv:'Advanced — individual layers',
      search_ph:'Search district…',search_city_ph:'Search address or city…',bm_map:'Map',bm_sat:'Satellite',list_sub:'Relative ranking within the city · quintiles',
      loading:'Loading geodata…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',lay_paw:'Plant-available water — drought',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
@@ -1079,7 +1097,7 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Water',lens_noise:'Geluid',lens_life:'Leefkwaliteit',lens_adv:'Uitgebreid — losse lagen',
+ nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',tool_mission:'Missie',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Water',lens_noise:'Geluid',lens_life:'Leefkwaliteit',lens_adv:'Uitgebreid — losse lagen',
      search_ph:'Zoek wijk…',search_city_ph:'Zoek adres of stad…',bm_map:'Kaart',bm_sat:'Satelliet',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Geodata wordt geladen…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',lay_paw:'Plantbeschikbaar water — droogte',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
@@ -2045,6 +2063,7 @@ function switchCity(c){
   try{ closeArea(); }catch(e){}
   try{ if(typeof HEAT!=='undefined'&&HEAT.active)toggleHeatSim(); }catch(e){}
   try{ if(typeof MIT!=='undefined'&&MIT.active)toggleMitwirkung(); }catch(e){}
+  try{ if(typeof MISSION!=='undefined'&&MISSION.active){closeMission();MISSION.loaded=null;MISSION.schools=[];} }catch(e){}
   if(typeof updateMapLegend==='function')updateMapLegend();
   // Bundle der neuen Stadt vorwärmen (Diagnose/Werkzeuge sofort)
   if(typeof loadCityBundle==='function')setTimeout(()=>loadCityBundle(c),300);
@@ -3298,6 +3317,145 @@ function toggleAreaMeasure(id){ areaApplied[id]=!areaApplied[id]; renderAreaPane
 function closeArea(){
   document.getElementById('areaPanel').classList.remove('open');
   if(areaShape){map.removeLayer(areaShape);areaShape=null;}
+}
+
+// ══════════════════════════════════════════════════════════════
+// MISSION — Hitzesichere Schulen (P1: erster Urban-Challenge-Flow)
+// Kette: Daten → Diagnose → Priorität → Maßnahme → Wirkung.
+// Schulen (OSM) × LST (Copernicus, gemessen) × Versiegelung/Sozial
+// (amtlich, Wijk) × Grün/Bäume (OSM). Konfidenz je Wert ausgewiesen.
+// ══════════════════════════════════════════════════════════════
+const MISSION={active:false,loaded:null,schools:[],layer:null,budget:5};
+const MPKG=[ // Maßnahmenpakete je Schule — Kostenkorridore, keine Scheingenauigkeit
+ {id:'A',de:'Bäume + Entsiegelung Schulhof',en:'Trees + de-sealed schoolyard',nl:'Bomen + onthard schoolplein',lo:120000,hi:180000,eff:'−1,0–1,5 °C',dur:'1–2 J.'},
+ {id:'B',de:'Verschattung (Segel + Grün)',en:'Shading (sails + green)',nl:'Schaduw (doeken + groen)',lo:60000,hi:100000,eff:'+30 % Schatten',dur:'0,5–1 J.'},
+ {id:'C',de:'Schwammstadt-Schulhof (Retention)',en:'Sponge schoolyard (retention)',nl:'Spons-schoolplein',lo:180000,hi:300000,eff:'−1,5–2,1 °C',dur:'1–3 J.'}
+];
+function mT(de,en,nl){return lang==='en'?en:lang==='nl'?nl:de;}
+function msColor(p){return p>=65?'#dc2626':p>=50?'#f97316':p>=35?'#eab308':'#16a34a';}
+function msRec(s){const r=[];if(s.c.heat>=50||s.c.seal>=55)r.push('A');if(s.gd>200||s.trees<8)r.push('B');if(s.c.heat>=70&&s.c.seal>=60)r.push('C');return r.length?r.slice(0,2):['B'];}
+function msCost(s){const ids=msRec(s);let lo=0,hi=0;ids.forEach(id=>{const p=MPKG.find(x=>x.id===id);lo+=p.lo;hi+=p.hi;});return {lo,hi,mid:(lo+hi)/2,ids};}
+function toggleMission(){
+  if(MISSION.active){closeMission();return;}
+  if(FREE){const b=document.getElementById('freeBanner');if(b)b.classList.add('on');return;}
+  MISSION.active=true;document.getElementById('tool-mission').classList.add('on');
+  try{closeArea();}catch(e){}
+  const p=document.getElementById('missionPanel');p.classList.add('open');
+  p.innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${mT('Mission · Hitzesichere Schulen','Mission · Heat-safe schools','Missie · Hittebestendige scholen')}</div><div class="ap-sub">${CITY_CFG[city].name} · ${mT('Daten → Priorität → Maßnahme → Wirkung','Data → priority → action → impact','Data → prioriteit → maatregel → effect')}</div></div><button class="ap-x" onclick="closeMission()">✕</button></div><div class="ap-body" id="msBody"><div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div></div>`;
+  missionLoad();
+}
+function closeMission(){MISSION.active=false;const t=document.getElementById('tool-mission');if(t)t.classList.remove('on');const p=document.getElementById('missionPanel');if(p)p.classList.remove('open');if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}MISSION.layer=null;}}
+function missionLoad(){
+  if(MISSION.loaded===city&&MISSION.schools.length){renderMission();return;}
+  Promise.all([
+    fetch(`${DATA_BASE}/pois_${city}.geojson`).then(r=>r.json()),
+    fetch(`${DATA_BASE}/green_${city}.geojson`).then(r=>r.json()),
+    fetch(`${DATA_BASE}/trees_${city}.geojson`).then(r=>r.json()).catch(()=>null),
+    loadHeatField()
+  ]).then(([pois,green,trees,field])=>{
+    if(!MISSION.active)return;
+    const gc=[];(green.features||[]).forEach(f=>{const c=geoCentroid(f.geometry.coordinates);if(c)gc.push(c);});
+    const TI=new Map(),TC=0.0015;
+    ((trees&&trees.features)||[]).forEach(f=>{const g=f.geometry;if(!g||g.type!=='Point')return;const c=g.coordinates;const k=Math.round(c[0]/TC)+'_'+Math.round(c[1]/TC);let a=TI.get(k);if(!a){a=[];TI.set(k,a);}a.push(c);});
+    const treesNear=(lat,lon)=>{let n=0;const kx=Math.round(lon/TC),ky=Math.round(lat/TC);for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const a=TI.get((kx+dx)+'_'+(ky+dy));if(!a)continue;for(const c of a){const mx=(c[0]-lon)*70000,my=(c[1]-lat)*111320;if(mx*mx+my*my<150*150)n++;}}return n;};
+    const gDist=(lat,lon)=>{let b=1e9;for(const c of gc){const mx=(c[0]-lon)*70000,my=(c[1]-lat)*111320,d=mx*mx+my*my;if(d<b)b=d;}return Math.sqrt(b);};
+    PAW_DIST_CACHE={};
+    const S=[];
+    (pois.features||[]).forEach(f=>{
+      const a=(f.properties&&f.properties.amenity)||'';if(a!=='school'&&a!=='kindergarten')return;
+      const g=f.geometry;const c=g.type==='Point'?g.coordinates:geoCentroid(g.coordinates);if(!c)return;
+      const lat=c[1],lon=c[0];
+      const lst=sampleLst(field,lat,lon);const d=pawDistrictAt(lat,lon);
+      const heat=Math.max(0,Math.min(1,(lst!=null?lst:(d?d.lst_delta:1))/3));
+      const seal=d?Math.max(0,Math.min(1,((d.versieg||55)-45)/45)):0.5;
+      const gd=gDist(lat,lon);const green01=Math.max(0,Math.min(1,gd/400));
+      const soc=d?Math.max(0,Math.min(1,(((d.kinderarmut!=null?d.kinderarmut:15))-5)/35)):0.5;
+      const prio=Math.round(100*(0.35*heat+0.20*seal+0.20*green01+0.25*soc));
+      S.push({name:(f.properties&&f.properties.name)||mT('Schule','School','School'),kind:a,lat,lon,
+        lst:lst!=null?+(+lst).toFixed(1):null,versieg:d?d.versieg:null,gd:Math.round(gd),
+        soc:d?d.kinderarmut:null,trees:treesNear(lat,lon),prio,
+        c:{heat:Math.round(heat*100),seal:Math.round(seal*100),green:Math.round(green01*100),soc:Math.round(soc*100)}});
+    });
+    S.sort((x,y)=>y.prio-x.prio);
+    MISSION.schools=S;MISSION.loaded=city;
+    renderMission();
+  }).catch(()=>{const b=document.getElementById('msBody');if(b)b.innerHTML='<div style="padding:14px;font-size:11px;color:var(--muted)">Daten konnten nicht geladen werden.</div>';});
+}
+function missionBudgetCalc(){const B=MISSION.budget*1e6;let sum=0;const pick=[];for(const s of MISSION.schools){const cst=msCost(s);if(sum+cst.mid>B)continue;sum+=cst.mid;pick.push(s);if(pick.length>=60)break;}return {pick,sum};}
+function renderMission(){
+  const b=document.getElementById('msBody');if(!b)return;
+  const S=MISSION.schools;
+  if(!S.length){b.innerHTML='<div style="padding:12px;font-size:11px;color:var(--muted)">'+mT('Keine Schulen gefunden.','No schools found.','Geen scholen gevonden.')+'</div>';return;}
+  const hot=S.filter(s=>s.prio>=50).length, noGreen=S.filter(s=>s.gd>200).length;
+  const {pick,sum}=missionBudgetCalc();
+  if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}}
+  const grp=L.layerGroup();
+  S.forEach((s,i)=>{const m=L.circleMarker([s.lat,s.lon],{radius:i<10?8:5,color:'#fff',weight:1.2,fillColor:msColor(s.prio),fillOpacity:.92});
+    m.bindTooltip(`<b>${s.name}</b> · ${mT('Priorität','Priority','Prioriteit')} ${s.prio}/100`);
+    m.on('click',()=>missionCase(i));grp.addLayer(m);});
+  grp.addTo(map);MISSION.layer=grp;
+  b.innerHTML=`
+   <div class="ms-kpis">
+     <div class="ms-kpi"><div class="v">${S.length}</div><div class="l">${mT('Schulen & Kitas analysiert','schools & kindergartens analysed','scholen & opvang geanalyseerd')}</div></div>
+     <div class="ms-kpi"><div class="v" style="color:#dc2626">${hot}</div><div class="l">${mT('hohe Hitze-Priorität (≥ 50)','high heat priority (≥ 50)','hoge hitteprioriteit (≥ 50)')}</div></div>
+     <div class="ms-kpi"><div class="v">${noGreen}</div><div class="l">${mT('ohne Kühlgrün < 200 m — Utrecht-Ziel verfehlt','no cool green < 200 m — target missed','zonder koelgroen < 200 m — doel gemist')}</div></div>
+     <div class="ms-kpi"><div class="v">30 %</div><div class="l">${mT('Ziel Straßenverschattung 2040','street-shade target 2040','doel straatschaduw 2040')}</div></div>
+   </div>
+   <div class="ap-sec">${mT('Budget-Simulator','Budget simulator','Budgetsimulator')}</div>
+   <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;margin-bottom:6px">
+     <input type="range" min="1" max="20" step="0.5" value="${MISSION.budget}" style="flex:1" oninput="MISSION.budget=+this.value;renderMission()">
+     <b style="white-space:nowrap">${MISSION.budget} Mio €</b>
+   </div>
+   <div class="ibox">${mT('Finanziert','Funds','Financiert')} <b>${pick.length} ${mT('Schulen','schools','scholen')}</b> (${fmt(sum)}) — ~<b>${(pick.length*350).toLocaleString('de-DE')}</b> ${mT('Kinder erreicht (Schätzwert 350/Schule — OSM ohne Schülerzahlen)','children reached (est. 350/school — OSM lacks enrolment)','kinderen bereikt (schatting 350/school)')} · ${mT('erwartete lokale Kühlung','expected local cooling','verwachte lokale koeling')} −1,0–2,1 °C.</div>
+   <div class="ap-sec">${mT('Prioritätenliste','Priority list','Prioriteitenlijst')} <span class="ms-badge">${mT('Klick öffnet Fall','click opens case','klik opent casus')}</span></div>
+   ${S.slice(0,12).map((s,i)=>`<div class="ms-item" onclick="missionCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.versieg!=null?s.versieg+' % '+mT('vers.','sealed','verh.')+' · ':''}${mT('Grün','green','groen')} ${s.gd} m</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
+   <div style="margin-top:10px"><button onclick="missionPDF()" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">${ic('download',13)} ${mT('Missions-Bericht (PDF)','Mission report (PDF)','Missierapport (PDF)')}</button></div>
+   <div style="font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">${mT('Priorität = 35 % Hitze (Copernicus LST, gemessen) + 25 % soziale Verwundbarkeit (Kinderarmut, amtlich/Wijk) + 20 % Versiegelung + 20 % Grün-Distanz (OSM). Komponenten je Fall sichtbar — der Score verdeckt nie die Begründung.','Priority = 35 % heat (Copernicus LST, measured) + 25 % social vulnerability (official, district) + 20 % sealing + 20 % green distance (OSM). Components visible per case — the score never hides the reasoning.','Prioriteit = 35 % hitte (gemeten) + 25 % sociale kwetsbaarheid + 20 % verharding + 20 % groenafstand. Componenten per casus zichtbaar.')}</div>`;
+}
+function missionCase(i){
+  const s=MISSION.schools[i];if(!s)return;
+  try{map.flyTo([s.lat,s.lon],16,{duration:.8});}catch(e){}
+  const rec=msRec(s),cost=msCost(s);
+  const viol=[];
+  if(s.gd>200)viol.push(mT('Kein Kühlgrün innerhalb 200 m (Utrecht-Ziel 2040)','No cool green within 200 m (Utrecht 2040 target)','Geen koelgroen binnen 200 m (doel 2040)'));
+  if(s.trees<8)viol.push(mT('Wenig Baumkronen ('+s.trees+' Bäume/150 m, Proxy) — Ziel 30 % Schatten','Low canopy ('+s.trees+' trees/150 m, proxy) — 30 % shade target','Weinig boomkronen ('+s.trees+'/150 m) — doel 30 % schaduw'));
+  if(s.lst!=null&&s.lst>=1.8)viol.push(mT('Hitzeinsel: +'+s.lst+' °C Oberflächentemperatur','Heat island: +'+s.lst+' °C LST','Hitte-eiland: +'+s.lst+' °C'));
+  const b=document.getElementById('msBody');if(!b)return;
+  b.innerHTML=`
+   <button class="ms-back" onclick="renderMission()">← ${mT('Zurück zur Liste','Back to list','Terug naar lijst')}</button>
+   <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin:6px 0 2px">${s.name}</div>
+   <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Urban Challenge Case · ${mT('Hitze','Heat','Hitte')} · ${s.kind==='kindergarten'?mT('Kita','Kindergarten','Kinderopvang'):mT('Schule','School','School')} · ${mT('Priorität','Priority','Prioriteit')} <b style="color:${msColor(s.prio)}">${s.prio}/100</b></div>
+   <div class="ms-comp">
+     <span><b>${s.c.heat}</b><br>${mT('Hitze','Heat','Hitte')}</span><span><b>${s.c.soc}</b><br>${mT('Sozial','Social','Sociaal')}</span><span><b>${s.c.seal}</b><br>${mT('Versieg.','Sealing','Verhard.')}</span><span><b>${s.c.green}</b><br>${mT('Grün-Defizit','Green gap','Groentekort')}</span>
+   </div>
+   <div class="ibox"><b>${mT('Problem','Problem','Probleem')}:</b> ${s.lst!=null?'+'+s.lst+' °C '+mT('Oberflächentemperatur','surface temperature','oppervlaktetemperatuur')+' · ':''}${s.versieg!=null?s.versieg+' % '+mT('Versiegelung im Umfeld','sealing in surroundings','verharding in omgeving')+' · ':''}${mT('nächstes Grün','nearest green','dichtstbijzijnd groen')} ${s.gd} m · ${s.trees} ${mT('Bäume im 150-m-Umfeld','trees within 150 m','bomen binnen 150 m')}${s.soc!=null?' · '+mT('Kinderarmut im Wijk','district child poverty','kinderarmoede wijk')+' '+s.soc+' %':''}.</div>
+   ${viol.length?`<div class="ap-sec">${mT('Zielabweichung (Utrecht 2040)','Target gaps (Utrecht 2040)','Doelafwijking (2040)')}</div><div class="ibox" style="border-left-color:#dc2626">${viol.map(v=>'· '+v).join('<br>')}</div>`:''}
+   <div class="ap-sec">${mT('Maßnahmenpakete','Action packages','Maatregelpakketten')}</div>
+   ${MPKG.map(p=>{const on=rec.indexOf(p.id)>=0;
+     return `<div class="ms-opt" style="${on?'border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)':''}"><b>${p.id} · ${mT(p.de,p.en,p.nl)}</b>${on?' <span class="ms-badge" style="border-color:var(--accent);color:var(--accent)">'+mT('empfohlen','recommended','aanbevolen')+'</span>':''}<br><span style="color:var(--muted)">${fmt(p.lo)}–${fmt(p.hi)} · ${p.eff} · ${p.dur}</span></div>`;}).join('')}
+   <div class="ibox"><b>${mT('Empfohlene Kombination','Recommended combination','Aanbevolen combinatie')} (${rec.join(' + ')}) · ${fmt(cost.lo)}–${fmt(cost.hi)}:</b> ${mT('Begründung','Reasoning','Onderbouwing')}: ${s.c.heat>=50?mT('hohe Hitzelast','high heat load','hoge hittelast'):mT('moderate Hitzelast','moderate heat load','matige hittelast')}${s.gd>200?', '+mT('fehlendes Kühlgrün','missing cool green','ontbrekend koelgroen'):''}${s.c.soc>=50?', '+mT('vulnerable Nachbarschaft','vulnerable neighbourhood','kwetsbare buurt'):''} — ${mT('bestes Verhältnis aus Wirkung, Umsetzbarkeit und Zielbeitrag.','best balance of impact, feasibility and target contribution.','beste balans tussen effect, haalbaarheid en doelbijdrage.')}</div>
+   <div class="ap-sec">${mT('Vorher / Nachher','Before / after','Voor / na')}</div>
+   <div class="ibox" style="font-family:ui-monospace,monospace;font-size:10px;line-height:1.9">
+     LST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${s.lst!=null?'+'+s.lst+' °C':'–'} → <b style="color:#16a34a">${s.lst!=null?'+'+Math.max(0,+(s.lst-1.5).toFixed(1))+' °C':'–'}</b><br>
+     ${mT('Schatten','Shade','Schaduw')}&nbsp;&nbsp;~${Math.min(25,s.trees*2)} % → <b style="color:#16a34a">~${Math.min(45,s.trees*2+30)} %</b><br>
+     ${mT('Kühlgrün','Cool green','Koelgroen')}&nbsp;${s.gd} m → <b style="color:#16a34a">${mT('vor Ort','on site','ter plekke')}</b>
+   </div>
+   <div style="font-size:9px;color:var(--muted);line-height:1.5">${mT('Konfidenz: LST gemessen (Copernicus) · Versiegelung/Sozial amtlich (Wijk-Aggregat) · Schatten = Baum-Proxy · Wirkung = Bandbreite aus Vergleichsprojekten. Schülerzahl, Eigentum & Zuständigkeit erfordern kommunale Daten (Phase 2).','Confidence: LST measured (Copernicus) · sealing/social official (district) · shade = tree proxy · impact = range from reference projects. Enrolment, ownership & responsibility need municipal data (phase 2).','Betrouwbaarheid: LST gemeten · verharding/sociaal officieel (wijk) · schaduw = boomproxy · effect = bandbreedte. Leerlingaantal, eigendom & bevoegdheid vergen gemeentedata (fase 2).')}</div>`;
+}
+function missionPDF(){
+  const doc=pdfDoc();if(!doc){alert('PDF-Bibliothek lädt noch.');return;}
+  const S=MISSION.schools;const {pick,sum}=missionBudgetCalc();const today=new Date().toLocaleDateString('de-DE');
+  let y=pdfHeader(doc,mT('Mission: Hitzesichere Schulen','Mission: Heat-safe schools','Missie: Hittebestendige scholen'),CITY_CFG[city].name);
+  doc.setTextColor(26,26,46);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text(mT('Prioritätenliste & Budget-Szenario','Priority list & budget scenario','Prioriteiten & budgetscenario'),14,y);y+=8;
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(90,90,110);
+  doc.text(`${S.length} ${mT('Schulen analysiert','schools analysed','scholen geanalyseerd')} · ${mT('Budget','Budget','Budget')} ${MISSION.budget} Mio € → ${pick.length} ${mT('Schulen','schools','scholen')} (${fmt(sum)}) · ~${(pick.length*350).toLocaleString('de-DE')} ${mT('Kinder','children','kinderen')}`,14,y);y+=10;
+  y=pdfSec(doc,y,mT('Top 10 nach Priorität','Top 10 by priority','Top 10 naar prioriteit'));
+  S.slice(0,10).forEach((s,i)=>{if(y>260){doc.addPage();y=20;}doc.setFont('helvetica','bold');doc.setTextColor(60,60,70);doc.text(`${i+1}. ${s.name}`.slice(0,52),14,y);doc.setFont('helvetica','normal');doc.setTextColor(120,120,130);doc.text(`${mT('Priorität','Priority','Prioriteit')} ${s.prio} · ${s.lst!=null?'+'+s.lst+' °C · ':''}${s.versieg!=null?s.versieg+' % · ':''}${mT('Grün','green','groen')} ${s.gd} m`,196,y,{align:'right'});y+=6;});
+  y+=4;y=pdfSec(doc,y,mT('Methode & Konfidenz','Method & confidence','Methode & betrouwbaarheid'));
+  const meth=doc.splitTextToSize(mT('Priorität = 35 % Hitze (Copernicus LST, gemessen) + 25 % soziale Verwundbarkeit (Kinderarmut, amtlich/Wijk) + 20 % Versiegelung + 20 % Grün-Distanz (OSM). Kosten = Korridore aus Vergleichsprojekten; Schülerzahlen geschätzt (350/Schule). Eigentum & Zuständigkeit erfordern kommunale Daten.','Priority = 35% heat (Copernicus LST, measured) + 25% social vulnerability (official) + 20% sealing + 20% green distance (OSM). Costs are corridors from reference projects; enrolment estimated (350/school). Ownership & responsibility require municipal data.','Prioriteit = 35% hitte (gemeten) + 25% sociale kwetsbaarheid + 20% verharding + 20% groenafstand. Kosten = bandbreedtes; leerlingaantallen geschat.'),182);
+  doc.text(meth,14,y);y+=meth.length*5;
+  pdfFooter(doc,`nice here (2026): Mission ${mT('Hitzesichere Schulen','Heat-safe schools','Hittebestendige scholen')}, ${CITY_CFG[city].name}. ${today}.`);
+  doc.save('nicehere_Mission_Schulen.pdf');
 }
 
 // ══════════════════════════════════════════════════════════════
