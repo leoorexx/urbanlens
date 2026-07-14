@@ -1,4 +1,4 @@
-# UrbanLens — Utrecht Urban Ontology & Roadmap
+# Inspector Nice — Utrecht Urban Ontology & Roadmap
 
 *Arbeitsdokument. Von „Daten anzeigen" zu „eine kommunale Entscheidung vollständig begleiten".*
 Verankert in Utrechts eigener Strategie **„Healthy Urban Living / Ruimtelijke Strategie 2040".**
@@ -9,10 +9,10 @@ Datenstand-Legende: ✅ heute live · ⚠️ teilweise/ableitbar · ❌ braucht 
 
 ## 0 · Leitidee
 
-**Heute:** UrbanLens zeigt, *wo* Probleme liegen.
-**Ziel:** UrbanLens zeigt *was zu tun ist, wer es tut, was es kostet, welche Wirkung entsteht — und ob es umgesetzt wurde.*
+**Heute:** Inspector Nice zeigt, *wo* Probleme liegen.
+**Ziel:** Inspector Nice zeigt *was zu tun ist, wer es tut, was es kostet, welche Wirkung entsteht — und ob es umgesetzt wurde.*
 
-Der Burggraben ist nicht „mehr Layer", sondern die **Ontology** (reale Objekte, Beziehungen, Aktionen) plus der durchgängige Weg *Problem → Optionen → Entscheidung → Auftrag → Wirkung*. Drei Ebenen, die UrbanLens trennt: **deskriptiv** (Zustand ✅) · **normativ** (Utrechts Ziele ⚠️) · **operativ** (Intervention & Aufwand ⚠️).
+Der Burggraben ist nicht „mehr Layer", sondern die **Ontology** (reale Objekte, Beziehungen, Aktionen) plus der durchgängige Weg *Problem → Optionen → Entscheidung → Auftrag → Wirkung*. Drei Ebenen, die Inspector Nice trennt: **deskriptiv** (Zustand ✅) · **normativ** (Utrechts Ziele ⚠️) · **operativ** (Intervention & Aufwand ⚠️).
 
 ---
 
@@ -79,7 +79,7 @@ Alle greifen auf **dieselben Objekte** zu — ein Objekt kann mehreren Missionen
 
 ## 4 · Die entscheidenden Beziehungen
 
-Erst die Kanten machen UrbanLens operativ:
+Erst die Kanten machen Inspector Nice operativ:
 
 ```text
 Neighbourhood      HAS_RISK              Heat exposure
@@ -106,7 +106,7 @@ Das ist wertvoller als fünf getrennte Layer.
 
 ## 5 · Der zentrale Datensatz: Urban Challenge Case
 
-Für jedes erkannte Problem erzeugt UrbanLens einen strukturierten Fall:
+Für jedes erkannte Problem erzeugt Inspector Nice einen strukturierten Fall:
 
 ```text
 Urban Challenge Case
@@ -210,7 +210,7 @@ Graphdatenbank ist **nicht** der erste Schritt — zuerst Objekte/Beziehungen/Ak
 
 ## 10 · Zielbild für Utrecht
 
-UrbanLens soll am Ende beantworten:
+Inspector Nice soll am Ende beantworten:
 
 > „Utrecht hat für 2028 **30 Mio €** für den öffentlichen Raum. Welche Projekte reduzieren die größten Klima- und Gesundheitsrisiken, erreichen besonders vulnerable Einwohner, lassen sich mit bereits geplanten Tiefbauarbeiten kombinieren und tragen zugleich zur 10-Minuten-Stadt bei?"
 
@@ -223,13 +223,13 @@ Antwort: (1) priorisiertes Investitionsportfolio · (2) räumliche Verteilung ·
 ## 11 · Positionierung & Namensarchitektur
 
 Nach außen **nicht** „Palantir für Städte" (Konnotation). Besser:
-> **UrbanLens — das Betriebssystem für nachhaltige Stadtentwicklung · *From urban data to urban action.***
+> **Inspector Nice — das Betriebssystem für nachhaltige Stadtentwicklung · *From urban data to urban action.***
 
 - **nice here Public** — öffentliche Karte (Bürger)
-- **UrbanLens Intelligence** — Analyse
-- **UrbanLens Operations** — Maßnahmen & Projekte
-- **UrbanLens Scenario Lab** — Simulationen
-- **UrbanLens Copilot** — Abfragen & Berichte
+- **Inspector Nice Intelligence** — Analyse
+- **Inspector Nice Operations** — Maßnahmen & Projekte
+- **Inspector Nice Scenario Lab** — Simulationen
+- **Inspector Nice Copilot** — Abfragen & Berichte
 
 ---
 
@@ -238,7 +238,7 @@ Nach außen **nicht** „Palantir für Städte" (Konnotation). Besser:
 - **Datenschutz:** durchgängig **aggregierte Gruppen**, nie Einzelpersonen.
 - **Konfidenz sichtbar:** jede Zahl mit Quelle/Datenstand/„gemessen vs. modelliert vs. geschätzt" (haben wir — beibehalten).
 - **Partner-Abhängigkeit:** Zuständigkeit/Eigentum/Untergrund/geplante Arbeiten/Budget/Status gibt es nur mit Utrecht. P1 muss so überzeugen, dass genau dieser Partner andockt.
-- **Keine Entscheidung ersetzen:** UrbanLens strukturiert & dokumentiert — Freigabe bleibt beim Menschen.
+- **Keine Entscheidung ersetzen:** Inspector Nice strukturiert & dokumentiert — Freigabe bleibt beim Menschen.
 
 ---
 
@@ -252,8 +252,8 @@ Kernaussage: **Wir haben ~60–70 % der Umweltdaten — die fehlenden 30–40 % 
 
 | Datenpaket (Use Case Climate-Resilient Streets / Schulen) | Klasse | Status |
 |---|---|---|
-| Straßenabschnitte, Gebäude, Schulen, Bäume, Haltestellen | 1 offen | ✅ in UrbanLens |
-| LST/Hitze, Versiegelung, Grün, Überflutung | 1 offen | ✅ in UrbanLens |
+| Straßenabschnitte, Gebäude, Schulen, Bäume, Haltestellen | 1 offen | ✅ in Inspector Nice |
+| LST/Hitze, Versiegelung, Grün, Überflutung | 1 offen | ✅ in Inspector Nice |
 | Bevölkerung aggregiert, soziale Verwundbarkeit | 1 offen | ✅ (Wijk) |
 | Baumkronen/Verschattung | 1/3 | ⚠️ Baum-Proxy, kein Schattenmodell |
 | Standardmaßnahmen mit **Kostenkorridoren + Wirkungsbandbreiten** | 3 modelliert | ⚠️ vorhanden, ausbauen — nie Scheingenauigkeit |
