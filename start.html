@@ -168,7 +168,7 @@ const T={
   steps:[['Kies een wijk','Zie de NICE-score (0–100) en waar jouw wijk staat in de stad.'],['Begrijp de belasting','Welke risico\'s samenvallen en wie getroffen is — uit echte data, met bron & betrouwbaarheid.'],['Handel & betrek','Passende, gesubsidieerde maatregelen met kosten-baten — en bewoners kunnen meebeslissen.']],
   who:[['admin','#1a1a2e','Gemeente','Prioriteiten stellen, maatregelen onderbouwen, middelen gericht inzetten.'],['people','var(--social)','Bewoner & initiatief','Begrijp waarom jouw wijk belast is — en help vormgeven.'],['chart','var(--eco)','Planning & onderzoek','Methodiek, datakwaliteit en vergelijkbaarheid voor robuuste analyses.']]}
 };
-let lang=(navigator.language||'de').slice(0,2); if(!T[lang])lang='de';
+let lang=(navigator.language||'en').slice(0,2); if(!T[lang])lang='en';
 function setLang(l){lang=l;render();}
 function render(){
   const t=T[lang]||T.de;

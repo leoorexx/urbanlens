@@ -218,7 +218,7 @@ body.embed .embed-logo{display:block}
 .llegcolor{width:24px;height:4px;border-radius:2px;flex-shrink:0}
 
 /* RIGHT DRAWER */
-.right{position:fixed;top:62px;right:10px;bottom:10px;width:320px;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);display:flex;flex-direction:column;overflow:hidden;transform:translateX(340px);transition:transform .3s cubic-bezier(0.4,0,0.2,1)}
+.right{position:fixed;top:62px;right:10px;bottom:10px;width:364px;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);display:flex;flex-direction:column;overflow:hidden;transform:translateX(388px);transition:transform .3s cubic-bezier(0.4,0,0.2,1)}
 .right.open{transform:translateX(0)}
 .dhead{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)}
 .dtop{display:flex;align-items:flex-start;justify-content:space-between}
@@ -558,7 +558,7 @@ body.free-mode #heatWarn{top:106px}
   <a href="index.html" style="text-decoration:none"><div class="logo"><svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true" style="vertical-align:-4px;margin-right:6px"><line x1="5" y1="7" x2="12" y2="4" stroke="#36d5d0" stroke-width="1.3"/><line x1="12" y1="4" x2="17" y2="11" stroke="#a60ba6" stroke-width="1.3"/><line x1="5" y1="7" x2="8" y2="15" stroke="#ff8210" stroke-width="1.3"/><line x1="8" y1="15" x2="17" y2="11" stroke="#36d5d0" stroke-width="1.3"/><circle cx="5" cy="7" r="2.4" fill="#ff8210"/><circle cx="12" cy="4" r="1.9" fill="#36d5d0"/><circle cx="17" cy="11" r="2.7" fill="#a60ba6"/><circle cx="8" cy="15" r="2" fill="#36d5d0"/></svg>nice <span>here</span></div></a>
   <div class="nsep"></div>
   <a class="bbrille-btn" onclick="enter3D()" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg> 3D</a>
-  <a href="methodik.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg> Methodik</a>
+  <a href="methodik.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg> <span data-i18n="nav_method">Methodik</span></a>
   <a href="dashboard.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> <span data-i18n="nav_dashboard">Dashboard</span></a>
   <div class="ninfo">NICE Score — <b>29 <span data-i18n="nav_indicators">Indikatoren</span></b></div>
   <div class="nav-r">
@@ -612,7 +612,7 @@ body.free-mode #heatWarn{top:106px}
 </button>
 <button class="tool-btn" id="tool-heatsim" style="top:170px" onclick="toggleHeatSim()" title="Hitze-Kühlsimulation">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><circle cx="12" cy="17" r="3"/><path d="M12 9a3 3 0 0 0 3-3 3 3 0 0 0-1-2"/></svg>
-  <span data-i18n="tool_heat">Hitze</span>
+  <span data-i18n="tool_heat">Kühlung</span>
 </button>
 <button class="tool-btn" id="tool-mit" style="top:224px" onclick="toggleMitwirkung()" title="Mitwirkung: melden & priorisieren">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg>
@@ -644,10 +644,10 @@ body.free-mode #heatWarn{top:106px}
     </div>
   </div>
   <div class="lens-bar">
-    <button class="lens-btn on" onclick="setLens('all')" id="lens-all">Gesamt</button>
-    <button class="lens-btn" onclick="setLens('climate')" id="lens-climate"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> Klima</button>
-    <button class="lens-btn" onclick="setLens('social')" id="lens-social"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/></svg> Sozial</button>
-    <button class="lens-btn" onclick="setLens('hitze')" id="lens-hitze"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s-4 4-4 8a4 4 0 0 0 8 0c0-1.5-.7-3-1.5-4C14 8.5 13 10 12 10c-.8 0-1-2.5 0-7Z"/></svg> Hitze</button>
+    <button class="lens-btn on" onclick="setLens('all')" id="lens-all"><span data-i18n="flt_all">Gesamt</span></button>
+    <button class="lens-btn" onclick="setLens('climate')" id="lens-climate"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> <span data-i18n="flt_climate">Klima</span></button>
+    <button class="lens-btn" onclick="setLens('social')" id="lens-social"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/></svg> <span data-i18n="flt_social">Sozial</span></button>
+    <button class="lens-btn" onclick="setLens('hitze')" id="lens-hitze"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s-4 4-4 8a4 4 0 0 0 8 0c0-1.5-.7-3-1.5-4C14 8.5 13 10 12 10c-.8 0-1-2.5 0-7Z"/></svg> <span data-i18n="flt_heat">Hitze</span></button>
   </div>
   <div class="llist" id="stList"></div>
   <div class="qleg">
@@ -709,29 +709,29 @@ body.free-mode #heatWarn{top:106px}
     <span class="lstatus" id="st-double_vuln"></span>
   </div>
 
-  <div class="lrow" onclick="toggleLayer('duh_ampel')">
+  <div class="lrow ffm-only" onclick="toggleLayer('duh_ampel')">
     <button class="ltoggle" id="tog-duh_ampel"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> DUH Hitze-Ampel (Stadtteile)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> <span data-i18n="lay_duh">DUH Hitze-Ampel (Stadtteile)</span></span>
     <span class="lstatus" id="st-duh_ampel"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('traffic_co2')">
     <button class="ltoggle" id="tog-traffic_co2"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 11 7 6h10l2 5"/><rect x="3" y="11" width="18" height="6" rx="2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg> Verkehrs-CO₂ (Emissionen)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 11 7 6h10l2 5"/><rect x="3" y="11" width="18" height="6" rx="2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg> <span data-i18n="lay_tco2">Verkehrs-CO₂ (Emissionen)</span></span>
     <span class="lstatus" id="st-traffic_co2"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('raumklang')">
     <button class="ltoggle" id="tog-raumklang"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 10v4h4l5 4V6l-5 4H3z"/><path d="M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14"/></svg> Raumklang (Schallausbreitung)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 10v4h4l5 4V6l-5 4H3z"/><path d="M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14"/></svg> <span data-i18n="lay_sound">Raumklang (Schallausbreitung)</span></span>
     <span class="lstatus" id="st-raumklang"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('flood')">
     <button class="ltoggle" id="tog-flood"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/></svg> Hochwasser HQ100 — Gebäude</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/></svg> <span data-i18n="lay_flood">Hochwasser HQ100 — Gebäude</span></span>
     <span class="lstatus" id="st-flood"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('heat')">
     <button class="ltoggle" id="tog-heat"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> Hitzeinsel — Gebäude-Level</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> <span data-i18n="lay_heat">Hitzeinsel — Gebäude-Level</span></span>
     <span class="lstatus" id="st-heat"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('paw')">
@@ -741,12 +741,12 @@ body.free-mode #heatWarn{top:106px}
   </div>
   <div class="lrow" onclick="toggleLayer('noise')">
     <button class="ltoggle" id="tog-noise"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg> Lärmbelastung Straße</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg> <span data-i18n="lay_noise">Lärmbelastung Straße</span></span>
     <span class="lstatus" id="st-noise"></span>
   </div>
   <div class="lrow ffm-only" onclick="toggleLayer('flight_noise')">
     <button class="ltoggle" id="tog-flight_noise"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg> Fluglärm-Zonen FRA</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg> <span data-i18n="lay_flight">Fluglärm-Zonen FRA</span></span>
     <span class="lstatus" id="st-flight_noise"></span>
   </div>
 
@@ -754,7 +754,7 @@ body.free-mode #heatWarn{top:106px}
 
   <div class="lrow" onclick="toggleLayer('bike')">
     <button class="ltoggle" id="tog-bike"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h2l-3.5 7H9l-2 4.5"/><path d="m9 13-2-7h3"/></svg> Radwege (Qualitätsstufen)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h2l-3.5 7H9l-2 4.5"/><path d="m9 13-2-7h3"/></svg> <span data-i18n="lay_bike">Radwege (Qualitätsstufen)</span></span>
     <span class="lstatus" id="st-bike"></span>
   </div>
 
@@ -762,17 +762,17 @@ body.free-mode #heatWarn{top:106px}
 
   <div class="lrow" onclick="toggleLayer('dv_repair')">
     <button class="ltoggle" id="tog-dv_repair"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg> Reparieren &amp; Wiederverwenden</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg> <span data-i18n="lay_repair">Reparieren &amp; Wiederverwenden</span></span>
     <span class="lstatus" id="st-dv_repair"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('dv_waste')">
     <button class="ltoggle" id="tog-dv_waste"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M8 6V4h8v2"/></svg> Entsorgen &amp; Recyceln</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M8 6V4h8v2"/></svg> <span data-i18n="lay_waste">Entsorgen &amp; Recyceln</span></span>
     <span class="lstatus" id="st-dv_waste"></span>
   </div>
   <div class="lrow" onclick="toggleBiodiv()">
     <button class="ltoggle" id="tog-biodiv"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M11 20A7 7 0 0 1 4 13C4 7 9 3 20 4c1 11-3 16-9 16Z"/><path d="M4 21c4-4 7-6 12-8"/></svg> Heimische Arten (GBIF)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M11 20A7 7 0 0 1 4 13C4 7 9 3 20 4c1 11-3 16-9 16Z"/><path d="M4 21c4-4 7-6 12-8"/></svg> <span data-i18n="lay_biodiv">Heimische Arten (GBIF)</span></span>
     <span class="lstatus" id="st-biodiv"></span>
   </div>
 
@@ -780,22 +780,22 @@ body.free-mode #heatWarn{top:106px}
 
   <div class="lrow" onclick="toggleLayer('parks')">
     <button class="ltoggle" id="tog-parks"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M11 20A7 7 0 0 1 4 13C4 7 9 3 20 4c1 11-3 16-9 16Z"/><path d="M4 21c4-4 7-6 12-8"/></svg> Parks & Grünflächen</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M11 20A7 7 0 0 1 4 13C4 7 9 3 20 4c1 11-3 16-9 16Z"/><path d="M4 21c4-4 7-6 12-8"/></svg> <span data-i18n="lay_parks">Parks & Grünflächen</span></span>
     <span class="lstatus" id="st-parks"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('schools')">
     <button class="ltoggle" id="tog-schools"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m22 9-10-5L2 9l10 5 10-5Z"/><path d="M6 11v5c0 1.6 2.7 3 6 3s6-1.4 6-3v-5"/></svg> Schulen & Kitas</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m22 9-10-5L2 9l10 5 10-5Z"/><path d="M6 11v5c0 1.6 2.7 3 6 3s6-1.4 6-3v-5"/></svg> <span data-i18n="lay_schools">Schulen & Kitas</span></span>
     <span class="lstatus" id="st-schools"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('health')">
     <button class="ltoggle" id="tog-health"></button>
-    <span class="lname">Ärzte & Gesundheit</span>
+    <span class="lname"><span data-i18n="lay_health">Ärzte & Gesundheit</span></span>
     <span class="lstatus" id="st-health"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('community')">
     <button class="ltoggle" id="tog-community"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/></svg> Community Places</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/></svg> <span data-i18n="lay_community">Community Places</span></span>
     <span class="lstatus" id="st-community"></span>
   </div>
 
@@ -834,7 +834,7 @@ body.free-mode #heatWarn{top:106px}
 
   <div class="lrow" onclick="toggleLayer('trees')">
     <button class="ltoggle" id="tog-trees"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 8 9h2l-4 6h12l-4-6h2l-4-6Z"/><path d="M12 15v6"/></svg> Straßenbäume & Alleen</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 8 9h2l-4 6h12l-4-6h2l-4-6Z"/><path d="M12 15v6"/></svg> <span data-i18n="lay_trees">Straßenbäume & Alleen</span></span>
     <span class="lstatus" id="st-trees"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('benches')">
@@ -864,7 +864,7 @@ body.free-mode #heatWarn{top:106px}
   </div>
   <div class="lrow" onclick="toggleLayer('parking')">
     <button class="ltoggle" id="tog-parking"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 11 7 6h10l2 5"/><rect x="3" y="11" width="18" height="6" rx="2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg> Parkplätze (MIV-Dominanz)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 11 7 6h10l2 5"/><rect x="3" y="11" width="18" height="6" rx="2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg> <span data-i18n="lay_parking">Parkplätze (MIV-Dominanz)</span></span>
     <span class="lstatus" id="st-parking"></span>
   </div>
 
@@ -893,37 +893,37 @@ body.free-mode #heatWarn{top:106px}
   </div>
   <div class="lrow" onclick="toggleLayer('osm_trees')">
     <button class="ltoggle" id="tog-osm_trees"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 8 9h2l-4 6h12l-4-6h2l-4-6Z"/><path d="M12 15v6"/></svg> Bäume (live)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 8 9h2l-4 6h12l-4-6h2l-4-6Z"/><path d="M12 15v6"/></svg> <span data-i18n="lay_osm_trees">Bäume (live)</span></span>
     <span class="lstatus" id="st-osm_trees"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('osm_drinking')">
     <button class="ltoggle" id="tog-osm_drinking"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/><path d="M8 21h8"/></svg> Trinkbrunnen (live)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/><path d="M8 21h8"/></svg> <span data-i18n="lay_osm_drink">Trinkbrunnen (live)</span></span>
     <span class="lstatus" id="st-osm_drinking"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('osm_benches')">
     <button class="ltoggle" id="tog-osm_benches"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 9h16M5 9v8M19 9v8M3 13.5h18"/></svg> Bänke (live)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 9h16M5 9v8M19 9v8M3 13.5h18"/></svg> <span data-i18n="lay_osm_bench">Bänke (live)</span></span>
     <span class="lstatus" id="st-osm_benches"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('osm_schools')">
     <button class="ltoggle" id="tog-osm_schools"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m22 9-10-5L2 9l10 5 10-5Z"/><path d="M6 11v5c0 1.6 2.7 3 6 3s6-1.4 6-3v-5"/></svg> Schulen & Kitas (live)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m22 9-10-5L2 9l10 5 10-5Z"/><path d="M6 11v5c0 1.6 2.7 3 6 3s6-1.4 6-3v-5"/></svg> <span data-i18n="lay_osm_school">Schulen & Kitas (live)</span></span>
     <span class="lstatus" id="st-osm_schools"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('osm_health')">
     <button class="ltoggle" id="tog-osm_health"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg> Gesundheit (live)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg> <span data-i18n="lay_osm_health">Gesundheit (live)</span></span>
     <span class="lstatus" id="st-osm_health"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('osm_transit')">
     <button class="ltoggle" id="tog-osm_transit"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 9h16M8 17v2.5M16 17v2.5"/><circle cx="8.5" cy="13.5" r=".8"/><circle cx="15.5" cy="13.5" r=".8"/></svg> ÖPNV-Haltestellen (live)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 9h16M8 17v2.5M16 17v2.5"/><circle cx="8.5" cy="13.5" r=".8"/><circle cx="15.5" cy="13.5" r=".8"/></svg> <span data-i18n="lay_osm_transit">ÖPNV-Haltestellen (live)</span></span>
     <span class="lstatus" id="st-osm_transit"></span>
   </div>
   <div class="lrow" onclick="toggleLayer('osm_lamps')">
     <button class="ltoggle" id="tog-osm_lamps"></button>
-    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.6-1 1.2-1 2H9c0-.8-.3-1.4-1-2A6 6 0 0 1 12 3Z"/></svg> Beleuchtung (Sicherheitsgefühl)</span>
+    <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.6-1 1.2-1 2H9c0-.8-.3-1.4-1-2A6 6 0 0 1 12 3Z"/></svg> <span data-i18n="lay_osm_lamp">Beleuchtung (Sicherheitsgefühl)</span></span>
     <span class="lstatus" id="st-osm_lamps"></span>
   </div>
 
@@ -1075,9 +1075,9 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Hitze',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',tool_mission:'Mission',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Wasser',lens_noise:'Lärm',lens_life:'Lebensqualität',lens_adv:'Erweitert — einzelne Ebenen',
+ de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Kühlung',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',tool_mission:'Mission',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_method:'Methodik',flt_all:'Gesamt',flt_climate:'Klima',flt_social:'Sozial',flt_heat:'Hitze',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Hochwasser',lens_noise:'Lärm',lens_life:'Grün & Aufenthalt',lens_adv:'Erweitert — einzelne Ebenen',
      search_ph:'Stadtteil suchen…',search_city_ph:'Adresse oder Stadt suchen…',bm_map:'Karte',bm_sat:'Satellit',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
-     loading:'Stadt wird gescannt — Hitze, Grün & soziale Lage…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',lay_paw:'Pflanzenverfügbares Wasser — Dürre',
+     loading:'Stadt wird gescannt — Hitze, Grün & soziale Lage…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',lay_paw:'Pflanzenverfügbares Wasser — Dürre',lay_duh:'DUH Hitze-Ampel (Stadtteile)',lay_tco2:'Verkehrs-CO₂ (Emissionen)',lay_sound:'Raumklang (Schallausbreitung)',lay_flood:'Hochwasser HQ100 — Gebäude',lay_heat:'Hitzeinsel — Gebäude-Level',lay_noise:'Lärmbelastung Straße',lay_flight:'Fluglärm-Zonen FRA',lay_bike:'Radwege (Qualitätsstufen)',lay_repair:'Reparieren & Wiederverwenden',lay_waste:'Entsorgen & Recyceln',lay_biodiv:'Heimische Arten (GBIF)',lay_parks:'Parks & Grünflächen',lay_schools:'Schulen & Kitas',lay_health:'Ärzte & Gesundheit',lay_community:'Community Places',lay_trees:'Straßenbäume & Alleen',lay_parking:'Parkplätze (MIV-Dominanz)',lay_osm_trees:'Bäume (live)',lay_osm_drink:'Trinkbrunnen (live)',lay_osm_bench:'Bänke (live)',lay_osm_school:'Schulen & Kitas (live)',lay_osm_health:'Gesundheit (live)',lay_osm_transit:'ÖPNV-Haltestellen (live)',lay_osm_lamp:'Beleuchtung (Sicherheitsgefühl)',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
      sec_social:'Soziale Infrastruktur',sec_europe:'Europa-Modus — Live aus OpenStreetMap',
      hint_layers:'Stadtteil-Füllung blendet sich automatisch aus wenn Layer aktiv sind — die Karte bleibt lesbar.',
@@ -1086,9 +1086,9 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Heat',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',tool_mission:'Mission',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Water',lens_noise:'Noise',lens_life:'Livability',lens_adv:'Advanced — individual layers',
+ en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Cooling',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',tool_mission:'Mission',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_method:'Methodology',flt_all:'Overall',flt_climate:'Climate',flt_social:'Social',flt_heat:'Heat',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Flood',lens_noise:'Noise',lens_life:'Green & place quality',lens_adv:'Advanced — individual layers',
      search_ph:'Search district…',search_city_ph:'Search address or city…',bm_map:'Map',bm_sat:'Satellite',list_sub:'Relative ranking within the city · quintiles',
-     loading:'Scanning the city — heat, green & social fabric…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',lay_paw:'Plant-available water — drought',
+     loading:'Scanning the city — heat, green & social fabric…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',lay_paw:'Plant-available water — drought',lay_duh:'DUH heat report card (districts)',lay_tco2:'Traffic CO₂ (emissions)',lay_sound:'Soundscape (noise propagation)',lay_flood:'Flood risk HQ100 — buildings',lay_heat:'Heat island — building level',lay_noise:'Road noise',lay_flight:'Aircraft noise zones FRA',lay_bike:'Cycle paths (quality levels)',lay_repair:'Repair & reuse',lay_waste:'Waste & recycling',lay_biodiv:'Native species (GBIF)',lay_parks:'Parks & green spaces',lay_schools:'Schools & childcare',lay_health:'Healthcare',lay_community:'Community places',lay_trees:'Street trees & avenues',lay_parking:'Parking (car dominance)',lay_osm_trees:'Trees (live)',lay_osm_drink:'Drinking fountains (live)',lay_osm_bench:'Benches (live)',lay_osm_school:'Schools & childcare (live)',lay_osm_health:'Health (live)',lay_osm_transit:'Public transport stops (live)',lay_osm_lamp:'Lighting (perceived safety)',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
      sec_social:'Social infrastructure',sec_europe:'Europe mode — live from OpenStreetMap',
      hint_layers:'District fill fades out automatically while layers are active — the map stays readable.',
@@ -1097,9 +1097,9 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Hitte',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',tool_mission:'Missie',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Water',lens_noise:'Geluid',lens_life:'Leefkwaliteit',lens_adv:'Uitgebreid — losse lagen',
+ nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Koeling',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',tool_mission:'Missie',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_method:'Methodiek',flt_all:'Totaal',flt_climate:'Klimaat',flt_social:'Sociaal',flt_heat:'Hitte',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Overstroming',lens_noise:'Geluid',lens_life:'Groen & verblijf',lens_adv:'Uitgebreid — losse lagen',
      search_ph:'Zoek wijk…',search_city_ph:'Zoek adres of stad…',bm_map:'Kaart',bm_sat:'Satelliet',list_sub:'Relatieve positie binnen de stad · kwintielen',
-     loading:'Stad wordt gescand — hitte, groen & sociale situatie…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',lay_paw:'Plantbeschikbaar water — droogte',
+     loading:'Stad wordt gescand — hitte, groen & sociale situatie…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',lay_paw:'Plantbeschikbaar water — droogte',lay_duh:'DUH hitte-rapport (wijken)',lay_tco2:'Verkeers-CO₂ (emissies)',lay_sound:'Geluidslandschap (geluidsuitbreiding)',lay_flood:'Overstroming HQ100 — gebouwen',lay_heat:'Hitte-eiland — gebouwniveau',lay_noise:'Verkeerslawaai',lay_flight:'Vliegtuiglawaai FRA',lay_bike:'Fietspaden (kwaliteitsniveaus)',lay_repair:'Repareren & hergebruik',lay_waste:'Afval & recycling',lay_biodiv:'Inheemse soorten (GBIF)',lay_parks:'Parken & groen',lay_schools:'Scholen & kinderopvang',lay_health:'Zorgvoorzieningen',lay_community:'Buurtplekken',lay_trees:'Straatbomen & lanen',lay_parking:'Parkeerplaatsen (autodominantie)',lay_osm_trees:'Bomen (live)',lay_osm_drink:'Drinkfonteinen (live)',lay_osm_bench:'Bankjes (live)',lay_osm_school:'Scholen & opvang (live)',lay_osm_health:'Zorg (live)',lay_osm_transit:'OV-haltes (live)',lay_osm_lamp:'Verlichting (veiligheidsgevoel)',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
      sec_social:'Sociale infrastructuur',sec_europe:'Europa-modus — live uit OpenStreetMap',
      hint_layers:'De wijkvulling verdwijnt automatisch zodra lagen actief zijn — de kaart blijft leesbaar.',
@@ -1109,7 +1109,7 @@ const STR={
      sources_body:'Elke milieu-indicator steunt op twee onafhankelijke bronnen: een officiële primaire bron en een secundaire bron ter validatie.',
      districts_ffm:'Frankfurter stadsdelen',districts_utr:'Utrechtse wijken',panel_title:'Kaartlagen aan/uit'},
 };
-let lang=localStorage.getItem('ul_lang')||'de';
+let lang=localStorage.getItem('ul_lang')||(((navigator.language||'').slice(0,2)==='nl')?'nl':(((navigator.language||'').slice(0,2)==='de')?'de':'en'));
 function t(k){return (STR[lang]&&STR[lang][k])||STR.de[k]||k;}
 function setLang(l){
   lang=l;localStorage.setItem('ul_lang',l);
@@ -1879,8 +1879,6 @@ function initMap(){
   document.querySelectorAll('.ct').forEach(el=>el.classList.remove('on'));
   const cb=document.getElementById('ct-'+startCity); if(cb)cb.classList.add('on');
   document.querySelectorAll('.ffm-only').forEach(el=>el.style.display = startCity==='ffm' ? '' : 'none');
-  // Skyline-Stadt per Deep-Link geöffnet → Skyline zeigen (nur wenn kein Intro dazwischenfunkt)
-  try{ if(CITY_CFG[startCity].skyline && localStorage.getItem('nh_intro_v1') && !document.body.classList.contains('embed')) skylineWanted=true; }catch(e){}
   loadCity(startCity);
 }
 
@@ -2070,10 +2068,8 @@ function switchCity(c){
   if(typeof loadCityMobility==='function')setTimeout(()=>loadCityMobility(c),600);
   loadCity(c);
   setTimeout(loadHeatWarn,300);
-  // Skyline-Stadt (Frankfurt): beim Wechsel einmal pro Sitzung die 3D-Skyline zeigen
-  if(CITY_CFG[c].skyline && !skylineShown){ skylineWanted=true; }
-  // sonst: Stadt im 3D-Modus gewechselt → 3D-Modell der neuen Stadt laden
-  else if(M3.active&&M3.map){const cc=CITY_CFG[c].center;M3.map.flyTo({center:[cc[1],cc[0]],zoom:15,pitch:55,duration:900});m3load();}
+  // Stadt im 3D-Modus gewechselt → 3D-Modell der neuen Stadt laden
+  if(M3.active&&M3.map){const cc=CITY_CFG[c].center;M3.map.flyTo({center:[cc[1],cc[0]],zoom:15,pitch:55,duration:900});m3load();}
 }
 
 
@@ -2104,7 +2100,6 @@ function loadCity(c){
       const kdCountEl=document.getElementById('kdCount');if(kdCountEl)kdCountEl.textContent=k1.length+k2.length;
       if(kdPanelOpen){renderKDPanel();renderKDMarkers();}
       map.setView(cfg.center,cfg.zoom);
-      if(skylineWanted&&cfg.skyline){ skylineWanted=false; setTimeout(showcaseSkyline,650); }
       document.getElementById('loader').style.display='none';
     })
     .catch(()=>{
@@ -2716,9 +2711,20 @@ function saveVotes(o){try{localStorage.setItem(voteKey(),JSON.stringify(o));}cat
 function toggleMitwirkung(){
   MIT.active=!MIT.active;
   document.getElementById('tool-mit').classList.toggle('on',MIT.active);
-  if(MIT.active){ if(typeof closeDrawer==='function')closeDrawer(); renderReportMarkers(); renderMitPanel(); map.getContainer().style.cursor=MIT.tab==='report'?'crosshair':''; supaSync(); }
-  else { if(MIT.markers){map.removeLayer(MIT.markers);MIT.markers=null;} document.getElementById('mitPanel').classList.remove('open'); map.getContainer().style.cursor=''; }
+  if(MIT.active){ if(typeof closeDrawer==='function')closeDrawer(); renderReportMarkers(); renderMitPanel(); map.getContainer().style.cursor=MIT.tab==='report'?'crosshair':''; supaSync(); if(MIT.tab==='report')showMitHint(); }
+  else { if(MIT.markers){map.removeLayer(MIT.markers);MIT.markers=null;} document.getElementById('mitPanel').classList.remove('open'); map.getContainer().style.cursor=''; hideMitHint(); }
 }
+// Onboarding: Erstnutzern zeigen, dass man auf die KARTE klickt
+function showMitHint(){
+  hideMitHint();
+  const d=document.createElement('div'); d.id='mitHint';
+  d.style.cssText='position:fixed;top:50%;left:45%;transform:translate(-50%,-50%);z-index:640;background:#1a1a2e;color:#fff;border-radius:14px;padding:13px 20px;font-size:13.5px;font-weight:700;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;pointer-events:none;animation:mitPulse 1.6s ease-in-out infinite';
+  d.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5 3.5 6a2.1 2.1 0 0 1 3-3L12 8.5"/><path d="m12 8.5 4.2-1.2a2 2 0 0 1 2.4 1.2l2 5.3a4 4 0 0 1-2.3 5.1l-3.6 1.4a4 4 0 0 1-4.4-1L6 14.7l3-3.2Z"/></svg>'+csTxt('Tippe auf die Karte, um ein Problem zu melden','Tap the map to report an issue','Tik op de kaart om een probleem te melden');
+  if(!document.getElementById('mitHintCSS')){const st=document.createElement('style');st.id='mitHintCSS';st.textContent='@keyframes mitPulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.04)}}';document.head.appendChild(st);}
+  document.body.appendChild(d);
+  clearTimeout(MIT._hintT); MIT._hintT=setTimeout(hideMitHint,7000);
+}
+function hideMitHint(){ const d=document.getElementById('mitHint'); if(d)d.remove(); }
 function renderReportMarkers(){
   if(MIT.markers)map.removeLayer(MIT.markers);
   MIT.markers=L.layerGroup();
@@ -2735,7 +2741,7 @@ function renderReportMarkers(){
   });
   MIT.markers.addTo(map);
 }
-function reportPick(latlng){
+function reportPick(latlng){ try{hideMitHint();}catch(e){}
   if(!MIT.active||MIT.tab!=='report')return;
   const btns=Object.entries(REPORT_TYPES).map(([k,t])=>`<button onclick="addReport(${latlng.lat},${latlng.lng},'${k}')" style="display:flex;align-items:center;gap:6px;width:100%;text-align:left;border:none;background:none;padding:5px 7px;cursor:pointer;border-radius:6px;font-size:11px" onmouseover="this.style.background='#f0ede6'" onmouseout="this.style.background='none'"><span style="width:11px;height:11px;border-radius:50%;background:${t.c}"></span>${t[lang]||t.de}</button>`).join('');
   L.popup({maxWidth:200}).setLatLng(latlng).setContent(`<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa;margin-bottom:4px">${lang==='en'?'Report a problem':lang==='nl'?'Meld een probleem':'Problem melden'}</div>${btns}</div>`).openOn(map);
@@ -3398,6 +3404,7 @@ function renderMission(){
     m.on('click',()=>missionCase(i));grp.addLayer(m);});
   grp.addTo(map);MISSION.layer=grp;
   b.innerHTML=`
+   <div class="ibox" style="border-left-color:var(--accent)">${mT('<b>Was ist das?</b> Diese Mission findet die Schulen, die zuerst Hitzeschutz brauchen — und zeigt, was das kostet und was es bringt. Klick auf eine Schule (Liste oder Karte) öffnet den Fall mit konkreten Maßnahmen.','<b>What is this?</b> This mission finds the schools that need heat protection first — and shows what it costs and delivers. Click a school (list or map) to open its case with concrete measures.','<b>Wat is dit?</b> Deze missie vindt de scholen die het eerst hittebescherming nodig hebben — en toont kosten en effect. Klik op een school (lijst of kaart) om de casus met maatregelen te openen.')}</div>
    <div class="ms-kpis">
      <div class="ms-kpi"><div class="v">${S.length}</div><div class="l">${mT('Schulen & Kitas analysiert','schools & kindergartens analysed','scholen & opvang geanalyseerd')}</div></div>
      <div class="ms-kpi"><div class="v" style="color:#dc2626">${hot}</div><div class="l">${mT('hohe Hitze-Priorität (≥ 50)','high heat priority (≥ 50)','hoge hitteprioriteit (≥ 50)')}</div></div>
@@ -5015,15 +5022,16 @@ function openDrawer(name,d,skipZoom){
     ${risks.length?`<div class="sec">Identifizierte Risiken</div>
     <div class="ibox"><b>Aktive Risikolagen in ${name}:</b><br>${risks.join('<br>')}
     <br><br>Tipp: Schalte die entsprechenden <b>Karten-Layer</b> ein (Button unten links) um zu sehen wo genau diese Risiken auftreten.</div>`:''}
+    <div class="sec">Hauptschwächen</div>
+    <div class="ibox">Schwächste Dimensionen: <b>${weakKeys.map(k=>DIMS.find(x=>x.k===k)?.name).join(', ')}</b>.<br>
+    Maßnahmen (Tab 3) adressieren genau diese Felder.</div>
+    ${dailyStory(name,d)}
     <div class="sec">Wie wird der Score berechnet?</div>
     <div class="ibox">
       Der NICE Score = <b>Ø der 8 Dimensionen</b> (je 0–100). Höher = besser. Alle Dimensionen gleichgewichtet.<br><br>
       <b>Kartenfarbe</b>: Quintile im Stadtvergleich — kein absoluter Schwellwert. Rot = unteres Fünftel im Vergleich zu allen Stadtteilen.
     </div>
-    <div class="sec">Hauptschwächen</div>
-    <div class="ibox">Schwächste Dimensionen: <b>${weakKeys.map(k=>DIMS.find(x=>x.k===k)?.name).join(', ')}</b>.<br>
-    Maßnahmen (Tab 3) adressieren genau diese Felder.</div>
-    ${dailyStory(name,d)}
+
     ${d.sgb2!=null?`
     <div class="sec"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/></svg> Soziale Lage</div>
     <div class="social-grid">
