@@ -1111,7 +1111,7 @@ const STR={
 };
 let lang=localStorage.getItem('ul_lang')||(((navigator.language||'').slice(0,2)==='nl')?'nl':(((navigator.language||'').slice(0,2)==='de')?'de':'en'));
 function t(k){return (STR[lang]&&STR[lang][k])||STR.de[k]||k;}
-function setLang(l){
+function setLang(l){ try{setTimeout(()=>{const el=document.getElementById('heatWarn');if(el)el.classList.remove('on');loadHeatWarn();},50);}catch(e){}
   lang=l;localStorage.setItem('ul_lang',l);
   document.querySelectorAll('.lg').forEach(b=>b.classList.remove('on'));
   const lb=document.getElementById('lg-'+l);if(lb)lb.classList.add('on');
@@ -1135,6 +1135,8 @@ Object.assign(TR,{" später":{"en":" later","nl":" later"},"Folgekosten: hoch":{
 Object.assign(TR,{"Investition ":{"en":"Investment ","nl":"Investering "}});
 Object.assign(TR,{"Prioritätskandidat":{"en":"Priority candidate","nl":"Prioriteitskandidaat"},"(niedriger Score = starke EUI-Begründung)":{"en":"(low score = strong EUI justification)","nl":"(lage score = sterke EUI-onderbouwing)"}});
 Object.assign(TR,{"/100 Hitzebetroffenheit":{"en":"/100 heat exposure","nl":"/100 hittebelasting"},"Regenwasser-Rückhalt (Wadi's & Afkoppelen)":{"en":"Rainwater retention (wadis & disconnection)","nl":"Regenwaterberging (wadi's & afkoppelen)"}});
+Object.keys(TR).forEach(k=>{if(k.indexOf("&")>=0){const k2=k.split("&").join("&amp;");if(!TR[k2])TR[k2]=TR[k];}});
+Object.assign(TR,{"Versiegelung ":{"en":"Sealing ","nl":"Verharding "},"NDVI-Mangel":{"en":"NDVI deficit","nl":"NDVI-tekort"},"LCZ-Einordnung: ":{"en":"LCZ class: ","nl":"LCZ-indeling: "},"Mitteldichte Bebauung":{"en":"Medium-density built form","nl":"Middeldichte bebouwing"},"Dichte Bebauung":{"en":"Dense built form","nl":"Dichte bebouwing"},"Offene Bebauung":{"en":"Open built form","nl":"Open bebouwing"},"Abweichung vom ":{"en":"deviation from the ","nl":"afwijking van het "},"Frankfurter ":{"en":"Frankfurt ","nl":"Frankfurter "},"Green volume":{"en":"Green volume","nl":"Groenvolume"}});
 Object.keys(TR).forEach(k=>{if(k.indexOf("&")>=0){const k2=k.split("&").join("&amp;");if(!TR[k2])TR[k2]=TR[k];}});
 const TR_KEYS=Object.keys(TR).sort((a,b)=>b.length-a.length);
 function localize(h){ if(lang==='de')return h; for(const k of TR_KEYS){ const v=TR[k][lang]; if(v&&h.indexOf(k)>=0)h=h.split(k).join(v); } return h; }
