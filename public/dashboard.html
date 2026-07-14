@@ -504,6 +504,7 @@ const SDG_DIM={A:[13,11],B:[3],C:[11],D:[4],E:[11,1],F:[16],G:[15],H:[13,11]};
 function setCity(key){
   if(!ALLCITIES[key])return;
   CITYKEY=key; CITY=ALLCITIES[key]; DISTRICTS=CITY.districts;
+  try{document.title='nice here Dashboard — '+CITY.name;}catch(e){}
   try{localStorage.setItem('nh_city',key);}catch(e){}   // seitenübergreifend merken
   document.querySelectorAll('.ct').forEach(b=>b.classList.remove('on'));
   const cb=document.getElementById('ct-'+key); if(cb)cb.classList.add('on');
@@ -625,24 +626,29 @@ function pfCandidates(){
       const socialRel=m.dims.some(k=>['B','D','E','F'].includes(k))?1:(m.dims.includes('C')?0.6:0.35);
       const climRel=m.dims.some(k=>['A','G','H'].includes(k))?1:(m.dims.includes('C')?0.6:0.35);
       const costM=Math.max(0.05,m.kosten/1e6), reachN=(d.pop||0)/maxPop;
+      // Absolute Fit-Scores (NICHT pro €): sonst dominieren Billig-Maßnahmen
+      // und das Budget bleibt ungenutzt — vulnerable/belastete Wijken zuerst.
       out.push({n,d,m,fund,cost:m.kosten,
-        sA:(0.55*pfVuln(d)+0.25*reachN+0.20*socialRel)/costM,
-        sB:(0.55*pfClim(d)+0.25*climRel+0.20*reachN)/costM,
+        sA:0.60*pfVuln(d)+0.25*reachN+0.15*socialRel,
+        sB:0.60*pfClim(d)+0.25*climRel+0.15*reachN,
         sC:fund*10-costM});
     });
   });
   return out;
 }
-function pfGreedy(cands,key,budget){
+function pfGreedy(cands,key,budget,capFn){
+  capFn=capFn||(()=>3);
   const sorted=cands.slice().sort((a,b)=>b[key]-a[key]);
-  const pick=[],perD={};let sum=0;const seen={};
-  for(const c of sorted){
-    const id=c.n+'|'+c.m.id; if(seen[id])continue;
-    if((perD[c.n]||0)>=2)continue;
-    if(sum+c.cost>budget)continue;
-    seen[id]=1;perD[c.n]=(perD[c.n]||0)+1;sum+=c.cost;pick.push(c);
-    if(pick.length>=24)break;
-  }
+  const pick=[],perD={},seen={};let sum=0;
+  const tryAdd=c=>{const id=c.n+'|'+c.m.id;
+    if(seen[id]||(perD[c.n]||0)>=capFn(c)||sum+c.cost>budget)return;
+    seen[id]=1;perD[c.n]=(perD[c.n]||0)+1;sum+=c.cost;pick.push(c);};
+  // Phase 1: bester Fit zuerst (Ziel-Wijken dominieren, dürfen mehr Projekte tragen)
+  for(const c of sorted){ if(pick.length>=44)break; tryAdd(c); }
+  // Phase 2: Restbudget ausschöpfen — größte noch passende Projekte zuerst
+  const rest=sorted.filter(c=>!seen[c.n+'|'+c.m.id]).sort((a,b)=>b.cost-a.cost);
+  for(const c of rest){ if(budget-sum<50000||pick.length>=56)break; tryAdd(c); }
+  pick.sort((a,b)=>b[key]-a[key]);
   return {pick,sum};
 }
 function pfCard(el,title,sub,col,res,budget){
@@ -673,9 +679,9 @@ function renderPortfolios(){
   document.getElementById('pfLbl').textContent=dt('Budget','Budget','Budget');
   document.getElementById('pfSub').textContent=dt('Drei Antworten auf dieselbe Budgetfrage — der Zielkonflikt wird sichtbar, statt hinter einem Gesamtscore zu verschwinden. Maßnahmen werden nur Wijken zugeordnet, deren Schwächen sie adressieren.','Three answers to the same budget question — the trade-off becomes visible instead of hiding behind one score. Measures are only assigned to districts whose weaknesses they address.','Drie antwoorden op dezelfde budgetvraag — de afweging wordt zichtbaar in plaats van verborgen achter één score.');
   const cands=pfCandidates();
-  pfCard(document.getElementById('pfA'),dt('A · Maximale soziale Wirkung','A · Maximum social impact','A · Maximale sociale impact'),dt('Priorisiert vulnerable Wijken & erreichte Menschen.','Prioritises vulnerable districts & people reached.','Prioriteert kwetsbare wijken & bereikte mensen.'),'#a60ba6',pfGreedy(cands,'sA',B),B);
-  pfCard(document.getElementById('pfB'),dt('B · Maximale Klimawirkung','B · Maximum climate impact','B · Maximale klimaatimpact'),dt('Priorisiert Hitze-/Wasser-Belastung & Klima-Maßnahmen.','Prioritises heat/water burden & climate measures.','Prioriteert hitte-/waterbelasting & klimaatmaatregelen.'),'#ff8210',pfGreedy(cands,'sB',B),B);
-  pfCard(document.getElementById('pfC'),dt('C · Maximale Umsetzbarkeit','C · Maximum feasibility','C · Maximale haalbaarheid'),dt('Priorisiert Förderquote & schnelle, günstige Projekte.','Prioritises funding rate & quick, low-cost projects.','Prioriteert subsidie & snelle, goedkope projecten.'),'#36d5d0',pfGreedy(cands,'sC',B),B);
+  pfCard(document.getElementById('pfA'),dt('A · Maximale soziale Wirkung','A · Maximum social impact','A · Maximale sociale impact'),dt('Priorisiert vulnerable Wijken & erreichte Menschen.','Prioritises vulnerable districts & people reached.','Prioriteert kwetsbare wijken & bereikte mensen.'),'#a60ba6',pfGreedy(cands,'sA',B,c=>isVuln(c.d)?7:2),B);
+  pfCard(document.getElementById('pfB'),dt('B · Maximale Klimawirkung','B · Maximum climate impact','B · Maximale klimaatimpact'),dt('Priorisiert Hitze-/Wasser-Belastung & Klima-Maßnahmen.','Prioritises heat/water burden & climate measures.','Prioriteert hitte-/waterbelasting & klimaatmaatregelen.'),'#ff8210',pfGreedy(cands,'sB',B,c=>pfClim(c.d)>=0.4?7:2),B);
+  pfCard(document.getElementById('pfC'),dt('C · Maximale Umsetzbarkeit','C · Maximum feasibility','C · Maximale haalbaarheid'),dt('Priorisiert Förderquote & schnelle, günstige Projekte.','Prioritises funding rate & quick, low-cost projects.','Prioriteert subsidie & snelle, goedkope projecten.'),'#36d5d0',pfGreedy(cands,'sC',B,c=>4),B);
 }
 function buildDashboard(){
   entries=Object.entries(DISTRICTS);
@@ -723,7 +729,9 @@ function buildDashboard(){
     {val:critCount,lbl:'Kritische '+(isNL?'Wijken':'Stadtteile'),sub:'NICE Score unter 40',cls:'warn'},
     {val:duhRot,lbl:'DUH Rote Karten',sub:`Hitze-Check · ${duhGelb}× gelb`,cls:'warn'},
     {val:spread+' Pkt.',lbl:'Zufriedenheitsgefälle',sub:'Spread bester ↔ schlechtester (Glücksatlas)',cls:spread>40?'warn':''},
-    {val:'€'+Math.round(entries.reduce((s,[,d])=>s+(d.hw?1:0),0)*230/10)*10+'M',lbl:'Flutrisiko-Gebäude',sub:'HQ100-Risikobereich (Mio€)',cls:'warn'},
+    (()=>{const hwN=entries.reduce((s,[,d])=>s+(d.hw?1:0),0);
+      return hwN?{val:'€'+Math.round(hwN*230/10)*10+'M',lbl:'Flutrisiko-Gebäude',sub:'HQ100-Risikobereich (Mio€)',cls:'warn'}
+        :{val:hwN===0&&entries.length?'✓':'—',lbl:'Flutrisiko-Gebäude',sub:dt('kein Wijk im HQ100-Bereich','no district in HQ100 zone','geen wijk in HQ100-zone'),cls:'ok'};})(),
     {val:avgSgb2+'%',lbl:isNL?'Ø Bijstand-Quote':'Ø SGB-II-Quote',sub:'Soziale Vulnerabilität',cls:''},
   ];
   document.getElementById('kpiRow').innerHTML=kpiData.map(k=>`<div class="kpi ${k.cls}"><div class="val">${k.val}</div><div class="lbl">${k.lbl}</div><div class="sub">${k.sub}</div></div>`).join('');
