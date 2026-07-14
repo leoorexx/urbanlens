@@ -243,3 +243,32 @@ Nach außen **nicht** „Palantir für Städte" (Konnotation). Besser:
 ---
 
 *Nächster Schritt bei Freigabe: P1 — „Climate-Resilient Streets Utrecht" (oder als schmalerer Einstieg „Hitzesichere Schulen").*
+
+---
+
+## 13 · Data-Readiness-Matrix (Utrecht)
+
+Kernaussage: **Wir haben ~60–70 % der Umweltdaten — die fehlenden 30–40 % sind operativ (Projekte, Kosten, Zuständigkeit, Eigentum, Zeit).** Nicht „mehr Indikatoren", sondern *anders strukturierte* Daten mit stabilen Objekt-IDs (`UTR-STREET-003918`).
+
+| Datenpaket (Use Case Climate-Resilient Streets / Schulen) | Klasse | Status |
+|---|---|---|
+| Straßenabschnitte, Gebäude, Schulen, Bäume, Haltestellen | 1 offen | ✅ in UrbanLens |
+| LST/Hitze, Versiegelung, Grün, Überflutung | 1 offen | ✅ in UrbanLens |
+| Bevölkerung aggregiert, soziale Verwundbarkeit | 1 offen | ✅ (Wijk) |
+| Baumkronen/Verschattung | 1/3 | ⚠️ Baum-Proxy, kein Schattenmodell |
+| Standardmaßnahmen mit **Kostenkorridoren + Wirkungsbandbreiten** | 3 modelliert | ⚠️ vorhanden, ausbauen — nie Scheingenauigkeit |
+| Geplante Straßen-/Kanalarbeiten, Projektlisten, Budgets | **2 von Utrecht** | ❌ |
+| Eigentum, Zuständigkeit, Genehmigungswege | **2 von Utrecht** | ❌ |
+| Zeitdimension (Datenstand, Beschluss, Baubeginn, Zieljahr) | 2/3 | ⚠️ teilweise |
+| Politikziele maschinenlesbar (30 % Schatten, 200 m Kühlgrün …) | 3 | ⚠️ jetzt in Mission P1 |
+
+Herkunfts-Modell je Wert: **gemessen · amtlich · extern · modelliert · geschätzt · manuell** + Quelle/Datum/Auflösung/Unsicherheit (haben wir in Grundform — konsequent durchziehen).
+
+## 14 · UX-Zielarchitektur & erster Flow
+
+Vier Einstiege statt Layer-Wand: **Explore** (Bürger) · **Quartier analysieren** · **Maßnahme planen** · **Investitionen priorisieren** (Decision Mode mit Portfolios A/B/C: Social/Climate/Feasibility — Zielkonflikte sichtbar statt hinter einem Score). Quartiersseite mit Overview/Dimensions/**Daily Life** (Storytelling)/Actions/Compare. Rechte Leiste immer: *Was sehen wir? Warum relevant? Wer betroffen? Was tun? Wie sicher?*
+
+**Erster kompletter Flow (P1, in Umsetzung):**
+`Mission Hitze → Kennzahlen → Prioritätskarte/-liste → Urban Challenge Case → Maßnahmenvergleich → Vorher/Nachher → Bericht`
+
+Visuelle Linie: **Hybrid** — Kernprodukt „Civic Intelligence" (ruhig, seriös), Erklär-/Story-Ebene „Human Urban Futures" (Illustrationen, Heute→Möglich). Priorisierung Redesign: 1 Storytelling · 2 Rollen-Einstiege · 3 Vorher/Nachher · 4 Score greifbar (Radar+Ziel) · 5 Tooltip-Mini-Charts · später 3D-Spielereien.
