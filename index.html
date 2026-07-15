@@ -537,6 +537,9 @@ body.free-mode #heatWarn{top:106px}
 .ms-comp b{font-size:13px;color:var(--text)}
 .ms-opt{border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:7px;font-size:11px;line-height:1.5}
 .ms-back{background:none;border:none;color:var(--accent);font-weight:700;font-size:11px;cursor:pointer;padding:0;font-family:inherit}
+.ms-switch{display:flex;gap:6px;margin:0 0 10px}
+.msw{flex:1;padding:7px 6px;border:1px solid var(--border);background:var(--surface2);border-radius:9px;font-size:10.5px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;line-height:1.25}
+.msw.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .lens-bar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:2px 0 4px}
 .lens-btn2{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;color:var(--text2);transition:all .12s}
 .lens-btn2:hover{border-color:var(--text2);color:var(--text)}
@@ -2075,7 +2078,7 @@ function switchCity(c){
   try{ closeArea(); }catch(e){}
   try{ if(typeof HEAT!=='undefined'&&HEAT.active)toggleHeatSim(); }catch(e){}
   try{ if(typeof MIT!=='undefined'&&MIT.active)toggleMitwirkung(); }catch(e){}
-  try{ if(typeof MISSION!=='undefined'&&MISSION.active){closeMission();MISSION.loaded=null;MISSION.schools=[];} }catch(e){}
+  try{ if(typeof MISSION!=='undefined'&&MISSION.active){closeMission();} if(typeof MISSION!=='undefined'){MISSION.loaded=null;MISSION.schools=[];MISSION.loadedT=null;MISSION.streets=[];MISSION.stGj=null;} }catch(e){}
   if(typeof updateMapLegend==='function')updateMapLegend();
   // Bundle der neuen Stadt vorwärmen (Diagnose/Werkzeuge sofort)
   if(typeof loadCityBundle==='function')setTimeout(()=>loadCityBundle(c),300);
@@ -3486,11 +3489,16 @@ function closeArea(){
 // Schulen (OSM) × LST (Copernicus, gemessen) × Versiegelung/Sozial
 // (amtlich, Wijk) × Grün/Bäume (OSM). Konfidenz je Wert ausgewiesen.
 // ══════════════════════════════════════════════════════════════
-const MISSION={active:false,loaded:null,schools:[],layer:null,budget:5};
+const MISSION={active:false,kind:'schools',loaded:null,loadedT:null,schools:[],streets:[],stGj:null,layer:null,budget:5,budgetT:10};
 const MPKG=[ // Maßnahmenpakete je Schule — Kostenkorridore, keine Scheingenauigkeit
  {id:'A',de:'Bäume + Entsiegelung Schulhof',en:'Trees + de-sealed schoolyard',nl:'Bomen + onthard schoolplein',lo:120000,hi:180000,eff:'−1,0–1,5 °C',dur:'1–2 J.'},
  {id:'B',de:'Verschattung (Segel + Grün)',en:'Shading (sails + green)',nl:'Schaduw (doeken + groen)',lo:60000,hi:100000,eff:'+30 % Schatten',dur:'0,5–1 J.'},
  {id:'C',de:'Schwammstadt-Schulhof (Retention)',en:'Sponge schoolyard (retention)',nl:'Spons-schoolplein',lo:180000,hi:300000,eff:'−1,5–2,1 °C',dur:'1–3 J.'}
+];
+const MPKG_ST=[ // Maßnahmenpakete je Straße — Korridore je Abschnitt, skaliert mit Straßenlänge
+ {id:'A',de:'Straßenbäume + Baumrigolen',en:'Street trees + tree trenches',nl:'Straatbomen + boomrigolen',lo:40000,hi:90000,eff:'−0,8–1,4 °C',dur:'1–2 J.'},
+ {id:'B',de:'Helle & durchlässige Beläge',en:'Light & permeable paving',nl:'Lichte & doorlatende verharding',lo:60000,hi:120000,eff:'−5–10 °C Oberfl.',dur:'0,5–1 J.'},
+ {id:'C',de:'Entsiegelung + Wadi (Schwammstraße)',en:'De-sealing + wadi (sponge street)',nl:'Ontharding + wadi (sponsstraat)',lo:80000,hi:160000,eff:'−1,0–1,8 °C',dur:'1–2 J.'}
 ];
 function mT(de,en,nl){return lang==='en'?en:lang==='nl'?nl:de;}
 function trHeatLbl(l){const M={'Extrem':['Extreme','Extreem'],'Sehr hoch':['Very high','Zeer hoog'],'Hoch':['High','Hoog'],'Mittel':['Medium','Matig'],'Gering':['Low','Gering'],'Niedrig':['Low','Laag']};const v=M[l];return v?mT(l,v[0],v[1]):l;}
@@ -3503,11 +3511,12 @@ function toggleMission(){
   MISSION.active=true;document.getElementById('tool-mission').classList.add('on');
   try{closeArea();}catch(e){}
   const p=document.getElementById('missionPanel');p.classList.add('open');
-  p.innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${mT('Mission · Hitzesichere Schulen','Mission · Heat-safe schools','Missie · Hittebestendige scholen')}</div><div class="ap-sub">${CITY_CFG[city].name} · ${mT('Daten → Priorität → Maßnahme → Wirkung','Data → priority → action → impact','Data → prioriteit → maatregel → effect')}</div></div><button class="ap-x" onclick="closeMission()">✕</button></div><div class="ap-body" id="msBody"><div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div></div>`;
+  p.innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${mT('Missionen','Missions','Missies')}</div><div class="ap-sub">${CITY_CFG[city].name} · ${mT('Daten → Priorität → Maßnahme → Wirkung','Data → priority → action → impact','Data → prioriteit → maatregel → effect')}</div></div><button class="ap-x" onclick="closeMission()">✕</button></div><div class="ap-body" id="msBody"><div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div></div>`;
   missionLoad();
 }
 function closeMission(){MISSION.active=false;const t=document.getElementById('tool-mission');if(t)t.classList.remove('on');const p=document.getElementById('missionPanel');if(p)p.classList.remove('open');if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}MISSION.layer=null;}}
 function missionLoad(){
+  if(MISSION.kind==='streets')return streetsLoad();
   if(MISSION.loaded===city&&MISSION.schools.length){renderMission();return;}
   Promise.all([
     fetch(`${DATA_BASE}/pois_${city}.geojson`).then(r=>r.json()),
@@ -3548,6 +3557,7 @@ function missionLoad(){
 }
 function missionBudgetCalc(){const B=MISSION.budget*1e6;let sum=0;const pick=[];for(const s of MISSION.schools){const cst=msCost(s);if(sum+cst.mid>B)continue;sum+=cst.mid;pick.push(s);if(pick.length>=60)break;}return {pick,sum};}
 function renderMission(){
+  if(MISSION.kind==='streets')return renderStreets();
   const b=document.getElementById('msBody');if(!b)return;
   const S=MISSION.schools;
   if(!S.length){b.innerHTML='<div style="padding:12px;font-size:11px;color:var(--muted)">'+mT('Keine Schulen gefunden.','No schools found.','Geen scholen gevonden.')+'</div>';return;}
@@ -3560,6 +3570,7 @@ function renderMission(){
     m.on('click',()=>missionCase(i));grp.addLayer(m);});
   grp.addTo(map);MISSION.layer=grp;
   b.innerHTML=`
+   ${msSwitch()}
    <div class="ibox" style="border-left-color:var(--accent)">${mT('<b>Was ist das?</b> Diese Mission findet die Schulen, die zuerst Hitzeschutz brauchen — und zeigt, was das kostet und was es bringt. Klick auf eine Schule (Liste oder Karte) öffnet den Fall mit konkreten Maßnahmen.','<b>What is this?</b> This mission finds the schools that need heat protection first — and shows what it costs and delivers. Click a school (list or map) to open its case with concrete measures.','<b>Wat is dit?</b> Deze missie vindt de scholen die het eerst hittebescherming nodig hebben — en toont kosten en effect. Klik op een school (lijst of kaart) om de casus met maatregelen te openen.')}</div>
    <div class="ms-kpis">
      <div class="ms-kpi"><div class="v">${S.length}</div><div class="l">${mT('Schulen & Kitas analysiert','schools & kindergartens analysed','scholen & opvang geanalyseerd')}</div></div>
@@ -3646,6 +3657,187 @@ function missionPDF(){
   y=pdfDisclaimer(doc,y);
   pdfFinish(doc,'nice here — Inspector Nice ('+new Date().getFullYear()+'): '+L('Mission Hitzesichere Schulen','Heat-safe schools mission','Missie hittebestendige scholen')+', '+CITY_CFG[city].name+'.',repId);
   doc.save('inspector-nice_'+city+'_mission-heat-schools_'+new Date().toISOString().slice(0,10)+'.pdf');
+}
+
+// ── Mission 2 · Klimafeste Straßen ─────────────────────────────
+// Segment-Ebene (noise_roads-Korridore), aggregiert je Straßenname.
+// Schnellstraßen (≥ 70 km/h, motorway/trunk) sind keine Umbau-Kandidaten.
+function msSwitch(){
+  return '<div class="ms-switch">'
+   +'<button class="msw'+(MISSION.kind==='schools'?' on':'')+'" onclick="setMissionKind(\'schools\')">'+mT('Hitzesichere Schulen','Heat-safe schools','Hittebestendige scholen')+'</button>'
+   +'<button class="msw'+(MISSION.kind==='streets'?' on':'')+'" onclick="setMissionKind(\'streets\')">'+mT('Klimafeste Straßen','Climate-resilient streets','Klimaatbestendige straten')+'</button></div>';
+}
+function setMissionKind(k){
+  if(MISSION.kind===k)return;
+  MISSION.kind=k;
+  if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}MISSION.layer=null;}
+  const b=document.getElementById('msBody');
+  if(b)b.innerHTML=msSwitch()+'<div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div>';
+  missionLoad();
+}
+function stRec(s){const r=[];if(s.trees<10||s.c.shade>=55)r.push('A');if(s.c.seal>=55)r.push('B');if(s.c.heat>=60)r.push('C');return r.length?r.slice(0,2):['A'];}
+function stCost(s){const ids=stRec(s);let lo=0,hi=0;ids.forEach(id=>{const p=MPKG_ST.find(x=>x.id===id);lo+=p.lo;hi+=p.hi;});return {lo:lo*s.factor,hi:hi*s.factor,mid:(lo+hi)/2*s.factor,ids};}
+function stBudgetCalc(){const B=MISSION.budgetT*1e6;let sum=0;const pick=[];for(const s of MISSION.streets){const cst=stCost(s);if(sum+cst.mid>B)continue;sum+=cst.mid;pick.push(s);if(pick.length>=80)break;}return {pick,sum};}
+function streetsLoad(){
+  if(MISSION.loadedT===city&&MISSION.streets.length){renderStreets();return;}
+  Promise.all([
+    fetch(`${DATA_BASE}/noise_roads_${city}.geojson`).then(r=>r.json()),
+    fetch(`${DATA_BASE}/green_${city}.geojson`).then(r=>r.json()),
+    fetch(`${DATA_BASE}/trees_${city}.geojson`).then(r=>r.json()).catch(()=>null),
+    loadHeatField()
+  ]).then(([roads,green,trees,field])=>{
+    if(!MISSION.active||MISSION.kind!=='streets')return;
+    const gc=[];(green.features||[]).forEach(f=>{const c=geoCentroid(f.geometry.coordinates);if(c)gc.push(c);});
+    const TI=new Map(),TC=0.0015;
+    ((trees&&trees.features)||[]).forEach(f=>{const g=f.geometry;if(!g||g.type!=='Point')return;const c=g.coordinates;const k=Math.round(c[0]/TC)+'_'+Math.round(c[1]/TC);let a=TI.get(k);if(!a){a=[];TI.set(k,a);}a.push(c);});
+    const treesNear=(lat,lon)=>{let n=0;const kx=Math.round(lon/TC),ky=Math.round(lat/TC);for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const a=TI.get((kx+dx)+'_'+(ky+dy));if(!a)continue;for(const c of a){const mx=(c[0]-lon)*70000,my=(c[1]-lat)*111320;if(mx*mx+my*my<150*150)n++;}}return n;};
+    const gDist=(lat,lon)=>{let b=1e9;for(const c of gc){const mx=(c[0]-lon)*70000,my=(c[1]-lat)*111320,d=mx*mx+my*my;if(d<b)b=d;}return Math.sqrt(b);};
+    PAW_DIST_CACHE={};
+    const agg=new Map(); // Straßenname → aggregierte Segmente
+    (roads.features||[]).forEach(f=>{
+      const g=f.geometry;if(!g)return;
+      const p=f.properties||{};
+      const c=g.type==='Point'?g.coordinates:geoCentroid(g.coordinates);if(!c){f.__ms=null;return;}
+      const lat=c[1],lon=c[0];
+      const fast=(+p.maxspeed>=70)||/motorway|trunk/.test(p.highway||'')||!!p.railway; // Schiene: Lärmkorridor ja, Umbau-Kandidat nein
+      const lst=sampleLst(field,lat,lon);const d=pawDistrictAt(lat,lon);
+      const heat=Math.max(0,Math.min(1,(lst!=null?lst:(d?d.lst_delta:1))/3));
+      const seal=d?Math.max(0,Math.min(1,((d.versieg||55)-45)/45)):0.5;
+      const tn=treesNear(lat,lon);
+      const shade=Math.max(0,Math.min(1,1-tn/14)); // Schatten-Defizit: Baum-Proxy, Ziel ~14/150 m
+      const soc=d?Math.max(0,Math.min(1,(((d.kinderarmut!=null?d.kinderarmut:15))-5)/35)):0.5;
+      const gd=gDist(lat,lon);
+      const prio=100*(0.35*heat+0.25*shade+0.20*seal+0.20*soc);
+      f.__ms={prio,fast,name:p.name||null};
+      if(fast||!p.name)return; // Karte ja, Ranking nein
+      let a=agg.get(p.name);
+      if(!a){a={name:p.name,n:0,heat:0,shade:0,seal:0,soc:0,lstMax:null,trees:0,gd:1e9,vs:0,vsN:0,socV:null,lat,lon,best:-1,surface:p.surface||''};agg.set(p.name,a);}
+      a.n++;a.heat+=heat;a.shade+=shade;a.seal+=seal;a.soc+=soc;a.trees+=tn;
+      if(lst!=null&&(a.lstMax==null||lst>a.lstMax))a.lstMax=+(+lst).toFixed(1);
+      if(gd<a.gd)a.gd=gd;
+      if(d&&d.versieg!=null){a.vs+=d.versieg;a.vsN++;}
+      if(d&&d.kinderarmut!=null)a.socV=d.kinderarmut;
+      if(prio>a.best){a.best=prio;a.lat=lat;a.lon=lon;}
+    });
+    const S=[];
+    agg.forEach(a=>{
+      const c={heat:Math.round(a.heat/a.n*100),shade:Math.round(a.shade/a.n*100),seal:Math.round(a.seal/a.n*100),soc:Math.round(a.soc/a.n*100)};
+      S.push({name:a.name,n:a.n,lat:a.lat,lon:a.lon,lst:a.lstMax,trees:Math.round(a.trees/a.n),
+        versieg:a.vsN?Math.round(a.vs/a.vsN):null,gd:Math.round(a.gd),soc:a.socV,surface:a.surface,
+        factor:Math.min(6,Math.max(1,Math.ceil(a.n/5))),
+        prio:Math.round(0.35*c.heat+0.25*c.shade+0.20*c.seal+0.20*c.soc),c});
+    });
+    S.sort((x,y)=>y.prio-x.prio);
+    if(S.length>1){const mx=S[0].prio,mn=S[S.length-1].prio;if(mx>mn)S.forEach(s=>{s.prio=Math.round(((s.prio-mn)/(mx-mn))*100);});}
+    const idx=new Map();S.forEach((s,i)=>idx.set(s.name,i));
+    (roads.features||[]).forEach(f=>{f.__st=(f.__ms&&f.__ms.name!=null&&!f.__ms.fast&&idx.has(f.__ms.name))?idx.get(f.__ms.name):-1;});
+    MISSION.streets=S;MISSION.stGj=roads;MISSION.loadedT=city;
+    renderStreets();
+  }).catch(()=>{const b=document.getElementById('msBody');if(b)b.innerHTML=msSwitch()+'<div style="padding:14px;font-size:11px;color:var(--muted)">'+mT('Daten konnten nicht geladen werden.','Data could not be loaded.','Data kon niet worden geladen.')+'</div>';});
+}
+function renderStreets(){
+  const b=document.getElementById('msBody');if(!b)return;
+  const S=MISSION.streets;
+  if(!S.length){b.innerHTML=msSwitch()+'<div style="padding:12px;font-size:11px;color:var(--muted)">'+mT('Keine Straßen gefunden.','No streets found.','Geen straten gevonden.')+'</div>';return;}
+  const segs=S.reduce((a,s)=>a+s.n,0);
+  const hot=S.filter(s=>s.prio>=50).length, lowShade=S.filter(s=>s.trees<10).length;
+  const {pick,sum}=stBudgetCalc();
+  if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}}
+  const lyr=L.geoJSON(MISSION.stGj,{
+    style:f=>f.__st>=0
+      ?{color:msColor(S[f.__st].prio),weight:2,opacity:.9,fillColor:msColor(S[f.__st].prio),fillOpacity:.5}
+      :{color:'#94a3b8',weight:1,opacity:.4,fillColor:'#94a3b8',fillOpacity:.15},
+    onEachFeature:(f,l)=>{
+      if(f.__st<0)return;
+      const s=S[f.__st];
+      l.bindTooltip('<b>'+s.name+'</b> · '+mT('Priorität','Priority','Prioriteit')+' '+s.prio+'/100');
+      l.on('click',()=>streetCase(f.__st));
+    }});
+  lyr.addTo(map);MISSION.layer=lyr;
+  b.innerHTML=`
+   ${msSwitch()}
+   <div class="ibox" style="border-left-color:var(--accent)">${mT('<b>Was ist das?</b> Diese Mission rangiert Straßen nach Klimastress — gemessene Hitze, fehlender Schatten, Versiegelung und soziale Verwundbarkeit — und zeigt, welcher Straßenumbau am meisten Kühlung pro Euro bringt. Klick auf eine Straße (Liste oder Karte) öffnet den Fall.','<b>What is this?</b> This mission ranks streets by climate stress — measured heat, missing shade, sealing and social vulnerability — and shows which street redesign delivers the most cooling per euro. Click a street (list or map) to open its case.','<b>Wat is dit?</b> Deze missie rangschikt straten op klimaatstress — gemeten hitte, ontbrekende schaduw, verharding en sociale kwetsbaarheid — en toont welke herinrichting de meeste koeling per euro oplevert. Klik op een straat (lijst of kaart) om de casus te openen.')}</div>
+   <div class="ms-kpis">
+     <div class="ms-kpi"><div class="v">${S.length}</div><div class="l">${mT('Straßen bewertet ('+segs+' Segmente)','streets ranked ('+segs+' segments)','straten beoordeeld ('+segs+' segmenten)')}</div></div>
+     <div class="ms-kpi"><div class="v" style="color:#dc2626">${hot}</div><div class="l">${mT('hohe Klimastress-Priorität (≥ 50)','high climate-stress priority (≥ 50)','hoge klimaatstress-prioriteit (≥ 50)')}</div></div>
+     <div class="ms-kpi"><div class="v">${lowShade}</div><div class="l">${mT('mit Schatten-Defizit (< 10 Bäume/150 m)','with shade deficit (< 10 trees/150 m)','met schaduwtekort (< 10 bomen/150 m)')}</div></div>
+     <div class="ms-kpi"><div class="v">30 %</div><div class="l">${mT('Ziel Straßenverschattung 2040','street-shade target 2040','doel straatschaduw 2040')}</div></div>
+   </div>
+   <div class="ap-sec">${mT('Budget-Simulator','Budget simulator','Budgetsimulator')}</div>
+   <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;margin-bottom:6px">
+     <input type="range" min="2" max="30" step="1" value="${MISSION.budgetT}" style="flex:1" oninput="MISSION.budgetT=+this.value;renderStreets()">
+     <b style="white-space:nowrap">${MISSION.budgetT} Mio €</b>
+   </div>
+   <div class="ibox">${mT('Finanziert den Umbau von','Funds the redesign of','Financiert de herinrichting van')} <b>${pick.length} ${mT('Straßen','streets','straten')}</b> (${fmt(sum)}, ${pick.reduce((a,s)=>a+s.n,0)} ${mT('Segmente','segments','segmenten')}) — ${mT('erwartete lokale Kühlung','expected local cooling','verwachte lokale koeling')} −0,8–1,8 °C ${mT('je Straßenzug','per street corridor','per straat')}.</div>
+   <div class="ap-sec">${mT('Prioritätenliste','Priority list','Prioriteitenlijst')} <span class="ms-badge">${mT('Klick öffnet Fall','click opens case','klik opent casus')}</span></div>
+   ${S.slice(0,12).map((s,i)=>`<div class="ms-item" onclick="streetCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.trees} ${mT('Bäume/150 m','trees/150 m','bomen/150 m')} · ${s.n} ${mT('Seg.','seg.','seg.')}</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
+   <div style="margin-top:10px"><button onclick="streetsPDF()" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">${ic('download',13)} ${mT('Missions-Bericht (PDF)','Mission report (PDF)','Missierapport (PDF)')}</button></div>
+   <div style="font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">${mT('Priorität je Segment = 35 % Hitze (Copernicus LST, gemessen) + 25 % Schatten-Defizit (Baum-Proxy) + 20 % Versiegelung + 20 % soziale Verwundbarkeit (amtlich/Wijk); je Straße gemittelt und relativ im Stadtvergleich skaliert. Schnellstraßen (≥ 70 km/h) grau: keine Umbau-Kandidaten. Untergrund-Leitungen & geplante Straßenarbeiten erfordern kommunale Daten (Phase 2).','Priority per segment = 35 % heat (Copernicus LST, measured) + 25 % shade deficit (tree proxy) + 20 % sealing + 20 % social vulnerability (official, district); averaged per street and scaled relative within the city. High-speed roads (≥ 70 km/h) grey: not redesign candidates. Subsurface utilities & planned roadworks require municipal data (phase 2).','Prioriteit per segment = 35 % hitte (gemeten) + 25 % schaduwtekort (boomproxy) + 20 % verharding + 20 % sociale kwetsbaarheid; per straat gemiddeld en relatief geschaald. Snelwegen (≥ 70 km/u) grijs: geen kandidaten. Ondergrondse leidingen & geplande werken vergen gemeentedata (fase 2).')}</div>`;
+}
+function streetCase(i){
+  const s=MISSION.streets[i];if(!s)return;
+  try{map.flyTo([s.lat,s.lon],16,{duration:.8});}catch(e){}
+  const rec=stRec(s),cost=stCost(s);
+  const viol=[];
+  if(s.trees<10)viol.push(mT('Schatten-Defizit: Ø '+s.trees+' Bäume/150 m (Proxy) — Ziel 30 % Verschattung','Shade deficit: avg '+s.trees+' trees/150 m (proxy) — 30 % shade target','Schaduwtekort: gem. '+s.trees+' bomen/150 m — doel 30 % schaduw'));
+  if(s.gd>200)viol.push(mT('Kein Kühlgrün innerhalb 200 m (Utrecht-Ziel 2040)','No cool green within 200 m (Utrecht 2040 target)','Geen koelgroen binnen 200 m (doel 2040)'));
+  if(s.lst!=null&&s.lst>=1.8)viol.push(mT('Hitzeinsel: bis +'+s.lst+' °C Oberflächentemperatur','Heat island: up to +'+s.lst+' °C LST','Hitte-eiland: tot +'+s.lst+' °C'));
+  const b=document.getElementById('msBody');if(!b)return;
+  b.innerHTML=`
+   <button class="ms-back" onclick="renderMission()">← ${mT('Zurück zur Liste','Back to list','Terug naar lijst')}</button>
+   <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin:6px 0 2px">${s.name}</div>
+   <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Urban Challenge Case · ${mT('Klimafeste Straße','Climate-resilient street','Klimaatbestendige straat')} · ${s.n} ${mT('Segmente','segments','segmenten')} · ${mT('Priorität','Priority','Prioriteit')} <b style="color:${msColor(s.prio)}">${s.prio}/100</b></div>
+   <div class="ms-comp">
+     <span><b>${s.c.heat}</b><br>${mT('Hitze','Heat','Hitte')}</span><span><b>${s.c.shade}</b><br>${mT('Schatten-Defizit','Shade gap','Schaduwtekort')}</span><span><b>${s.c.seal}</b><br>${mT('Versieg.','Sealing','Verhard.')}</span><span><b>${s.c.soc}</b><br>${mT('Sozial','Social','Sociaal')}</span>
+   </div>
+   <div class="ibox"><b>${mT('Problem','Problem','Probleem')}:</b> ${s.lst!=null?mT('bis','up to','tot')+' +'+s.lst+' °C '+mT('Oberflächentemperatur','surface temperature','oppervlaktetemperatuur')+' · ':''}${s.versieg!=null?s.versieg+' % '+mT('Versiegelung im Umfeld','sealing in surroundings','verharding in omgeving')+' · ':''}Ø ${s.trees} ${mT('Bäume/150 m','trees/150 m','bomen/150 m')} · ${mT('nächstes Grün','nearest green','dichtstbijzijnd groen')} ${s.gd} m${s.soc!=null?' · '+mT('Kinderarmut im Wijk','district child poverty','kinderarmoede wijk')+' '+s.soc+' %':''}${s.surface==='asphalt'?' · '+mT('Asphalt (dunkel, hitzespeichernd)','asphalt (dark, heat-retaining)','asfalt (donker, warmtevasthoudend)'):''}.</div>
+   ${viol.length?`<div class="ap-sec">${mT('Zielabweichung (Utrecht 2040)','Target gaps (Utrecht 2040)','Doelafwijking (2040)')}</div><div class="ibox" style="border-left-color:#dc2626">${viol.map(v=>'· '+v).join('<br>')}</div>`:''}
+   <div class="ap-sec">${mT('Maßnahmenpakete','Action packages','Maatregelpakketten')} <span class="ms-badge">×${s.factor} ${mT('Länge','length','lengte')}</span></div>
+   ${MPKG_ST.map(p=>{const on=rec.indexOf(p.id)>=0;
+     return `<div class="ms-opt" style="${on?'border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)':''}"><b>${p.id} · ${mT(p.de,p.en,p.nl)}</b>${on?' <span class="ms-badge" style="border-color:var(--accent);color:var(--accent)">'+mT('empfohlen','recommended','aanbevolen')+'</span>':''}<br><span style="color:var(--muted)">${fmt(p.lo*s.factor)}–${fmt(p.hi*s.factor)} · ${p.eff} · ${p.dur}</span></div>`;}).join('')}
+   <div class="ibox"><b>${mT('Empfohlene Kombination','Recommended combination','Aanbevolen combinatie')} (${rec.join(' + ')}) · ${fmt(cost.lo)}–${fmt(cost.hi)}:</b> ${mT('Begründung','Reasoning','Onderbouwing')}: ${s.c.heat>=60?mT('hohe Hitzelast','high heat load','hoge hittelast'):mT('moderate Hitzelast','moderate heat load','matige hittelast')}${s.trees<10?', '+mT('Schatten-Defizit','shade deficit','schaduwtekort'):''}${s.c.soc>=50?', '+mT('vulnerable Nachbarschaft','vulnerable neighbourhood','kwetsbare buurt'):''} — ${mT('bestes Verhältnis aus Wirkung, Umsetzbarkeit und Zielbeitrag.','best balance of impact, feasibility and target contribution.','beste balans tussen effect, haalbaarheid en doelbijdrage.')}</div>
+   <div class="ap-sec">${mT('Vorher / Nachher','Before / after','Voor / na')}</div>
+   <div class="ibox" style="font-family:ui-monospace,monospace;font-size:10px;line-height:1.9">
+     LST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${s.lst!=null?'+'+s.lst+' °C':'–'} → <b style="color:#16a34a">${s.lst!=null?'+'+Math.max(0,+(s.lst-1.2).toFixed(1))+' °C':'–'}</b><br>
+     ${mT('Schatten','Shade','Schaduw')}&nbsp;&nbsp;~${Math.min(25,s.trees*2)} % → <b style="color:#16a34a">~${Math.min(45,s.trees*2+25)} %</b><br>
+     ${mT('Belag','Surface','Verharding')}&nbsp;&nbsp;&nbsp;${s.surface==='asphalt'?mT('dunkel','dark','donker'):mT('gemischt','mixed','gemengd')} → <b style="color:#16a34a">${mT('hell/durchlässig','light/permeable','licht/doorlatend')}</b>
+   </div>
+   <div style="font-size:9px;color:var(--muted);line-height:1.5">${mT('Konfidenz: LST gemessen (Copernicus) · Versiegelung/Sozial amtlich (Wijk-Aggregat) · Schatten = Baum-Proxy · Wirkung = Bandbreite aus Vergleichsprojekten. Untergrund-Leitungen, Parkdruck & geplante Straßenarbeiten erfordern kommunale Daten (Phase 2) — Umsetzung gehört in die Tiefbau-Koordination.','Confidence: LST measured (Copernicus) · sealing/social official (district) · shade = tree proxy · impact = range from reference projects. Subsurface utilities, parking pressure & planned roadworks require municipal data (phase 2) — delivery belongs in civil-works coordination.','Betrouwbaarheid: LST gemeten · verharding/sociaal officieel (wijk) · schaduw = boomproxy · effect = bandbreedte. Ondergrondse leidingen, parkeerdruk & geplande werken vergen gemeentedata (fase 2).')}</div>`;
+}
+function streetsPDF(){
+  const doc=pdfDoc();if(!doc){alert('PDF-Bibliothek lädt noch.');return;}
+  const L=pdfL3, S=MISSION.streets; const {pick,sum}=stBudgetCalc();
+  const hot=S.filter(x=>x.prio>=50).length, lowShade=S.filter(x=>x.trees<10).length, segs=S.reduce((a,s)=>a+s.n,0);
+  const repId=pdfRepId('MISSION-STREETS');
+  let y=pdfMast(doc,L('Missions-Bericht','Mission report','Missierapport'),
+    L('Klimafeste Straßen','Climate-resilient streets','Klimaatbestendige straten'),
+    CITY_CFG[city].name+'  ·  '+S.length+' '+L('Straßen','streets','straten')+' / '+segs+' '+L('Segmente analysiert','segments analysed','segmenten geanalyseerd')+'  ·  '+L('Stand','As of','Per')+' '+pdfDate());
+  y=pdfSecN(doc,y,'1',L('Fragestellung & Vorgehen','Question & approach','Vraagstelling & aanpak'));
+  y=pdfPara(doc,y,L('Welche Straßen sollten zuerst klimafest umgebaut werden — und was kostet das? Inspector Nice bewertet jedes Straßensegment mit gemessener Oberflächentemperatur, Schatten-Defizit (Baum-Proxy), Versiegelung und sozialer Verwundbarkeit des Umfelds, aggregiert je Straßenname und ordnet jedem Fall standardisierte Maßnahmenpakete mit Kostenkorridoren zu, skaliert mit der Straßenlänge.','Which streets should be redesigned for climate resilience first — and what does it cost? Inspector Nice scores every street segment with measured surface temperature, shade deficit (tree proxy), sealing and social vulnerability, aggregates per street name, and assigns standardised action packages with cost corridors scaled by street length.','Welke straten moeten het eerst klimaatbestendig worden — en wat kost dat? Inspector Nice beoordeelt elk straatsegment op gemeten oppervlaktetemperatuur, schaduwtekort (boomproxy), verharding en sociale kwetsbaarheid, aggregeert per straatnaam en wijst gestandaardiseerde maatregelpakketten toe, geschaald naar straatlengte.'));
+  y=pdfSecN(doc,y,'2',L('Kennzahlen','Key figures','Kerncijfers'));
+  const ck=[{t:L('Kennzahl','Figure','Cijfer'),x:PDFX.L},{t:L('Wert','Value','Waarde'),x:PDFX.R,a:'right'}];
+  y=pdfTHead(doc,y,ck);
+  [[L('Bewertete Straßen (Segmente)','Streets ranked (segments)','Beoordeelde straten (segmenten)'),S.length+'  ('+segs+')'],
+   [L('Hohe Klimastress-Priorität (50+, relativ)','High climate-stress priority (50+, relative)','Hoge prioriteit (50+, relatief)'),hot],
+   [L('Mit Schatten-Defizit (< 10 Bäume/150 m)','With shade deficit (< 10 trees/150 m)','Met schaduwtekort (< 10 bomen/150 m)'),lowShade],
+   [L('Budget-Szenario','Budget scenario','Budgetscenario'),MISSION.budgetT+' Mio €'],
+   [L('Damit finanzierbare Straßen','Streets fundable within budget','Financierbare straten'),pick.length+'  ('+fmt(sum)+')'],
+   [L('Erwartete lokale Kühlung je Straßenzug','Expected local cooling per corridor','Verwachte koeling per straat'),'−0,8–1,8 °C']].forEach(r=>{y=pdfTRow(doc,y,ck,r,[1]);});
+  y+=3;
+  y=pdfSecN(doc,y,'3',L('Prioritätenliste — Top 10','Priority list — Top 10','Prioriteitenlijst — Top 10'));
+  const ct=[{t:'#',x:PDFX.L},{t:L('Straße','Street','Straat'),x:PDFX.L+8},{t:L('Priorität','Priority','Prioriteit'),x:PDFX.L+88,a:'right'},{t:'LST',x:PDFX.L+112,a:'right'},{t:L('Bäume','Trees','Bomen'),x:PDFX.L+138,a:'right'},{t:L('Versieg.','Sealing','Verhard.'),x:PDFX.L+162,a:'right'},{t:L('Seg.','Seg.','Seg.'),x:PDFX.R,a:'right'}];
+  y=pdfTHead(doc,y,ct);
+  S.slice(0,10).forEach((s,i)=>{ y=pdfTRow(doc,y,ct,[i+1,(s.name.length>34?s.name.slice(0,32)+'…':s.name),s.prio,s.lst!=null?'+'+s.lst+' °C':'—',s.trees,s.versieg!=null?s.versieg+' %':'—',s.n],[2]); });
+  doc.setFontSize(7.2); pC(doc,PDFX.mut);
+  doc.text(L('Priorität relativ im Stadtvergleich skaliert (Top = 100) · LST = Maximum je Straße · Bäume = Ø je 150 m (Proxy)','Priority scaled relative within the city (top = 100) · LST = maximum per street · trees = avg per 150 m (proxy)','Prioriteit relatief geschaald (top = 100) · LST = maximum per straat · bomen = gem. per 150 m'),PDFX.L,y+1); y+=8;
+  doc.setFontSize(9.5); pC(doc,PDFX.body);
+  y=pdfMethodBlock(doc,y,'4',
+    L('Priorität je Segment = 35 % Hitze (Copernicus LST, gemessen) + 25 % Schatten-Defizit (Baum-Proxy) + 20 % Versiegelung + 20 % soziale Verwundbarkeit (amtlich, Wijk-Aggregat); je Straße gemittelt, relativ im Stadtvergleich skaliert. Schnellstraßen (ab 70 km/h, motorway/trunk) sind ausgeschlossen. Kosten sind Korridore aus Vergleichsprojekten, skaliert mit der Segmentzahl je Straße (Längen-Proxy). Untergrund-Leitungen, Parkdruck und geplante Straßenarbeiten erfordern kommunale Daten (Phase 2).','Priority per segment = 35 % heat (Copernicus LST, measured) + 25 % shade deficit (tree proxy) + 20 % sealing + 20 % social vulnerability (official, district aggregate); averaged per street, scaled relative within the city. High-speed roads (70 km/h and above, motorway/trunk) are excluded. Costs are corridors from reference projects, scaled by segment count per street (length proxy). Subsurface utilities, parking pressure and planned roadworks require municipal data (phase 2).','Prioriteit per segment = 35 % hitte (gemeten) + 25 % schaduwtekort (boomproxy) + 20 % verharding + 20 % sociale kwetsbaarheid; per straat gemiddeld, relatief geschaald. Snelwegen (vanaf 70 km/u) uitgesloten. Kosten zijn bandbreedtes, geschaald naar segmentaantal (lengteproxy). Leidingen, parkeerdruk en geplande werken vergen gemeentedata (fase 2).'),
+    'Copernicus LST (Sentinel-3, 2023–2025) · '+(city==='utr'?'CBS Wijkdata 2023':'Zensus 2022')+' · OpenStreetMap ('+L('Straßen, Grün, Bäume','roads, green, trees','wegen, groen, bomen')+') · Copernicus HRL Imperviousness',
+    L('Utrecht Ruimtelijke Strategie 2040: 30 % Straßenverschattung · Kühlgrün < 200 m','Utrecht Spatial Strategy 2040: 30 % street shade · cool green < 200 m','Utrecht RSU 2040: 30 % straatschaduw · koelgroen < 200 m'));
+  y=pdfDisclaimer(doc,y);
+  pdfFinish(doc,'nice here — Inspector Nice ('+new Date().getFullYear()+'): '+L('Mission Klimafeste Straßen','Climate-resilient streets mission','Missie klimaatbestendige straten')+', '+CITY_CFG[city].name+'.',repId);
+  doc.save('inspector-nice_'+city+'_mission-climate-streets_'+new Date().toISOString().slice(0,10)+'.pdf');
 }
 
 // ══════════════════════════════════════════════════════════════
