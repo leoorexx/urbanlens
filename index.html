@@ -562,6 +562,19 @@ body.free-mode #heatWarn{top:106px}
 .case-metrics{width:100%;border-collapse:collapse;font-size:10.5px;margin:6px 0 2px}
 .case-metrics td{padding:4px 2px;border-bottom:1px solid var(--border)}
 .case-metrics td:last-child{text-align:right;font-weight:700;font-feature-settings:'tnum'}
+/* Morning Briefing — Startbildschirm als Entscheidungsvorlage */
+#briefCard{position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:620;width:min(460px,calc(100vw - 24px));background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 14px 44px rgba(0,0,0,.16);padding:16px 18px 13px;animation:briefIn .35s ease}
+@keyframes briefIn{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+.bf-x{position:absolute;top:10px;right:14px;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;font-weight:700;background:none;border:none;font-family:inherit}
+.bf-date{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.bf-greet{font-family:var(--font-serif);font-size:17.5px;font-weight:600;line-height:1.3;color:var(--text);margin-bottom:9px}
+.bf-line{display:flex;align-items:flex-start;gap:8px;font-size:11.5px;color:var(--text2);line-height:1.5;margin-bottom:4px}
+.bf-dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:4px}
+.bf-rec{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:8px 11px;font-size:11px;line-height:1.5;color:var(--text);margin:9px 0 0}
+.bf-btns{display:flex;gap:8px;margin-top:11px}
+.bf-go{flex:1;background:#1a1a2e;color:#fff;border:none;border-radius:9px;padding:9px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.bf-alt{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 14px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.bf-foot{font-size:8.5px;color:var(--muted);margin-top:8px;line-height:1.4}
 .lens-bar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:2px 0 4px}
 .lens-btn2{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;color:var(--text2);transition:all .12s}
 .lens-btn2:hover{border-color:var(--text2);color:var(--text)}
@@ -2130,6 +2143,7 @@ function switchCity(c){
   try{ if(typeof HEAT!=='undefined'&&HEAT.active)toggleHeatSim(); }catch(e){}
   try{ if(typeof MIT!=='undefined'&&MIT.active)toggleMitwirkung(); }catch(e){}
   try{ if(typeof MISSION!=='undefined'&&MISSION.active){closeMission();} if(typeof MISSION!=='undefined'){MISSION.loaded=null;MISSION.schools=[];MISSION.loadedT=null;MISSION.streets=[];MISSION.stGj=null;} }catch(e){}
+  try{ if(typeof closeBriefing==='function')closeBriefing(true); }catch(e){}
   if(typeof updateMapLegend==='function')updateMapLegend();
   // Bundle der neuen Stadt vorwärmen (Diagnose/Werkzeuge sofort)
   if(typeof loadCityBundle==='function')setTimeout(()=>loadCityBundle(c),300);
@@ -3662,6 +3676,7 @@ function renderMission(){
   const S=MISSION.schools;
   if(!S.length){b.innerHTML='<div style="padding:12px;font-size:11px;color:var(--muted)">'+mT('Keine Schulen gefunden.','No schools found.','Geen scholen gevonden.')+'</div>';return;}
   const hot=S.filter(s=>s.prio>=50).length, noGreen=S.filter(s=>s.gd>200).length;
+  try{const _b=JSON.parse(localStorage.getItem('nh_briefms_'+city)||'{}');_b.sch=hot;_b.ts=Date.now();localStorage.setItem('nh_briefms_'+city,JSON.stringify(_b));}catch(e){}
   const {pick,sum}=missionBudgetCalc();
   if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}}
   const grp=L.layerGroup();
@@ -3852,6 +3867,7 @@ function renderStreets(){
   if(!S.length){b.innerHTML=msSwitch()+'<div style="padding:12px;font-size:11px;color:var(--muted)">'+mT('Keine Straßen gefunden.','No streets found.','Geen straten gevonden.')+'</div>';return;}
   const segs=S.reduce((a,s)=>a+s.n,0);
   const hot=S.filter(s=>s.prio>=50).length, lowShade=S.filter(s=>s.trees<10).length;
+  try{const _b=JSON.parse(localStorage.getItem('nh_briefms_'+city)||'{}');_b.str=hot;_b.ts=Date.now();localStorage.setItem('nh_briefms_'+city,JSON.stringify(_b));}catch(e){}
   const {pick,sum}=stBudgetCalc();
   if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}}
   const lyr=L.geoJSON(MISSION.stGj,{
@@ -6575,6 +6591,59 @@ function showIntro(force){ if(!force){try{if(localStorage.getItem('nh_intro_v1')
 function closeIntro(){ document.getElementById('introOverlay').classList.remove('on'); try{localStorage.setItem('nh_intro_v1','1');}catch(e){} }
 function openIntro(){ showIntro(true); }
 if(!document.body.classList.contains('embed'))setTimeout(()=>{try{showIntro(false);}catch(e){}},600);   // Intro nicht im iframe/Embed automatisch zeigen
+
+// ── Morning Briefing — Startbildschirm als Entscheidungsvorlage ──
+// Für wiederkehrende Nutzer (Erstbesucher sehen das Intro). Zahlen ehrlich aus
+// den Stadtteil-Daten; Missions-Zahlen nur wenn zuvor berechnet (Cache, ≤7 Tage).
+function briefData(){
+  try{
+    const data=CITY_CFG[city]&&CITY_CFG[city].data; if(!data)return null;
+    const ents=Object.entries(data); if(ents.length<3)return null;
+    const scores=ents.map(([n,d])=>({n,d,s:nice(d)})).sort((a,b)=>a.s-b.s);
+    const heat=scores.filter(x=>(x.d.lst_delta||0)>=2.0);
+    const soc=scores.filter(x=>(x.d.kinderarmut||0)>=35||(x.d.sgb2||0)>=25);
+    const bottom=scores.slice(0,Math.max(1,Math.round(scores.length*0.2)));
+    const prio=new Set([...bottom.map(x=>x.n),...heat.map(x=>x.n),...soc.map(x=>x.n)]);
+    let ms=null; try{ms=JSON.parse(localStorage.getItem('nh_briefms_'+city)||'null');}catch(e){}
+    if(ms&&(!ms.ts||Date.now()-ms.ts>7*864e5))ms=null;
+    return {worst:scores[0],heatN:heat.length,socN:soc.length,prioN:prio.size,total:scores.length,ms};
+  }catch(e){ return null; }
+}
+function showBriefing(force){
+  if(document.body.classList.contains('embed'))return;
+  const ov=document.getElementById('introOverlay');
+  if(ov&&ov.classList.contains('on'))return; // Intro hat Vorrang
+  if(!force){
+    try{ if(!localStorage.getItem('nh_intro_v1'))return; }catch(e){}
+    try{ if(sessionStorage.getItem('nh_brief_s'))return; }catch(e){}
+  }
+  const b=briefData(); if(!b)return;
+  closeBriefing(true);
+  const h=new Date().getHours();
+  const greet=h<11?mT('Guten Morgen','Good morning','Goedemorgen'):h<18?mT('Guten Tag','Good afternoon','Goedemiddag'):mT('Guten Abend','Good evening','Goedenavond');
+  const dateStr=new Date().toLocaleDateString(lang==='en'?'en-GB':lang==='nl'?'nl-NL':'de-DE',{weekday:'long',day:'numeric',month:'long'});
+  const el=document.createElement('div'); el.id='briefCard';
+  el.innerHTML=
+    '<button class="bf-x" onclick="closeBriefing()">✕</button>'
+   +'<div class="bf-date">'+CITY_CFG[city].name+' · '+dateStr+'</div>'
+   +'<div class="bf-greet">'+greet+'. <b>'+b.prioN+' '+mT('von','of','van')+' '+b.total+'</b> '+mT('Stadtteilen brauchen zuerst Aufmerksamkeit.','districts need attention first.','wijken hebben eerst aandacht nodig.')+'</div>'
+   +(b.heatN?'<div class="bf-line"><span class="bf-dot" style="background:#f97316"></span><span><b>'+b.heatN+'</b> '+mT('Stadtteile mit starker Hitzebelastung (LST-Delta ≥ 2 °C)','districts under strong heat load (LST delta ≥ 2 °C)','wijken met sterke hittebelasting (LST-delta ≥ 2 °C)')+'</span></div>':'')
+   +(b.socN?'<div class="bf-line"><span class="bf-dot" style="background:#7c3aed"></span><span><b>'+b.socN+'</b> '+mT('Stadtteile mit sozialer Risikolage','districts with social risk','wijken met sociale risico’s')+'</span></div>':'')
+   +(b.ms&&(b.ms.sch||b.ms.str)?'<div class="bf-line"><span class="bf-dot" style="background:#0ea5e9"></span><span>'+(b.ms.sch?('<b>'+b.ms.sch+'</b> '+mT('Schul-Hitze-Hotspots','school heat hotspots','school-hittehotspots')):'')+(b.ms.sch&&b.ms.str?' · ':'')+(b.ms.str?('<b>'+b.ms.str+'</b> '+mT('Straßenzüge hoher Priorität','high-priority street corridors','straten met hoge prioriteit')):'')+' <span style="color:var(--muted)">('+mT('aus Missionen','from missions','uit missies')+')</span></span></div>':'')
+   +'<div class="bf-rec"><b>'+mT('Empfohlene nächste Aktion','Recommended next action','Aanbevolen volgende actie')+':</b> '+mT('Fall','Case','Casus')+' <b>'+b.worst.n+'</b> (NICE '+b.worst.s+') '+mT('öffnen.','review.','openen.')+'</div>'
+   +'<div class="bf-btns"><button class="bf-go" onclick="briefGo()">'+mT('Fall öffnen','Open case','Casus openen')+'</button><button class="bf-alt" onclick="closeBriefing();toggleMission()">'+mT('Missionen','Missions','Missies')+'</button></div>'
+   +'<div class="bf-foot">'+mT('Aus Stadtteil-Daten berechnet · Quintile im Stadtvergleich · Details & Konfidenz je Fall','Computed from district data · quintiles within the city · details & confidence per case','Berekend uit wijkdata · kwintielen binnen de stad · details & betrouwbaarheid per casus')+'</div>';
+  document.body.appendChild(el);
+}
+function closeBriefing(silent){
+  const el=document.getElementById('briefCard'); if(el)el.remove();
+  if(!silent){try{sessionStorage.setItem('nh_brief_s','1');}catch(e){}}
+}
+function briefGo(){
+  const b=briefData(); closeBriefing();
+  if(b&&typeof openDrawer==='function'){try{openDrawer(b.worst.n,b.worst.d);}catch(e){}}
+}
+if(!document.body.classList.contains('embed'))setTimeout(()=>{try{showBriefing(false);}catch(e){}},1400);
 </script>
 
 </body>
