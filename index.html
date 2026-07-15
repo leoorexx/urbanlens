@@ -129,6 +129,20 @@ body.embed .embed-logo{display:block}
 .tool-btn{position:fixed;left:268px;z-index:600;background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:50px;height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;box-shadow:var(--shl);color:var(--text);font-size:8px;font-weight:700;transition:all .15s}
 .tool-btn:hover{background:var(--surface2)}
 .tool-btn.on{background:#1a1a2e;color:#FFD600}
+/* Progressive Offenlegung: Mission primär, Sekundär-Werkzeuge hinter „Werkzeuge" */
+.tool-primary{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.tool-primary:hover{background:#2a2a44}
+.tool-primary.on{color:#FFD600}
+.tool-sec{display:none}
+body.tools-open .tool-sec{display:flex}
+/* Linke Liste einklappbar */
+.lcollapse{position:absolute;top:12px;right:10px;background:none;border:none;color:var(--muted);cursor:pointer;padding:2px;font-family:inherit;line-height:1}
+.lcollapse:hover{color:var(--text)}
+#leftTab{display:none;position:fixed;top:70px;left:0;z-index:500;background:var(--surface);border:1px solid var(--border2);border-left:none;border-radius:0 10px 10px 0;padding:10px 8px;cursor:pointer;box-shadow:var(--shl);font-size:9px;font-weight:800;color:var(--text2);writing-mode:vertical-rl;letter-spacing:.06em;font-family:inherit}
+body.leftoff .left{display:none}
+body.leftoff #leftTab{display:block}
+body.leftoff .tool-btn{left:12px}
+body.leftoff .layer-btn{left:12px}
 #tool-analyse.on{background:var(--eco);color:#08403d}
 #tool-heatsim.on{background:var(--climate);color:#fff}
 #tool-mit.on{background:var(--social);color:#fff}
@@ -644,25 +658,30 @@ body.free-mode #heatWarn{top:106px}
 <div id="m3info"></div>
 <div id="m3loader"><div class="lring"></div><div id="m3loaderTxt">3D-Stadtmodell wird geladen…</div></div>
 <div id="mapLegend" class="map-legend" style="display:none"></div>
-<button class="tool-btn" id="tool-analyse" style="top:116px" onclick="toggleAnalyse()" title="Analyse: Straßenzug anklicken (Maßnahmen) oder freie Fläche (Punkt-Umfeld)">
+<!-- Werkzeug-Dock: Mission = primärer Arbeitsprozess, Rest hinter „Werkzeuge" (progressive Offenlegung) -->
+<button class="tool-btn tool-primary" id="tool-mission" style="top:116px" onclick="toggleMission()" title="Mission: Aufgabe wählen — priorisieren, Fall verstehen, entscheiden">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="M3 8v5M7 10.5V15c0 1 2.2 2.5 5 2.5s5-1.5 5-2.5v-4.5"/></svg>
+  <span data-i18n="tool_mission">Mission</span>
+</button>
+<button class="tool-btn" id="tool-more" style="top:170px" onclick="toggleTools()" title="Weitere Werkzeuge: Analyse, Kühlung, Mitwirken, Gebiet">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+  <span data-i18n="tool_more">Werkzeuge</span>
+</button>
+<button class="tool-btn tool-sec" id="tool-analyse" style="top:224px" onclick="toggleAnalyse()" title="Analyse: Straßenzug anklicken (Maßnahmen) oder freie Fläche (Punkt-Umfeld)">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/><path d="M11 8v6M8 11h6"/></svg>
   <span data-i18n="tool_analyse">Analyse</span>
 </button>
-<button class="tool-btn" id="tool-heatsim" style="top:170px" onclick="toggleHeatSim()" title="Hitze-Kühlsimulation">
+<button class="tool-btn tool-sec" id="tool-heatsim" style="top:278px" onclick="toggleHeatSim()" title="Hitze-Kühlsimulation">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><circle cx="12" cy="17" r="3"/><path d="M12 9a3 3 0 0 0 3-3 3 3 0 0 0-1-2"/></svg>
   <span data-i18n="tool_heat">Kühlung</span>
 </button>
-<button class="tool-btn" id="tool-mit" style="top:224px" onclick="toggleMitwirkung()" title="Mitwirkung: melden & priorisieren">
+<button class="tool-btn tool-sec" id="tool-mit" style="top:332px" onclick="toggleMitwirkung()" title="Mitwirkung: melden & priorisieren">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg>
   <span data-i18n="tool_mit">Mitwirken</span>
 </button>
-<button class="tool-btn" id="tool-area" style="top:278px" onclick="startAreaDraw()" title="Gebiet analysieren">
+<button class="tool-btn tool-sec" id="tool-area" style="top:386px" onclick="startAreaDraw()" title="Gebiet analysieren">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 14h6v6h-6zM10 7h7v7"/></svg>
   <span data-i18n="tool_area">Gebiet</span>
-</button>
-<button class="tool-btn" id="tool-mission" style="top:332px" onclick="toggleMission()" title="Mission: Hitzesichere Schulen — priorisieren & Budget simulieren">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="M3 8v5M7 10.5V15c0 1 2.2 2.5 5 2.5s5-1.5 5-2.5v-4.5"/></svg>
-  <span data-i18n="tool_mission">Mission</span>
 </button>
 <div class="area-panel" id="areaPanel"></div>
 <div class="area-panel" id="missionPanel"></div>
@@ -672,8 +691,10 @@ body.free-mode #heatWarn{top:106px}
 <div class="area-panel" id="biodivPanel"></div>
 
 
+<button id="leftTab" onclick="openLeft()" data-i18n="left_tab" title="Stadtteil-Liste einblenden">Stadtteile</button>
 <div class="left">
   <div class="lhead">
+    <button class="lcollapse" onclick="toggleLeft()" title="Liste einklappen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
     <div class="ltitle" id="listTitle">Stadtteile</div>
     <div class="lsub" data-i18n="list_sub">Relative Einstufung im Stadtvergleich · Quintile</div>
     <div class="swrap">
@@ -1113,7 +1134,7 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Kühlung',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',tool_mission:'Mission',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_method:'Methodik',flt_all:'Gesamt',flt_climate:'Klima',flt_social:'Sozial',flt_heat:'Hitze',close:'Schließen',lg_scale:'Skala',lg_low:'Unteres Fünftel',lg_high:'Oberes Fünftel',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Hochwasser',lens_noise:'Lärm',lens_life:'Grün & Aufenthalt',lens_adv:'Erweitert — einzelne Ebenen',
+ de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Kühlung',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',tool_mission:'Mission',tool_more:'Werkzeuge',left_tab:'Stadtteile',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_method:'Methodik',flt_all:'Gesamt',flt_climate:'Klima',flt_social:'Sozial',flt_heat:'Hitze',close:'Schließen',lg_scale:'Skala',lg_low:'Unteres Fünftel',lg_high:'Oberes Fünftel',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Hochwasser',lens_noise:'Lärm',lens_life:'Grün & Aufenthalt',lens_adv:'Erweitert — einzelne Ebenen',
      search_ph:'Stadtteil suchen…',search_city_ph:'Adresse oder Stadt suchen…',bm_map:'Karte',bm_sat:'Satellit',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Stadt wird gescannt — Hitze, Grün & soziale Lage…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität (OSM Overpass)',lay_paw:'Pflanzenverfügbares Wasser — Dürre',lay_duh:'DUH Hitze-Ampel (Stadtteile)',lay_tco2:'Verkehrs-CO₂ (Emissionen)',lay_sound:'Raumklang (Schallausbreitung)',lay_flood:'Hochwasser HQ100 — Gebäude',lay_heat:'Hitzeinsel — Gebäude-Level',lay_noise:'Lärmbelastung Straße',lay_flight:'Fluglärm-Zonen FRA',lay_bike:'Radwege (Qualitätsstufen)',lay_repair:'Reparieren & Wiederverwenden',lay_waste:'Entsorgen & Recyceln',lay_biodiv:'Heimische Arten (GBIF)',lay_parks:'Parks & Grünflächen',lay_schools:'Schulen & Kitas',lay_health:'Ärzte & Gesundheit',lay_community:'Community Places',lay_trees:'Straßenbäume & Alleen',lay_parking:'Parkplätze (MIV-Dominanz)',lay_osm_trees:'Bäume (live)',lay_osm_drink:'Trinkbrunnen (live)',lay_osm_bench:'Bänke (live)',lay_osm_school:'Schulen & Kitas (live)',lay_osm_health:'Gesundheit (live)',lay_osm_transit:'ÖPNV-Haltestellen (live)',lay_osm_lamp:'Beleuchtung (Sicherheitsgefühl)',
      sec_infra:'Infrastruktur (OSM Overpass)',sec_official:'Amtliche Klimadaten (Hessen WFS)',sec_composite:'Composite-Analysen',
@@ -1124,7 +1145,7 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Cooling',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',tool_mission:'Mission',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_method:'Methodology',flt_all:'Overall',flt_climate:'Climate',flt_social:'Social',flt_heat:'Heat',close:'Close',lg_scale:'Scale',lg_low:'Bottom fifth',lg_high:'Top fifth',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Flood',lens_noise:'Noise',lens_life:'Green & place quality',lens_adv:'Advanced — individual layers',
+ en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Cooling',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',tool_mission:'Mission',tool_more:'Tools',left_tab:'Districts',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_method:'Methodology',flt_all:'Overall',flt_climate:'Climate',flt_social:'Social',flt_heat:'Heat',close:'Close',lg_scale:'Scale',lg_low:'Bottom fifth',lg_high:'Top fifth',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Flood',lens_noise:'Noise',lens_life:'Green & place quality',lens_adv:'Advanced — individual layers',
      search_ph:'Search district…',search_city_ph:'Search address or city…',bm_map:'Map',bm_sat:'Satellite',list_sub:'Relative ranking within the city · quintiles',
      loading:'Scanning the city — heat, green & social fabric…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility (OSM Overpass)',lay_paw:'Plant-available water — drought',lay_duh:'DUH heat report card (districts)',lay_tco2:'Traffic CO₂ (emissions)',lay_sound:'Soundscape (noise propagation)',lay_flood:'Flood risk HQ100 — buildings',lay_heat:'Heat island — building level',lay_noise:'Road noise',lay_flight:'Aircraft noise zones FRA',lay_bike:'Cycle paths (quality levels)',lay_repair:'Repair & reuse',lay_waste:'Waste & recycling',lay_biodiv:'Native species (GBIF)',lay_parks:'Parks & green spaces',lay_schools:'Schools & childcare',lay_health:'Healthcare',lay_community:'Community places',lay_trees:'Street trees & avenues',lay_parking:'Parking (car dominance)',lay_osm_trees:'Trees (live)',lay_osm_drink:'Drinking fountains (live)',lay_osm_bench:'Benches (live)',lay_osm_school:'Schools & childcare (live)',lay_osm_health:'Health (live)',lay_osm_transit:'Public transport stops (live)',lay_osm_lamp:'Lighting (perceived safety)',
      sec_infra:'Infrastructure (OSM Overpass)',sec_official:'Official climate data (Hessen WFS)',sec_composite:'Composite analyses',
@@ -1135,7 +1156,7 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Koeling',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',tool_mission:'Missie',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_method:'Methodiek',flt_all:'Totaal',flt_climate:'Klimaat',flt_social:'Sociaal',flt_heat:'Hitte',close:'Sluiten',lg_scale:'Schaal',lg_low:'Onderste vijfde',lg_high:'Bovenste vijfde',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Overstroming',lens_noise:'Geluid',lens_life:'Groen & verblijf',lens_adv:'Uitgebreid — losse lagen',
+ nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Koeling',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',tool_mission:'Missie',tool_more:'Tools',left_tab:'Wijken',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_method:'Methodiek',flt_all:'Totaal',flt_climate:'Klimaat',flt_social:'Sociaal',flt_heat:'Hitte',close:'Sluiten',lg_scale:'Schaal',lg_low:'Onderste vijfde',lg_high:'Bovenste vijfde',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Overstroming',lens_noise:'Geluid',lens_life:'Groen & verblijf',lens_adv:'Uitgebreid — losse lagen',
      search_ph:'Zoek wijk…',search_city_ph:'Zoek adres of stad…',bm_map:'Kaart',bm_sat:'Satelliet',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Stad wordt gescand — hitte, groen & sociale situatie…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit (OSM Overpass)',lay_paw:'Plantbeschikbaar water — droogte',lay_duh:'DUH hitte-rapport (wijken)',lay_tco2:'Verkeers-CO₂ (emissies)',lay_sound:'Geluidslandschap (geluidsuitbreiding)',lay_flood:'Overstroming HQ100 — gebouwen',lay_heat:'Hitte-eiland — gebouwniveau',lay_noise:'Verkeerslawaai',lay_flight:'Vliegtuiglawaai FRA',lay_bike:'Fietspaden (kwaliteitsniveaus)',lay_repair:'Repareren & hergebruik',lay_waste:'Afval & recycling',lay_biodiv:'Inheemse soorten (GBIF)',lay_parks:'Parken & groen',lay_schools:'Scholen & kinderopvang',lay_health:'Zorgvoorzieningen',lay_community:'Buurtplekken',lay_trees:'Straatbomen & lanen',lay_parking:'Parkeerplaatsen (autodominantie)',lay_osm_trees:'Bomen (live)',lay_osm_drink:'Drinkfonteinen (live)',lay_osm_bench:'Bankjes (live)',lay_osm_school:'Scholen & opvang (live)',lay_osm_health:'Zorg (live)',lay_osm_transit:'OV-haltes (live)',lay_osm_lamp:'Verlichting (veiligheidsgevoel)',
      sec_infra:'Infrastructuur (OSM Overpass)',sec_official:'Officiële klimaatdata (Hessen WFS)',sec_composite:'Composiet-analyses',
@@ -6644,6 +6665,14 @@ function briefGo(){
   if(b&&typeof openDrawer==='function'){try{openDrawer(b.worst.n,b.worst.d);}catch(e){}}
 }
 if(!document.body.classList.contains('embed'))setTimeout(()=>{try{showBriefing(false);}catch(e){}},1400);
+
+// ── Progressive Offenlegung: Sekundär-Werkzeuge & linke Liste ──
+function toggleTools(){
+  const o=document.body.classList.toggle('tools-open');
+  const b=document.getElementById('tool-more'); if(b)b.classList.toggle('on',o);
+}
+function toggleLeft(){ document.body.classList.add('leftoff'); }
+function openLeft(){ document.body.classList.remove('leftoff'); }
 </script>
 
 </body>
