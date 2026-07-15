@@ -5712,8 +5712,8 @@ function openDrawer(name,d,skipZoom){
   const relF=relM.flatMap(m=>foerderFor(m)).filter((f,i,a)=>a.findIndex(x=>x.prog===f.prog)===i).slice(0,6);
   document.getElementById('tp3').innerHTML=`
     <div class="dlbox">
-      <div class="dlt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg> EUI Call 4 — Deadline: 15. Juni 2026</div>
-      <div class="dls">60 Mio€ ERDF · ~30 Projekte · Max. 5 Mio€ · 80% Förderquote.<br>
+      <div class="dlt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg> EUI Call 4 — Deadline: ${mT('15. Juni 2026','15 June 2026','15 juni 2026')}</div>
+      <div class="dls">60 Mio€ ERDF · ~30 ${mT('Projekte','projects','projecten')} · Max. 5 Mio€ · 80% ${mT('Förderquote','funding rate','subsidiepercentage')}.<br>
         ${name} (Score ${s}) ${s<50?'→ <b>Prioritätskandidat</b> (niedriger Score = starke EUI-Begründung)':'→ geeignet als Pilotprojekt / Best Practice'}</div>
     </div>
     ${relF.map(f=>`
@@ -5913,7 +5913,7 @@ function renderStats(){
     <div class="stat"><div class="stl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> Hitzeinsel</div><div class="stv" style="color:#dc2626">${heat}</div><div class="sts">Stadtteile</div></div>
     <div class="stat"><div class="stl">Ø Wahlbet.</div><div class="stv">${wb}%</div><div class="sts">Stadtdurchschnitt</div></div>
     <div class="stat"><div class="stl">CO₂-Kostensatz</div><div class="stv">300€/t</div><div class="sts">UBA MK 4.0 (2026)</div></div>
-    <div class="stat"><div class="stl">EUI Call 4</div><div class="stv" style="color:#d97706">15. Jun '26</div><div class="sts">60 Mio€ ERDF</div></div>
+    <div class="stat"><div class="stl">EUI Call 4</div><div class="stv" style="color:#d97706">${mT("15. Jun '26","15 Jun '26","15 jun '26")}</div><div class="sts">60 Mio€ ERDF</div></div>
     <div class="stat"><div class="stl">Maßnahmen</div><div class="stv">15</div><div class="sts">mit ROI-Belegen</div></div>
     <div class="stat"><div class="stl">Förderprogramme</div><div class="stv">25</div><div class="sts">EU/Bund/Land/KfW</div></div>
     ${city==='ffm'?`<div class="stat"><div class="stl">⚠ Kinderarmut Ø</div><div class="stv" style="color:var(--r2)">${Math.round(all.filter(d=>d.kinderarmut!=null).reduce((a,d)=>a+d.kinderarmut,0)/all.filter(d=>d.kinderarmut!=null).length)}%</div><div class="sts">Stadt-Durchschnitt</div></div>
