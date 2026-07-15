@@ -1516,6 +1516,35 @@ const MASS=[
    foerder:[{eb:"Gemeente",prog:"Utrecht Klimaatadaptatie",pct:null,url:"utrecht.nl"},{eb:"EU",prog:"LIFE / Mission Adaptation to Climate Change",pct:60,url:"cinea.ec.europa.eu"}]},
 ];
 
+// ── Stadtabhängige Förderung ───────────────────────────────────
+// MASS ist Frankfurt-first gebaut (foerder = DE-Bundes-/Landesprogramme).
+// Für den Utrecht-Launch werden echte NL/EU-Programme je Dimension gezeigt,
+// damit kein Utrecht-Stakeholder auf bund.de/hessen.de geleitet wird.
+const UTR_FOERDER={
+  A:[{eb:"Rijk",prog:"Impulsregeling klimaatadaptatie (DPRA)",pct:33,url:"klimaatadaptatienederland.nl"},{eb:"Provincie",prog:"Provincie Utrecht — klimaatadaptatie",pct:50,url:"provincie-utrecht.nl"},{eb:"EU",prog:"LIFE Climate Action",pct:60,url:"cinea.ec.europa.eu"}],
+  B:[{eb:"Rijk",prog:"SPUK GALA — Gezond en Actief Leven",pct:100,url:"rijksoverheid.nl"},{eb:"EU",prog:"EU4Health",pct:60,url:"hadea.ec.europa.eu"}],
+  C:[{eb:"Rijk",prog:"Investeringsimpuls Verkeersveiligheid (SPV)",pct:50,url:"rijksoverheid.nl"},{eb:"Provincie",prog:"Provincie Utrecht — mobiliteitsprogramma",pct:50,url:"provincie-utrecht.nl"}],
+  D:[{eb:"Rijk",prog:"Gemeentelijk Onderwijsachterstandenbeleid (GOAB)",pct:100,url:"rijksoverheid.nl"},{eb:"EU",prog:"ESF+ (Europees Sociaal Fonds)",pct:70,url:"europa.eu"}],
+  E:[{eb:"Rijk",prog:"Volkshuisvestingsfonds",pct:70,url:"volkshuisvestingnederland.nl"},{eb:"Gemeente",prog:"Gemeente Utrecht — programma Wonen",pct:null,url:"utrecht.nl"}],
+  F:[{eb:"Gemeente",prog:"Initiatievenfonds gemeente Utrecht",pct:null,url:"utrecht.nl"},{eb:"EU",prog:"European Urban Initiative (EUI)",pct:80,url:"urban-initiative.eu"}],
+  G:[{eb:"Gemeente",prog:"Subsidie groene daken en gevels Utrecht",pct:50,url:"utrecht.nl"},{eb:"EU",prog:"LIFE Nature & Biodiversity",pct:60,url:"cinea.ec.europa.eu"}],
+  H:[{eb:"Waterschap",prog:"HDSR — klimaat- & waterinitiatieven",pct:50,url:"hdsr.nl"},{eb:"Rijk",prog:"Impulsregeling klimaatadaptatie (DPRA)",pct:33,url:"klimaatadaptatienederland.nl"},{eb:"EU",prog:"European Urban Initiative (EUI)",pct:80,url:"urban-initiative.eu"}]
+};
+function foerderFor(m){
+  if(typeof city!=='undefined'&&city==='utr'){
+    const d=(m&&m.dims&&m.dims[0])||'A';
+    return UTR_FOERDER[d]||UTR_FOERDER.A;
+  }
+  return (m&&m.foerder)||[];
+}
+function ebL(eb){ // Förder-Ebene übersetzen (Programmnamen bleiben Eigennamen)
+  const M={EU:['EU','EU','EU'],Bund:['Bund','Federal (DE)','Bond (DE)'],Land:['Land','State (DE)','Deelstaat (DE)'],
+    Kommune:['Kommune','Municipal','Gemeente'],KfW:['KfW','KfW','KfW'],
+    Rijk:['Staat','National','Rijk'],Provincie:['Provinz','Province','Provincie'],
+    Gemeente:['Kommune','Municipal','Gemeente'],Waterschap:['Wasserverband','Water authority','Waterschap']};
+  const v=M[eb]; return v?mT(v[0],v[1],v[2]):eb;
+}
+
 // ── EXPANDED FÖRDERMITTEL (25 Programme) ─────────────────────
 const FOERDER_DB=[
   // ── NIEDERLANDE & EU-WEIT (für Utrecht / Europa-Skalierung) ──
@@ -2745,9 +2774,9 @@ function districtPDF(name){
   const cm=[{t:L2('Maßnahme','Measure','Maatregel'),x:PDFX.L},{t:L2('Kosten','Cost','Kosten'),x:PDFX.L+112,a:'right'},{t:'ROI 10 '+L2('J.','yrs','jr'),x:PDFX.L+140,a:'right'},{t:L2('Förderung','Funding','Subsidie'),x:PDFX.R,a:'right'}];
   y=pdfTHead(doc,y,cm);
   let totInv=0,totRoi=0;
-  rec.forEach(m=>{ const f=m.foerder&&m.foerder[0]; totInv+=m.kosten; totRoi+=m.roi;
+  rec.forEach(m=>{ const f=foerderFor(m)[0]; totInv+=m.kosten; totRoi+=m.roi;
     const nm=(typeof localize==='function'?localize(m.name):m.name);
-    y=pdfTRow(doc,y,cm,[nm.length>52?nm.slice(0,50)+'…':nm,fmt(m.kosten),fmt(m.roi),f?(f.eb+(f.pct?' '+f.pct+' %':'')):'—']); });
+    y=pdfTRow(doc,y,cm,[nm.length>52?nm.slice(0,50)+'…':nm,fmt(m.kosten),fmt(m.roi),f?(ebL(f.eb)+(f.pct?' '+f.pct+' %':'')):'—']); });
   y=pdfTRow(doc,y,cm,[L2('Summe','Total','Totaal'),fmt(totInv),fmt(totRoi),''],[0,1,2]); y+=3;
   // ── 5 · Methode ──
   y=pdfMethodBlock(doc,y,'5',
@@ -2794,7 +2823,7 @@ function areaPDF(){
     const cm=[{t:L('Maßnahme','Measure','Maatregel'),x:PDFX.L},{t:L('Kosten','Cost','Kosten'),x:PDFX.L+112,a:'right'},{t:'ROI 10 '+L('J.','yrs','jr'),x:PDFX.L+140,a:'right'},{t:L('Förderung','Funding','Subsidie'),x:PDFX.R,a:'right'}];
     y=pdfTHead(doc,y,cm);
     let totInv=0,totRoi=0;
-    applicable.forEach(m=>{ const mo=MASS.find(x=>x.id===m.id); if(!mo)return; const f=mo.foerder&&mo.foerder[0]; totInv+=mo.kosten; totRoi+=mo.roi;
+    applicable.forEach(m=>{ const mo=MASS.find(x=>x.id===m.id); if(!mo)return; const f=foerderFor(mo)[0]; totInv+=mo.kosten; totRoi+=mo.roi;
       const nm=(typeof localize==='function'?localize(mo.name):mo.name);
       y=pdfTRow(doc,y,cm,[nm.length>52?nm.slice(0,50)+'…':nm,fmt(mo.kosten),fmt(mo.roi),f&&f.pct?f.pct+' %':'—']); });
     if(totInv)y=pdfTRow(doc,y,cm,[L('Summe','Total','Totaal'),fmt(totInv),fmt(totRoi),''],[0,1,2]);
@@ -3456,7 +3485,7 @@ function renderAreaPanel(){
       const mo=MASS.find(x=>x.id===m.id);
       html+=`<div class="ap-meas${areaApplied[m.id]?' on':''}" onclick="toggleAreaMeasure('${m.id}')">
         <div class="mh"><div class="mc">${ic(m.ic,13)}</div><div class="mn">${mo?mo.name:m.id}</div><div class="me">${m.eff}</div></div>
-        ${mo?`<div class="md">${fmt(mo.kosten)} · ROI ${fmt(mo.roi)} · ${mo.foerder&&mo.foerder[0]?mo.foerder[0].pct+'% förderbar':''}</div>`:''}
+        ${mo?`<div class="md">${fmt(mo.kosten)} · ROI ${fmt(mo.roi)} · ${foerderFor(mo)[0]?(foerderFor(mo)[0].pct!=null?foerderFor(mo)[0].pct+'% '+mT('förderbar','fundable','subsidiabel'):mT('förderbar','fundable','subsidiabel')):''}</div>`:''}
       </div>`;
     });
     const anyApplied=Object.values(areaApplied).some(Boolean);
@@ -3501,6 +3530,12 @@ const MPKG_ST=[ // Maßnahmenpakete je Straße — Korridore je Abschnitt, skali
  {id:'C',de:'Entsiegelung + Wadi (Schwammstraße)',en:'De-sealing + wadi (sponge street)',nl:'Ontharding + wadi (sponsstraat)',lo:80000,hi:160000,eff:'−1,0–1,8 °C',dur:'1–2 J.'}
 ];
 function mT(de,en,nl){return lang==='en'?en:lang==='nl'?nl:de;}
+function pkgT(s){ // eff/dur-Kürzel der Maßnahmenpakete übersetzen (J./Schatten/Oberfl.)
+  if(lang==='de'||!s)return s; let o=s;
+  const map=lang==='en'?[['Schatten','shade'],['Oberfl.','surface'],['J.','yr']]
+                       :[['Schatten','schaduw'],['Oberfl.','opp.'],['J.','jr']];
+  map.forEach(([a,b])=>{o=o.split(a).join(b);}); return o;
+}
 function trHeatLbl(l){const M={'Extrem':['Extreme','Extreem'],'Sehr hoch':['Very high','Zeer hoog'],'Hoch':['High','Hoog'],'Mittel':['Medium','Matig'],'Gering':['Low','Gering'],'Niedrig':['Low','Laag']};const v=M[l];return v?mT(l,v[0],v[1]):l;}
 function msColor(p){return p>=65?'#dc2626':p>=50?'#f97316':p>=35?'#eab308':'#16a34a';}
 function msRec(s){const r=[];if(s.c.heat>=50||s.c.seal>=55)r.push('A');if(s.gd>200||s.trees<8)r.push('B');if(s.c.heat>=70&&s.c.seal>=60)r.push('C');return r.length?r.slice(0,2):['B'];}
@@ -3609,7 +3644,7 @@ function missionCase(i){
    ${viol.length?`<div class="ap-sec">${mT('Zielabweichung (Utrecht 2040)','Target gaps (Utrecht 2040)','Doelafwijking (2040)')}</div><div class="ibox" style="border-left-color:#dc2626">${viol.map(v=>'· '+v).join('<br>')}</div>`:''}
    <div class="ap-sec">${mT('Maßnahmenpakete','Action packages','Maatregelpakketten')}</div>
    ${MPKG.map(p=>{const on=rec.indexOf(p.id)>=0;
-     return `<div class="ms-opt" style="${on?'border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)':''}"><b>${p.id} · ${mT(p.de,p.en,p.nl)}</b>${on?' <span class="ms-badge" style="border-color:var(--accent);color:var(--accent)">'+mT('empfohlen','recommended','aanbevolen')+'</span>':''}<br><span style="color:var(--muted)">${fmt(p.lo)}–${fmt(p.hi)} · ${p.eff} · ${p.dur}</span></div>`;}).join('')}
+     return `<div class="ms-opt" style="${on?'border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)':''}"><b>${p.id} · ${mT(p.de,p.en,p.nl)}</b>${on?' <span class="ms-badge" style="border-color:var(--accent);color:var(--accent)">'+mT('empfohlen','recommended','aanbevolen')+'</span>':''}<br><span style="color:var(--muted)">${fmt(p.lo)}–${fmt(p.hi)} · ${pkgT(p.eff)} · ${pkgT(p.dur)}</span></div>`;}).join('')}
    <div class="ibox"><b>${mT('Empfohlene Kombination','Recommended combination','Aanbevolen combinatie')} (${rec.join(' + ')}) · ${fmt(cost.lo)}–${fmt(cost.hi)}:</b> ${mT('Begründung','Reasoning','Onderbouwing')}: ${s.c.heat>=50?mT('hohe Hitzelast','high heat load','hoge hittelast'):mT('moderate Hitzelast','moderate heat load','matige hittelast')}${s.gd>200?', '+mT('fehlendes Kühlgrün','missing cool green','ontbrekend koelgroen'):''}${s.c.soc>=50?', '+mT('vulnerable Nachbarschaft','vulnerable neighbourhood','kwetsbare buurt'):''} — ${mT('bestes Verhältnis aus Wirkung, Umsetzbarkeit und Zielbeitrag.','best balance of impact, feasibility and target contribution.','beste balans tussen effect, haalbaarheid en doelbijdrage.')}</div>
    <div class="ap-sec">${mT('Vorher / Nachher','Before / after','Voor / na')}</div>
    <div class="ibox" style="font-family:ui-monospace,monospace;font-size:10px;line-height:1.9">
@@ -3794,7 +3829,7 @@ function streetCase(i){
    ${viol.length?`<div class="ap-sec">${mT('Zielabweichung (Utrecht 2040)','Target gaps (Utrecht 2040)','Doelafwijking (2040)')}</div><div class="ibox" style="border-left-color:#dc2626">${viol.map(v=>'· '+v).join('<br>')}</div>`:''}
    <div class="ap-sec">${mT('Maßnahmenpakete','Action packages','Maatregelpakketten')} <span class="ms-badge">×${s.factor} ${mT('Länge','length','lengte')}</span></div>
    ${MPKG_ST.map(p=>{const on=rec.indexOf(p.id)>=0;
-     return `<div class="ms-opt" style="${on?'border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)':''}"><b>${p.id} · ${mT(p.de,p.en,p.nl)}</b>${on?' <span class="ms-badge" style="border-color:var(--accent);color:var(--accent)">'+mT('empfohlen','recommended','aanbevolen')+'</span>':''}<br><span style="color:var(--muted)">${fmt(p.lo*s.factor)}–${fmt(p.hi*s.factor)} · ${p.eff} · ${p.dur}</span></div>`;}).join('')}
+     return `<div class="ms-opt" style="${on?'border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)':''}"><b>${p.id} · ${mT(p.de,p.en,p.nl)}</b>${on?' <span class="ms-badge" style="border-color:var(--accent);color:var(--accent)">'+mT('empfohlen','recommended','aanbevolen')+'</span>':''}<br><span style="color:var(--muted)">${fmt(p.lo*s.factor)}–${fmt(p.hi*s.factor)} · ${pkgT(p.eff)} · ${pkgT(p.dur)}</span></div>`;}).join('')}
    <div class="ibox"><b>${mT('Empfohlene Kombination','Recommended combination','Aanbevolen combinatie')} (${rec.join(' + ')}) · ${fmt(cost.lo)}–${fmt(cost.hi)}:</b> ${mT('Begründung','Reasoning','Onderbouwing')}: ${s.c.heat>=60?mT('hohe Hitzelast','high heat load','hoge hittelast'):mT('moderate Hitzelast','moderate heat load','matige hittelast')}${s.trees<10?', '+mT('Schatten-Defizit','shade deficit','schaduwtekort'):''}${s.c.soc>=50?', '+mT('vulnerable Nachbarschaft','vulnerable neighbourhood','kwetsbare buurt'):''} — ${mT('bestes Verhältnis aus Wirkung, Umsetzbarkeit und Zielbeitrag.','best balance of impact, feasibility and target contribution.','beste balans tussen effect, haalbaarheid en doelbijdrage.')}</div>
    <div class="ap-sec">${mT('Vorher / Nachher','Before / after','Voor / na')}</div>
    <div class="ibox" style="font-family:ui-monospace,monospace;font-size:10px;line-height:1.9">
@@ -5434,7 +5469,7 @@ function openDrawer(name,d,skipZoom){
     </div>
     ${d.sgb2>=25||d.kinderarmut>=35?`<div class="soc-risk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg> <b>Soziale Risikolage:</b> Überdurchschnittliche Armutsquoten. Handlungsbedarf bei Bildung, Sozialinfrastruktur und Einkommensförderung. Kandidat für ESF+, ERDF Soziale Infrastruktur (80% Förderquote).</div>`:d.sgb2<=8&&d.einkommen>=45000?`<div class="soc-good"><b>Stabile Soziallage:</b> Unterdurchschnittliche Armutsquoten und überdurchschnittliches Einkommen. Gute Bildungsvoraussetzungen.</div>`:''}
     <div style="font-size:8px;color:var(--muted);margin-top:6px;padding:6px 8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
-      Quellen: Frankfurt Stadtmonitoring Soziales 2024 · BA Statistik · Paritätischer Armutsbericht · Zensus 2022
+      Quellen: ${city==='utr'?'CBS Kerncijfers wijken en buurten 2023 · UWV · Gemeente Utrecht Wijkmonitor':'Frankfurt Stadtmonitoring Soziales 2024 · BA Statistik · Paritätischer Armutsbericht · Zensus 2022'}
     </div>`:''}
     ${d.versieg!=null?(()=>{
       const hb      = hitzebetroffenheit(d);
@@ -5471,7 +5506,7 @@ function openDrawer(name,d,skipZoom){
         <div style="display:flex;gap:5px;flex-wrap:wrap">
           <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:7px;background:rgba(0,0,0,0.04);border:1px solid var(--border2);color:var(--text2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18.5 5.5A8 8 0 1 0 18.5 18.5M3 10h11M3 14h11"/></svg> ${fmt(m.kosten)}</span>
           <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:7px;background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.15);color:#15803d">ROI ${fmt(m.roi)}</span>
-          <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:7px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.15);color:#7c3aed">${m.foerder[0]?.pct||'?'}% förderbar</span>
+          <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:7px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.15);color:#7c3aed">${foerderFor(m)[0]?.pct!=null?foerderFor(m)[0].pct+'% ':''}förderbar</span>
         </div>
         <div style="font-size:8px;color:var(--muted);margin-top:4px;padding-top:3px;border-top:1px solid var(--border)">${localize(m.kw).split('. ')[0]}.</div>
       </div>
@@ -5674,7 +5709,7 @@ function openDrawer(name,d,skipZoom){
     </div>`).join('')}`;
 
   // TAB 3 — Förderung
-  const relF=relM.flatMap(m=>m.foerder||[]).filter((f,i,a)=>a.findIndex(x=>x.prog===f.prog)===i).slice(0,6);
+  const relF=relM.flatMap(m=>foerderFor(m)).filter((f,i,a)=>a.findIndex(x=>x.prog===f.prog)===i).slice(0,6);
   document.getElementById('tp3').innerHTML=`
     <div class="dlbox">
       <div class="dlt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg> EUI Call 4 — Deadline: 15. Juni 2026</div>
@@ -5683,16 +5718,16 @@ function openDrawer(name,d,skipZoom){
     </div>
     ${relF.map(f=>`
     <div class="fcard">
-      <div class="fnm">${f.eb}: ${f.prog}</div>
+      <div class="fnm">${ebL(f.eb)}: ${f.prog}</div>
       ${f.pct?`<div class="fsplit">
         <div class="fs"><div class="fsv" style="color:#15803d">${f.pct}%</div><div class="fsl">Förderquote</div></div>
         <div class="fs"><div class="fsv" style="color:#dc2626">${100-f.pct}%</div><div class="fsl">Eigenanteil</div></div>
         <div class="fs"><div class="fsv">${fmt(relM[0]?.kosten*(100-f.pct)/100||0)}</div><div class="fsl">Eigenanteil €</div></div>
-      </div>`:`<div class="fprog">Zinsverbilligter Kredit (akt. 0,6–1,0% p.a.)</div>`}
+      </div>`:`<div class="fprog">${(typeof city!=='undefined'&&city==='utr')?mT('Kofinanzierung — Konditionen auf Anfrage','Co-funding — terms on application','Cofinanciering — voorwaarden op aanvraag'):mT('Zinsverbilligter Kredit (akt. 0,6–1,0% p.a.)','Reduced-interest loan (currently 0.6–1.0% p.a.)','Rentekorting-lening (nu 0,6–1,0% p.j.)')}</div>`}
       <a class="furl" href="https://${f.url}" target="_blank">→ ${f.url}</a>
     </div>`).join('')}
     <div class="ibox" style="font-size:9px">
-      ⚠ Förderangaben zur Orientierung. Kein Ersatz für individuelle Beratung. Konditionen können sich ändern. Alle 25 Programme: Layer-Architektur in Notion.
+      ⚠ ${mT('Förderangaben zur Orientierung — kein Ersatz für individuelle Beratung. Konditionen können sich ändern.','Funding figures are indicative — no substitute for individual advice. Conditions may change.','Subsidiecijfers zijn indicatief — geen vervanging voor individueel advies. Voorwaarden kunnen wijzigen.')}
     </div>`;
 
   // TAB 4 — Szenarien
