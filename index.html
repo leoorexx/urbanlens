@@ -2833,8 +2833,8 @@ const REPORT_TYPES={
 // Leer = nur lokal (localStorage, nur dieser Browser). Mit URL+anon-key werden
 // Meldungen & Votes serverseitig registriert und sind für ALLE Nutzer sichtbar.
 // Setup + SQL: siehe SUPABASE_SETUP.md im Projekt.
-const SUPABASE_URL = '';   // z.B. 'https://abcdxyz.supabase.co'
-const SUPABASE_KEY = '';   // anon public key (sicher im Client, geschützt via RLS)
+const SUPABASE_URL = 'https://hhstfiwqkmmkcgmmcmhc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_kOgZOeQ8bfRgVjPevPMzbA_qTkneP6Y';   // publishable key (öffentlich by design, Daten via RLS geschützt)
 const supaOn  = ()=> !!(SUPABASE_URL && SUPABASE_KEY);
 const supaHdr = ()=>({apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'});
 function supaInsert(table,obj){
