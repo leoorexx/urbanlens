@@ -521,6 +521,7 @@ body.leftoff .layer-btn{left:12px}
 body.free-mode .left{display:none}
 #heatWarn{position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:490;background:#b91c1c;color:#fff;border-radius:12px;padding:9px 15px;box-shadow:var(--shl);display:none;align-items:center;gap:11px;max-width:min(760px,calc(100vw - 40px))}
 #heatWarn.on{display:flex}
+body.brief-on #heatWarn.on{display:none}   /* Briefing hat Vorrang — Warnung wird dort als Zeile gezeigt */
 body.free-mode #heatWarn{top:106px}
 #heatWarn .hwi{flex:none;display:flex}
 #heatWarn .hwtx{font-size:12px;line-height:1.4}
@@ -734,7 +735,7 @@ body.free-mode #heatWarn{top:106px}
   <div id="kdChain2" class="kd-chain"></div>
 </div>
 <div class="layer-panel" id="layerPanel">
-  <div class="lp-title" data-i18n="panel_title">Karten-Layer ein/ausschalten</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="lp-title" data-i18n="panel_title" style="margin-bottom:0">Karten-Layer ein/ausschalten</div><button onclick="resetLayers()" style="flex:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:9px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit" data-i18n="lp_reset" title="Alle Layer ausschalten">Alles aus</button></div>
   <div style="font-size:9px;color:var(--muted);margin-bottom:8px;padding:5px 7px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
     <span data-i18n="hint_layers">Stadtteil-Füllung blendet sich automatisch aus wenn Layer aktiv sind — die Karte bleibt lesbar.</span>
   </div>
@@ -1134,7 +1135,7 @@ function ic(name,size=14){
 
 // ── i18n: Deutsch / English / Nederlands ──────────────────────
 const STR={
- de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Kühlung',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',tool_mission:'Mission',tool_more:'Werkzeuge',left_tab:'Stadtteile',lay_hessen_heat:'Hitzestress — amtliche Messung',lay_hessen_lcz:'Versiegelung & Stadtklima-Zonen',lay_schools_heat:'Schulen in Hitzezonen',lay_noise_res:'Lärm × Wohngebäude',lay_green_def:'Grün-Defizit je Gebäude',sec_soc2:'Aufenthalt & soziales Leben',lay_benches_q:'Bänke — Qualitätsstufen',lay_foot_q:'Fußwege — Qualitätsstufen',lay_retail2:'Lokaler Handel vs. Kette',lay_social2:'Treffpunkte (Café, Spiel, Brunnen)',lay_sport2:'Sport & Freizeit',leg_bike:'Radwege:',leg_bike_none:'Hauptstraße ohne Radweg',leg_bike_sep:'Getrennter Radweg',leg_bike_lane:'Schutzstreifen',leg_bench:'Bänke:',leg_bench1:'Überdacht + barrierefrei',leg_bench2:'Öffentlich + Rückenlehne',leg_bench3:'Einfach vorhanden',leg_bench4:'Nur für Kunden',leg_foot:'Fußwege:',leg_foot1:'Sehr gut (barrierefrei, beleuchtet)',leg_foot2:'Gut (befestigt)',leg_foot3:'Schlecht (unbefestigt/eng)',leg_heat:'Hitzeinseln — Oberflächentemperatur:',leg_cool:'Kühl',leg_extreme:'Extrem',src_r1:'Hitze / LST',src_r2:'Versiegelung',src_r3:'Bäume',src_r4:'Hochwasser',src_r5:'Lärm',src_r6:'Gebäude/CO₂',src_r7:'Sozialdaten',src_v3:'Stadtkataster FFM / Gem. Utrecht · OSM live',src_v5:'EU-Umgebungslärm-RL · OSM Straßenklassen',src_v6:'Utrecht: PDOK BAG (echtes Baujahr) · FFM: IWU-Typologie',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_method:'Methodik',flt_all:'Gesamt',flt_climate:'Klima',flt_social:'Sozial',flt_heat:'Hitze',close:'Schließen',lg_scale:'Skala',lg_low:'Unteres Fünftel',lg_high:'Oberes Fünftel',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Hochwasser',lens_noise:'Lärm',lens_life:'Grün & Aufenthalt',lens_adv:'Erweitert — einzelne Ebenen',
+ de:{density:'Dichte-Heatmap statt Punkte',tool_mit:'Mitwirken',dv_name:'Doppelte Verwundbarkeit (Klima × Sozial)',tool_heat:'Kühlung',tool_street:'Straße',tool_inspect:'Punkt',tool_analyse:'Analyse',tool_area:'Gebiet',tool_mission:'Mission',tool_more:'Werkzeuge',left_tab:'Stadtteile',lp_reset:'Alles aus',lay_hessen_heat:'Hitzestress — amtliche Messung',lay_hessen_lcz:'Versiegelung & Stadtklima-Zonen',lay_schools_heat:'Schulen in Hitzezonen',lay_noise_res:'Lärm × Wohngebäude',lay_green_def:'Grün-Defizit je Gebäude',sec_soc2:'Aufenthalt & soziales Leben',lay_benches_q:'Bänke — Qualitätsstufen',lay_foot_q:'Fußwege — Qualitätsstufen',lay_retail2:'Lokaler Handel vs. Kette',lay_social2:'Treffpunkte (Café, Spiel, Brunnen)',lay_sport2:'Sport & Freizeit',leg_bike:'Radwege:',leg_bike_none:'Hauptstraße ohne Radweg',leg_bike_sep:'Getrennter Radweg',leg_bike_lane:'Schutzstreifen',leg_bench:'Bänke:',leg_bench1:'Überdacht + barrierefrei',leg_bench2:'Öffentlich + Rückenlehne',leg_bench3:'Einfach vorhanden',leg_bench4:'Nur für Kunden',leg_foot:'Fußwege:',leg_foot1:'Sehr gut (barrierefrei, beleuchtet)',leg_foot2:'Gut (befestigt)',leg_foot3:'Schlecht (unbefestigt/eng)',leg_heat:'Hitzeinseln — Oberflächentemperatur:',leg_cool:'Kühl',leg_extreme:'Extrem',src_r1:'Hitze / LST',src_r2:'Versiegelung',src_r3:'Bäume',src_r4:'Hochwasser',src_r5:'Lärm',src_r6:'Gebäude/CO₂',src_r7:'Sozialdaten',src_v3:'Stadtkataster FFM / Gem. Utrecht · OSM live',src_v5:'EU-Umgebungslärm-RL · OSM Straßenklassen',src_v6:'Utrecht: PDOK BAG (echtes Baujahr) · FFM: IWU-Typologie',sec_diag:'Diagnose — Probleme erkennen',diag_hint:'Bewertet Straßen & Plätze im Kartenausschnitt gegen Normen (WHO-Grünstandard, Aufenthaltsqualität). Hineinzoomen (ab Zoom 14), Modus wählen — funktioniert in jeder Stadt.',diag_green_nm:'Grünversorgung (300-m-Regel)',diag_green_sub:'Wo ist der nächste Park weiter als 300 m? (WHO/EU)',diag_stay_nm:'Aufenthaltsqualität',diag_stay_sub:'Wo fehlen Bänke, Schatten, Grün trotz Betrieb?',nav_dashboard:'Dashboard',nav_indicators:'Indikatoren',nav_method:'Methodik',flt_all:'Gesamt',flt_climate:'Klima',flt_social:'Sozial',flt_heat:'Hitze',close:'Schließen',lg_scale:'Skala',lg_low:'Unteres Fünftel',lg_high:'Oberes Fünftel',nav_live:'Open Data Live',layers_btn:'Layer',lens_heat:'Hitze',lens_water:'Hochwasser',lens_noise:'Lärm',lens_life:'Grün & Aufenthalt',lens_adv:'Erweitert — einzelne Ebenen',
      search_ph:'Stadtteil suchen…',search_city_ph:'Adresse oder Stadt suchen…',bm_map:'Karte',bm_sat:'Satellit',list_sub:'Relative Einstufung im Stadtvergleich · Quintile',
      loading:'Stadt wird gescannt — Hitze, Grün & soziale Lage…',sec_risk:'Risikolayer (offizielle Quellen)',sec_mob:'Mobilität & Wege (OpenStreetMap, live)',lay_paw:'Pflanzenverfügbares Wasser — Dürre',lay_duh:'DUH Hitze-Ampel (Stadtteile)',lay_tco2:'Verkehrs-CO₂ (Emissionen)',lay_sound:'Raumklang (Schallausbreitung)',lay_flood:'Hochwasser HQ100 — Gebäude',lay_heat:'Hitzeinsel — Gebäude-Level',lay_noise:'Lärmbelastung Straße',lay_flight:'Fluglärm-Zonen FRA',lay_bike:'Radwege (Qualitätsstufen)',lay_repair:'Reparieren & Wiederverwenden',lay_waste:'Entsorgen & Recyceln',lay_biodiv:'Heimische Arten (GBIF)',lay_parks:'Parks & Grünflächen',lay_schools:'Schulen & Kitas',lay_health:'Ärzte & Gesundheit',lay_community:'Community Places',lay_trees:'Straßenbäume & Alleen',lay_parking:'Parkplätze — Auto-Dominanz',lay_osm_trees:'Bäume (live)',lay_osm_drink:'Trinkbrunnen (live)',lay_osm_bench:'Bänke (live)',lay_osm_school:'Schulen & Kitas (live)',lay_osm_health:'Gesundheit (live)',lay_osm_transit:'ÖPNV-Haltestellen (live)',lay_osm_lamp:'Beleuchtung (Sicherheitsgefühl)',
      sec_infra:'Infrastruktur & Alltagsorte (OpenStreetMap, live)',sec_official:'Amtliche Klimadaten — Land Hessen',sec_composite:'Kombinierte Analysen — zwei Ebenen in einer',
@@ -1145,7 +1146,7 @@ const STR={
      sources_title:'Datenquellen — doppelt referenziert',
      sources_body:'Jeder Umwelt-Indikator stützt sich auf zwei unabhängige Quellen: eine amtliche Primärquelle und eine Sekundärquelle zur Validierung.',
      districts_ffm:'Frankfurter Stadtteile',districts_utr:'Utrechtse Wijken',panel_title:'Karten-Layer ein/ausschalten'},
- en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Cooling',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',tool_mission:'Mission',tool_more:'Tools',left_tab:'Districts',lay_hessen_heat:'Heat stress — official measurement',lay_hessen_lcz:'Sealing & urban climate zones',lay_schools_heat:'Schools in heat zones',lay_noise_res:'Noise × housing',lay_green_def:'Green deficit per building',sec_soc2:'Public space & social life',lay_benches_q:'Benches — quality levels',lay_foot_q:'Footpaths — quality levels',lay_retail2:'Local retail vs. chains',lay_social2:'Meeting places (café, play, fountain)',lay_sport2:'Sports & leisure',leg_bike:'Cycle paths:',leg_bike_none:'Main road without cycle path',leg_bike_sep:'Separated cycle path',leg_bike_lane:'Advisory lane',leg_bench:'Benches:',leg_bench1:'Covered + accessible',leg_bench2:'Public + backrest',leg_bench3:'Basic',leg_bench4:'Customers only',leg_foot:'Footpaths:',leg_foot1:'Very good (accessible, lit)',leg_foot2:'Good (paved)',leg_foot3:'Poor (unpaved/narrow)',leg_heat:'Heat islands — surface temperature:',leg_cool:'Cool',leg_extreme:'Extreme',src_r1:'Heat / LST',src_r2:'Sealing',src_r3:'Trees',src_r4:'Flood',src_r5:'Noise',src_r6:'Buildings/CO₂',src_r7:'Social data',src_v3:'City registries FFM / Utrecht · OSM live',src_v5:'EU Environmental Noise Dir. · OSM road classes',src_v6:'Utrecht: PDOK BAG (real construction year) · FFM: IWU typology',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_method:'Methodology',flt_all:'Overall',flt_climate:'Climate',flt_social:'Social',flt_heat:'Heat',close:'Close',lg_scale:'Scale',lg_low:'Bottom fifth',lg_high:'Top fifth',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Flood',lens_noise:'Noise',lens_life:'Green & place quality',lens_adv:'Advanced — individual layers',
+ en:{density:'Density heatmap instead of dots',tool_mit:'Engage',dv_name:'Double vulnerability (climate × social)',tool_heat:'Cooling',tool_street:'Street',tool_inspect:'Point',tool_analyse:'Analyse',tool_area:'Area',tool_mission:'Mission',tool_more:'Tools',left_tab:'Districts',lp_reset:'All off',lay_hessen_heat:'Heat stress — official measurement',lay_hessen_lcz:'Sealing & urban climate zones',lay_schools_heat:'Schools in heat zones',lay_noise_res:'Noise × housing',lay_green_def:'Green deficit per building',sec_soc2:'Public space & social life',lay_benches_q:'Benches — quality levels',lay_foot_q:'Footpaths — quality levels',lay_retail2:'Local retail vs. chains',lay_social2:'Meeting places (café, play, fountain)',lay_sport2:'Sports & leisure',leg_bike:'Cycle paths:',leg_bike_none:'Main road without cycle path',leg_bike_sep:'Separated cycle path',leg_bike_lane:'Advisory lane',leg_bench:'Benches:',leg_bench1:'Covered + accessible',leg_bench2:'Public + backrest',leg_bench3:'Basic',leg_bench4:'Customers only',leg_foot:'Footpaths:',leg_foot1:'Very good (accessible, lit)',leg_foot2:'Good (paved)',leg_foot3:'Poor (unpaved/narrow)',leg_heat:'Heat islands — surface temperature:',leg_cool:'Cool',leg_extreme:'Extreme',src_r1:'Heat / LST',src_r2:'Sealing',src_r3:'Trees',src_r4:'Flood',src_r5:'Noise',src_r6:'Buildings/CO₂',src_r7:'Social data',src_v3:'City registries FFM / Utrecht · OSM live',src_v5:'EU Environmental Noise Dir. · OSM road classes',src_v6:'Utrecht: PDOK BAG (real construction year) · FFM: IWU typology',sec_diag:'Diagnosis — spot the problems',diag_hint:'Scores streets & places in view against standards (WHO green access, place quality). Zoom in (level 14+), pick a mode — works in any city.',diag_green_nm:'Green access (300 m rule)',diag_green_sub:'Where is the nearest park beyond 300 m? (WHO/EU)',diag_stay_nm:'Place quality',diag_stay_sub:'Where are benches, shade, green missing despite activity?',nav_dashboard:'Dashboard',nav_indicators:'indicators',nav_method:'Methodology',flt_all:'Overall',flt_climate:'Climate',flt_social:'Social',flt_heat:'Heat',close:'Close',lg_scale:'Scale',lg_low:'Bottom fifth',lg_high:'Top fifth',nav_live:'Open Data Live',layers_btn:'Layers',lens_heat:'Heat',lens_water:'Flood',lens_noise:'Noise',lens_life:'Green & place quality',lens_adv:'Advanced — individual layers',
      search_ph:'Search district…',search_city_ph:'Search address or city…',bm_map:'Map',bm_sat:'Satellite',list_sub:'Relative ranking within the city · quintiles',
      loading:'Scanning the city — heat, green & social fabric…',sec_risk:'Risk layers (official sources)',sec_mob:'Mobility & paths (OpenStreetMap, live)',lay_paw:'Plant-available water — drought',lay_duh:'DUH heat report card (districts)',lay_tco2:'Traffic CO₂ (emissions)',lay_sound:'Soundscape (noise propagation)',lay_flood:'Flood risk HQ100 — buildings',lay_heat:'Heat island — building level',lay_noise:'Road noise',lay_flight:'Aircraft noise zones FRA',lay_bike:'Cycle paths (quality levels)',lay_repair:'Repair & reuse',lay_waste:'Waste & recycling',lay_biodiv:'Native species (GBIF)',lay_parks:'Parks & green spaces',lay_schools:'Schools & childcare',lay_health:'Healthcare',lay_community:'Community places',lay_trees:'Street trees & avenues',lay_parking:'Parking — car dominance',lay_osm_trees:'Trees (live)',lay_osm_drink:'Drinking fountains (live)',lay_osm_bench:'Benches (live)',lay_osm_school:'Schools & childcare (live)',lay_osm_health:'Health (live)',lay_osm_transit:'Public transport stops (live)',lay_osm_lamp:'Lighting (perceived safety)',
      sec_infra:'Infrastructure & everyday places (OpenStreetMap, live)',sec_official:'Official climate data — State of Hesse',sec_composite:'Combined insights — two layers in one',
@@ -1156,7 +1157,7 @@ const STR={
      sources_title:'Data sources — double-referenced',
      sources_body:'Every environmental indicator is backed by two independent sources: an official primary source and a secondary source for validation.',
      districts_ffm:'Frankfurt districts',districts_utr:'Utrecht districts',panel_title:'Toggle map layers'},
- nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Koeling',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',tool_mission:'Missie',tool_more:'Tools',left_tab:'Wijken',lay_hessen_heat:'Hittestress — officiële meting',lay_hessen_lcz:'Verharding & stadsklimaatzones',lay_schools_heat:'Scholen in hittezones',lay_noise_res:'Geluid × woningen',lay_green_def:'Groentekort per gebouw',sec_soc2:'Verblijf & sociaal leven',lay_benches_q:'Bankjes — kwaliteitsniveaus',lay_foot_q:'Voetpaden — kwaliteitsniveaus',lay_retail2:'Lokale winkels vs. ketens',lay_social2:'Ontmoetingsplekken (café, spel, fontein)',lay_sport2:'Sport & vrije tijd',leg_bike:'Fietspaden:',leg_bike_none:'Hoofdweg zonder fietspad',leg_bike_sep:'Vrijliggend fietspad',leg_bike_lane:'Fietsstrook',leg_bench:'Bankjes:',leg_bench1:'Overdekt + toegankelijk',leg_bench2:'Openbaar + rugleuning',leg_bench3:'Eenvoudig aanwezig',leg_bench4:'Alleen voor klanten',leg_foot:'Voetpaden:',leg_foot1:'Zeer goed (toegankelijk, verlicht)',leg_foot2:'Goed (verhard)',leg_foot3:'Slecht (onverhard/smal)',leg_heat:'Hitte-eilanden — oppervlaktetemperatuur:',leg_cool:'Koel',leg_extreme:'Extreem',src_r1:'Hitte / LST',src_r2:'Verharding',src_r3:'Bomen',src_r4:'Overstroming',src_r5:'Geluid',src_r6:'Gebouwen/CO₂',src_r7:'Sociale data',src_v3:'Stadsregisters FFM / Utrecht · OSM live',src_v5:'EU-omgevingslawaai-RL · OSM wegklassen',src_v6:'Utrecht: PDOK BAG (echt bouwjaar) · FFM: IWU-typologie',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_method:'Methodiek',flt_all:'Totaal',flt_climate:'Klimaat',flt_social:'Sociaal',flt_heat:'Hitte',close:'Sluiten',lg_scale:'Schaal',lg_low:'Onderste vijfde',lg_high:'Bovenste vijfde',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Overstroming',lens_noise:'Geluid',lens_life:'Groen & verblijf',lens_adv:'Uitgebreid — losse lagen',
+ nl:{density:'Dichtheids-heatmap i.p.v. punten',tool_mit:'Meedoen',dv_name:'Dubbele kwetsbaarheid (klimaat × sociaal)',tool_heat:'Koeling',tool_street:'Straat',tool_inspect:'Punt',tool_analyse:'Analyse',tool_area:'Gebied',tool_mission:'Missie',tool_more:'Tools',left_tab:'Wijken',lp_reset:'Alles uit',lay_hessen_heat:'Hittestress — officiële meting',lay_hessen_lcz:'Verharding & stadsklimaatzones',lay_schools_heat:'Scholen in hittezones',lay_noise_res:'Geluid × woningen',lay_green_def:'Groentekort per gebouw',sec_soc2:'Verblijf & sociaal leven',lay_benches_q:'Bankjes — kwaliteitsniveaus',lay_foot_q:'Voetpaden — kwaliteitsniveaus',lay_retail2:'Lokale winkels vs. ketens',lay_social2:'Ontmoetingsplekken (café, spel, fontein)',lay_sport2:'Sport & vrije tijd',leg_bike:'Fietspaden:',leg_bike_none:'Hoofdweg zonder fietspad',leg_bike_sep:'Vrijliggend fietspad',leg_bike_lane:'Fietsstrook',leg_bench:'Bankjes:',leg_bench1:'Overdekt + toegankelijk',leg_bench2:'Openbaar + rugleuning',leg_bench3:'Eenvoudig aanwezig',leg_bench4:'Alleen voor klanten',leg_foot:'Voetpaden:',leg_foot1:'Zeer goed (toegankelijk, verlicht)',leg_foot2:'Goed (verhard)',leg_foot3:'Slecht (onverhard/smal)',leg_heat:'Hitte-eilanden — oppervlaktetemperatuur:',leg_cool:'Koel',leg_extreme:'Extreem',src_r1:'Hitte / LST',src_r2:'Verharding',src_r3:'Bomen',src_r4:'Overstroming',src_r5:'Geluid',src_r6:'Gebouwen/CO₂',src_r7:'Sociale data',src_v3:'Stadsregisters FFM / Utrecht · OSM live',src_v5:'EU-omgevingslawaai-RL · OSM wegklassen',src_v6:'Utrecht: PDOK BAG (echt bouwjaar) · FFM: IWU-typologie',sec_diag:'Diagnose — herken de problemen',diag_hint:'Beoordeelt straten & pleinen in beeld aan normen (WHO-groennorm, verblijfskwaliteit). Zoom in (niveau 14+), kies een modus — werkt in elke stad.',diag_green_nm:'Groenvoorziening (300-m-regel)',diag_green_sub:'Waar is het dichtstbijzijnde park verder dan 300 m? (WHO/EU)',diag_stay_nm:'Verblijfskwaliteit',diag_stay_sub:'Waar ontbreken bankjes, schaduw, groen ondanks drukte?',nav_dashboard:'Dashboard',nav_indicators:'indicatoren',nav_method:'Methodiek',flt_all:'Totaal',flt_climate:'Klimaat',flt_social:'Sociaal',flt_heat:'Hitte',close:'Sluiten',lg_scale:'Schaal',lg_low:'Onderste vijfde',lg_high:'Bovenste vijfde',nav_live:'Open Data Live',layers_btn:'Lagen',lens_heat:'Hitte',lens_water:'Overstroming',lens_noise:'Geluid',lens_life:'Groen & verblijf',lens_adv:'Uitgebreid — losse lagen',
      search_ph:'Zoek wijk…',search_city_ph:'Zoek adres of stad…',bm_map:'Kaart',bm_sat:'Satelliet',list_sub:'Relatieve positie binnen de stad · kwintielen',
      loading:'Stad wordt gescand — hitte, groen & sociale situatie…',sec_risk:'Risicolagen (officiële bronnen)',sec_mob:'Mobiliteit & routes (OpenStreetMap, live)',lay_paw:'Plantbeschikbaar water — droogte',lay_duh:'DUH hitte-rapport (wijken)',lay_tco2:'Verkeers-CO₂ (emissies)',lay_sound:'Geluidslandschap (geluidsuitbreiding)',lay_flood:'Overstroming HQ100 — gebouwen',lay_heat:'Hitte-eiland — gebouwniveau',lay_noise:'Verkeerslawaai',lay_flight:'Vliegtuiglawaai FRA',lay_bike:'Fietspaden (kwaliteitsniveaus)',lay_repair:'Repareren & hergebruik',lay_waste:'Afval & recycling',lay_biodiv:'Inheemse soorten (GBIF)',lay_parks:'Parken & groen',lay_schools:'Scholen & kinderopvang',lay_health:'Zorgvoorzieningen',lay_community:'Buurtplekken',lay_trees:'Straatbomen & lanen',lay_parking:'Parkeerplaatsen — autodominantie',lay_osm_trees:'Bomen (live)',lay_osm_drink:'Drinkfonteinen (live)',lay_osm_bench:'Bankjes (live)',lay_osm_school:'Scholen & opvang (live)',lay_osm_health:'Zorg (live)',lay_osm_transit:'OV-haltes (live)',lay_osm_lamp:'Verlichting (veiligheidsgevoel)',
      sec_infra:'Infrastructuur & dagelijkse plekken (OpenStreetMap, live)',sec_official:'Officiële klimaatdata — deelstaat Hessen',sec_composite:'Gecombineerde inzichten — twee lagen in één',
@@ -3654,6 +3655,7 @@ function toggleMission(){
 // Missions-Einstieg: „Woran arbeiten Sie?" — Aufgabe zuerst, Daten danach.
 function missionHome(){
   MISSION.view='home';
+  try{urlParam('mission',null);urlParam('case',null);}catch(e){}
   if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}MISSION.layer=null;}
   const b=document.getElementById('msBody');if(!b)return;
   b.innerHTML=`
@@ -3669,12 +3671,13 @@ function missionHome(){
 }
 function chooseMission(k){
   MISSION.kind=k;MISSION.view='list';
+  try{urlParam('mission',k);urlParam('case',null);}catch(e){}
   const b=document.getElementById('msBody');
   if(b)b.innerHTML='<div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div>';
   missionLoad();
 }
 function backToMissions(){ if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}MISSION.layer=null;} missionHome(); }
-function closeMission(){MISSION.active=false;const t=document.getElementById('tool-mission');if(t)t.classList.remove('on');const p=document.getElementById('missionPanel');if(p)p.classList.remove('open');if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}MISSION.layer=null;}}
+function closeMission(){try{urlParam('mission',null);urlParam('case',null);}catch(e){}MISSION.active=false;const t=document.getElementById('tool-mission');if(t)t.classList.remove('on');const p=document.getElementById('missionPanel');if(p)p.classList.remove('open');if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}MISSION.layer=null;}}
 function missionLoad(){
   if(MISSION.kind==='streets')return streetsLoad();
   if(MISSION.loaded===city&&MISSION.schools.length){renderMission();return;}
@@ -3719,6 +3722,7 @@ function missionBudgetCalc(){const B=MISSION.budget*1e6;let sum=0;const pick=[];
 function renderMission(){
   if(MISSION.kind==='streets')return renderStreets();
   const b=document.getElementById('msBody');if(!b)return;
+  try{urlParam('mission','schools');urlParam('case',null);}catch(e){}
   const S=MISSION.schools;
   if(!S.length){b.innerHTML='<div style="padding:12px;font-size:11px;color:var(--muted)">'+mT('Keine Schulen gefunden.','No schools found.','Geen scholen gevonden.')+'</div>';return;}
   const hot=S.filter(s=>s.prio>=50).length, noGreen=S.filter(s=>s.gd>200).length;
@@ -3752,6 +3756,7 @@ function renderMission(){
 }
 function missionCase(i){
   const s=MISSION.schools[i];if(!s)return;
+  try{urlParam('case',caseId('SCH',i));urlParam('mission',null);}catch(e){}
   try{map.flyTo([s.lat,s.lon],16,{duration:.8});}catch(e){}
   const rec=msRec(s),cost=msCost(s);
   const viol=[];
@@ -3909,6 +3914,7 @@ function streetsLoad(){
 }
 function renderStreets(){
   const b=document.getElementById('msBody');if(!b)return;
+  try{urlParam('mission','streets');urlParam('case',null);}catch(e){}
   const S=MISSION.streets;
   if(!S.length){b.innerHTML=msSwitch()+'<div style="padding:12px;font-size:11px;color:var(--muted)">'+mT('Keine Straßen gefunden.','No streets found.','Geen straten gevonden.')+'</div>';return;}
   const segs=S.reduce((a,s)=>a+s.n,0);
@@ -3949,6 +3955,7 @@ function renderStreets(){
 }
 function streetCase(i){
   const s=MISSION.streets[i];if(!s)return;
+  try{urlParam('case',caseId('STR',i));urlParam('mission',null);}catch(e){}
   try{map.flyTo([s.lat,s.lon],16,{duration:.8});}catch(e){}
   const rec=stRec(s),cost=stCost(s);
   const viol=[];
@@ -5584,6 +5591,7 @@ function niceRadar(d,col){
   return '<svg viewBox="0 0 220 180" style="width:100%;max-width:230px;display:block;margin:2px auto 0">'+[25,50,75,100].map(ring).join('')+axes+'<polygon points="'+poly+'" fill="'+col+'2e" stroke="'+col+'" stroke-width="1.7" stroke-linejoin="round"/>'+labels+'</svg>';
 }
 function openDrawer(name,d,skipZoom){
+  try{urlParam('district',name);}catch(e){}
   selected=name;
   try{ if(history.replaceState)history.replaceState(null,'','#'+city+'/'+encodeURIComponent(name)); }catch(e){}
   renderList(document.getElementById('searchBox').value);
@@ -6095,6 +6103,7 @@ function openDrawer(name,d,skipZoom){
 
 function closeDrawer(){
   try{ if(history.replaceState&&location.hash)history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+  try{urlParam('district',null);}catch(e){}
   document.getElementById('drawer').classList.remove('open');
   selected=null;if(geoFeatures.length)renderMap();
   renderList(document.getElementById('searchBox').value);
@@ -6633,7 +6642,7 @@ function renderIntro(){const t=INTRO_TXT[lang]||INTRO_TXT.de;
     `<div class="intro-rolesq">${t.roleQ}</div>`+
     `<div class="intro-roles">${t.roles.map((r,i)=>`<button class="intro-role" onclick="introGo('${r.go}')"><span class="ri">${ROLE_IC[i]}</span><span class="rt"><b>${r.b}</b><span>${r.s}</span></span><span class="ra">→</span></button>`).join('')}</div>`;
 }
-function showIntro(force){ if(!force){try{if(localStorage.getItem('nh_intro_v1'))return;}catch(e){}} renderIntro(); document.getElementById('introOverlay').classList.add('on'); }
+function showIntro(force){ if(!force){ if(hasDeepLink())return; try{if(localStorage.getItem('nh_intro_v1'))return;}catch(e){}} renderIntro(); document.getElementById('introOverlay').classList.add('on'); }
 function closeIntro(){ document.getElementById('introOverlay').classList.remove('on'); try{localStorage.setItem('nh_intro_v1','1');}catch(e){} }
 function openIntro(){ showIntro(true); }
 if(!document.body.classList.contains('embed'))setTimeout(()=>{try{showIntro(false);}catch(e){}},600);   // Intro nicht im iframe/Embed automatisch zeigen
@@ -6657,6 +6666,7 @@ function briefData(){
 }
 function showBriefing(force){
   if(document.body.classList.contains('embed'))return;
+  if(!force&&hasDeepLink())return; // geteilter Link landet direkt im Ziel
   const ov=document.getElementById('introOverlay');
   if(ov&&ov.classList.contains('on'))return; // Intro hat Vorrang
   if(!force){
@@ -6676,13 +6686,18 @@ function showBriefing(force){
    +(b.heatN?'<div class="bf-line"><span class="bf-dot" style="background:#f97316"></span><span><b>'+b.heatN+'</b> '+mT('Stadtteile mit starker Hitzebelastung (LST-Delta ≥ 2 °C)','districts under strong heat load (LST delta ≥ 2 °C)','wijken met sterke hittebelasting (LST-delta ≥ 2 °C)')+'</span></div>':'')
    +(b.socN?'<div class="bf-line"><span class="bf-dot" style="background:#7c3aed"></span><span><b>'+b.socN+'</b> '+mT('Stadtteile mit sozialer Risikolage','districts with social risk','wijken met sociale risico’s')+'</span></div>':'')
    +(b.ms&&(b.ms.sch||b.ms.str)?'<div class="bf-line"><span class="bf-dot" style="background:#0ea5e9"></span><span>'+(b.ms.sch?('<b>'+b.ms.sch+'</b> '+mT('Schul-Hitze-Hotspots','school heat hotspots','school-hittehotspots')):'')+(b.ms.sch&&b.ms.str?' · ':'')+(b.ms.str?('<b>'+b.ms.str+'</b> '+mT('Straßenzüge hoher Priorität','high-priority street corridors','straten met hoge prioriteit')):'')+' <span style="color:var(--muted)">('+mT('aus Missionen','from missions','uit missies')+')</span></span></div>':'')
+   +(function(){const hw=document.getElementById('heatWarn');if(!hw||!hw.classList.contains('on'))return '';
+      const t=hw.textContent.replace(/[✕×]/g,'').replace(/\s+/g,' ').trim();
+      return '<div class="bf-line"><span class="bf-dot" style="background:#dc2626"></span><span>'+t+'</span></div>';})()
    +'<div class="bf-rec"><b>'+mT('Empfohlene nächste Aktion','Recommended next action','Aanbevolen volgende actie')+':</b> '+mT('Fall','Case','Casus')+' <b>'+b.worst.n+'</b> (NICE '+b.worst.s+') '+mT('öffnen.','review.','openen.')+'</div>'
    +'<div class="bf-btns"><button class="bf-go" onclick="briefGo()">'+mT('Fall öffnen','Open case','Casus openen')+'</button><button class="bf-alt" onclick="closeBriefing();toggleMission()">'+mT('Missionen','Missions','Missies')+'</button></div>'
    +'<div class="bf-foot">'+mT('Aus Stadtteil-Daten berechnet · Quintile im Stadtvergleich · Details & Konfidenz je Fall','Computed from district data · quintiles within the city · details & confidence per case','Berekend uit wijkdata · kwintielen binnen de stad · details & betrouwbaarheid per casus')+'</div>';
   document.body.appendChild(el);
+  document.body.classList.add('brief-on');
 }
 function closeBriefing(silent){
   const el=document.getElementById('briefCard'); if(el)el.remove();
+  document.body.classList.remove('brief-on');
   if(!silent){try{sessionStorage.setItem('nh_brief_s','1');}catch(e){}}
 }
 function briefGo(){
@@ -6698,6 +6713,43 @@ function toggleTools(){
 }
 function toggleLeft(){ document.body.classList.add('leftoff'); }
 function openLeft(){ document.body.classList.remove('leftoff'); }
+
+// ── Deep-Links: jede Analyse ist eine teilbare URL ─────────────
+// ?district=Overvecht · ?mission=streets · ?case=UTR-STR-001 · ?city=utr
+function urlParam(k,v){
+  try{const u=new URL(location.href);
+    if(v==null)u.searchParams.delete(k);else u.searchParams.set(k,v);
+    u.searchParams.delete('v');
+    history.replaceState(null,'',u);}catch(e){}
+}
+function hasDeepLink(){ return /[?&](district|mission|case)=/.test(location.search); }
+function deepLinkInit(){
+  try{
+    const q=new URLSearchParams(location.search);
+    const run=()=>{
+      const c=q.get('case'), m=q.get('mission'), d=q.get('district');
+      if(c){const M=/^(UTR|FFM)-(SCH|STR)-(\d{1,3})$/i.exec(c.trim());
+        if(M){const kind=M[2].toUpperCase()==='SCH'?'schools':'streets';const idx=Math.max(0,parseInt(M[3],10)-1);
+          if(!MISSION.active)toggleMission(); chooseMission(kind);
+          let t=0;const iv=setInterval(()=>{const arr=kind==='schools'?MISSION.schools:MISSION.streets;
+            if(arr.length){clearInterval(iv);try{(kind==='schools'?missionCase:streetCase)(Math.min(idx,arr.length-1));}catch(e){}}
+            else if(++t>60)clearInterval(iv);},250);
+          return;}}
+      if(m&&MISSIONS.some(x=>x.kind===m&&x.live)){if(!MISSION.active)toggleMission();chooseMission(m);return;}
+      if(d&&CITY_CFG[city]&&CITY_CFG[city].data&&CITY_CFG[city].data[d])openDrawer(d,CITY_CFG[city].data[d]);
+    };
+    const tc=(q.get('city')||'').toLowerCase()
+      ||((q.get('case')||'').slice(0,3).toLowerCase()==='ffm'?'ffm':(q.get('case')||'').slice(0,3).toLowerCase()==='utr'?'utr':'');
+    if(tc&&CITY_CFG[tc]&&tc!==city){switchCity(tc);setTimeout(run,1600);}else run();
+  }catch(e){}
+}
+if(!document.body.classList.contains('embed'))setTimeout(()=>{try{if(hasDeepLink())deepLinkInit();}catch(e){}},1200);
+
+// Karte zurücksetzen — alle aktiven Layer aus
+function resetLayers(){
+  try{Object.keys(activeLayers).forEach(k=>{if(activeLayers[k])toggleLayer(k);});}catch(e){}
+  try{document.querySelectorAll('.lens-btn2.on').forEach(b=>b.classList.remove('on'));}catch(e){}
+}
 </script>
 
 </body>
