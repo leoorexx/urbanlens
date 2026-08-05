@@ -16,7 +16,7 @@
 :root{
   --bg:#f5f3ee;--surface:#ffffff;--surface2:rgba(0,0,0,0.03);
   --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.12);
-  --text:#1a1a2e;--text2:#374151;--muted:#9ca3af;
+  --text:#1a1a2e;--text2:#374151;--muted:#6b7280;
   --accent:#FFD600;--al:rgba(255,214,0,0.12);
   --climate:#ff8210;--eco:#36d5d0;--social:#a60ba6;
   --r1:#ef4444;--r2:#f97316;--r3:#eab308;--r4:#22c55e;--r5:#16a34a;
@@ -25,6 +25,9 @@
   --font-serif:'Fraunces',Georgia,serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+:focus-visible{outline:2px solid #1a1a2e;outline-offset:2px;border-radius:4px}
+.tool-primary:focus-visible,.bf-go:focus-visible{outline-color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 body{font-family:'Archivo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
 #map{position:fixed;inset:0;z-index:1}
 #map3d-overlay{position:fixed;inset:0;z-index:990;display:none}
@@ -538,7 +541,7 @@ body.free-mode #heatWarn{top:106px}
 .addr-tip::before{border-top-color:#1a1a2e!important}
 #baseToggle{position:fixed;right:12px;bottom:100px;z-index:490;display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shl);overflow:hidden;font-family:inherit}
 #baseToggle button{border:none;background:none;padding:7px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
-#baseToggle button.on{background:var(--accent);color:#fff}
+#baseToggle button.on{background:var(--accent);color:#1a1a2e}
 #baseToggle button:not(.on):hover{background:var(--surface2)}
 /* Mission (Urban Challenge Cases) */
 .ms-kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
@@ -555,7 +558,7 @@ body.free-mode #heatWarn{top:106px}
 .ms-back{background:none;border:none;color:var(--accent);font-weight:700;font-size:11px;cursor:pointer;padding:0;font-family:inherit}
 .ms-switch{display:flex;gap:6px;margin:0 0 10px}
 .msw{flex:1;padding:7px 6px;border:1px solid var(--border);background:var(--surface2);border-radius:10px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;line-height:1.25}
-.msw.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.msw.on{background:var(--accent);color:#1a1a2e;border-color:var(--accent)}
 /* Missions-Launcher + Fall-Navigation */
 .mh-q{font-family:var(--font-serif);font-size:20px;font-weight:600;line-height:1.2;margin:2px 0 5px;color:var(--text)}
 .mh-sub{font-size:11px;color:var(--text2);line-height:1.55;margin-bottom:14px}
@@ -600,13 +603,56 @@ body.free-mode #heatWarn{top:106px}
 .lens-btn2.on{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
 .lens-btn2 .lc{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
 .lens-adv{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:14px 0 2px;border-top:1px solid var(--border2);padding-top:11px}
+/* ── Analysis Mode (dunkles Theme) ── */
+body.dark{--bg:#12121c;--surface:#1d1d2b;--surface2:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.17);--text:#eef0f6;--text2:#c4c9d4;--muted:#8b90a0;--al:rgba(255,214,0,0.16)}
+body.dark .map-legend{background:rgba(29,29,43,0.96)}
+body.dark .tool-btn:not(.tool-primary):not(.on){background:var(--surface);color:var(--text)}
+body.dark .csdrop,body.dark .layer-panel,body.dark .left,body.dark .right,body.dark .area-panel{background:var(--surface)}
+body.dark .nav{background:var(--surface)}
+body.dark :focus-visible{outline-color:var(--accent)}
+#themeBtn{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2)}
+#themeBtn.on{background:#1a1a2e;color:#FFD600;border-color:#1a1a2e}
+/* ── Stadtteil-Vergleich ── */
+.cmp-sel{flex:1;border:1px solid var(--border2);border-radius:8px;padding:7px 9px;font-size:12px;font-family:inherit;background:var(--surface);color:var(--text)}
+.cmp-t{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}
+.cmp-t th{text-align:right;font-size:10px;text-transform:none;padding:5px 6px;border-bottom:1.5px solid var(--border2)}
+.cmp-t th:first-child{text-align:left}
+.cmp-t td{padding:4px 6px;border-bottom:1px solid var(--border);text-align:right;font-feature-settings:'tnum'}
+.cmp-t td:first-child{text-align:left;color:var(--text2)}
+.cmp-w{color:#16a34a;font-weight:800}.cmp-l{color:#dc2626;font-weight:700}
+/* ── Kommandopalette (Cmd/Ctrl+K) ── */
+#ckOv{position:fixed;inset:0;z-index:2100;background:rgba(26,26,46,0.4);display:none;align-items:flex-start;justify-content:center;padding-top:14vh;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+#ckOv.on{display:flex}
+.ck-box{width:min(520px,calc(100vw - 28px));background:var(--surface);border-radius:14px;box-shadow:var(--shm);overflow:hidden}
+.ck-in{width:100%;border:none;outline:none;padding:14px 16px;font-size:15px;font-family:inherit;background:var(--surface);border-bottom:1px solid var(--border)}
+.ck-list{max-height:46vh;overflow-y:auto;padding:6px}
+.ck-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;cursor:pointer}
+.ck-item.on,.ck-item:hover{background:var(--surface2)}
+.ck-item b{font-size:12.5px;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ck-item small{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);flex:none}
+.ck-foot{padding:7px 14px;border-top:1px solid var(--border);font-size:9px;color:var(--muted)}
+.ckhint{font-size:9px;font-weight:800;color:var(--muted);border:1px solid var(--border2);border-radius:6px;padding:2px 6px;cursor:pointer;background:var(--surface2)}
+/* ── Coach-Marks (einmalige Kurztour) ── */
+.coach{position:fixed;z-index:2050;width:min(250px,calc(100vw - 24px));background:#1a1a2e;color:#fff;border-radius:12px;padding:12px 14px;box-shadow:var(--shm);font-size:11.5px;line-height:1.5;animation:briefIn .3s ease}
+.coach b{display:block;margin-bottom:3px;font-size:12px}
+.coach-btns{display:flex;gap:8px;margin-top:9px}
+.coach-btns button{border:none;border-radius:7px;padding:6px 11px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.coach-go{background:var(--accent);color:#1a1a2e}
+.coach-skip{background:rgba(255,255,255,0.12);color:#fff}
+/* ── Druck/Beamer: Chrome weg, Inhalt als Dokument ── */
+@media print{
+  .nav,.tool-btn,.layer-btn,.layer-panel,.left,#leftTab,#heatWarn,#briefCard,.map-legend,#baseToggle,#map,.leaflet-control-container,#ckOv,.coach,#introOverlay{display:none!important}
+  .right:not(.open),.area-panel:not(.open){display:none!important}
+  .right.open,.area-panel.open{position:static!important;width:100%!important;max-width:100%!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;border:none!important}
+  body{overflow:visible!important;height:auto!important;background:#fff}
+}
 /* ── Mobile (erste responsive Stufe): Karte voll, Liste als Bottom-Sheet ── */
 .sheet-grab{display:none;padding:8px 0 2px;cursor:pointer;text-align:center}
 .sheet-grab span{display:inline-block;width:38px;height:4px;border-radius:4px;background:var(--border2)}
 @media (max-width:767px){
   /* Kompakte Kopfzeile: Icons statt Text, Suche flexibel */
   .nav{gap:6px;padding:0 8px}
-  .nsep,.ninfo,.lpill{display:none}
+  .nsep,.ninfo,.lpill,.ckhint{display:none}
   .logo{font-size:0}
   .bbrille-btn span[data-i18n]{display:none}
   .bbrille-btn{padding:6px 9px}
@@ -660,6 +706,8 @@ body.free-mode #heatWarn{top:106px}
       <input id="citySearch" placeholder="Adresse oder Stadt suchen…" data-i18n-ph="search_city_ph" oninput="citySearchInput(this.value)" onfocus="citySearchInput(this.value)" onkeydown="csEnter(event)" autocomplete="off" spellcheck="false">
       <div id="citySearchDrop" class="csdrop"></div>
     </div>
+    <button id="themeBtn" onclick="toggleTheme()" title="Analysis Mode (dunkel)" aria-label="Dunkles Theme umschalten"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg></button>
+    <button class="ckhint" onclick="ckOpen()" title="Kommandopalette (Cmd/Ctrl+K)">⌘K</button>
     <div class="lpill"><div class="dot"></div><span data-i18n="nav_live">Open Data Live</span></div>
   </div>
 </nav>
@@ -729,7 +777,7 @@ body.free-mode #heatWarn{top:106px}
 
 <button id="leftTab" onclick="openLeft()" data-i18n="left_tab" title="Stadtteil-Liste einblenden">Stadtteile</button>
 <div class="left">
-  <div class="sheet-grab" onclick="toggleSheet()" title="Liste auf-/zuklappen"><span></span></div>
+  <div class="sheet-grab" onclick="toggleSheet()" onkeydown="if(event.key==='Enter')this.click()" tabindex="0" role="button" aria-label="Stadtteil-Liste auf- oder zuklappen" title="Liste auf-/zuklappen"><span></span></div>
   <div class="lhead">
     <button class="lcollapse" onclick="toggleLeft()" title="Liste einklappen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
     <div class="ltitle" id="listTitle">Stadtteile</div>
@@ -799,48 +847,48 @@ body.free-mode #heatWarn{top:106px}
   <div class="diag-legend" id="diag-legend" style="display:none"></div>
 
   <div class="lp-section s-clim"><span data-i18n="sec_risk">Risikolayer (offizielle Quellen)</span></div>
-  <div class="lrow" onclick="toggleLayer('double_vuln')" style="background:rgba(87,66,73,0.05);border-radius:8px">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('double_vuln')" style="background:rgba(87,66,73,0.05);border-radius:8px">
     <button class="ltoggle" id="tog-double_vuln"></button>
     <span class="lname" style="font-weight:700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3v18M3 8l9-5 9 5M3 16l9 5 9-5"/></svg> <span data-i18n="dv_name">Doppelte Verwundbarkeit (Klima × Sozial)</span></span>
     <span class="lstatus" id="st-double_vuln"></span>
   </div>
 
-  <div class="lrow ffm-only" onclick="toggleLayer('duh_ampel')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow ffm-only" onclick="toggleLayer('duh_ampel')">
     <button class="ltoggle" id="tog-duh_ampel"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> <span data-i18n="lay_duh">DUH Hitze-Ampel (Stadtteile)</span></span>
     <span class="lstatus" id="st-duh_ampel"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('traffic_co2')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('traffic_co2')">
     <button class="ltoggle" id="tog-traffic_co2"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 11 7 6h10l2 5"/><rect x="3" y="11" width="18" height="6" rx="2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg> <span data-i18n="lay_tco2">Verkehrs-CO₂ (Emissionen)</span></span>
     <span class="lstatus" id="st-traffic_co2"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('raumklang')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('raumklang')">
     <button class="ltoggle" id="tog-raumklang"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 10v4h4l5 4V6l-5 4H3z"/><path d="M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14"/></svg> <span data-i18n="lay_sound">Raumklang (Schallausbreitung)</span></span>
     <span class="lstatus" id="st-raumklang"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('flood')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('flood')">
     <button class="ltoggle" id="tog-flood"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/></svg> <span data-i18n="lay_flood">Hochwasser HQ100 — Gebäude</span></span>
     <span class="lstatus" id="st-flood"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('heat')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('heat')">
     <button class="ltoggle" id="tog-heat"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> <span data-i18n="lay_heat">Hitzeinsel — Gebäude-Level</span></span>
     <span class="lstatus" id="st-heat"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('paw')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('paw')">
     <button class="ltoggle" id="tog-paw"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/><path d="M9.5 13.5 12 11l2.5 2.5"/></svg> <span data-i18n="lay_paw">Pflanzenverfügbares Wasser — Dürre</span></span>
     <span class="lstatus" id="st-paw"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('noise')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('noise')">
     <button class="ltoggle" id="tog-noise"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg> <span data-i18n="lay_noise">Lärmbelastung Straße</span></span>
     <span class="lstatus" id="st-noise"></span>
   </div>
-  <div class="lrow ffm-only" onclick="toggleLayer('flight_noise')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow ffm-only" onclick="toggleLayer('flight_noise')">
     <button class="ltoggle" id="tog-flight_noise"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg> <span data-i18n="lay_flight">Fluglärm-Zonen FRA</span></span>
     <span class="lstatus" id="st-flight_noise"></span>
@@ -848,7 +896,7 @@ body.free-mode #heatWarn{top:106px}
 
   <div class="lp-section s-eco"><span data-i18n="sec_mob">Mobilität & Wege</span></div>
 
-  <div class="lrow" onclick="toggleLayer('bike')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('bike')">
     <button class="ltoggle" id="tog-bike"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h2l-3.5 7H9l-2 4.5"/><path d="m9 13-2-7h3"/></svg> <span data-i18n="lay_bike">Radwege (Qualitätsstufen)</span></span>
     <span class="lstatus" id="st-bike"></span>
@@ -856,17 +904,17 @@ body.free-mode #heatWarn{top:106px}
 
   <div class="lp-section s-eco">Daseinsvorsorge &amp; Kreislauf (OSM)</div>
 
-  <div class="lrow" onclick="toggleLayer('dv_repair')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('dv_repair')">
     <button class="ltoggle" id="tog-dv_repair"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg> <span data-i18n="lay_repair">Reparieren &amp; Wiederverwenden</span></span>
     <span class="lstatus" id="st-dv_repair"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('dv_waste')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('dv_waste')">
     <button class="ltoggle" id="tog-dv_waste"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M8 6V4h8v2"/></svg> <span data-i18n="lay_waste">Entsorgen &amp; Recyceln</span></span>
     <span class="lstatus" id="st-dv_waste"></span>
   </div>
-  <div class="lrow" onclick="toggleBiodiv()">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleBiodiv()">
     <button class="ltoggle" id="tog-biodiv"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M11 20A7 7 0 0 1 4 13C4 7 9 3 20 4c1 11-3 16-9 16Z"/><path d="M4 21c4-4 7-6 12-8"/></svg> <span data-i18n="lay_biodiv">Heimische Arten (GBIF)</span></span>
     <span class="lstatus" id="st-biodiv"></span>
@@ -874,22 +922,22 @@ body.free-mode #heatWarn{top:106px}
 
   <div class="lp-section"><span data-i18n="sec_infra">Infrastruktur & Alltagsorte</span></div>
 
-  <div class="lrow" onclick="toggleLayer('parks')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('parks')">
     <button class="ltoggle" id="tog-parks"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M11 20A7 7 0 0 1 4 13C4 7 9 3 20 4c1 11-3 16-9 16Z"/><path d="M4 21c4-4 7-6 12-8"/></svg> <span data-i18n="lay_parks">Parks & Grünflächen</span></span>
     <span class="lstatus" id="st-parks"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('schools')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('schools')">
     <button class="ltoggle" id="tog-schools"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m22 9-10-5L2 9l10 5 10-5Z"/><path d="M6 11v5c0 1.6 2.7 3 6 3s6-1.4 6-3v-5"/></svg> <span data-i18n="lay_schools">Schulen & Kitas</span></span>
     <span class="lstatus" id="st-schools"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('health')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('health')">
     <button class="ltoggle" id="tog-health"></button>
     <span class="lname"><span data-i18n="lay_health">Ärzte & Gesundheit</span></span>
     <span class="lstatus" id="st-health"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('community')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('community')">
     <button class="ltoggle" id="tog-community"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5"/></svg> <span data-i18n="lay_community">Community Places</span></span>
     <span class="lstatus" id="st-community"></span>
@@ -899,28 +947,28 @@ body.free-mode #heatWarn{top:106px}
 
   <div class="lp-section ffm-only"><span data-i18n="sec_official">Amtliche Klimadaten — Land Hessen</span></div>
 
-  <div class="lrow ffm-only" onclick="toggleLayer('hessen_heat')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow ffm-only" onclick="toggleLayer('hessen_heat')">
     <button class="ltoggle" id="tog-hessen_heat"></button>
     <span class="lname" title="Methode: LST-Hitzestress, HLNUG (amtlich)"><span data-i18n="lay_hessen_heat">Hitzestress — amtliche Messung</span></span>
     <span class="lstatus" id="st-hessen_heat"></span>
   </div>
-  <div class="lrow ffm-only" onclick="toggleLayer('hessen_lcz')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow ffm-only" onclick="toggleLayer('hessen_lcz')">
     <button class="ltoggle" id="tog-hessen_lcz"></button>
     <span class="lname" title="Methode: Local Climate Zones (LCZ)"><span data-i18n="lay_hessen_lcz">Versiegelung & Stadtklima-Zonen</span></span>
     <span class="lstatus" id="st-hessen_lcz"></span>
   </div>
 
-  <div class="lrow" onclick="toggleLayer('schools_heat')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('schools_heat')">
     <button class="ltoggle" id="tog-schools_heat"></button>
     <span class="lname"><span data-i18n="lay_schools_heat">Schulen in Hitzezonen</span></span>
     <span class="lstatus" id="st-schools_heat"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('noise_residential')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('noise_residential')">
     <button class="ltoggle" id="tog-noise_residential"></button>
     <span class="lname"><span data-i18n="lay_noise_res">Lärm × Wohngebäude</span></span>
     <span class="lstatus" id="st-noise_residential"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('green_deficit')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('green_deficit')">
     <button class="ltoggle" id="tog-green_deficit"></button>
     <span class="lname"><span data-i18n="lay_green_def">Grün-Defizit je Gebäude</span></span>
     <span class="lstatus" id="st-green_deficit"></span>
@@ -928,37 +976,37 @@ body.free-mode #heatWarn{top:106px}
 
   <div class="lp-section s-soc"><span data-i18n="sec_soc2" title="Methodik: Placemaking-Kriterien (PPS)">Aufenthalt & soziales Leben</span></div>
 
-  <div class="lrow" onclick="toggleLayer('trees')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('trees')">
     <button class="ltoggle" id="tog-trees"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 8 9h2l-4 6h12l-4-6h2l-4-6Z"/><path d="M12 15v6"/></svg> <span data-i18n="lay_trees">Straßenbäume & Alleen</span></span>
     <span class="lstatus" id="st-trees"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('benches')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('benches')">
     <button class="ltoggle" id="tog-benches"></button>
     <span class="lname"><span data-i18n="lay_benches_q">Bänke — Qualitätsstufen</span></span>
     <span class="lstatus" id="st-benches"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('footways_quality')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('footways_quality')">
     <button class="ltoggle" id="tog-footways_quality"></button>
     <span class="lname"><span data-i18n="lay_foot_q">Fußwege — Qualitätsstufen</span></span>
     <span class="lstatus" id="st-footways_quality"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('retail')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('retail')">
     <button class="ltoggle" id="tog-retail"></button>
     <span class="lname"><span data-i18n="lay_retail2">Lokaler Handel vs. Kette</span></span>
     <span class="lstatus" id="st-retail"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('social')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('social')">
     <button class="ltoggle" id="tog-social"></button>
     <span class="lname"><span data-i18n="lay_social2">Treffpunkte (Café, Spiel, Brunnen)</span></span>
     <span class="lstatus" id="st-social"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('sport')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('sport')">
     <button class="ltoggle" id="tog-sport"></button>
     <span class="lname"><span data-i18n="lay_sport2">Sport & Freizeit</span></span>
     <span class="lstatus" id="st-sport"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('parking')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('parking')">
     <button class="ltoggle" id="tog-parking"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M5 11 7 6h10l2 5"/><rect x="3" y="11" width="18" height="6" rx="2"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg> <span data-i18n="lay_parking">Parkplätze — Auto-Dominanz</span></span>
     <span class="lstatus" id="st-parking"></span>
@@ -987,37 +1035,37 @@ body.free-mode #heatWarn{top:106px}
   <div style="font-size:9px;color:var(--muted);margin-bottom:8px;padding:5px 7px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
     <span data-i18n="hint_europe">Funktioniert in jeder Stadt: hinzoomen (ab Zoom 14), Layer einschalten. Lädt beim Verschieben automatisch nach.</span>
   </div>
-  <div class="lrow" onclick="toggleLayer('osm_trees')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('osm_trees')">
     <button class="ltoggle" id="tog-osm_trees"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3 8 9h2l-4 6h12l-4-6h2l-4-6Z"/><path d="M12 15v6"/></svg> <span data-i18n="lay_osm_trees">Bäume (live)</span></span>
     <span class="lstatus" id="st-osm_trees"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('osm_drinking')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('osm_drinking')">
     <button class="ltoggle" id="tog-osm_drinking"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/><path d="M8 21h8"/></svg> <span data-i18n="lay_osm_drink">Trinkbrunnen (live)</span></span>
     <span class="lstatus" id="st-osm_drinking"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('osm_benches')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('osm_benches')">
     <button class="ltoggle" id="tog-osm_benches"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 9h16M5 9v8M19 9v8M3 13.5h18"/></svg> <span data-i18n="lay_osm_bench">Bänke (live)</span></span>
     <span class="lstatus" id="st-osm_benches"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('osm_schools')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('osm_schools')">
     <button class="ltoggle" id="tog-osm_schools"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="m22 9-10-5L2 9l10 5 10-5Z"/><path d="M6 11v5c0 1.6 2.7 3 6 3s6-1.4 6-3v-5"/></svg> <span data-i18n="lay_osm_school">Schulen & Kitas (live)</span></span>
     <span class="lstatus" id="st-osm_schools"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('osm_health')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('osm_health')">
     <button class="ltoggle" id="tog-osm_health"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg> <span data-i18n="lay_osm_health">Gesundheit (live)</span></span>
     <span class="lstatus" id="st-osm_health"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('osm_transit')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('osm_transit')">
     <button class="ltoggle" id="tog-osm_transit"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 9h16M8 17v2.5M16 17v2.5"/><circle cx="8.5" cy="13.5" r=".8"/><circle cx="15.5" cy="13.5" r=".8"/></svg> <span data-i18n="lay_osm_transit">ÖPNV-Haltestellen (live)</span></span>
     <span class="lstatus" id="st-osm_transit"></span>
   </div>
-  <div class="lrow" onclick="toggleLayer('osm_lamps')">
+  <div tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" class="lrow" onclick="toggleLayer('osm_lamps')">
     <button class="ltoggle" id="tog-osm_lamps"></button>
     <span class="lname"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.6-1 1.2-1 2H9c0-.8-.3-1.4-1-2A6 6 0 0 1 12 3Z"/></svg> <span data-i18n="lay_osm_lamp">Beleuchtung (Sicherheitsgefühl)</span></span>
     <span class="lstatus" id="st-osm_lamps"></span>
@@ -1207,7 +1255,7 @@ const STR={
 };
 let lang=localStorage.getItem('ul_lang')||(((navigator.language||'').slice(0,2)==='nl')?'nl':(((navigator.language||'').slice(0,2)==='de')?'de':'en'));
 function t(k){return (STR[lang]&&STR[lang][k])||STR.de[k]||k;}
-function setLang(l){ try{setTimeout(()=>{const el=document.getElementById('heatWarn');if(el)el.classList.remove('on');loadHeatWarn();},50);}catch(e){}
+function setLang(l){ try{document.documentElement.lang=l;}catch(e){} try{setTimeout(()=>{const el=document.getElementById('heatWarn');if(el)el.classList.remove('on');loadHeatWarn();},50);}catch(e){}
   lang=l;localStorage.setItem('ul_lang',l);
   document.querySelectorAll('.lg').forEach(b=>b.classList.remove('on'));
   const lb=document.getElementById('lg-'+l);if(lb)lb.classList.add('on');
@@ -2003,14 +2051,26 @@ function initMap(){
   map.getPane('choropleth').style.pointerEvents='none'; // clicks pass through to map
   const baseVoyager=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     {attribution:'© OpenStreetMap © CARTO',maxZoom:20,maxNativeZoom:20,pane:'tilePane'}).addTo(map);
+  const baseDark=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    {attribution:'© OpenStreetMap © CARTO',maxZoom:20,maxNativeZoom:20,pane:'tilePane'});
   const satImg=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {attribution:'© Esri · Maxar · Earthstar Geographics',maxZoom:20,maxNativeZoom:19,pane:'tilePane'});
   const satLabels=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
     {maxZoom:20,maxNativeZoom:20,pane:'tilePane'});
   window.setBasemap=function(mode){ if(mode===BASEMAP)return; BASEMAP=mode;
-    if(mode==='sat'){ map.removeLayer(baseVoyager); satImg.addTo(map); satLabels.addTo(map); }
-    else { map.removeLayer(satImg); map.removeLayer(satLabels); baseVoyager.addTo(map); }
+    [baseVoyager,baseDark,satImg,satLabels].forEach(l=>{try{map.removeLayer(l);}catch(e){}});
+    if(mode==='sat'){ satImg.addTo(map); satLabels.addTo(map); }
+    else (window.THEME==='dark'?baseDark:baseVoyager).addTo(map);
     document.querySelectorAll('#baseToggle button').forEach(b=>b.classList.toggle('on',b.dataset.bm===mode)); };
+  // Analysis Mode: dunkles Theme + dunkle Basemap (bewusster Modus, gemerkt)
+  window.applyTheme=function(t){
+    window.THEME=t;document.body.classList.toggle('dark',t==='dark');
+    try{localStorage.setItem('nh_theme',t);}catch(e){}
+    if(BASEMAP!=='sat'){[baseVoyager,baseDark].forEach(l=>{try{map.removeLayer(l);}catch(e){}});(t==='dark'?baseDark:baseVoyager).addTo(map);}
+    const b=document.getElementById('themeBtn');if(b)b.classList.toggle('on',t==='dark');
+  };
+  window.toggleTheme=function(){applyTheme(window.THEME==='dark'?'light':'dark');};
+  try{if(localStorage.getItem('nh_theme')==='dark')applyTheme('dark');}catch(e){}
   L.control.zoom({position:'bottomright'}).addTo(map);
   map.on('click',e=>{ if(INSPECT.active)inspectAt(e.latlng); if(typeof MIT!=='undefined'&&MIT.active&&MIT.tab==='report')reportPick(e.latlng); });
   const urlCity=new URLSearchParams(location.search).get('city');
@@ -3082,7 +3142,7 @@ function renderMitPanel(){
    :lang==='nl'?{t:'Meedoen',sub:'Melden & prioriteren — jouw inbreng',rep:'Melden',pri:'Prioriteren',tri:'Beoordelen',hint:'Klik op de kaart om een probleem te melden.',none:'Nog geen meldingen.',votes:'stemmen',vlabel:'Bewoners & actoren prioriteren maatregelen:',proto:'Prototype — lokaal opgeslagen. Echt gebruik vereist een gedeelde backend.',triHint:'Beheerweergave: meldingen beoordelen, naar de locatie springen, afronden.',all:'Alle',done:'Klaar'}
    :{t:'Mitwirken',sub:'Melden & priorisieren — deine Stimme',rep:'Melden',pri:'Priorisieren',tri:'Sichten',hint:'Auf die Karte klicken, um ein Problem zu melden.',none:'Noch keine Meldungen.',votes:'Stimmen',vlabel:'Bewohner & Akteure priorisieren Maßnahmen:',proto:'Prototyp — lokal im Browser gespeichert. Echtbetrieb braucht ein gemeinsames Backend.',triHint:'Verwaltungsansicht: Meldungen sichten, zum Ort springen, als erledigt abschließen.',all:'Alle',done:'Erledigt'};
   const tab=(k,l)=>`<button onclick="mitTab('${k}')" style="flex:1;border:none;background:${MIT.tab===k?'var(--social)':'var(--surface2)'};color:${MIT.tab===k?'#fff':'var(--text2)'};padding:7px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">${l}</button>`;
-  let body=`<div class="ap-head"><div><div class="ap-ttl">${T.t}</div><div class="ap-sub">${T.sub}</div></div><button class="ap-x" onclick="toggleMitwirkung()">✕</button></div><div class="ap-body">
+  let body=`<div class="ap-head"><div><div class="ap-ttl">${T.t}</div><div class="ap-sub">${T.sub}</div></div><button class="ap-x" aria-label="${mT('Schließen','Close','Sluiten')}" onclick="toggleMitwirkung()">✕</button></div><div class="ap-body">
     <div style="display:flex;gap:6px;margin-bottom:11px">${tab('report',T.rep)}${tab('prioritise',T.pri)}${tab('triage',T.tri)}</div>`;
   if(MIT.tab==='triage'){
     map.getContainer().style.cursor='';
@@ -3269,7 +3329,7 @@ function heatPanel(state,st){
   const T=lang==='en'?{t:'Heat & cooling simulation',zoom:'Zoom in (level 13+).',load:'Computing heat grid…',err:'No data.',sub:'Urban heat + what-if cooling',trees:'Tree planting',deseal:'De-sealing',green:'New green space',hot:'Heat hotspots (>2.5 °C)',avg:'Avg heat anomaly',proj:'After cooling',cells:'cells'}
    :lang==='nl'?{t:'Hitte- & koelsimulatie',zoom:'Zoom in (niveau 13+).',load:'Hitteraster berekenen…',err:'Geen data.',sub:'Stedelijke hitte + koeling',trees:'Bomen planten',deseal:'Ontharding',green:'Nieuw groen',hot:'Hittepunten (>2,5 °C)',avg:'Gem. hitteanomalie',proj:'Na koeling',cells:'cellen'}
    :{t:'Hitze-Kühlsimulation',zoom:'Näher zoomen (Zoom 13+).',load:'Wärmeraster wird berechnet…',err:'Keine Daten.',sub:'Urbane Hitze + Was-wäre-wenn-Kühlung',trees:'Baumpflanzung',deseal:'Entsiegelung',green:'Neue Grünfläche',hot:'Hitze-Brennpunkte (>2,5 °C)',avg:'Ø Hitze-Anomalie',proj:'Nach Kühlung',cells:'Zellen'};
-  const head=`<div class="ap-head"><div><div class="ap-ttl">${T.t}</div><div class="ap-sub">${T.sub}</div></div><button class="ap-x" onclick="toggleHeatSim()">✕</button></div>`;
+  const head=`<div class="ap-head"><div><div class="ap-ttl">${T.t}</div><div class="ap-sub">${T.sub}</div></div><button class="ap-x" aria-label="${mT('Schließen','Close','Sluiten')}" onclick="toggleHeatSim()">✕</button></div>`;
   if(state==='zoom'){P.innerHTML=head+`<div class="ap-body"><div style="font-size:11px;color:var(--muted);padding:10px 0">${T.zoom}</div></div>`;return;}
   if(state==='load'){P.innerHTML=head+`<div class="ap-body"><div style="text-align:center;padding:20px 0"><span class="loading-dot"></span> ${T.load}</div></div>`;return;}
   if(state==='err'){P.innerHTML=head+`<div class="ap-body"><div style="font-size:11px;color:var(--muted);padding:10px 0">${T.err}</div></div>`;return;}
@@ -3395,7 +3455,7 @@ function renderStreetPanel(state){
   const T=lang==='en'?{t:'Streets & measures',hint:'Click streets to select & apply a measure · click open space for point surroundings.',zoom:'Zoom in to street level (15+).',load:'Loading streets…',err:'Overpass busy, try again.',sel:'Selected',len:'Length',trees:'Trees along',none:'No street selected yet.',apply:'Apply measures',proj:'Projection',plant:'Plant street trees',bench:'Add benches',calm:'Traffic calming (Tempo 30)',newt:'New trees',cost:'Est. cost',fund:'75% fundable (Stadtgrün/BEG)',shade:'Shaded length'}
     :lang==='nl'?{t:'Straten & maatregelen',hint:'Klik straten aan & pas een maatregel toe · klik open ruimte voor puntomgeving.',zoom:'Zoom in tot straatniveau (15+).',load:'Straten laden…',err:'Overpass bezet, opnieuw.',sel:'Geselecteerd',len:'Lengte',trees:'Bomen langs',none:'Nog geen straat geselecteerd.',apply:'Maatregelen toepassen',proj:'Projectie',plant:'Straatbomen planten',bench:'Bankjes toevoegen',calm:'Verkeersluw (30 km/u)',newt:'Nieuwe bomen',cost:'Geschatte kosten',fund:'75% subsidiabel',shade:'Beschaduwde lengte'}
     :{t:'Straßen & Maßnahmen',hint:'Straßen anklicken & Maßnahme anwenden · freie Fläche anklicken für Punkt-Umfeld.',zoom:'Auf Straßenebene zoomen (15+).',load:'Straßen werden geladen…',err:'Overpass ausgelastet, erneut versuchen.',sel:'Ausgewählt',len:'Länge',trees:'Bäume entlang',none:'Noch keine Straße ausgewählt.',apply:'Maßnahmen anwenden',proj:'Projektion',plant:'Straßenbäume pflanzen',bench:'Sitzbänke ergänzen',calm:'Verkehrsberuhigung (Tempo 30)',newt:'Neue Bäume',cost:'Geschätzte Kosten',fund:'75% förderbar (Stadtgrün/BEG)',shade:'Beschattete Länge'};
-  let head=`<div class="ap-head"><div><div class="ap-ttl">${T.t}</div><div class="ap-sub">${STREET.sel.size} ${T.sel.toLowerCase()}</div></div><button class="ap-x" onclick="toggleStreetMode()">✕</button></div>`;
+  let head=`<div class="ap-head"><div><div class="ap-ttl">${T.t}</div><div class="ap-sub">${STREET.sel.size} ${T.sel.toLowerCase()}</div></div><button class="ap-x" aria-label="${mT('Schließen','Close','Sluiten')}" onclick="toggleStreetMode()">✕</button></div>`;
   if(state==='zoom'){P.innerHTML=head+`<div class="ap-body"><div style="font-size:11px;color:var(--muted);padding:10px 0">${T.zoom}</div></div>`;return;}
   if(state==='load'){P.innerHTML=head+`<div class="ap-body"><div style="text-align:center;padding:20px 0"><span class="loading-dot"></span> ${T.load}</div></div>`;return;}
   if(state==='err'){P.innerHTML=head+`<div class="ap-body"><div style="font-size:11px;color:var(--muted);padding:10px 0">${T.err}</div></div>`;return;}
@@ -3547,7 +3607,7 @@ function analyzeArea(ll){
   const b=L.latLngBounds(ll);
   const areaM2=polyAreaM2(ll), ha=areaM2/10000;
   document.getElementById('areaPanel').classList.add('open');
-  document.getElementById('areaPanel').innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${lang==='en'?'Area analysis':lang==='nl'?'Gebiedsanalyse':'Gebiets-Analyse'}</div><div class="ap-sub">${ha.toFixed(1)} ha · ${Math.round(areaM2).toLocaleString('de-DE')} m²</div></div><div style="display:flex;gap:6px;align-items:center"><button class="cite-btn" onclick="areaPDF()" style="padding:4px 8px">${ic('download',12)} PDF</button><button class="ap-x" onclick="closeArea()">✕</button></div></div><div class="ap-body" id="apBody"><div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div></div>`;
+  document.getElementById('areaPanel').innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${lang==='en'?'Area analysis':lang==='nl'?'Gebiedsanalyse':'Gebiets-Analyse'}</div><div class="ap-sub">${ha.toFixed(1)} ha · ${Math.round(areaM2).toLocaleString('de-DE')} m²</div></div><div style="display:flex;gap:6px;align-items:center"><button class="cite-btn" onclick="areaPDF()" style="padding:4px 8px">${ic('download',12)} PDF</button><button class="ap-x" aria-label="${mT('Schließen','Close','Sluiten')}" onclick="closeArea()">✕</button></div></div><div class="ap-body" id="apBody"><div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div></div>`;
   getAreaEls(b).then(els=>{
     if(!els){document.getElementById('apBody').innerHTML='<div style="font-size:11px;color:var(--muted);padding:10px 0">Keine Daten verfügbar.</div>';return;}
     const inArea=p=>diagPointInPoly(p[0],p[1],ring);
@@ -3739,7 +3799,7 @@ function toggleMission(){
   MISSION.active=true;document.getElementById('tool-mission').classList.add('on');
   try{closeArea();}catch(e){}
   const p=document.getElementById('missionPanel');p.classList.add('open');
-  p.innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${mT('Missionen','Missions','Missies')}</div><div class="ap-sub">${CITY_CFG[city].name} · ${mT('Daten → Priorität → Maßnahme → Wirkung','Data → priority → action → impact','Data → prioriteit → maatregel → effect')}</div></div><button class="ap-x" onclick="closeMission()">✕</button></div><div class="ap-body" id="msBody"><div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div></div>`;
+  p.innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${mT('Missionen','Missions','Missies')}</div><div class="ap-sub">${CITY_CFG[city].name} · ${mT('Daten → Priorität → Maßnahme → Wirkung','Data → priority → action → impact','Data → prioriteit → maatregel → effect')}</div></div><button class="ap-x" aria-label="${mT('Schließen','Close','Sluiten')}" onclick="closeMission()">✕</button></div><div class="ap-body" id="msBody"><div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div></div>`;
   document.body.classList.add('mission-on');try{renderMap();}catch(e){}
   if(MISSION.view==='home'||!MISSION.kind)missionHome(); else missionLoad();
 }
@@ -3841,7 +3901,7 @@ function renderMission(){
    </div>
    <div class="ibox">${mT('Finanziert','Funds','Financiert')} <b>${pick.length} ${mT('Schulen','schools','scholen')}</b> (${fmt(sum)}) — ~<b>${(pick.length*350).toLocaleString('de-DE')}</b> ${mT('Kinder erreicht (Schätzwert 350/Schule — OSM ohne Schülerzahlen)','children reached (est. 350/school — OSM lacks enrolment)','kinderen bereikt (schatting 350/school)')} · ${mT('erwartete lokale Kühlung','expected local cooling','verwachte lokale koeling')} −1,0–2,1 °C.</div>
    <div class="ap-sec">${mT('Prioritätenliste','Priority list','Prioriteitenlijst')} <span class="ms-badge">${mT('Klick öffnet Fall','click opens case','klik opent casus')}</span> <span id="csCount"></span></div>
-   ${S.slice(0,12).map((s,i)=>`<div class="ms-item" onclick="missionCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${csDot(caseId('SCH',i))}<b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.versieg!=null?s.versieg+' % '+mT('vers.','sealed','verh.')+' · ':''}${mT('Grün','green','groen')} ${s.gd} m</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
+   ${S.slice(0,12).map((s,i)=>`<div class="ms-item" tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" onclick="missionCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${csDot(caseId('SCH',i))}<b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.versieg!=null?s.versieg+' % '+mT('vers.','sealed','verh.')+' · ':''}${mT('Grün','green','groen')} ${s.gd} m</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
    <div style="margin-top:10px"><button onclick="missionPDF()" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">${ic('download',13)} ${mT('Missions-Bericht (PDF)','Mission report (PDF)','Missierapport (PDF)')}</button></div>
    <div style="font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">${mT('Priorität = 35 % Hitze (Copernicus LST, gemessen) + 25 % soziale Verwundbarkeit (Kinderarmut, amtlich/Wijk) + 20 % Versiegelung + 20 % Grün-Distanz (OSM), relativ im Stadtvergleich skaliert. Komponenten je Fall sichtbar — der Score verdeckt nie die Begründung.','Priority = 35 % heat (Copernicus LST, measured) + 25 % social vulnerability (official, district) + 20 % sealing + 20 % green distance (OSM), scaled relative within the city. Components visible per case — the score never hides the reasoning.','Prioriteit = 35 % hitte (gemeten) + 25 % sociale kwetsbaarheid + 20 % verharding + 20 % groenafstand, relatief binnen de stad. Componenten per casus zichtbaar.')}</div>`;
   missionListBadge();
@@ -4042,7 +4102,7 @@ function renderStreets(){
    </div>
    <div class="ibox">${mT('Finanziert den Umbau von','Funds the redesign of','Financiert de herinrichting van')} <b>${pick.length} ${mT('Straßen','streets','straten')}</b> (${fmt(sum)}, ${pick.reduce((a,s)=>a+s.n,0)} ${mT('Segmente','segments','segmenten')}) — ${mT('erwartete lokale Kühlung','expected local cooling','verwachte lokale koeling')} −0,8–1,8 °C ${mT('je Straßenzug','per street corridor','per straat')}.</div>
    <div class="ap-sec">${mT('Prioritätenliste','Priority list','Prioriteitenlijst')} <span class="ms-badge">${mT('Klick öffnet Fall','click opens case','klik opent casus')}</span> <span id="csCount"></span></div>
-   ${S.slice(0,12).map((s,i)=>`<div class="ms-item" onclick="streetCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${csDot(caseId('STR',i))}<b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.trees} ${mT('Bäume/150 m','trees/150 m','bomen/150 m')} · ${s.n} ${mT('Seg.','seg.','seg.')}</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
+   ${S.slice(0,12).map((s,i)=>`<div class="ms-item" tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" onclick="streetCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${csDot(caseId('STR',i))}<b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.trees} ${mT('Bäume/150 m','trees/150 m','bomen/150 m')} · ${s.n} ${mT('Seg.','seg.','seg.')}</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
    <div style="margin-top:10px"><button onclick="streetsPDF()" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">${ic('download',13)} ${mT('Missions-Bericht (PDF)','Mission report (PDF)','Missierapport (PDF)')}</button></div>
    <div style="font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">${mT('Priorität je Segment = 35 % Hitze (Copernicus LST, gemessen) + 25 % Schatten-Defizit (Baum-Proxy) + 20 % Versiegelung + 20 % soziale Verwundbarkeit (amtlich/Wijk); je Straße gemittelt und relativ im Stadtvergleich skaliert. Schnellstraßen (≥ 70 km/h) grau: keine Umbau-Kandidaten. Untergrund-Leitungen & geplante Straßenarbeiten erfordern kommunale Daten (Phase 2).','Priority per segment = 35 % heat (Copernicus LST, measured) + 25 % shade deficit (tree proxy) + 20 % sealing + 20 % social vulnerability (official, district); averaged per street and scaled relative within the city. High-speed roads (≥ 70 km/h) grey: not redesign candidates. Subsurface utilities & planned roadworks require municipal data (phase 2).','Prioriteit per segment = 35 % hitte (gemeten) + 25 % schaduwtekort (boomproxy) + 20 % verharding + 20 % sociale kwetsbaarheid; per straat gemiddeld en relatief geschaald. Snelwegen (≥ 70 km/u) grijs: geen kandidaten. Ondergrondse leidingen & geplande werken vergen gemeentedata (fase 2).')}</div>`;
   missionListBadge();
@@ -4510,7 +4570,7 @@ function toggleBiodiv(){
 function renderBiodiv(){
   const P=document.getElementById('biodivPanel');
   const ttl=lang==='nl'?'Inheemse soorten':lang==='en'?'Native species':'Heimische Arten';
-  P.innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${ttl}</div><div class="ap-sub">Utrecht · GBIF</div></div><button class="ap-x" onclick="toggleBiodiv()">✕</button></div><div class="ap-body"><div style="text-align:center;padding:16px 0"><span class="loading-dot"></span></div></div>`;
+  P.innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${ttl}</div><div class="ap-sub">Utrecht · GBIF</div></div><button class="ap-x" aria-label="${mT('Schließen','Close','Sluiten')}" onclick="toggleBiodiv()">✕</button></div><div class="ap-body"><div style="text-align:center;padding:16px 0"><span class="loading-dot"></span></div></div>`;
   loadBiodivData().then(b=>{
     if(!b){P.querySelector('.ap-body').innerHTML=`<div style="font-size:11px;color:var(--muted);padding:10px 0">${lang==='nl'?'Geen soortdata voor deze stad.':lang==='en'?'No species data for this city.':'Keine Artendaten für diese Stadt.'}</div>`;return;}
     const G=[['birds',{de:'Vögel',en:'Birds',nl:'Vogels'}],['mammals',{de:'Säugetiere',en:'Mammals',nl:'Zoogdieren'}],['insects',{de:'Insekten',en:'Insects',nl:'Insecten'}],['herps',{de:'Amphibien & Reptilien',en:'Amphibians & reptiles',nl:'Amfibieën & reptielen'}],['plants',{de:'Pflanzen',en:'Plants',nl:'Planten'}],['fungi',{de:'Pilze',en:'Fungi',nl:'Paddenstoelen'}]];
@@ -5639,7 +5699,7 @@ function renderList(filter=''){
     const isDouble=s<45&&d.wb<50;
     const risks=[d.hw?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/></svg> ':'',d.heat?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> ':'',d.noise>70?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg> ':''].filter(Boolean).join('');
     // Use data-name attribute + event delegation instead of inline onclick with city string
-    return`<div class="sti${selected===n?' active':''}" data-area="${n}">
+    return`<div class="sti${selected===n?' active':''}" data-area="${n}" tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()">
       <div class="stq" style="background:${col}18;color:${col};border-color:${col}">${s}</div>
       <div class="stinfo">
         <div class="stname">${n}</div>
@@ -6739,7 +6799,7 @@ function renderIntro(){const t=INTRO_TXT[lang]||INTRO_TXT.de;
     `<div class="intro-roles">${t.roles.map((r,i)=>`<button class="intro-role" onclick="introGo('${r.go}')"><span class="ri">${ROLE_IC[i]}</span><span class="rt"><b>${r.b}</b><span>${r.s}</span></span><span class="ra">→</span></button>`).join('')}</div>`;
 }
 function showIntro(force){ if(!force){ if(hasDeepLink())return; try{if(localStorage.getItem('nh_intro_v1'))return;}catch(e){}} renderIntro(); document.getElementById('introOverlay').classList.add('on'); }
-function closeIntro(){ document.getElementById('introOverlay').classList.remove('on'); try{localStorage.setItem('nh_intro_v1','1');}catch(e){} }
+function closeIntro(){ document.getElementById('introOverlay').classList.remove('on'); try{localStorage.setItem('nh_intro_v1','1');}catch(e){} setTimeout(()=>{try{coachStart();}catch(e){}},500); }
 function openIntro(){ showIntro(true); }
 if(!document.body.classList.contains('embed'))setTimeout(()=>{try{showIntro(false);}catch(e){}},600);   // Intro nicht im iframe/Embed automatisch zeigen
 
@@ -6846,6 +6906,130 @@ if(!document.body.classList.contains('embed'))setTimeout(()=>{try{if(hasDeepLink
 function resetLayers(){
   try{Object.keys(activeLayers).forEach(k=>{if(activeLayers[k])toggleLayer(k);});}catch(e){}
   try{document.querySelectorAll('.lens-btn2.on').forEach(b=>b.classList.remove('on'));}catch(e){}
+}
+
+// ── Kommandopalette (Cmd/Ctrl+K): Stadtteil, Mission, Werkzeug, Seite ──
+const CK={idx:0,items:[]};
+function ckBuild(){
+  const it=[];const P=(t,s,k,f)=>it.push({t,s,k:(t+' '+k).toLowerCase(),f});
+  try{Object.entries(CITY_CFG[city].data).forEach(([n,d])=>P(n,mT('Stadtteil','District','Wijk')+' · NICE '+nice(d),'stadtteil district wijk',()=>openDrawer(n,d)));}catch(e){}
+  MISSIONS.filter(m=>m.live).forEach(m=>P(mT(m.t[0],m.t[1],m.t[2]),'Mission','mission missie',()=>{if(!MISSION.active)toggleMission();chooseMission(m.kind);}));
+  P(mT('Missionen — Übersicht','Missions — overview','Missies — overzicht'),'Mission','mission launcher',()=>{if(!MISSION.active)toggleMission();missionHome();});
+  P('Layer',mT('Werkzeug','Tool','Tool'),'layer lagen ebenen data',()=>toggleLayerPanel());
+  P(mT('Analyse','Analyse','Analyse'),mT('Werkzeug','Tool','Tool'),'strasse street measure',()=>toggleAnalyse());
+  P(mT('Kühlung','Cooling','Koeling'),mT('Werkzeug','Tool','Tool'),'hitze heat sim',()=>toggleHeatSim());
+  P(mT('Mitwirken','Engage','Meedoen'),mT('Werkzeug','Tool','Tool'),'melden report triage',()=>toggleMitwirkung());
+  P(mT('Gebiet analysieren','Analyse area','Gebied analyseren'),mT('Werkzeug','Tool','Tool'),'area zeichnen draw',()=>startAreaDraw());
+  P('3D',mT('Ansicht','View','Weergave'),'gebaeude buildings skyline',()=>enter3D());
+  P(mT('Karte zurücksetzen','Reset map layers','Kaartlagen resetten'),mT('Aktion','Action','Actie'),'reset alles aus all off',()=>resetLayers());
+  P(mT('Morning Briefing zeigen','Show morning briefing','Briefing tonen'),mT('Aktion','Action','Actie'),'briefing guten morgen',()=>showBriefing(true));
+  P('Dashboard',mT('Seite','Page','Pagina'),'kpi bericht',()=>{location.href='dashboard.html';});
+  P(mT('Methodik','Methodology','Methodiek'),mT('Seite','Page','Pagina'),'quellen sources methode',()=>{location.href='methodik.html';});
+  P(city==='utr'?'Frankfurt':'Utrecht',mT('Stadt wechseln','Switch city','Stad wisselen'),'stadt city switch wissel',()=>switchCity(city==='utr'?'ffm':'utr'));
+  P(mT('Stadtteile vergleichen','Compare districts','Wijken vergelijken'),mT('Analyse','Analysis','Analyse'),'vergleich compare wijk versus',()=>cmpOpen(typeof selected==='string'?selected:null));
+  P('Analysis Mode',mT('Dunkles Theme','Dark theme','Donker thema'),'dark dunkel theme donker',()=>toggleTheme());
+  return it;
+}
+
+// ── Stadtteil-Vergleich: zwei Wijks nebeneinander, Unterschiede markiert ──
+function cmpOpen(a){
+  const data=CITY_CFG[city].data, names=Object.keys(data);
+  if(names.length<2)return;
+  const scores=names.slice().sort((x,y)=>nice(data[x])-nice(data[y]));
+  const A=(a&&names.includes(a))?a:scores[0];
+  const B=names.includes(window.__cmpB)&&window.__cmpB!==A?window.__cmpB:(scores.find(n=>n!==A&&nice(data[n])>=55)||scores[scores.length-1]);
+  let ov=document.getElementById('cmpOv');
+  if(!ov){ov=document.createElement('div');ov.id='cmpOv';ov.className='';ov.style.cssText=document.getElementById('ckOv')?'':'';
+    ov.innerHTML='';document.body.appendChild(ov);}
+  ov.style.cssText='position:fixed;inset:0;z-index:2100;background:rgba(26,26,46,0.4);display:flex;align-items:flex-start;justify-content:center;padding-top:9vh;backdrop-filter:blur(2px)';
+  const sel=(id,cur,ex)=>`<select id="${id}" class="cmp-sel" onchange="cmpRender()">${names.map(n=>`<option${n===cur?' selected':''}${n===ex?' disabled':''}>${n}</option>`).join('')}</select>`;
+  ov.innerHTML=`<div class="ck-box" style="width:min(560px,calc(100vw - 28px))">
+    <div style="display:flex;align-items:center;gap:9px;padding:13px 16px;border-bottom:1px solid var(--border)">
+      <b style="font-size:13px;flex:1">${mT('Stadtteil-Vergleich','District comparison','Wijkvergelijking')}</b>
+      <button class="ap-x" aria-label="${mT('Schließen','Close','Sluiten')}" onclick="document.getElementById('cmpOv').remove()">✕</button></div>
+    <div style="display:flex;gap:8px;padding:11px 16px 0">${sel('cmpA',A,B)}<span style="align-self:center;color:var(--muted);font-weight:800">⇄</span>${sel('cmpB',B,A)}</div>
+    <div style="padding:0 16px 14px;max-height:56vh;overflow-y:auto" id="cmpBody"></div></div>`;
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  cmpRender();
+}
+function cmpRender(){
+  const data=CITY_CFG[city].data;
+  const A=document.getElementById('cmpA').value,B=document.getElementById('cmpB').value;
+  window.__cmpB=B;
+  const dA=data[A],dB=data[B];if(!dA||!dB)return;
+  const rows=[];
+  const R=(lbl,va,vb,dir,fmtV)=>{const f=fmtV||(v=>v);
+    const wa=dir==='hi'?va>vb:va<vb, wb=dir==='hi'?vb>va:vb<va;
+    rows.push(`<tr><td>${lbl}</td><td class="${va!==vb?(wa?'cmp-w':'cmp-l'):''}">${f(va)}</td><td class="${va!==vb?(wb?'cmp-w':'cmp-l'):''}">${f(vb)}</td></tr>`);};
+  R('NICE Score',nice(dA),nice(dB),'hi');
+  DIMS.forEach(dm=>{const nm=typeof introTrName==='function'?introTrName(dm.name):dm.name;R(nm,dA[dm.k],dB[dm.k],'hi');});
+  if(dA.lst_delta!=null&&dB.lst_delta!=null)R(mT('Hitzeinsel (LST-Delta)','Heat island (LST delta)','Hitte-eiland (LST-delta)'),dA.lst_delta,dB.lst_delta,'lo',v=>(v>=0?'+':'')+v+' °C');
+  if(dA.versieg!=null&&dB.versieg!=null)R(mT('Versiegelung','Sealing','Verharding'),dA.versieg,dB.versieg,'lo',v=>v+' %');
+  if(dA.kinderarmut!=null&&dB.kinderarmut!=null)R(mT('Kinderarmut','Child poverty','Kinderarmoede'),dA.kinderarmut,dB.kinderarmut,'lo',v=>v+' %');
+  if(dA.wb!=null&&dB.wb!=null)R(mT('Wahlbeteiligung','Voter turnout','Opkomst'),dA.wb,dB.wb,'hi',v=>v+' %');
+  document.getElementById('cmpBody').innerHTML=
+    `<table class="cmp-t"><thead><tr><th></th><th>${A}</th><th>${B}</th></tr></thead><tbody>${rows.join('')}</tbody></table>
+     <div style="display:flex;gap:8px;margin-top:11px">
+       <button class="bf-alt" style="flex:1" onclick="document.getElementById('cmpOv').remove();openDrawer('${A}',CITY_CFG[city].data['${A}'])">${mT('Fall','Case','Casus')} ${A}</button>
+       <button class="bf-alt" style="flex:1" onclick="document.getElementById('cmpOv').remove();openDrawer('${B}',CITY_CFG[city].data['${B}'])">${mT('Fall','Case','Casus')} ${B}</button></div>
+     <div style="font-size:9px;color:var(--muted);margin-top:8px">${mT('Grün = besserer Wert · Dimensionen 0–100 (höher = besser) · Quintile & Quellen siehe Methodik','Green = better value · dimensions 0–100 (higher = better) · quintiles & sources: see Methodology','Groen = betere waarde · dimensies 0–100 (hoger = beter) · bronnen: zie Methodiek')}</div>`;
+}
+function ckOpen(){
+  let ov=document.getElementById('ckOv');
+  if(!ov){ov=document.createElement('div');ov.id='ckOv';
+    ov.innerHTML='<div class="ck-box"><input class="ck-in" id="ckIn" placeholder="'+mT('Suchen: Stadtteil, Mission, Werkzeug…','Search: district, mission, tool…','Zoeken: wijk, missie, tool…')+'" oninput="ckRender()" onkeydown="ckKey(event)"><div class="ck-list" id="ckList"></div><div class="ck-foot">↑↓ '+mT('wählen','select','kiezen')+' · Enter '+mT('öffnen','open','openen')+' · Esc '+mT('schließen','close','sluiten')+'</div></div>';
+    ov.onclick=e=>{if(e.target===ov)ckClose();};
+    document.body.appendChild(ov);}
+  CK.items=ckBuild();CK.idx=0;
+  ov.classList.add('on');
+  const inp=document.getElementById('ckIn');inp.value='';ckRender();setTimeout(()=>inp.focus(),30);
+}
+function ckClose(){const ov=document.getElementById('ckOv');if(ov)ov.classList.remove('on');}
+function ckFiltered(){
+  const q=(document.getElementById('ckIn')?.value||'').toLowerCase().trim();
+  if(!q)return CK.items.slice(0,9);
+  return CK.items.filter(x=>q.split(/\s+/).every(w=>x.k.includes(w))).slice(0,9);
+}
+function ckRender(){
+  const L=ckFiltered();if(CK.idx>=L.length)CK.idx=Math.max(0,L.length-1);
+  document.getElementById('ckList').innerHTML=L.map((x,i)=>
+    `<div class="ck-item${i===CK.idx?' on':''}" onclick="ckGo(${i})" onmousemove="CK.idx=${i};ckPaint()"><b>${x.t}</b><small>${x.s}</small></div>`).join('')
+    ||('<div style="padding:12px 14px;font-size:11px;color:var(--muted)">'+mT('Keine Treffer.','No matches.','Geen resultaten.')+'</div>');
+}
+function ckPaint(){document.querySelectorAll('#ckList .ck-item').forEach((el,i)=>el.classList.toggle('on',i===CK.idx));}
+function ckGo(i){const L=ckFiltered();const x=L[i!=null?i:CK.idx];if(!x)return;ckClose();try{x.f();}catch(e){}}
+function ckKey(e){
+  if(e.key==='ArrowDown'){e.preventDefault();CK.idx=Math.min(ckFiltered().length-1,CK.idx+1);ckPaint();}
+  else if(e.key==='ArrowUp'){e.preventDefault();CK.idx=Math.max(0,CK.idx-1);ckPaint();}
+  else if(e.key==='Enter'){e.preventDefault();ckGo();}
+  else if(e.key==='Escape'){ckClose();}
+}
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();const ov=document.getElementById('ckOv');(ov&&ov.classList.contains('on'))?ckClose():ckOpen();}
+});
+
+// ── Coach-Marks: einmalige Kurztour nach dem Intro ──
+const COACH=[
+ {el:'.left',de:['Stadtteile im Vergleich','Rot = unteres Fünftel — dort zuerst hinschauen. Klick öffnet den Fall.'],en:['Districts compared','Red = bottom fifth — look there first. Click opens the case.'],nl:['Wijken vergeleken','Rood = onderste vijfde — kijk daar eerst. Klik opent de casus.']},
+ {el:'#tool-mission',de:['Mission — der Hauptweg','Aufgabe wählen, priorisierte Fälle sehen, Maßnahmen vergleichen, Brief exportieren.'],en:['Mission — the main path','Pick a task, see prioritised cases, compare measures, export a brief.'],nl:['Missie — de hoofdroute','Kies een opgave, bekijk geprioriteerde casussen, vergelijk maatregelen.']},
+ {el:'.layer-btn',de:['Daten bei Bedarf','Alle Karten-Ebenen liegen hier — die Karte bleibt sonst ruhig.'],en:['Data on demand','All map layers live here — the map stays calm otherwise.'],nl:['Data op aanvraag','Alle kaartlagen zitten hier — de kaart blijft anders rustig.']}
+];
+function coachStart(){try{if(localStorage.getItem('nh_coach_v1'))return;}catch(e){} if(hasDeepLink())return; coachShow(0);}
+function coachShow(i){
+  document.querySelectorAll('.coach').forEach(el=>el.remove());
+  if(i>=COACH.length){try{localStorage.setItem('nh_coach_v1','1');}catch(e){}return;}
+  const c=COACH[i];const t=document.querySelector(c.el);
+  if(!t||getComputedStyle(t).display==='none')return coachShow(i+1);
+  const r=t.getBoundingClientRect();
+  const d=document.createElement('div');d.className='coach';
+  const tx=lang==='en'?c.en:lang==='nl'?c.nl:c.de;
+  d.innerHTML='<b>'+tx[0]+'</b>'+tx[1]+'<div class="coach-btns"><button class="coach-go" onclick="coachShow('+(i+1)+')">'+(i===COACH.length-1?mT('Fertig','Done','Klaar'):mT('Weiter','Next','Verder'))+'</button><button class="coach-skip" onclick="coachShow('+COACH.length+')">'+mT('Überspringen','Skip','Overslaan')+'</button></div>';
+  document.body.appendChild(d);
+  const w=d.offsetWidth,h=d.offsetHeight,vw=window.innerWidth,vh=window.innerHeight;
+  let x=r.right+12,y=r.top+8;
+  if(x+w>vw-8)x=Math.max(8,r.left-w-12);
+  if(r.top>vh*0.55)y=r.top-h-12; else if(y+h>vh-8)y=vh-h-8;
+  d.style.left=Math.max(8,Math.min(x,vw-w-8))+'px';d.style.top=Math.max(8,y)+'px';
 }
 </script>
 
