@@ -522,6 +522,7 @@ body.free-mode .left{display:none}
 #heatWarn{position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:490;background:#b91c1c;color:#fff;border-radius:12px;padding:9px 15px;box-shadow:var(--shl);display:none;align-items:center;gap:11px;max-width:min(760px,calc(100vw - 40px))}
 #heatWarn.on{display:flex}
 body.brief-on #heatWarn.on{display:none}   /* Briefing hat Vorrang — Warnung wird dort als Zeile gezeigt */
+body.mission-on .leaflet-tile-pane{filter:saturate(.5) contrast(.98)}   /* Fokus-Modus: Mission aktiv → Basemap tritt zurück */
 body.free-mode #heatWarn{top:106px}
 #heatWarn .hwi{flex:none;display:flex}
 #heatWarn .hwtx{font-size:12px;line-height:1.4}
@@ -1957,7 +1958,8 @@ function toggleKDPanel(){
 // ══════════════════════════════════════════════════════════════
 function initMap(){
   let BASEMAP='map';
-  map=L.map('map',{zoomControl:false,preferCanvas:false,zoomSnap:0.5,zoomDelta:0.5,wheelPxPerZoomLevel:110,maxZoom:20,zoomAnimationThreshold:6}).setView([50.1109,8.6821],12);
+  // fadeAnimation:false — Kacheln blieben sonst teils bei Opacity 0 hängen („beschnittene" Karte)
+  map=L.map('map',{zoomControl:false,preferCanvas:false,fadeAnimation:false,zoomSnap:0.5,zoomDelta:0.5,wheelPxPerZoomLevel:110,maxZoom:20,zoomAnimationThreshold:6}).setView([50.1109,8.6821],12);
   // Canvas renderer für schnelle Gebäude-Polygone (viel schneller als SVG)
   window.canvasRenderer = L.canvas({padding:0.5});
   // Create dedicated pane for choropleth — sits BELOW tile layers at z200
@@ -2227,6 +2229,9 @@ function renderMap(){
   geoLayer=L.geoJSON({type:'FeatureCollection',features:geoFeatures},{
     pane:'choropleth',
     style:f=>{
+      // Fokus-Modus: aktive Mission = eine Frage, eine Farbwelt — Quintile treten zurück
+      if(typeof MISSION!=='undefined'&&MISSION.active)
+        return{fillColor:'#94a3b8',fillOpacity:0,color:'#94a3b8',weight:1.1,opacity:0.4,dashArray:'4 5'};
       const raw=f.properties[cfg.nameProp]||'';
       const k=Object.keys(cfg.data).find(k=>raw===k)||Object.keys(cfg.data).find(k=>raw.includes(k)||k.includes(raw));
       const d=k?cfg.data[k]:null;
@@ -2243,16 +2248,25 @@ function renderMap(){
       const k=Object.keys(cfg.data).find(k=>raw===k)||Object.keys(cfg.data).find(k=>raw.includes(k)||k.includes(raw));
       const d=k?cfg.data[k]:null;
       const s=d?lensScore(d):'?';
-      const risks=d?[d.hw?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/></svg> HQ100':'',d.lst_delta>=2?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> Hitzeinsel':'',d.noise>70?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg> Lärm':''].filter(Boolean).join(' · '):'';
-      const tip=isHitze&&d
+      const risks=d?[d.hw?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/></svg> '+mT('Hochwasser','Flood','Overstroming'):'',d.lst_delta>=2?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0Z"/></svg> '+mT('Hitzeinsel','Heat island','Hitte-eiland'):'',d.noise>70?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg> '+mT('Lärm','Noise','Geluid'):''].filter(Boolean).join(' · '):'';
+      const missionOn=typeof MISSION!=='undefined'&&MISSION.active;
+      const weak=(!missionOn&&d&&typeof DIMS!=='undefined')?DIMS.slice().sort((a,b)=>d[a.k]-d[b.k])[0]:null;
+      const tip=missionOn
+        ?`<b>${k||raw}</b>`
+        :isHitze&&d
         ?`<b>${k||raw}</b> · LST <b>${d.lst_delta>=0?'+':''}${d.lst_delta}°C</b> · Versiegelt <b>${d.versieg}%</b>${risks?'<br><small>'+risks+'</small>':''}`
-        :`<b>${k||raw}</b> · Score: <b>${s}</b>/100${risks?'<br><small>'+risks+'</small>':''}`;
+        :`<div style="min-width:150px;line-height:1.5"><b style="font-size:12px">${k||raw}</b><br>`+
+         `<span style="font-weight:800;color:${s!=null?qColor(s,allS):'#6b7280'}">NICE ${s}</span>`+
+         (weak?` · ${mT('größte Belastung','main burden','grootste last')}: <b>${typeof introTrName==='function'?introTrName(weak.name):weak.name}</b>`:'')+
+         (risks?`<br><small>${risks}</small>`:'')+
+         `<br><small style="color:#9ca3af">${mT('Klick öffnet Fall','click opens the case','klik opent de casus')}</small></div>`;
       layer.bindTooltip(tip,{sticky:true});
       const areaName=k||raw;
       const areaData=d;
       layer.on({
         click:()=>{ if(areaData) openDrawer(areaName,areaData); },
         mouseover:e=>{
+          if(typeof MISSION!=='undefined'&&MISSION.active)return;
           if(isHitze&&areaData){
             const hc=heatFillColor(areaData.lst_delta!=null?areaData.lst_delta:1.5);
             e.target.setStyle({fillOpacity:.72,weight:2.5,fillColor:hc});
@@ -3650,6 +3664,7 @@ function toggleMission(){
   try{closeArea();}catch(e){}
   const p=document.getElementById('missionPanel');p.classList.add('open');
   p.innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${mT('Missionen','Missions','Missies')}</div><div class="ap-sub">${CITY_CFG[city].name} · ${mT('Daten → Priorität → Maßnahme → Wirkung','Data → priority → action → impact','Data → prioriteit → maatregel → effect')}</div></div><button class="ap-x" onclick="closeMission()">✕</button></div><div class="ap-body" id="msBody"><div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div></div>`;
+  document.body.classList.add('mission-on');try{renderMap();}catch(e){}
   if(MISSION.view==='home'||!MISSION.kind)missionHome(); else missionLoad();
 }
 // Missions-Einstieg: „Woran arbeiten Sie?" — Aufgabe zuerst, Daten danach.
@@ -3677,7 +3692,7 @@ function chooseMission(k){
   missionLoad();
 }
 function backToMissions(){ if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}MISSION.layer=null;} missionHome(); }
-function closeMission(){try{urlParam('mission',null);urlParam('case',null);}catch(e){}MISSION.active=false;const t=document.getElementById('tool-mission');if(t)t.classList.remove('on');const p=document.getElementById('missionPanel');if(p)p.classList.remove('open');if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}MISSION.layer=null;}}
+function closeMission(){try{urlParam('mission',null);urlParam('case',null);}catch(e){}MISSION.active=false;document.body.classList.remove('mission-on');try{renderMap();}catch(e){}const t=document.getElementById('tool-mission');if(t)t.classList.remove('on');const p=document.getElementById('missionPanel');if(p)p.classList.remove('open');if(MISSION.layer){try{map.removeLayer(MISSION.layer);}catch(e){}MISSION.layer=null;}}
 function missionLoad(){
   if(MISSION.kind==='streets')return streetsLoad();
   if(MISSION.loaded===city&&MISSION.schools.length){renderMission();return;}
