@@ -59,6 +59,28 @@ const SUPABASE_KEY = 'eyJhbGciOi...';   // anon public
 Speichern, deployen — fertig. Ab dann landen Meldungen/Votes in den Tabellen und
 sind für alle sichtbar. Auswerten: Supabase → **Table Editor** oder SQL.
 
+## Optional: Fall-Status serverseitig (Missionen)
+Der Fall-Status (Offen / In Prüfung / Geplant + Notiz) läuft standardmäßig lokal
+im Browser. Für teamweite Sichtbarkeit im SQL Editor ausführen:
+
+```sql
+create table nh_case_status (
+  id         bigint generated always as identity primary key,
+  city       text not null,
+  case_id    text not null,
+  status     text,
+  note       text,
+  ts         bigint not null,
+  created_at timestamptz default now()
+);
+alter table nh_case_status enable row level security;
+create policy "read case status"   on nh_case_status for select using (true);
+create policy "insert case status" on nh_case_status for insert with check (true);
+```
+
+Die App schreibt dann automatisch mit (Append-Log, letzter Zeitstempel gewinnt);
+fehlt die Tabelle, bleibt alles still lokal.
+
 ## Datenschutz
 Es werden nur Standort (gerundet auf ~1 m), Problemtyp und Zeitstempel gespeichert —
 keine personenbezogenen Daten, keine Accounts, keine IP im Klartext.

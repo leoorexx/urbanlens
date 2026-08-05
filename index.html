@@ -578,6 +578,9 @@ body.free-mode #heatWarn{top:106px}
 .case-metrics{width:100%;border-collapse:collapse;font-size:11px;margin:6px 0 2px}
 .case-metrics td{padding:4px 2px;border-bottom:1px solid var(--border)}
 .case-metrics td:last-child{text-align:right;font-weight:700;font-feature-settings:'tnum'}
+.csp{flex:1;padding:6px 4px;border:1px solid var(--border);background:var(--surface2);border-radius:8px;font-size:10px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit}
+.csp.on{background:var(--csc);border-color:var(--csc);color:#fff}
+#csCount{font-size:9px;font-weight:800;color:var(--muted)}
 /* Morning Briefing — Startbildschirm als Entscheidungsvorlage */
 #briefCard{position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:620;width:min(460px,calc(100vw - 24px));background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shm);padding:16px 18px 13px;animation:briefIn .35s ease}
 @keyframes briefIn{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
@@ -3075,13 +3078,34 @@ function voteMeasure(id){ const v=getVotes(); v[id]=(v[id]||0)+1; saveVotes(v); 
 
 function renderMitPanel(){
   const P=document.getElementById('mitPanel'); P.classList.add('open');
-  const T=lang==='en'?{t:'Engage',sub:'Report & prioritise — your input',rep:'Report',pri:'Prioritise',hint:'Click on the map to report a problem.',none:'No reports yet.',votes:'votes',vlabel:'Residents & actors prioritise measures:',proto:'Prototype — stored locally in your browser. A real deployment needs a shared backend.'}
-   :lang==='nl'?{t:'Meedoen',sub:'Melden & prioriteren — jouw inbreng',rep:'Melden',pri:'Prioriteren',hint:'Klik op de kaart om een probleem te melden.',none:'Nog geen meldingen.',votes:'stemmen',vlabel:'Bewoners & actoren prioriteren maatregelen:',proto:'Prototype — lokaal opgeslagen. Echt gebruik vereist een gedeelde backend.'}
-   :{t:'Mitwirken',sub:'Melden & priorisieren — deine Stimme',rep:'Melden',pri:'Priorisieren',hint:'Auf die Karte klicken, um ein Problem zu melden.',none:'Noch keine Meldungen.',votes:'Stimmen',vlabel:'Bewohner & Akteure priorisieren Maßnahmen:',proto:'Prototyp — lokal im Browser gespeichert. Echtbetrieb braucht ein gemeinsames Backend.'};
+  const T=lang==='en'?{t:'Engage',sub:'Report & prioritise — your input',rep:'Report',pri:'Prioritise',tri:'Triage',hint:'Click on the map to report a problem.',none:'No reports yet.',votes:'votes',vlabel:'Residents & actors prioritise measures:',proto:'Prototype — stored locally in your browser. A real deployment needs a shared backend.',triHint:'Administration view: review incoming reports, jump to the location, mark as done.',all:'All',done:'Done'}
+   :lang==='nl'?{t:'Meedoen',sub:'Melden & prioriteren — jouw inbreng',rep:'Melden',pri:'Prioriteren',tri:'Beoordelen',hint:'Klik op de kaart om een probleem te melden.',none:'Nog geen meldingen.',votes:'stemmen',vlabel:'Bewoners & actoren prioriteren maatregelen:',proto:'Prototype — lokaal opgeslagen. Echt gebruik vereist een gedeelde backend.',triHint:'Beheerweergave: meldingen beoordelen, naar de locatie springen, afronden.',all:'Alle',done:'Klaar'}
+   :{t:'Mitwirken',sub:'Melden & priorisieren — deine Stimme',rep:'Melden',pri:'Priorisieren',tri:'Sichten',hint:'Auf die Karte klicken, um ein Problem zu melden.',none:'Noch keine Meldungen.',votes:'Stimmen',vlabel:'Bewohner & Akteure priorisieren Maßnahmen:',proto:'Prototyp — lokal im Browser gespeichert. Echtbetrieb braucht ein gemeinsames Backend.',triHint:'Verwaltungsansicht: Meldungen sichten, zum Ort springen, als erledigt abschließen.',all:'Alle',done:'Erledigt'};
   const tab=(k,l)=>`<button onclick="mitTab('${k}')" style="flex:1;border:none;background:${MIT.tab===k?'var(--social)':'var(--surface2)'};color:${MIT.tab===k?'#fff':'var(--text2)'};padding:7px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">${l}</button>`;
   let body=`<div class="ap-head"><div><div class="ap-ttl">${T.t}</div><div class="ap-sub">${T.sub}</div></div><button class="ap-x" onclick="toggleMitwirkung()">✕</button></div><div class="ap-body">
-    <div style="display:flex;gap:6px;margin-bottom:11px">${tab('report',T.rep)}${tab('prioritise',T.pri)}</div>`;
-  if(MIT.tab==='report'){
+    <div style="display:flex;gap:6px;margin-bottom:11px">${tab('report',T.rep)}${tab('prioritise',T.pri)}${tab('triage',T.tri)}</div>`;
+  if(MIT.tab==='triage'){
+    map.getContainer().style.cursor='';
+    const reps=getReports().map((r,i)=>({r,i})).sort((a,b)=>(b.r.ts||0)-(a.r.ts||0));
+    const f=MIT.triF||'all';
+    const cnt={}; reps.forEach(({r})=>cnt[r.type]=(cnt[r.type]||0)+1);
+    body+=`<div class="diag-hint">${T.triHint}</div>`;
+    const chip=(k,l,n)=>`<button onclick="mitTriF('${k}')" style="border:1px solid ${f===k?'var(--social)':'var(--border)'};background:${f===k?'#a60ba612':'var(--surface2)'};color:${f===k?'#a60ba6':'var(--text2)'};border-radius:20px;padding:3px 9px;font-size:9px;font-weight:700;cursor:pointer;font-family:inherit">${l} (${n})</button>`;
+    body+=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin:8px 0">`+chip('all',T.all,reps.length)
+      +Object.entries(REPORT_TYPES).filter(([k])=>cnt[k]).map(([k,t])=>chip(k,t[lang]||t.de,cnt[k])).join('')+`</div>`;
+    const list=reps.filter(({r})=>f==='all'||r.type===f);
+    if(!list.length)body+=`<div style="font-size:11px;color:var(--muted)">${T.none}</div>`;
+    body+=list.slice(0,40).map(({r,i})=>{const t=REPORT_TYPES[r.type]||{};
+      const mins=Math.max(1,Math.round((Date.now()-(r.ts||Date.now()))/60000));
+      const ago=mins<60?mins+' min':mins<1440?Math.round(mins/60)+' h':Math.round(mins/1440)+' d';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+        <span style="width:10px;height:10px;border-radius:50%;background:${t.c||'#999'};flex:none"></span>
+        <div style="flex:1;min-width:0;cursor:pointer" onclick="try{map.flyTo([${r.lat},${r.lon}],17,{duration:.7});}catch(e){}">
+          <div style="font-size:11px;font-weight:700;color:var(--text)">${t[lang]||t.de||r.type}</div>
+          <div style="font-size:9px;color:var(--muted)">${ago}${r.id!=null?' · #'+r.id:''} · ${(+r.lat).toFixed(3)}, ${(+r.lon).toFixed(3)}</div></div>
+        <button onclick="removeReport(${i})" style="border:1px solid #16a34a;background:#16a34a10;color:#16a34a;border-radius:8px;padding:4px 9px;font-size:9px;font-weight:700;cursor:pointer;font-family:inherit;flex:none">✓ ${T.done}</button>
+      </div>`;}).join('');
+  } else if(MIT.tab==='report'){
     const reps=getReports();
     const cnt={}; reps.forEach(r=>cnt[r.type]=(cnt[r.type]||0)+1);
     body+=`<div class="diag-hint">${T.hint}</div>`;
@@ -3102,7 +3126,8 @@ function renderMitPanel(){
   body+=`<div style="font-size:9px;color:var(--muted);margin-top:10px;padding:7px 9px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">${note}</div></div>`;
   P.innerHTML=body;
 }
-function mitTab(k){ MIT.tab=k; map.getContainer().style.cursor=(k==='report'&&MIT.active)?'crosshair':''; renderMitPanel(); }
+function mitTab(k){ MIT.tab=k; map.getContainer().style.cursor=(k==='report'&&MIT.active)?'crosshair':''; if(k==='triage')supaSync(); renderMitPanel(); }
+function mitTriF(k){ MIT.triF=k; renderMitPanel(); }
 
 // ══════════════════════════════════════════════════════════════
 // HITZE-KÜHLSIMULATION — Wärmeraster + Was-wäre-wenn-Kühlung
@@ -3685,6 +3710,25 @@ const MISSIONS=[
   d:['Luft, Lärm und soziale Belastung zusammen.','Air, noise and social burden combined.','Lucht, geluid en sociale belasting samen.']}
 ];
 function caseId(prefix,i){return (city==='utr'?'UTR':'FFM')+'-'+prefix+'-'+String(i+1).padStart(3,'0');}
+// ── Fall-Status: aus Analyse wird Arbeitsprozess (lokal, Supabase-ready) ──
+function csGetAll(){try{return JSON.parse(localStorage.getItem('nh_cs_'+city)||'{}');}catch(e){return {};}}
+function csSaveAll(o){try{localStorage.setItem('nh_cs_'+city,JSON.stringify(o));}catch(e){}}
+function csSet(cid,st){const o=csGetAll();o[cid]=o[cid]||{};o[cid].st=(o[cid].st===st?null:st);o[cid].ts=Date.now();csSaveAll(o);csSync(cid,o[cid]);csPaint(cid);}
+function csSetNote(cid,note){const o=csGetAll();o[cid]=o[cid]||{};o[cid].note=note;o[cid].ts=Date.now();csSaveAll(o);clearTimeout(window.__csT);window.__csT=setTimeout(()=>csSync(cid,o[cid]),900);}
+function csSync(cid,rec){ // optionaler Server-Sync — Tabelle nh_case_status (siehe SUPABASE_SETUP.md); fehlt sie, bleibt es still lokal
+  if(typeof supaOn==='function'&&supaOn())try{supaInsert('nh_case_status',{city,case_id:cid,status:rec.st||null,note:rec.note||null,ts:rec.ts});}catch(e){}
+}
+const CS_ST=[['open','Offen','Open','Open','#6b7280'],['review','In Prüfung','In review','In beoordeling','#d97706'],['planned','Geplant','Planned','Gepland','#16a34a']];
+function csRowHtml(cid){
+  const cur=(csGetAll()[cid]||{});
+  return `<div class="ap-sec">${mT('Fall-Status','Case status','Casusstatus')}</div>
+   <div id="csRow" style="display:flex;gap:6px;margin-bottom:7px">${CS_ST.map(([k,de,en,nl,col])=>
+     `<button class="csp${cur.st===k?' on':''}" data-st="${k}" style="--csc:${col}" onclick="csSet('${cid}','${k}')">${mT(de,en,nl)}</button>`).join('')}</div>
+   <input id="csNote" value="${(cur.note||'').replace(/"/g,'&quot;')}" placeholder="${mT('Notiz (nur für dieses Gerät, bis Server-Sync aktiv)','Note (this device only until server sync is on)','Notitie (alleen dit apparaat tot serversync actief is)')}" oninput="csSetNote('${cid}',this.value)" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:11px;font-family:inherit;background:var(--surface2);margin-bottom:4px">`;
+}
+function csPaint(cid){const cur=(csGetAll()[cid]||{});document.querySelectorAll('#csRow .csp').forEach(b=>b.classList.toggle('on',b.dataset.st===cur.st));missionListBadge();}
+function csDot(cid){const st=(csGetAll()[cid]||{}).st;if(!st)return '';const col=(CS_ST.find(x=>x[0]===st)||[])[4]||'#6b7280';return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${col};margin-right:5px" title="${st}"></span>`;}
+function missionListBadge(){const el=document.getElementById('csCount');if(!el)return;const pre=(city==='utr'?'UTR':'FFM')+'-'+(MISSION.kind==='streets'?'STR':'SCH');const n=Object.entries(csGetAll()).filter(([k,v])=>k.startsWith(pre)&&v.st).length;el.textContent=n?n+' '+mT('markiert','marked','gemarkeerd'):'';}
 function missionMeta(k){return MISSIONS.find(m=>m.kind===k)||MISSIONS[0];}
 function msColor(p){return p>=65?'#dc2626':p>=50?'#f97316':p>=35?'#eab308':'#16a34a';}
 function msRec(s){const r=[];if(s.c.heat>=50||s.c.seal>=55)r.push('A');if(s.gd>200||s.trees<8)r.push('B');if(s.c.heat>=70&&s.c.seal>=60)r.push('C');return r.length?r.slice(0,2):['B'];}
@@ -3796,10 +3840,11 @@ function renderMission(){
      <b style="white-space:nowrap">${MISSION.budget} Mio €</b>
    </div>
    <div class="ibox">${mT('Finanziert','Funds','Financiert')} <b>${pick.length} ${mT('Schulen','schools','scholen')}</b> (${fmt(sum)}) — ~<b>${(pick.length*350).toLocaleString('de-DE')}</b> ${mT('Kinder erreicht (Schätzwert 350/Schule — OSM ohne Schülerzahlen)','children reached (est. 350/school — OSM lacks enrolment)','kinderen bereikt (schatting 350/school)')} · ${mT('erwartete lokale Kühlung','expected local cooling','verwachte lokale koeling')} −1,0–2,1 °C.</div>
-   <div class="ap-sec">${mT('Prioritätenliste','Priority list','Prioriteitenlijst')} <span class="ms-badge">${mT('Klick öffnet Fall','click opens case','klik opent casus')}</span></div>
-   ${S.slice(0,12).map((s,i)=>`<div class="ms-item" onclick="missionCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.versieg!=null?s.versieg+' % '+mT('vers.','sealed','verh.')+' · ':''}${mT('Grün','green','groen')} ${s.gd} m</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
+   <div class="ap-sec">${mT('Prioritätenliste','Priority list','Prioriteitenlijst')} <span class="ms-badge">${mT('Klick öffnet Fall','click opens case','klik opent casus')}</span> <span id="csCount"></span></div>
+   ${S.slice(0,12).map((s,i)=>`<div class="ms-item" onclick="missionCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${csDot(caseId('SCH',i))}<b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.versieg!=null?s.versieg+' % '+mT('vers.','sealed','verh.')+' · ':''}${mT('Grün','green','groen')} ${s.gd} m</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
    <div style="margin-top:10px"><button onclick="missionPDF()" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">${ic('download',13)} ${mT('Missions-Bericht (PDF)','Mission report (PDF)','Missierapport (PDF)')}</button></div>
    <div style="font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">${mT('Priorität = 35 % Hitze (Copernicus LST, gemessen) + 25 % soziale Verwundbarkeit (Kinderarmut, amtlich/Wijk) + 20 % Versiegelung + 20 % Grün-Distanz (OSM), relativ im Stadtvergleich skaliert. Komponenten je Fall sichtbar — der Score verdeckt nie die Begründung.','Priority = 35 % heat (Copernicus LST, measured) + 25 % social vulnerability (official, district) + 20 % sealing + 20 % green distance (OSM), scaled relative within the city. Components visible per case — the score never hides the reasoning.','Prioriteit = 35 % hitte (gemeten) + 25 % sociale kwetsbaarheid + 20 % verharding + 20 % groenafstand, relatief binnen de stad. Componenten per casus zichtbaar.')}</div>`;
+  missionListBadge();
 }
 function missionCase(i){
   const s=MISSION.schools[i];if(!s)return;
@@ -3847,6 +3892,7 @@ function missionCase(i){
      ${mT('Schatten','Shade','Schaduw')}&nbsp;&nbsp;~${Math.min(25,s.trees*2)} % → <b style="color:#16a34a">~${Math.min(45,s.trees*2+30)} %</b><br>
      ${mT('Kühlgrün','Cool green','Koelgroen')}&nbsp;${s.gd} m → <b style="color:#16a34a">${mT('vor Ort','on site','ter plekke')}</b>
    </div>
+   ${csRowHtml(caseId('SCH',i))}
    <div style="margin:12px 0 4px"><button onclick="caseBrief('schools',${i})" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">${ic('download',13)} ${mT('Entscheidungs-Brief (PDF)','Decision brief (PDF)','Besluitbrief (PDF)')}</button></div>
    <div style="font-size:9px;color:var(--muted);line-height:1.5">${mT('Konfidenz: LST gemessen (Copernicus) · Versiegelung/Sozial amtlich (Wijk-Aggregat) · Schatten = Baum-Proxy · Wirkung = Bandbreite aus Vergleichsprojekten. Schülerzahl, Eigentum & Zuständigkeit erfordern kommunale Daten (Phase 2).','Confidence: LST measured (Copernicus) · sealing/social official (district) · shade = tree proxy · impact = range from reference projects. Enrolment, ownership & responsibility need municipal data (phase 2).','Betrouwbaarheid: LST gemeten · verharding/sociaal officieel (wijk) · schaduw = boomproxy · effect = bandbreedte. Leerlingaantal, eigendom & bevoegdheid vergen gemeentedata (fase 2).')}</div>`;
 }
@@ -3995,10 +4041,11 @@ function renderStreets(){
      <b style="white-space:nowrap">${MISSION.budgetT} Mio €</b>
    </div>
    <div class="ibox">${mT('Finanziert den Umbau von','Funds the redesign of','Financiert de herinrichting van')} <b>${pick.length} ${mT('Straßen','streets','straten')}</b> (${fmt(sum)}, ${pick.reduce((a,s)=>a+s.n,0)} ${mT('Segmente','segments','segmenten')}) — ${mT('erwartete lokale Kühlung','expected local cooling','verwachte lokale koeling')} −0,8–1,8 °C ${mT('je Straßenzug','per street corridor','per straat')}.</div>
-   <div class="ap-sec">${mT('Prioritätenliste','Priority list','Prioriteitenlijst')} <span class="ms-badge">${mT('Klick öffnet Fall','click opens case','klik opent casus')}</span></div>
-   ${S.slice(0,12).map((s,i)=>`<div class="ms-item" onclick="streetCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.trees} ${mT('Bäume/150 m','trees/150 m','bomen/150 m')} · ${s.n} ${mT('Seg.','seg.','seg.')}</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
+   <div class="ap-sec">${mT('Prioritätenliste','Priority list','Prioriteitenlijst')} <span class="ms-badge">${mT('Klick öffnet Fall','click opens case','klik opent casus')}</span> <span id="csCount"></span></div>
+   ${S.slice(0,12).map((s,i)=>`<div class="ms-item" onclick="streetCase(${i})"><span class="ms-rank" style="background:${msColor(s.prio)}">${i+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${csDot(caseId('STR',i))}<b>${s.name}</b><br><small style="color:var(--muted)">${s.lst!=null?'+'+s.lst+' °C · ':''}${s.trees} ${mT('Bäume/150 m','trees/150 m','bomen/150 m')} · ${s.n} ${mT('Seg.','seg.','seg.')}</small></span><b style="color:${msColor(s.prio)}">${s.prio}</b>${pick.indexOf(s)>=0?'<span class="ms-badge" style="border-color:#16a34a;color:#16a34a">€</span>':''}</div>`).join('')}
    <div style="margin-top:10px"><button onclick="streetsPDF()" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">${ic('download',13)} ${mT('Missions-Bericht (PDF)','Mission report (PDF)','Missierapport (PDF)')}</button></div>
    <div style="font-size:9px;color:var(--muted);margin-top:8px;line-height:1.5">${mT('Priorität je Segment = 35 % Hitze (Copernicus LST, gemessen) + 25 % Schatten-Defizit (Baum-Proxy) + 20 % Versiegelung + 20 % soziale Verwundbarkeit (amtlich/Wijk); je Straße gemittelt und relativ im Stadtvergleich skaliert. Schnellstraßen (≥ 70 km/h) grau: keine Umbau-Kandidaten. Untergrund-Leitungen & geplante Straßenarbeiten erfordern kommunale Daten (Phase 2).','Priority per segment = 35 % heat (Copernicus LST, measured) + 25 % shade deficit (tree proxy) + 20 % sealing + 20 % social vulnerability (official, district); averaged per street and scaled relative within the city. High-speed roads (≥ 70 km/h) grey: not redesign candidates. Subsurface utilities & planned roadworks require municipal data (phase 2).','Prioriteit per segment = 35 % hitte (gemeten) + 25 % schaduwtekort (boomproxy) + 20 % verharding + 20 % sociale kwetsbaarheid; per straat gemiddeld en relatief geschaald. Snelwegen (≥ 70 km/u) grijs: geen kandidaten. Ondergrondse leidingen & geplande werken vergen gemeentedata (fase 2).')}</div>`;
+  missionListBadge();
 }
 function streetCase(i){
   const s=MISSION.streets[i];if(!s)return;
@@ -4046,6 +4093,7 @@ function streetCase(i){
      ${mT('Schatten','Shade','Schaduw')}&nbsp;&nbsp;~${Math.min(25,s.trees*2)} % → <b style="color:#16a34a">~${Math.min(45,s.trees*2+25)} %</b><br>
      ${mT('Belag','Surface','Verharding')}&nbsp;&nbsp;&nbsp;${s.surface==='asphalt'?mT('dunkel','dark','donker'):mT('gemischt','mixed','gemengd')} → <b style="color:#16a34a">${mT('hell/durchlässig','light/permeable','licht/doorlatend')}</b>
    </div>
+   ${csRowHtml(caseId('STR',i))}
    <div style="margin:12px 0 4px"><button onclick="caseBrief('streets',${i})" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">${ic('download',13)} ${mT('Entscheidungs-Brief (PDF)','Decision brief (PDF)','Besluitbrief (PDF)')}</button></div>
    <div style="font-size:9px;color:var(--muted);line-height:1.5">${mT('Konfidenz: LST gemessen (Copernicus) · Versiegelung/Sozial amtlich (Wijk-Aggregat) · Schatten = Baum-Proxy · Wirkung = Bandbreite aus Vergleichsprojekten. Untergrund-Leitungen, Parkdruck & geplante Straßenarbeiten erfordern kommunale Daten (Phase 2) — Umsetzung gehört in die Tiefbau-Koordination.','Confidence: LST measured (Copernicus) · sealing/social official (district) · shade = tree proxy · impact = range from reference projects. Subsurface utilities, parking pressure & planned roadworks require municipal data (phase 2) — delivery belongs in civil-works coordination.','Betrouwbaarheid: LST gemeten · verharding/sociaal officieel (wijk) · schaduw = boomproxy · effect = bandbreedte. Ondergrondse leidingen, parkeerdruk & geplande werken vergen gemeentedata (fase 2).')}</div>`;
 }
