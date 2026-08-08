@@ -19,7 +19,8 @@
   --text:#1a1a2e;--text2:#374151;--muted:#6b7280;
   --accent:#FFD600;--al:rgba(255,214,0,0.12);
   --climate:#ff8210;--eco:#36d5d0;--social:#a60ba6;
-  --r1:#ef4444;--r2:#f97316;--r3:#eab308;--r4:#22c55e;--r5:#16a34a;
+  /* Editorial-Rampe (Score/Quintil-Welt) — Daten-Layer behalten eigene Farben */
+  --r1:#b34a4a;--r2:#c97b4f;--r3:#c9a53f;--r4:#8ba36e;--r5:#5f7a52;
   --sh:0 3px 14px rgba(0,0,0,0.10);
   --shl:0 3px 14px rgba(0,0,0,0.10);--shm:0 18px 50px rgba(0,0,0,0.22);--c-heat:#f97316;--c-water:#2563eb;--c-green:#16a34a;--c-soc:#7c3aed;--c-mob:#0ea5e9;--c-energy:#eab308;
   --font-serif:'Fraunces',Georgia,serif;
@@ -246,7 +247,13 @@ body.leftoff .layer-btn{left:12px}
 .scircle{width:64px;height:64px;flex-shrink:0;position:relative}
 .scircle svg{position:absolute;inset:0}
 .scval{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.sbig{font-size:20px;font-weight:900;line-height:1}.smax{font-size:9px;color:var(--muted)}
+.sbig{font-family:var(--font-serif);font-size:22px;font-weight:600;line-height:1;font-feature-settings:'tnum'}.smax{font-size:9px;color:var(--muted)}
+/* Distanz-Streifen (Standort-Check): jeder Ort ein Punkt auf seiner Gehdistanz */
+.ds-strip{flex:1;position:relative;height:24px;min-width:70px}
+.ds-strip .ds-axis{position:absolute;left:0;right:0;top:11px;height:2px;background:rgba(0,0,0,.08);border-radius:2px}
+body.dark .ds-strip .ds-axis{background:rgba(255,255,255,.12)}
+.ds-strip .ds-bench{position:absolute;top:4px;width:1.5px;height:16px;background:var(--text);opacity:.3}
+.ds-strip .ds-dot{position:absolute;top:8px;width:7px;height:7px;border-radius:50%;border:1.5px solid var(--surface)}
 .sright{flex:1}.gpill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:5px}
 .sexpl{font-size:10px;color:var(--muted);line-height:1.5}.sexpl b{color:var(--text)}
 .dalert{margin-top:8px;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:7px 10px;font-size:10px;color:#dc2626;line-height:1.5}
@@ -574,7 +581,8 @@ body.free-mode #heatWarn{top:106px}
 .mc-soon{flex:none;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--border);padding:3px 7px;border-radius:20px}
 .mh-foot{font-size:9px;color:var(--muted);line-height:1.5;margin-top:6px}
 .ms-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}
-.ms-home{background:none;border:none;color:var(--accent);font-weight:700;font-size:11px;cursor:pointer;padding:0;font-family:inherit;white-space:nowrap}
+.ms-home{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-weight:700;font-size:11px;cursor:pointer;padding:6px 11px;font-family:inherit;white-space:nowrap}
+.ms-home:hover{background:var(--al);border-color:var(--accent)}
 .ms-cur{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--text2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .case-id{display:inline-block;font-family:ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:.03em;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1px 6px}
 .case-why{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:9px 12px;font-size:11px;line-height:1.5;color:var(--text);margin:8px 0}
@@ -1117,7 +1125,8 @@ body.dark :focus-visible{outline-color:var(--accent)}
       <div class="scircle">
         <svg viewBox="0 0 64 64">
           <circle cx="32" cy="32" r="27" fill="none" stroke="var(--border)" stroke-width="6"/>
-          <circle id="scoreArc" cx="32" cy="32" r="27" fill="none" stroke="#16a34a" stroke-width="6" stroke-dasharray="0 170" stroke-linecap="round" transform="rotate(-90 32 32)" style="transition:stroke-dasharray .6s,stroke .4s"/>
+          <circle id="scoreArc" cx="32" cy="32" r="27" fill="none" stroke="#5f7a52" stroke-width="6" stroke-dasharray="0 170" stroke-linecap="round" transform="rotate(-90 32 32)" style="transition:stroke-dasharray .6s,stroke .4s"/>
+          <line id="scoreTick" x1="32" y1="2" x2="32" y2="9" stroke="var(--text)" stroke-width="2" opacity=".55"/>
         </svg>
         <div class="scval"><div class="sbig" id="dScore">—</div><div class="smax">/100</div></div>
       </div>
@@ -3783,7 +3792,7 @@ function csSetNote(cid,note){const o=csGetAll();o[cid]=o[cid]||{};o[cid].note=no
 function csSync(cid,rec){ // optionaler Server-Sync — Tabelle nh_case_status (siehe SUPABASE_SETUP.md); fehlt sie, bleibt es still lokal
   if(typeof supaOn==='function'&&supaOn())try{supaInsert('nh_case_status',{city,case_id:cid,status:rec.st||null,note:rec.note||null,ts:rec.ts});}catch(e){}
 }
-const CS_ST=[['open','Offen','Open','Open','#6b7280'],['review','In Prüfung','In review','In beoordeling','#d97706'],['planned','Geplant','Planned','Gepland','#16a34a']];
+const CS_ST=[['open','Offen','Open','Open','#6b7280'],['review','In Prüfung','In review','In beoordeling','#c97b4f'],['planned','Geplant','Planned','Gepland','#5f7a52']];
 function csRowHtml(cid){
   const cur=(csGetAll()[cid]||{});
   return `<div class="ap-sec">${mT('Fall-Status','Case status','Casusstatus')}</div>
@@ -3795,7 +3804,7 @@ function csPaint(cid){const cur=(csGetAll()[cid]||{});document.querySelectorAll(
 function csDot(cid){const st=(csGetAll()[cid]||{}).st;if(!st)return '';const col=(CS_ST.find(x=>x[0]===st)||[])[4]||'#6b7280';return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${col};margin-right:5px" title="${st}"></span>`;}
 function missionListBadge(){const el=document.getElementById('csCount');if(!el)return;const pre=(city==='utr'?'UTR':'FFM')+'-'+(MISSION.kind==='streets'?'STR':'SCH');const n=Object.entries(csGetAll()).filter(([k,v])=>k.startsWith(pre)&&v.st).length;el.textContent=n?n+' '+mT('markiert','marked','gemarkeerd'):'';}
 function missionMeta(k){return MISSIONS.find(m=>m.kind===k)||MISSIONS[0];}
-function msColor(p){return p>=65?'#dc2626':p>=50?'#f97316':p>=35?'#eab308':'#16a34a';}
+function msColor(p){return p>=65?'#b34a4a':p>=50?'#c97b4f':p>=35?'#c9a53f':'#5f7a52';}
 function msRec(s){const r=[];if(s.c.heat>=50||s.c.seal>=55)r.push('A');if(s.gd>200||s.trees<8)r.push('B');if(s.c.heat>=70&&s.c.seal>=60)r.push('C');return r.length?r.slice(0,2):['B'];}
 function msCost(s){const ids=msRec(s);let lo=0,hi=0;ids.forEach(id=>{const p=MPKG.find(x=>x.id===id);lo+=p.lo;hi+=p.hi;});return {lo,hi,mid:(lo+hi)/2,ids};}
 function toggleMission(){
@@ -3806,7 +3815,7 @@ function toggleMission(){
   const p=document.getElementById('missionPanel');p.classList.add('open');
   p.innerHTML=`<div class="ap-head"><div><div class="ap-ttl">${mT('Missionen','Missions','Missies')}</div><div class="ap-sub">${CITY_CFG[city].name} · ${mT('Daten → Priorität → Maßnahme → Wirkung','Data → priority → action → impact','Data → prioriteit → maatregel → effect')}</div></div><button class="ap-x" aria-label="${mT('Schließen','Close','Sluiten')}" onclick="closeMission()">✕</button></div><div class="ap-body" id="msBody"><div style="text-align:center;padding:30px 0"><span class="loading-dot"></span></div></div>`;
   document.body.classList.add('mission-on');try{renderMap();}catch(e){}
-  if(MISSION.view==='home'||!MISSION.kind)missionHome(); else missionLoad();
+  missionHome();   // Öffnen landet immer auf der Missionsübersicht (Daten bleiben gecacht)
 }
 // Missions-Einstieg: „Woran arbeiten Sie?" — Aufgabe zuerst, Daten danach.
 function missionHome(){
@@ -5771,6 +5780,9 @@ function openDrawer(name,d,skipZoom){
   const circ=2*Math.PI*27;
   const arc=document.getElementById('scoreArc');
   arc.setAttribute('stroke',col);arc.setAttribute('stroke-dasharray',`${(s/100)*circ} ${circ}`);
+  // Stadt-Durchschnitts-Tick: jede Zahl bekommt ihren Vergleichspunkt
+  try{const all=Object.values(CITY_CFG[city].data).map(x=>nice(x));const avg=all.reduce((a,b)=>a+b,0)/all.length;
+    const tk=document.getElementById('scoreTick');if(tk)tk.setAttribute('transform','rotate('+(avg/100*360)+' 32 32)');}catch(e){}
   const gp=document.getElementById('dGrade');
   gp.style.background=g.bg;gp.style.color=g.col;gp.innerHTML=`${lang==="en"?"Grade":lang==="nl"?"Cijfer":"Note"} ${g.g} — ${g.lbl}`;
   document.getElementById('dExplain').innerHTML=
@@ -7038,39 +7050,45 @@ function locAt(latlng){
 function locScore(els){
   const {lat,lon}=LOC.pt;
   LOC.cats=LOC_CATS.map(c=>{
-    let n=0,near=null,names=[];
+    let n=0,near=null,names=[],ds=[];
     els.forEach(e=>{
       const t=e.tags||{}; if(!c.m(t))return;
       const elat=e.lat!=null?e.lat:(e.center&&e.center.lat), elon=e.lon!=null?e.lon:(e.center&&e.center.lon);
       if(elat==null)return;
       const d=locDist(lat,lon,elat,elon);
       if(d>c.r)return;
-      n++; if(near==null||d<near)near=d;
+      n++; ds.push(d); if(near==null||d<near)near=d;
       if(t.name&&names.length<3)names.push(t.name);
     });
     const st=n>=c.goal[0]?'good':n>=c.goal[1]?'ok':'poor';
-    return {...c,n,near:near!=null?Math.round(near):null,names,st};
+    return {...c,n,near:near!=null?Math.round(near):null,names,st,ds:ds.sort((a,b)=>a-b).slice(0,40).map(x=>Math.round(x))};
   });
   // Umfeld-Klima nur in gebündelten Städten (Utrecht/FFM) — sonst ehrlich weglassen
   LOC.env=null;
   try{ const d=pawDistrictAt(lat,lon); if(d)LOC.env={versieg:d.versieg,kinderarmut:d.kinderarmut,lst:d.lst_delta}; }catch(e){}
 }
-function locStColor(st){return st==='good'?'#16a34a':st==='ok'?'#d97706':'#dc2626';}
+function locStColor(st){return st==='good'?'#5f7a52':st==='ok'?'#c9a53f':'#b34a4a';}
 function locStLbl(st){return st==='good'?mT('gut','good','goed'):st==='ok'?mT('ok','fair','matig'):mT('knapp','scarce','schaars');}
 function locTotal(){ if(!LOC.cats)return 0; const v={good:100,ok:60,poor:20}; return Math.round(LOC.cats.reduce((a,c)=>a+v[c.st],0)/LOC.cats.length); }
 function renderLocPanel(){
   const body=document.querySelector('#locPanel .ap-body'); if(!body||!LOC.cats)return;
   const tot=locTotal();
   body.innerHTML=`
-   <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-     <div style="font-family:var(--font-serif);font-size:26px;font-weight:600;color:${msColor(tot)}">${tot}</div>
-     <div style="font-size:10px;color:var(--text2);line-height:1.4"><b>${mT('Standort-Score','Location score','Locatiescore')}</b><br>${LOC.pt.lat}, ${LOC.pt.lon} · ${mT('Gehradien 300–800 m','walking radii 300–800 m','loopafstanden 300–800 m')}</div>
+   <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+     <div style="position:relative;width:60px;height:60px;flex:none">
+       <svg viewBox="0 0 64 64" width="60" height="60">
+         <circle cx="32" cy="32" r="27" fill="none" stroke="var(--border)" stroke-width="5"/>
+         <circle cx="32" cy="32" r="27" fill="none" stroke="${msColor(100-tot)}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(tot/100*170).toFixed(0)} 170" transform="rotate(-90 32 32)"/>
+       </svg>
+       <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:20px;font-feature-settings:'tnum'">${tot}</div>
+     </div>
+     <div style="font-size:10px;color:var(--text2);line-height:1.4"><b>${mT('Standort-Score','Location score','Locatiescore')}</b><br>${LOC.pt.lat}, ${LOC.pt.lon}<br>${mT('Jeder Punkt = ein Ort auf seiner Gehdistanz','Each dot = one venue at its walking distance','Elke stip = een locatie op loopafstand')}</div>
    </div>
    ${LOC.cats.map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-     <span style="width:9px;height:9px;border-radius:50%;background:${locStColor(c.st)};flex:none"></span>
-     <div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:700;color:var(--text)">${mT(c.de,c.en,c.nl)} <small style="color:var(--muted);font-weight:400">≤ ${c.r} m</small></div>
+     <div style="flex:1.15;min-width:0"><div style="font-size:11px;font-weight:700;color:var(--text)">${mT(c.de,c.en,c.nl)} <small style="color:var(--muted);font-weight:400">≤ ${c.r} m</small></div>
        ${c.names.length?`<div style="font-size:9px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.names.join(' · ')}</div>`:''}</div>
-     <div style="text-align:right;flex:none"><b style="font-size:12px">${c.n}</b><div style="font-size:8.5px;color:${locStColor(c.st)};font-weight:800">${locStLbl(c.st)}${c.near!=null?' · '+c.near+' m':''}</div></div>
+     <div class="ds-strip"><div class="ds-axis"></div><div class="ds-bench" style="left:50%"></div>${(c.ds||[]).map(d=>`<span class="ds-dot" style="left:${Math.min(96,d/c.r*100).toFixed(1)}%;background:${locStColor(c.st)}"></span>`).join('')}</div>
+     <div style="text-align:right;flex:none;width:58px"><b style="font-family:var(--font-serif);font-size:14px;font-feature-settings:'tnum'">${c.n}</b><div style="font-size:8.5px;color:${locStColor(c.st)};font-weight:800">${locStLbl(c.st)}${c.near!=null?' · '+c.near+' m':''}</div></div>
    </div>`).join('')}
    ${LOC.env?`<div class="ap-sec">${mT('Umfeld-Kontext (amtlich/gemessen)','Context (official/measured)','Context (officieel/gemeten)')}</div>
    <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:10px">
@@ -7092,7 +7110,23 @@ function locPDF(){
   const ck=[{t:L('Kategorie','Category','Categorie'),x:PDFX.L},{t:L('Radius','Radius','Radius'),x:PDFX.L+86,a:'right'},{t:L('Anzahl','Count','Aantal'),x:PDFX.L+116,a:'right'},{t:L('Nächste','Nearest','Dichtstbij'),x:PDFX.L+148,a:'right'},{t:L('Status','Status','Status'),x:PDFX.R,a:'right'}];
   y=pdfTHead(doc,y,ck);
   LOC.cats.forEach(c=>{ y=pdfTRow(doc,y,ck,[L(c.de,c.en,c.nl),c.r+' m',c.n,c.near!=null?c.near+' m':'—',locStLbl(c.st)],[0]); });
-  y+=3;
+  y+=5;
+  // Distanz-Streifen: jeder Punkt = ein Ort auf seiner Gehdistanz (0 → Radius)
+  const hx=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+  LOC.cats.forEach(c=>{
+    if(y>262){doc.addPage();y=20;}
+    doc.setFontSize(7.5); pC(doc,PDFX.mut); doc.text(L(c.de,c.en,c.nl),PDFX.L,y+1.2);
+    const x0=PDFX.L+58,x1=PDFX.R-14;
+    doc.setDrawColor(212,208,198); doc.setLineWidth(0.4); doc.line(x0,y,x1,y);
+    doc.setDrawColor(90,90,100); doc.line(x0+(x1-x0)/2,y-1.7,x0+(x1-x0)/2,y+1.7);
+    const [cr,cg,cb2]=hx(locStColor(c.st)); doc.setFillColor(cr,cg,cb2);
+    (c.ds||[]).slice(0,30).forEach(dm=>{ const x=x0+Math.min(0.97,dm/c.r)*(x1-x0); doc.circle(x,y,0.85,'F'); });
+    pC(doc,PDFX.body); doc.text(String(c.n),PDFX.R,y+1.2,{align:'right'});
+    y+=6.4;
+  });
+  doc.setFontSize(7.2); pC(doc,PDFX.mut);
+  doc.text(L('Jeder Punkt = ein Ort auf seiner Gehdistanz (0 bis Kategorienradius) · Mittelstrich = halber Radius','Each dot = one venue at its walking distance (0 to category radius) · centre tick = half radius','Elke stip = een locatie op loopafstand (0 tot radius) · middenstreep = halve radius'),PDFX.L,y+1); y+=7;
+  doc.setFontSize(9.5); pC(doc,PDFX.body);
   if(LOC.env){ y=pdfSecN(doc,y,'3',L('Umfeld-Kontext','Context','Context'));
     y=pdfPara(doc,y,[LOC.env.lst!=null?('LST '+(LOC.env.lst>=0?'+':'')+LOC.env.lst+' °C ('+L('Hitzeinsel-Indikator, gemessen','heat-island indicator, measured','hitte-indicator, gemeten')+')'):null,LOC.env.versieg!=null?(LOC.env.versieg+' % '+L('Versiegelung','sealing','verharding')):null,LOC.env.kinderarmut!=null?(L('Kinderarmut im Wijk','district child poverty','kinderarmoede wijk')+' '+LOC.env.kinderarmut+' %'):null].filter(Boolean).join('  ·  ')); }
   y=pdfMethodBlock(doc,y,LOC.env?'4':'3',
