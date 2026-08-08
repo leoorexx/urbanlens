@@ -680,6 +680,7 @@ body.dark :focus-visible{outline-color:var(--accent)}
   .layer-panel{left:10px;right:10px;width:auto;max-height:calc(100vh - 300px)}
   .area-panel{left:10px;right:10px;width:auto;top:56px;max-height:calc(100vh - 190px)}
   .right{left:8px;right:8px;width:auto;bottom:116px}
+  .right:not(.open){display:none}   /* Mobile-Geometrie darf den geschlossenen Drawer nicht sichtbar machen */
   #heatWarn{top:56px;max-width:calc(100vw - 16px)}
   #briefCard{top:56px}
   .map-legend{bottom:120px;max-width:46vw}
