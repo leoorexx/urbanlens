@@ -738,7 +738,7 @@ body.dark :focus-visible{outline-color:var(--accent)}
 </div>
 
 <div id="map"></div>
-<div id="baseToggle"><button data-bm="map" class="on" onclick="setBasemap('map')" data-i18n="bm_map">Karte</button><button data-bm="sat" onclick="setBasemap('sat')" data-i18n="bm_sat">Satellit</button></div>
+<div id="baseToggle"><button data-bm="map" class="on" onclick="setBasemap('map')" data-i18n="bm_map">Karte</button><button data-bm="plan" onclick="setBasemap('plan')" title="Schwarzplan — Gebäudegrundrisse als Figure-Ground">Plan</button><button data-bm="sat" onclick="setBasemap('sat')" data-i18n="bm_sat">Satellit</button></div>
 <div id="map3d-overlay"></div>
 <div class="mode-bar-3d" id="modeBar3d">
   <button class="m3mode on" data-m="co2" onclick="set3DMode('co2')">CO₂</button>
@@ -2067,20 +2067,24 @@ function initMap(){
     {attribution:'© OpenStreetMap © CARTO',maxZoom:20,maxNativeZoom:20,pane:'tilePane'}).addTo(map);
   const baseDark=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
     {attribution:'© OpenStreetMap © CARTO',maxZoom:20,maxNativeZoom:20,pane:'tilePane'});
+  const baseNolabel=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
+    {attribution:'© OpenStreetMap © CARTO',maxZoom:20,maxNativeZoom:20,pane:'tilePane'});
   const satImg=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {attribution:'© Esri · Maxar · Earthstar Geographics',maxZoom:20,maxNativeZoom:19,pane:'tilePane'});
   const satLabels=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
     {maxZoom:20,maxNativeZoom:20,pane:'tilePane'});
   window.setBasemap=function(mode){ if(mode===BASEMAP)return; BASEMAP=mode;
-    [baseVoyager,baseDark,satImg,satLabels].forEach(l=>{try{map.removeLayer(l);}catch(e){}});
+    [baseVoyager,baseDark,baseNolabel,satImg,satLabels].forEach(l=>{try{map.removeLayer(l);}catch(e){}});
     if(mode==='sat'){ satImg.addTo(map); satLabels.addTo(map); }
+    else if(mode==='plan'){ baseNolabel.addTo(map); }
     else (window.THEME==='dark'?baseDark:baseVoyager).addTo(map);
+    try{ if(mode==='plan')planEnable(); else planDisable(); }catch(e){}
     document.querySelectorAll('#baseToggle button').forEach(b=>b.classList.toggle('on',b.dataset.bm===mode)); };
   // Analysis Mode: dunkles Theme + dunkle Basemap (bewusster Modus, gemerkt)
   window.applyTheme=function(t){
     window.THEME=t;document.body.classList.toggle('dark',t==='dark');
     try{localStorage.setItem('nh_theme',t);}catch(e){}
-    if(BASEMAP!=='sat'){[baseVoyager,baseDark].forEach(l=>{try{map.removeLayer(l);}catch(e){}});(t==='dark'?baseDark:baseVoyager).addTo(map);}
+    if(BASEMAP==='map'){[baseVoyager,baseDark].forEach(l=>{try{map.removeLayer(l);}catch(e){}});(t==='dark'?baseDark:baseVoyager).addTo(map);}
     const b=document.getElementById('themeBtn');if(b)b.classList.toggle('on',t==='dark');
   };
   window.toggleTheme=function(){applyTheme(window.THEME==='dark'?'light':'dark');};
@@ -7136,6 +7140,51 @@ function locPDF(){
   y=pdfDisclaimer(doc,y);
   pdfFinish(doc,'nice here — Inspector Nice ('+new Date().getFullYear()+'): Location Brief, '+LOC.pt.lat+', '+LOC.pt.lon+'.',repId);
   doc.save('inspector-nice_location-brief_'+LOC.pt.lat+'_'+LOC.pt.lon+'_'+new Date().toISOString().slice(0,10)+'.pdf');
+}
+
+// ── Schwarzplan („Plan"): Figure-Ground aus echten Gebäudegrundrissen ──
+// Gleiche Daten wie 3D (PDOK BAG / OSM); Viewport-Culling ab Zoom 15, Kappung 9.000.
+const PLAN={on:false,data:null,grid:null,layer:null,city:null,t:null};
+function planEnable(){ PLAN.on=true; planLoad(); map.on('moveend',planSched); map.on('zoomend',planSched); planSched(); }
+function planDisable(){ PLAN.on=false; try{map.off('moveend',planSched);map.off('zoomend',planSched);}catch(e){}
+  if(PLAN.layer){try{map.removeLayer(PLAN.layer);}catch(e){}PLAN.layer=null;} planHint(false); }
+function planSched(){ clearTimeout(PLAN.t); PLAN.t=setTimeout(planRender,140); }
+function planLoad(){
+  if(PLAN.city===city&&PLAN.data)return;
+  PLAN.data=null;PLAN.grid=null;PLAN.city=city;
+  fetch(`${DATA_BASE}/bag_${city}.json`).then(r=>r.ok?r.json():null).then(d=>{
+    if(!d)return;
+    const arr=Array.isArray(d)?d:Object.values(d);
+    const G=new Map(),C=0.004;
+    arr.forEach((b,i)=>{const p=b&&b.g&&b.g[0];if(!p)return;const k=Math.round(p[0]/C)+'_'+Math.round(p[1]/C);let a=G.get(k);if(!a){a=[];G.set(k,a);}a.push(i);});
+    PLAN.data=arr;PLAN.grid=G;
+    if(PLAN.on)planRender();
+  }).catch(()=>{});
+}
+function planHint(txt){
+  let h=document.getElementById('planHint');
+  if(!txt){if(h)h.remove();return;}
+  if(!h){h=document.createElement('div');h.id='planHint';h.style.cssText='position:fixed;bottom:142px;right:12px;z-index:480;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-size:10px;color:var(--text2);box-shadow:var(--shl);max-width:220px';document.body.appendChild(h);}
+  h.textContent=txt;
+}
+function planRender(){
+  if(!PLAN.on)return;
+  if(PLAN.layer){try{map.removeLayer(PLAN.layer);}catch(e){}PLAN.layer=null;}
+  if(!PLAN.grid){planHint(mT('Gebäude werden geladen…','Loading buildings…','Gebouwen laden…'));return;}
+  if(map.getZoom()<15){planHint(mT('Schwarzplan: hineinzoomen für Gebäude (ab Zoom 15)','Figure-ground: zoom in for buildings (zoom 15+)','Zwartplan: inzoomen voor gebouwen (zoom 15+)'));return;}
+  planHint(false);
+  const b=map.getBounds().pad(0.12),C=0.004;
+  const x0=Math.round(b.getWest()/C),x1=Math.round(b.getEast()/C),y0=Math.round(b.getSouth()/C),y1=Math.round(b.getNorth()/C);
+  const feats=[];let cap=9000;
+  outer:
+  for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){
+    const a=PLAN.grid.get(x+'_'+y); if(!a)continue;
+    for(const i of a){ const g=PLAN.data[i].g; if(!g)continue;
+      feats.push({type:'Feature',geometry:{type:'Polygon',coordinates:[g]},properties:{}});
+      if(--cap<=0)break outer; }
+  }
+  PLAN.layer=L.geoJSON({type:'FeatureCollection',features:feats},{renderer:window.canvasRenderer,interactive:false,
+    style:()=>({color:'#26263a',weight:0,fillColor:'#26263a',fillOpacity:0.9})}).addTo(map);
 }
 function ckOpen(){
   let ov=document.getElementById('ckOv');
