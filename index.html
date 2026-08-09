@@ -7023,6 +7023,18 @@ const LOC_CATS=[
  {k:'green',de:'Park & Grün',en:'Parks & green',nl:'Park & groen',r:300,goal:[1,1],col:'#5f7a52',
   m:t=>t.leisure==='park'||t.landuse==='grass'||t.leisure==='garden'}
 ];
+// Overpass mit Spiegel-Ausweichen: die Haupt-Instanz drosselt regelmäßig.
+// Antwort ist nur gültig, wenn echtes JSON kommt (Fehlerseiten sind HTML).
+const OVP_HOSTS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.osm.ch/api/interpreter'];
+function overpassFetch(q,i){
+  i=i||0; if(i>=OVP_HOSTS.length)return Promise.reject(new Error('overpass unavailable'));
+  return fetch(OVP_HOSTS[i],{method:'POST',body:'data='+encodeURIComponent(q)})
+    .then(r=>r.ok?r.text():Promise.reject(new Error('http '+r.status)))
+    .then(t=>{ const s=t.trim();
+      if(!s.startsWith('{'))throw new Error('kein JSON');   // Drossel-/Fehlerseite
+      return JSON.parse(s); })
+    .catch(()=>overpassFetch(q,i+1));
+}
 // Gefundene Orte auf der Karte zeigen — Architekten denken räumlich, nicht in Tabellen
 function locDrawPois(){
   if(LOC.poiLayer){try{map.removeLayer(LOC.poiLayer);}catch(e){}LOC.poiLayer=null;}
@@ -7064,9 +7076,9 @@ function locAt(latlng){
   const body=document.querySelector('#locPanel .ap-body');
   if(body)body.innerHTML=`<div style="text-align:center;padding:26px 0"><span class="loading-dot"></span><div style="font-size:10px;color:var(--muted);margin-top:8px">${mT('Umfeld wird abgefragt (OpenStreetMap live)…','Querying surroundings (OpenStreetMap live)…','Omgeving wordt opgevraagd…')}</div></div>`;
   const q='[out:json][timeout:25];(nwr["amenity"~"^(restaurant|cafe|fast_food|food_court|kindergarten|childcare|school|pharmacy|doctors|dentist)$"](around:800,'+lat+','+lon+');nwr["leisure"~"^(fitness_centre|sports_centre|fitness_station|park|garden)$"](around:800,'+lat+','+lon+');nwr["shop"~"^(supermarket|convenience|bakery)$"](around:600,'+lat+','+lon+');nwr["highway"="bus_stop"](around:400,'+lat+','+lon+');nwr["railway"~"^(tram_stop|station|halt)$"](around:600,'+lat+','+lon+'););out tags center qt;';
-  fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)})
-    .then(r=>r.json()).then(js=>{ LOC.busy=false; locScore(js.elements||[]); locDrawPois(); renderLocPanel(); })
-    .catch(()=>{ LOC.busy=false; if(body)body.innerHTML='<div style="padding:14px;font-size:11px;color:var(--muted)">'+mT('OSM-Abfrage fehlgeschlagen (Rate-Limit?) — kurz warten und erneut klicken.','OSM query failed (rate limit?) — wait briefly and click again.','OSM-query mislukt — even wachten en opnieuw klikken.')+'</div>'; });
+  overpassFetch(q)
+    .then(js=>{ LOC.busy=false; locScore(js.elements||[]); locDrawPois(); renderLocPanel(); })
+    .catch(()=>{ LOC.busy=false; if(body)body.innerHTML='<div style="padding:14px;font-size:11px;color:var(--muted)">'+mT('OpenStreetMap antwortet gerade nicht (auch die Spiegel-Server) — in ein bis zwei Minuten erneut auf die Karte klicken.','OpenStreetMap is not responding right now (mirrors included) — click the map again in a minute or two.','OpenStreetMap reageert nu niet (ook de mirrors) — klik over een minuut opnieuw op de kaart.')+'</div>'; });
 }
 function locScore(els){
   const {lat,lon}=LOC.pt;
