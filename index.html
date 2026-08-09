@@ -787,6 +787,7 @@ body.dark :focus-visible{outline-color:var(--accent)}
 <div class="area-panel" id="mitPanel"></div>
 <div class="area-panel" id="biodivPanel"></div>
 <div class="area-panel" id="locPanel"></div>
+<div class="area-panel" id="bldPanel"></div>
 
 
 <button id="leftTab" onclick="openLeft()" data-i18n="left_tab" title="Stadtteil-Liste einblenden">Stadtteile</button>
@@ -7201,7 +7202,7 @@ function locPDF(){
 const PLAN={on:false,data:null,grid:null,layer:null,city:null,t:null};
 function planEnable(){ PLAN.on=true; planLoad(); map.on('moveend',planSched); map.on('zoomend',planSched); planSched(); }
 function planDisable(){ PLAN.on=false; try{map.off('moveend',planSched);map.off('zoomend',planSched);}catch(e){}
-  if(PLAN.layer){try{map.removeLayer(PLAN.layer);}catch(e){}PLAN.layer=null;} planHint(false); }
+  if(PLAN.layer){try{map.removeLayer(PLAN.layer);}catch(e){}PLAN.layer=null;} planHint(false); try{closeBld();}catch(e){} }
 function planSched(){ clearTimeout(PLAN.t); PLAN.t=setTimeout(planRender,140); }
 function planLoad(){
   if(PLAN.city===city&&PLAN.data)return Promise.resolve(true);
@@ -7234,14 +7235,16 @@ function sunPosition(date,lat,lon){
   return {alt:Math.asin(Math.sin(phi)*Math.sin(dec)+Math.cos(phi)*Math.cos(dec)*Math.cos(H)),
           az:Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(phi)-Math.tan(dec)*Math.cos(phi))};
 }
-function sunHorizon(lat,lon){          // 360 Bins: höchster verschattender Winkel je Himmelsrichtung
+function sunHorizon(lat,lon,obsH){     // 360 Bins: höchster verschattender Winkel je Himmelsrichtung
+  obsH=obsH||0;                        // Beobachterhöhe: 0 = Straßenniveau, sonst z. B. Dachhöhe
   const N=360,hor=new Float32Array(N),C=0.004,R=250;
   const cosLat=Math.cos(lat*SR),kx=Math.round(lon/C),ky=Math.round(lat/C);
   for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=2;dy++){
     const arr=PLAN.grid.get((kx+dx)+'_'+(ky+dy)); if(!arr)continue;
     for(const i of arr){
-      const b=PLAN.data[i]; if(!b||!b.g||!(b.h>0))continue;
-      if(pawPipRing(b.g,lon,lat))continue;   // Gebäude am Punkt selbst verschattet den Punkt nicht
+      const b=PLAN.data[i]; if(!b||!b.g)continue;
+      const dh=b.h-obsH; if(!(dh>0))continue;   // niedriger als der Beobachter → verschattet ihn nicht
+      if(pawPipRing(b.g,lon,lat))continue;      // Gebäude am Punkt selbst verschattet den Punkt nicht
       const g=b.g;
       for(let v=0;v<g.length-1;v++){
         const ax=(g[v][0]-lon)*111320*cosLat, ay=(g[v][1]-lat)*111320;
@@ -7251,7 +7254,7 @@ function sunHorizon(lat,lon){          // 360 Bins: höchster verschattender Win
         for(let s=0;s<=st;s++){
           const mx=ax+(bx-ax)*s/st, my=ay+(by-ay)*s/st;
           const dist=Math.hypot(mx,my); if(dist<1.5||dist>R){pB=null;continue;}
-          const ang=Math.atan(b.h/dist);
+          const ang=Math.atan(dh/dist);
           let brg=Math.atan2(mx,my); if(brg<0)brg+=2*Math.PI;
           const bin=Math.floor(brg/(2*Math.PI)*N)%N;
           if(ang>hor[bin])hor[bin]=ang;
@@ -7312,7 +7315,7 @@ function planRender(){
   if(PLAN.layer){try{map.removeLayer(PLAN.layer);}catch(e){}PLAN.layer=null;}
   if(!PLAN.grid){planHint(mT('Gebäude werden geladen…','Loading buildings…','Gebouwen laden…'));return;}
   if(map.getZoom()<15){planHint(mT('Schwarzplan: hineinzoomen für Gebäude (ab Zoom 15)','Figure-ground: zoom in for buildings (zoom 15+)','Zwartplan: inzoomen voor gebouwen (zoom 15+)'));return;}
-  planHint(false);
+  planHint(mT('Klick auf ein Gebäude öffnet seinen Steckbrief','Click a building to open its profile','Klik op een gebouw voor het profiel'));
   const b=map.getBounds().pad(0.12),C=0.004;
   const x0=Math.round(b.getWest()/C),x1=Math.round(b.getEast()/C),y0=Math.round(b.getSouth()/C),y1=Math.round(b.getNorth()/C);
   const feats=[];let cap=9000;
@@ -7320,11 +7323,116 @@ function planRender(){
   for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){
     const a=PLAN.grid.get(x+'_'+y); if(!a)continue;
     for(const i of a){ const g=PLAN.data[i].g; if(!g)continue;
-      feats.push({type:'Feature',geometry:{type:'Polygon',coordinates:[g]},properties:{}});
+      feats.push({type:'Feature',geometry:{type:'Polygon',coordinates:[g]},properties:{i}});
       if(--cap<=0)break outer; }
   }
-  PLAN.layer=L.geoJSON({type:'FeatureCollection',features:feats},{renderer:window.canvasRenderer,interactive:false,
-    style:()=>({color:'#26263a',weight:0,fillColor:'#26263a',fillOpacity:0.9})}).addTo(map);
+  PLAN.layer=L.geoJSON({type:'FeatureCollection',features:feats},{renderer:window.canvasRenderer,
+    style:()=>({color:'#26263a',weight:0,fillColor:'#26263a',fillOpacity:0.9}),
+    onEachFeature:(f,l)=>{ l.on('click',e=>{ L.DomEvent.stopPropagation(e); bldOpen(f.properties.i); }); }
+  }).addTo(map);
+}
+
+// ── Gebäude-Steckbrief — hängt am Schwarzplan, kein eigenes Werkzeug ──
+function ringAreaM2(ring,lat){
+  const c=Math.cos(lat*Math.PI/180); let a=0;
+  for(let i=0;i<ring.length-1;i++){
+    const x1=ring[i][0]*111320*c, y1=ring[i][1]*111320;
+    const x2=ring[i+1][0]*111320*c, y2=ring[i+1][1]*111320;
+    a+=x1*y2-x2*y1;
+  }
+  return Math.abs(a/2);
+}
+function bldSolar(lat,lon,roof,hgt){      // PV-Hüllenabschätzung: Dachfläche × Besonnung AUF DACHHÖHE
+  const hor=sunHorizon(lat,lon,hgt||0), free=new Float32Array(360), y=new Date().getFullYear();
+  let s=0,f=0;
+  [[3,21],[6,21],[9,21],[12,21]].forEach(([mo,da])=>{ s+=sunHoursOn(lat,lon,y,mo,da,hor); f+=sunHoursOn(lat,lon,y,mo,da,free); });
+  const factor=f>0?Math.min(1,s/f):0;
+  const kwp=roof*0.5*0.2;                 // 50 % nutzbare Dachfläche · 0,2 kWp/m²
+  return {factor,kwp,kwh:kwp*950*factor}; // 950 kWh/kWp·a Referenzertrag NL/DE
+}
+function bldOpen(i){
+  const b=PLAN.data&&PLAN.data[i]; if(!b)return;
+  const c=geoCentroid([b.g])||{}; const lat=c[1]!=null?c[1]:b.g[0][1], lon=c[0]!=null?c[0]:b.g[0][0];
+  const area=ringAreaM2(b.g,lat), levels=Math.max(1,Math.round(b.h/3.1));
+  BLD.cur={i,b,lat,lon,area,levels,solar:null};
+  const p=document.getElementById('bldPanel'); p.classList.add('open');
+  renderBldPanel();
+  if(BLD.hl){try{map.removeLayer(BLD.hl);}catch(e){}}
+  BLD.hl=L.polygon(b.g.map(x=>[x[1],x[0]]),{color:'#FFD600',weight:2.5,fill:false}).addTo(map);
+}
+function closeBld(){ const p=document.getElementById('bldPanel'); if(p)p.classList.remove('open');
+  if(BLD.hl){try{map.removeLayer(BLD.hl);}catch(e){}BLD.hl=null;} BLD.cur=null; }
+const BLD={cur:null,hl:null};
+function bldSolarCalc(){ const C=BLD.cur; if(!C)return; C.solar=bldSolar(C.lat,C.lon,C.area,C.b.h); renderBldPanel(); }
+function bldFloodLbl(f){ return f==='high'?mT('hoch','high','hoog'):f==='medium'?mT('mittel','medium','matig'):f==='low'?mT('gering','low','laag'):mT('kein Hinweis','no indication','geen indicatie'); }
+function renderBldPanel(){
+  const C=BLD.cur; if(!C)return; const b=C.b;
+  const use=(typeof m3Use==='function'&&m3Use(b.u))||mT('Nutzung unbekannt','Use unknown','Gebruik onbekend');
+  const era=b.era?String(b.era).replace('_','–'):null;
+  const nf=n=>Math.round(n).toLocaleString(lang==='en'?'en-GB':lang==='nl'?'nl-NL':'de-DE');
+  document.getElementById('bldPanel').innerHTML=`
+   <div class="ap-head"><div><div class="ap-ttl">${mT('Gebäude-Steckbrief','Building profile','Gebouwprofiel')}</div><div class="ap-sub">${use}${era?' · '+era:''} · ${CITY_CFG[city].name}</div></div><button class="ap-x" aria-label="${mT('Schließen','Close','Sluiten')}" onclick="closeBld()">✕</button></div>
+   <div class="ap-body">
+     <table class="case-metrics"><tbody>
+       <tr><td>${mT('Höhe','Height','Hoogte')}</td><td>${b.h} m · ${mT('ca.','approx.','ca.')} ${C.levels} ${mT('Geschosse','storeys','bouwlagen')}</td></tr>
+       <tr><td>${mT('Grundfläche','Footprint','Grondvlak')}</td><td>${nf(C.area)} m²</td></tr>
+       <tr><td>${mT('Volumen (Hülle)','Volume (envelope)','Volume (omhulling)')}</td><td>${nf(C.area*b.h)} m³</td></tr>
+       ${b.lst!=null?`<tr><td>${mT('Oberflächentemperatur','Surface temperature','Oppervlaktetemperatuur')}</td><td>${b.lst>=0?'+':''}${b.lst} °C</td></tr>`:''}
+       <tr><td>${mT('Hochwasser-Exposition','Flood exposure','Overstromingsrisico')}</td><td>${bldFloodLbl(b.flood)}</td></tr>
+       ${b.co2!=null?`<tr><td>${mT('CO₂-Intensität (modelliert)','CO₂ intensity (modelled)','CO₂-intensiteit (model)')}</td><td>${b.co2} kg/m²·a</td></tr>`:''}
+     </tbody></table>
+     <div class="ap-sec">${mT('Solarpotenzial','Solar potential','Zonnepotentieel')}</div>
+     ${C.solar?`
+       <table class="case-metrics"><tbody>
+         <tr><td>${mT('Nutzbare Dachfläche (50 %)','Usable roof area (50 %)','Bruikbaar dakvlak (50 %)')}</td><td>${nf(C.area*0.5)} m²</td></tr>
+         <tr><td>${mT('Anlagenleistung','System size','Systeemvermogen')}</td><td>${C.solar.kwp.toFixed(1)} kWp</td></tr>
+         <tr><td>${mT('Verschattungsfaktor','Shading factor','Beschaduwingsfactor')}</td><td>${Math.round(C.solar.factor*100)} %</td></tr>
+         <tr><td><b>${mT('Ertrag (Schätzung)','Yield (estimate)','Opbrengst (schatting)')}</b></td><td><b>${nf(C.solar.kwh)} kWh/a</b></td></tr>
+       </tbody></table>
+       <div style="font-size:9px;color:var(--muted);line-height:1.5;margin-top:6px">${mT('Hüllenabschätzung: 50 % nutzbare Dachfläche, 0,2 kWp/m², 950 kWh/kWp·a Referenzertrag, Verschattung aus der Umgebungsbebauung. Flachdach-Annahme, keine Dachform, keine Verschattung durch Aufbauten — ersetzt kein Ertragsgutachten.','Envelope estimate: 50 % usable roof area, 0.2 kWp/m², 950 kWh/kWp·a reference yield, shading from surrounding buildings. Flat-roof assumption, no roof geometry or rooftop equipment — not a yield assessment.','Schatting: 50 % bruikbaar dakvlak, 0,2 kWp/m², 950 kWh/kWp·jr referentie, beschaduwing uit omliggende bebouwing. Platdak-aanname — vervangt geen opbrengstberekening.')}</div>`
+     :`<button onclick="bldSolarCalc()" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px;font-size:11.5px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit">${mT('Solarpotenzial berechnen','Calculate solar potential','Zonnepotentieel berekenen')}</button>`}
+     <div style="display:flex;gap:8px;margin-top:12px">
+       <button class="bf-alt" style="flex:1" onclick="closeBld();if(!LOC.active)toggleLoc();locAt({lat:${C.lat},lng:${C.lon}})">${mT('Umfeld prüfen','Check surroundings','Omgeving checken')}</button>
+       <button class="bf-go" style="flex:1" onclick="bldPDF()">${mT('Steckbrief (PDF)','Profile (PDF)','Profiel (PDF)')}</button>
+     </div>
+     <div style="font-size:9px;color:var(--muted);line-height:1.5;margin-top:9px">${mT('Höhe aus Geschosszahl abgeleitet · CO₂ modelliert aus Bauepoche und Nutzung, nicht gemessen · Oberflächentemperatur aus Copernicus-Satellitendaten. Kontextwerte, keine Gebäudesimulation.','Height derived from storey count · CO₂ modelled from construction era and use, not measured · surface temperature from Copernicus satellite data. Context values, not a building simulation.','Hoogte afgeleid uit bouwlagen · CO₂ gemodelleerd uit bouwperiode en gebruik · oppervlaktetemperatuur uit Copernicus. Contextwaarden, geen gebouwsimulatie.')}</div>
+   </div>`;
+}
+function bldPDF(){
+  const C=BLD.cur; if(!C)return; const doc=pdfDoc(); if(!doc)return; const b=C.b, L=pdfL3;
+  const use=(typeof m3Use==='function'&&m3Use(b.u))||'—', era=b.era?String(b.era).replace('_','–'):'—';
+  const nf=n=>Math.round(n).toLocaleString('de-DE');
+  let y=pdfMast(doc,L('Gebäude-Steckbrief','Building profile','Gebouwprofiel'),use+(era!=='—'?' · '+era:''),
+    C.lat.toFixed(5)+', '+C.lon.toFixed(5)+'  ·  '+CITY_CFG[city].name+'  ·  '+L('Stand','As of','Per')+' '+pdfDate());
+  y=pdfSecN(doc,y,'1',L('Baukörper','Building body','Bouwvolume'));
+  const k=[{t:L('Kennwert','Figure','Cijfer'),x:PDFX.L},{t:L('Wert','Value','Waarde'),x:PDFX.R,a:'right'}];
+  y=pdfTHead(doc,y,k);
+  [[L('Nutzung','Use','Gebruik'),use],[L('Bauepoche','Construction era','Bouwperiode'),era],
+   [L('Höhe','Height','Hoogte'),b.h+' m ('+L('ca.','approx.','ca.')+' '+C.levels+' '+L('Geschosse','storeys','bouwlagen')+')'],
+   [L('Grundfläche','Footprint','Grondvlak'),nf(C.area)+' m²'],[L('Volumen (Hülle)','Volume (envelope)','Volume'),nf(C.area*b.h)+' m³']
+  ].forEach(r=>{y=pdfTRow(doc,y,k,r,[1]);}); y+=3;
+  y=pdfSecN(doc,y,'2',L('Klima & Risiko','Climate & risk','Klimaat & risico'));
+  y=pdfTHead(doc,y,k);
+  [[L('Oberflächentemperatur (Copernicus)','Surface temperature (Copernicus)','Oppervlaktetemperatuur'),b.lst!=null?(b.lst>=0?'+':'')+b.lst+' °C':'—'],
+   [L('Hochwasser-Exposition','Flood exposure','Overstromingsrisico'),bldFloodLbl(b.flood)],
+   [L('CO₂-Intensität (modelliert)','CO₂ intensity (modelled)','CO₂-intensiteit (model)'),b.co2!=null?b.co2+' kg/m²·a':'—']
+  ].forEach(r=>{y=pdfTRow(doc,y,k,r,[1]);}); y+=3;
+  if(C.solar){
+    y=pdfSecN(doc,y,'3',L('Solarpotenzial','Solar potential','Zonnepotentieel'));
+    y=pdfTHead(doc,y,k);
+    [[L('Nutzbare Dachfläche (50 %)','Usable roof area (50 %)','Bruikbaar dakvlak'),nf(C.area*0.5)+' m²'],
+     [L('Anlagenleistung','System size','Systeemvermogen'),C.solar.kwp.toFixed(1)+' kWp'],
+     [L('Verschattungsfaktor','Shading factor','Beschaduwingsfactor'),Math.round(C.solar.factor*100)+' %'],
+     [L('Ertrag (Schätzung)','Yield (estimate)','Opbrengst (schatting)'),nf(C.solar.kwh)+' kWh/a']
+    ].forEach(r=>{y=pdfTRow(doc,y,k,r,[1]);}); y+=3;
+  }
+  y=pdfMethodBlock(doc,y,C.solar?'4':'3',
+    L('Höhe aus Geschosszahl abgeleitet (kein Laserscan), Flachdach-Annahme. CO₂-Intensität modelliert aus Bauepoche und Nutzung, nicht gemessen. Oberflächentemperatur aus Copernicus-Satellitendaten je Gebäude. Solarpotenzial als Hüllenabschätzung (50 % nutzbare Dachfläche, 0,2 kWp/m², 950 kWh/kWp·a), Verschattung aus der Umgebungsbebauung. Kontextwerte für den Entwurf — ersetzen keine Gebäude-, Tageslicht- oder Ertragssimulation.','Height derived from storey count (no lidar), flat-roof assumption. CO₂ intensity modelled from construction era and use, not measured. Surface temperature from Copernicus satellite data per building. Solar potential as envelope estimate (50 % usable roof, 0.2 kWp/m², 950 kWh/kWp·a) with shading from surrounding buildings. Context values for design — not a substitute for building, daylight or yield simulation.','Hoogte afgeleid uit bouwlagen, platdak-aanname. CO₂ gemodelleerd uit bouwperiode en gebruik. Oppervlaktetemperatuur uit Copernicus per gebouw. Zonnepotentieel als schatting. Contextwaarden voor het ontwerp — geen vervanging van simulatie.'),
+    (city==='utr'?'PDOK BAG':'OpenStreetMap')+' · Copernicus Sentinel-3 (LST)'+(city==='utr'?' · Risicokaart NL':' · HWGK Hessen'),
+    L('EU Nature Restoration Reg. 2024/1991 · nationale Bezonnungs-/Tageslichtnormen','EU Nature Restoration Reg. 2024/1991 · national daylight standards','EU-natuurherstelverordening · nationale bezonningsnormen'));
+  y=pdfDisclaimer(doc,y);
+  pdfFinish(doc,'nice here — Inspector Nice ('+new Date().getFullYear()+'): '+L('Gebäude-Steckbrief','Building profile','Gebouwprofiel')+', '+C.lat.toFixed(5)+', '+C.lon.toFixed(5)+'.',pdfRepId('BLD'));
+  doc.save('inspector-nice_gebaeude_'+C.lat.toFixed(5)+'_'+C.lon.toFixed(5)+'_'+new Date().toISOString().slice(0,10)+'.pdf');
 }
 function ckOpen(){
   let ov=document.getElementById('ckOv');
