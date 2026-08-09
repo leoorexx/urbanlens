@@ -533,6 +533,9 @@ body.free-mode .left{display:none}
 #heatWarn.on{display:flex}
 body.brief-on #heatWarn.on{display:none}   /* Briefing hat Vorrang — Warnung wird dort als Zeile gezeigt */
 body.mission-on .leaflet-tile-pane{filter:saturate(.5) contrast(.98)}   /* Fokus-Modus: Mission aktiv → Basemap tritt zurück */
+/* Schwarzplan: Hintergrundkarte nur als blasses Substrat — sonst lesen ihre eigenen
+   Gebäudeflächen als weiße Baukörper, die man nicht anklicken kann */
+body.plan-on .leaflet-tile-pane{filter:grayscale(1) brightness(1.08) contrast(.3) opacity(.5)}
 body.free-mode #heatWarn{top:106px}
 #heatWarn .hwi{flex:none;display:flex}
 #heatWarn .hwtx{font-size:12px;line-height:1.4}
@@ -6843,6 +6846,62 @@ function briefData(){
     return {worst:scores[0],heatN:heat.length,socN:soc.length,prioN:prio.size,total:scores.length,ms};
   }catch(e){ return null; }
 }
+// ── Sommerbilanz: was gerade wirklich passiert, gegen das Klimamittel ──
+// Laufender Sommer live aus Open-Meteo; Normalperiode 1991–2020 einmalig
+// geladen und dauerhaft gecacht (sie ändert sich nicht).
+function smInWin(m,d,em,ed){ return m>=6 && m<=em && !(m===em&&d>ed); }
+function smCount(dl,em,ed){
+  const t=(dl&&dl.time)||[], mx=dl.temperature_2m_max||[], mn=dl.temperature_2m_min||[], pr=dl.precipitation_sum||[];
+  const by={};
+  for(let i=0;i<t.length;i++){
+    const y=+t[i].slice(0,4), m=+t[i].slice(5,7), d=+t[i].slice(8,10);
+    if(!smInWin(m,d,em,ed))continue;
+    const o=by[y]||(by[y]={hot:0,trop:0,dry:0,_run:0,n:0});
+    o.n++;
+    if(mx[i]!=null&&mx[i]>=30)o.hot++;
+    if(mn[i]!=null&&mn[i]>=20)o.trop++;
+    if((pr[i]||0)<1){o._run++; if(o._run>o.dry)o.dry=o._run;} else o._run=0;
+  }
+  return by;
+}
+function briefLoadSummer(cb){
+  try{
+    const cfg=CITY_CFG[city], lat=cfg.center[0], lon=cfg.center[1], now=new Date();
+    const m=now.getMonth()+1; if(m<6||m>9){cb(null);return;}      // Bilanz nur im/kurz nach dem Sommer
+    const em=Math.min(m,8), ed=m>8?31:now.getDate();
+    const D='daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto';
+    fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&'+D+'&past_days=92&forecast_days=1')
+      .then(r=>r.json()).then(js=>{
+        const cur=smCount(js.daily||{},em,ed)[now.getFullYear()];
+        if(!cur||cur.n<10){cb(null);return;}
+        let norm=null; try{norm=JSON.parse(localStorage.getItem('nh_clim_'+city)||'null');}catch(e){}
+        if(norm&&norm.em===em&&norm.ed===ed){cb({cur,norm});return;}
+        fetch('https://archive-api.open-meteo.com/v1/archive?latitude='+lat+'&longitude='+lon+'&start_date=1991-06-01&end_date=2020-08-31&'+D)
+          .then(r=>r.json()).then(a=>{
+            const ys=Object.values(smCount(a.daily||{},em,ed)).filter(o=>o.n>=10);
+            if(!ys.length){cb({cur,norm:null});return;}
+            const avg=k=>ys.reduce((s,o)=>s+o[k],0)/ys.length;
+            const n={hot:avg('hot'),trop:avg('trop'),dry:avg('dry'),em,ed,years:ys.length};
+            try{localStorage.setItem('nh_clim_'+city,JSON.stringify(n));}catch(e){}
+            cb({cur,norm:n});
+          }).catch(()=>cb({cur,norm:null}));
+      }).catch(()=>cb(null));
+  }catch(e){cb(null);}
+}
+function briefSummerHtml(r){
+  if(!r||!r.cur)return '';
+  const c=r.cur,n=r.norm;
+  const parts=[c.hot+' '+mT('Hitzetage','hot days','hittedagen')+' (≥ 30 °C)'];
+  if(c.trop)parts.push(c.trop+' '+mT('Tropennächte','tropical nights','tropennachten')+' (≥ 20 °C)');
+  if(c.dry>=5)parts.push(mT('längste Trockenphase','longest dry spell','langste droge periode')+' '+c.dry+' '+mT('Tage','days','dagen'));
+  let cmp='';
+  if(n&&n.hot>=1){
+    const pct=Math.round((c.hot/n.hot-1)*100);
+    cmp=' — '+mT('Hitzetage','hot days','hittedagen')+' '+(pct>=0?'+':'')+pct+' % '+mT('gegenüber dem Mittel','vs. the 1991–2020 normal','t.o.v. het gemiddelde')+' 1991–2020 ('+n.hot.toFixed(0)+')';
+  }
+  return '<div class="bf-line"><span class="bf-dot" style="background:#c97b4f"></span><span><b>'+
+    mT('Dieser Sommer','This summer','Deze zomer')+':</b> '+parts.join(' · ')+cmp+'</span></div>';
+}
 function showBriefing(force){
   if(document.body.classList.contains('embed'))return;
   if(!force&&hasDeepLink())return; // geteilter Link landet direkt im Ziel
@@ -6868,11 +6927,13 @@ function showBriefing(force){
    +(function(){const hw=document.getElementById('heatWarn');if(!hw||!hw.classList.contains('on'))return '';
       const t=hw.textContent.replace(/[✕×]/g,'').replace(/\s+/g,' ').trim();
       return '<div class="bf-line"><span class="bf-dot" style="background:#dc2626"></span><span>'+t+'</span></div>';})()
+   +'<div id="bfSummer"></div>'
    +'<div class="bf-rec"><b>'+mT('Empfohlene nächste Aktion','Recommended next action','Aanbevolen volgende actie')+':</b> '+mT('Fall','Case','Casus')+' <b>'+b.worst.n+'</b> (NICE '+b.worst.s+') '+mT('öffnen.','review.','openen.')+'</div>'
    +'<div class="bf-btns"><button class="bf-go" onclick="briefGo()">'+mT('Fall öffnen','Open case','Casus openen')+'</button><button class="bf-alt" onclick="closeBriefing();toggleMission()">'+mT('Missionen','Missions','Missies')+'</button></div>'
    +'<div class="bf-foot">'+mT('Aus Stadtteil-Daten berechnet · Quintile im Stadtvergleich · Details & Konfidenz je Fall','Computed from district data · quintiles within the city · details & confidence per case','Berekend uit wijkdata · kwintielen binnen de stad · details & betrouwbaarheid per casus')+'</div>';
   document.body.appendChild(el);
   document.body.classList.add('brief-on');
+  try{ briefLoadSummer(r=>{const s=document.getElementById('bfSummer'); if(s)s.innerHTML=briefSummerHtml(r);}); }catch(e){}
 }
 function closeBriefing(silent){
   const el=document.getElementById('briefCard'); if(el)el.remove();
@@ -7200,8 +7261,8 @@ function locPDF(){
 // ── Schwarzplan („Plan"): Figure-Ground aus echten Gebäudegrundrissen ──
 // Gleiche Daten wie 3D (PDOK BAG / OSM); Viewport-Culling ab Zoom 15, Kappung 9.000.
 const PLAN={on:false,data:null,grid:null,layer:null,city:null,t:null};
-function planEnable(){ PLAN.on=true; planLoad(); map.on('moveend',planSched); map.on('zoomend',planSched); planSched(); }
-function planDisable(){ PLAN.on=false; try{map.off('moveend',planSched);map.off('zoomend',planSched);}catch(e){}
+function planEnable(){ PLAN.on=true; document.body.classList.add('plan-on'); planLoad(); map.on('moveend',planSched); map.on('zoomend',planSched); planSched(); }
+function planDisable(){ PLAN.on=false; document.body.classList.remove('plan-on'); try{map.off('moveend',planSched);map.off('zoomend',planSched);}catch(e){}
   if(PLAN.layer){try{map.removeLayer(PLAN.layer);}catch(e){}PLAN.layer=null;} planHint(false); try{closeBld();}catch(e){} }
 function planSched(){ clearTimeout(PLAN.t); PLAN.t=setTimeout(planRender,140); }
 function planLoad(){
@@ -7317,17 +7378,20 @@ function planRender(){
   if(map.getZoom()<15){planHint(mT('Schwarzplan: hineinzoomen für Gebäude (ab Zoom 15)','Figure-ground: zoom in for buildings (zoom 15+)','Zwartplan: inzoomen voor gebouwen (zoom 15+)'));return;}
   planHint(mT('Klick auf ein Gebäude öffnet seinen Steckbrief','Click a building to open its profile','Klik op een gebouw voor het profiel'));
   const b=map.getBounds().pad(0.12),C=0.004;
-  const x0=Math.round(b.getWest()/C),x1=Math.round(b.getEast()/C),y0=Math.round(b.getSouth()/C),y1=Math.round(b.getNorth()/C);
-  const feats=[];let cap=9000;
+  const W=b.getWest(),E=b.getEast(),S=b.getSouth(),N=b.getNorth();
+  const x0=Math.round(W/C),x1=Math.round(E/C),y0=Math.round(S/C),y1=Math.round(N/C);
+  const feats=[];let cap=30000;   // Canvas verkraftet das; darunter riss die Kappung sichtbare Löcher
   outer:
   for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){
     const a=PLAN.grid.get(x+'_'+y); if(!a)continue;
     for(const i of a){ const g=PLAN.data[i].g; if(!g)continue;
+      const p=g[0];                       // Rasterzellen sind 274×445 m — je Gebäude gegen den echten Ausschnitt prüfen
+      if(p[0]<W||p[0]>E||p[1]<S||p[1]>N)continue;
       feats.push({type:'Feature',geometry:{type:'Polygon',coordinates:[g]},properties:{i}});
       if(--cap<=0)break outer; }
   }
   PLAN.layer=L.geoJSON({type:'FeatureCollection',features:feats},{renderer:window.canvasRenderer,
-    style:()=>({color:'#26263a',weight:0,fillColor:'#26263a',fillOpacity:0.9}),
+    style:()=>({color:'#ffffff',weight:0.6,opacity:0.85,fillColor:'#26263a',fillOpacity:1}),
     onEachFeature:(f,l)=>{ l.on('click',e=>{ L.DomEvent.stopPropagation(e); bldOpen(f.properties.i); }); }
   }).addTo(map);
 }
