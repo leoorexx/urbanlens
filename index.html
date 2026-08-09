@@ -7008,21 +7008,37 @@ function cmpRender(){
 // ══════════════════════════════════════════════════════════════
 const LOC={active:false,pt:null,cats:null,layer:null,busy:false};
 const LOC_CATS=[
- {k:'gastro',de:'Gastronomie & Mittag',en:'Food & lunch',nl:'Horeca & lunch',r:300,goal:[8,3],
+ {k:'gastro',de:'Gastronomie & Mittag',en:'Food & lunch',nl:'Horeca & lunch',r:300,goal:[8,3],col:'#c97b4f',
   m:t=>/^(restaurant|cafe|fast_food|food_court)$/.test(t.amenity||'')},
- {k:'kita',de:'Kita & Schule',en:'Childcare & school',nl:'Opvang & school',r:500,goal:[2,1],
+ {k:'kita',de:'Kita & Schule',en:'Childcare & school',nl:'Opvang & school',r:500,goal:[2,1],col:'#7c3aed',
   m:t=>/^(kindergarten|childcare|school)$/.test(t.amenity||'')},
- {k:'fit',de:'Fitness & Sport',en:'Fitness & sports',nl:'Fitness & sport',r:800,goal:[2,1],
+ {k:'fit',de:'Fitness & Sport',en:'Fitness & sports',nl:'Fitness & sport',r:800,goal:[2,1],col:'#0ea5e9',
   m:t=>/^(fitness_centre|sports_centre|fitness_station)$/.test(t.leisure||'')},
- {k:'ov',de:'ÖPNV-Haltestellen',en:'Public transport',nl:'OV-haltes',r:300,goal:[2,1],
+ {k:'ov',de:'ÖPNV-Haltestellen',en:'Public transport',nl:'OV-haltes',r:300,goal:[2,1],col:'#1a1a2e',
   m:t=>t.highway==='bus_stop'||/^(tram_stop|station|halt)$/.test(t.railway||'')},
- {k:'shop',de:'Nahversorgung',en:'Daily shopping',nl:'Dagelijkse boodschappen',r:500,goal:[2,1],
+ {k:'shop',de:'Nahversorgung',en:'Daily shopping',nl:'Dagelijkse boodschappen',r:500,goal:[2,1],col:'#c9a53f',
   m:t=>/^(supermarket|convenience|bakery)$/.test(t.shop||'')},
- {k:'health',de:'Apotheke & Ärzte',en:'Pharmacy & doctors',nl:'Apotheek & artsen',r:500,goal:[1,1],
+ {k:'health',de:'Apotheke & Ärzte',en:'Pharmacy & doctors',nl:'Apotheek & artsen',r:500,goal:[1,1],col:'#b34a4a',
   m:t=>/^(pharmacy|doctors|dentist)$/.test(t.amenity||'')},
- {k:'green',de:'Park & Grün',en:'Parks & green',nl:'Park & groen',r:300,goal:[1,1],
+ {k:'green',de:'Park & Grün',en:'Parks & green',nl:'Park & groen',r:300,goal:[1,1],col:'#5f7a52',
   m:t=>t.leisure==='park'||t.landuse==='grass'||t.leisure==='garden'}
 ];
+// Gefundene Orte auf der Karte zeigen — Architekten denken räumlich, nicht in Tabellen
+function locDrawPois(){
+  if(LOC.poiLayer){try{map.removeLayer(LOC.poiLayer);}catch(e){}LOC.poiLayer=null;}
+  if(!LOC.cats)return;
+  const g=L.layerGroup();
+  LOC.cats.forEach(c=>{
+    if(LOC.hidden&&LOC.hidden[c.k])return;
+    (c.pts||[]).forEach(p=>{
+      const m=L.circleMarker([p.lat,p.lon],{radius:4.5,color:'#fff',weight:1.3,fillColor:c.col,fillOpacity:.95});
+      m.bindTooltip('<b>'+(p.name||mT(c.de,c.en,c.nl))+'</b><br><small>'+mT(c.de,c.en,c.nl)+' · '+p.d+' m</small>');
+      g.addLayer(m);
+    });
+  });
+  g.addTo(map); LOC.poiLayer=g;
+}
+function locToggleCat(k){ LOC.hidden=LOC.hidden||{}; LOC.hidden[k]=!LOC.hidden[k]; locDrawPois(); renderLocPanel(); }
 function toggleLoc(){
   LOC.active=!LOC.active;
   const b=document.getElementById('tool-loc'); if(b)b.classList.toggle('on',LOC.active);
@@ -7033,7 +7049,7 @@ function toggleLoc(){
   p.innerHTML=locHead()+`<div class="ap-body"><div class="ibox" style="border-left-color:var(--accent)">${mT('<b>Standort-Check:</b> Adresse oben suchen oder direkt auf die Karte klicken — Inspector Nice erstellt das Umfeld-Profil (Gehradien 300–800 m) für Büro- und Wohnstandorte.','<b>Location check:</b> search an address above or click the map — Inspector Nice builds the surroundings profile (walking radii 300–800 m) for office and residential locations.','<b>Locatiecheck:</b> zoek een adres of klik op de kaart — Inspector Nice bouwt het omgevingsprofiel (loopafstanden 300–800 m).')}</div></div>`;
 }
 function locHead(){return `<div class="ap-head"><div><div class="ap-ttl">${mT('Standort-Check','Location check','Locatiecheck')}</div><div class="ap-sub">${mT('Umfeld-Profil · OSM live · jede Stadt','Surroundings profile · OSM live · any city','Omgevingsprofiel · OSM live · elke stad')}</div></div><button class="ap-x" aria-label="${mT('Schließen','Close','Sluiten')}" onclick="toggleLoc()">✕</button></div>`;}
-function locClear(){ if(LOC.layer){try{map.removeLayer(LOC.layer);}catch(e){}LOC.layer=null;} try{urlParam('loc',null);}catch(e){} }
+function locClear(){ if(LOC.layer){try{map.removeLayer(LOC.layer);}catch(e){}LOC.layer=null;} if(LOC.poiLayer){try{map.removeLayer(LOC.poiLayer);}catch(e){}LOC.poiLayer=null;} try{urlParam('loc',null);}catch(e){} }
 function locDist(lat1,lon1,lat2,lon2){const mx=(lon2-lon1)*70000*Math.cos(lat1*Math.PI/180)/Math.cos(52*Math.PI/180),my=(lat2-lat1)*111320;return Math.sqrt(mx*mx+my*my);}
 function locAt(latlng){
   if(LOC.busy)return; LOC.busy=true;
@@ -7049,13 +7065,13 @@ function locAt(latlng){
   if(body)body.innerHTML=`<div style="text-align:center;padding:26px 0"><span class="loading-dot"></span><div style="font-size:10px;color:var(--muted);margin-top:8px">${mT('Umfeld wird abgefragt (OpenStreetMap live)…','Querying surroundings (OpenStreetMap live)…','Omgeving wordt opgevraagd…')}</div></div>`;
   const q='[out:json][timeout:25];(nwr["amenity"~"^(restaurant|cafe|fast_food|food_court|kindergarten|childcare|school|pharmacy|doctors|dentist)$"](around:800,'+lat+','+lon+');nwr["leisure"~"^(fitness_centre|sports_centre|fitness_station|park|garden)$"](around:800,'+lat+','+lon+');nwr["shop"~"^(supermarket|convenience|bakery)$"](around:600,'+lat+','+lon+');nwr["highway"="bus_stop"](around:400,'+lat+','+lon+');nwr["railway"~"^(tram_stop|station|halt)$"](around:600,'+lat+','+lon+'););out tags center qt;';
   fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)})
-    .then(r=>r.json()).then(js=>{ LOC.busy=false; locScore(js.elements||[]); renderLocPanel(); })
+    .then(r=>r.json()).then(js=>{ LOC.busy=false; locScore(js.elements||[]); locDrawPois(); renderLocPanel(); })
     .catch(()=>{ LOC.busy=false; if(body)body.innerHTML='<div style="padding:14px;font-size:11px;color:var(--muted)">'+mT('OSM-Abfrage fehlgeschlagen (Rate-Limit?) — kurz warten und erneut klicken.','OSM query failed (rate limit?) — wait briefly and click again.','OSM-query mislukt — even wachten en opnieuw klikken.')+'</div>'; });
 }
 function locScore(els){
   const {lat,lon}=LOC.pt;
   LOC.cats=LOC_CATS.map(c=>{
-    let n=0,near=null,names=[],ds=[];
+    let n=0,near=null,names=[],ds=[],pts=[];
     els.forEach(e=>{
       const t=e.tags||{}; if(!c.m(t))return;
       const elat=e.lat!=null?e.lat:(e.center&&e.center.lat), elon=e.lon!=null?e.lon:(e.center&&e.center.lon);
@@ -7064,9 +7080,10 @@ function locScore(els){
       if(d>c.r)return;
       n++; ds.push(d); if(near==null||d<near)near=d;
       if(t.name&&names.length<3)names.push(t.name);
+      if(pts.length<300)pts.push({lat:elat,lon:elon,name:t.name||'',d:Math.round(d)});
     });
     const st=n>=c.goal[0]?'good':n>=c.goal[1]?'ok':'poor';
-    return {...c,n,near:near!=null?Math.round(near):null,names,st,ds:ds.sort((a,b)=>a-b).slice(0,40).map(x=>Math.round(x))};
+    return {...c,n,near:near!=null?Math.round(near):null,names,st,pts,ds:ds.sort((a,b)=>a-b).slice(0,40).map(x=>Math.round(x))};
   });
   // Umfeld-Klima nur in gebündelten Städten (Utrecht/FFM) — sonst ehrlich weglassen
   LOC.env=null;
@@ -7089,12 +7106,14 @@ function renderLocPanel(){
      </div>
      <div style="font-size:10px;color:var(--text2);line-height:1.4"><b>${mT('Standort-Score','Location score','Locatiescore')}</b><br>${LOC.pt.lat}, ${LOC.pt.lon}<br>${mT('Jeder Punkt = ein Ort auf seiner Gehdistanz','Each dot = one venue at its walking distance','Elke stip = een locatie op loopafstand')}</div>
    </div>
-   ${LOC.cats.map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+   ${LOC.cats.map(c=>{const off=LOC.hidden&&LOC.hidden[c.k];return `<div onclick="locToggleCat('${c.k}')" tabindex="0" role="button" onkeydown="if(event.key==='Enter')this.click()" title="${mT('Auf der Karte ein-/ausblenden','Show/hide on the map','Op de kaart tonen/verbergen')}" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;opacity:${off?0.45:1}">
+     <span style="width:10px;height:10px;border-radius:50%;background:${off?'transparent':c.col};border:1.5px solid ${c.col};flex:none"></span>
      <div style="flex:1.15;min-width:0"><div style="font-size:11px;font-weight:700;color:var(--text)">${mT(c.de,c.en,c.nl)} <small style="color:var(--muted);font-weight:400">≤ ${c.r} m</small></div>
        ${c.names.length?`<div style="font-size:9px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.names.join(' · ')}</div>`:''}</div>
-     <div class="ds-strip"><div class="ds-axis"></div><div class="ds-bench" style="left:50%"></div>${(c.ds||[]).map(d=>`<span class="ds-dot" style="left:${Math.min(96,d/c.r*100).toFixed(1)}%;background:${locStColor(c.st)}"></span>`).join('')}</div>
+     <div class="ds-strip"><div class="ds-axis"></div><div class="ds-bench" style="left:50%"></div>${(c.ds||[]).map(d=>`<span class="ds-dot" style="left:${Math.min(96,d/c.r*100).toFixed(1)}%;background:${c.col}"></span>`).join('')}</div>
      <div style="text-align:right;flex:none;width:58px"><b style="font-family:var(--font-serif);font-size:14px;font-feature-settings:'tnum'">${c.n}</b><div style="font-size:8.5px;color:${locStColor(c.st)};font-weight:800">${locStLbl(c.st)}${c.near!=null?' · '+c.near+' m':''}</div></div>
-   </div>`).join('')}
+   </div>`;}).join('')}
+   <div style="font-size:9px;color:var(--muted);margin-top:6px">${mT('Jeder Punkt auf der Karte ist ein gefundener Ort · Klick auf eine Zeile blendet die Kategorie aus','Every dot on the map is a found place · click a row to hide that category','Elke stip op de kaart is een gevonden plek · klik op een rij om de categorie te verbergen')}</div>
    ${LOC.env?`<div class="ap-sec">${mT('Umfeld-Kontext (amtlich/gemessen)','Context (official/measured)','Context (officieel/gemeten)')}</div>
    <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:10px">
      ${LOC.env.lst!=null?`<span class="ms-badge">LST ${LOC.env.lst>=0?'+':''}${LOC.env.lst} °C</span>`:''}
