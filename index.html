@@ -698,7 +698,7 @@ body.dark :focus-visible{outline-color:var(--accent)}
 </div>
 
 <nav class="nav">
-  <a href="start.html" style="text-decoration:none" title="Zur Startseite"><div class="logo"><svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true" style="vertical-align:-4px;margin-right:6px"><line x1="5" y1="7" x2="12" y2="4" stroke="#36d5d0" stroke-width="1.3"/><line x1="12" y1="4" x2="17" y2="11" stroke="#a60ba6" stroke-width="1.3"/><line x1="5" y1="7" x2="8" y2="15" stroke="#ff8210" stroke-width="1.3"/><line x1="8" y1="15" x2="17" y2="11" stroke="#36d5d0" stroke-width="1.3"/><circle cx="5" cy="7" r="2.4" fill="#ff8210"/><circle cx="12" cy="4" r="1.9" fill="#36d5d0"/><circle cx="17" cy="11" r="2.7" fill="#a60ba6"/><circle cx="8" cy="15" r="2" fill="#36d5d0"/></svg>nice <span>here</span></div></a>
+  <a href="https://www.nicehere.nl" style="text-decoration:none" title="nice here"><div class="logo"><svg width="20" height="20" viewBox="0 0 22 22" aria-hidden="true" style="vertical-align:-4px;margin-right:6px"><line x1="5" y1="7" x2="12" y2="4" stroke="#36d5d0" stroke-width="1.3"/><line x1="12" y1="4" x2="17" y2="11" stroke="#a60ba6" stroke-width="1.3"/><line x1="5" y1="7" x2="8" y2="15" stroke="#ff8210" stroke-width="1.3"/><line x1="8" y1="15" x2="17" y2="11" stroke="#36d5d0" stroke-width="1.3"/><circle cx="5" cy="7" r="2.4" fill="#ff8210"/><circle cx="12" cy="4" r="1.9" fill="#36d5d0"/><circle cx="17" cy="11" r="2.7" fill="#a60ba6"/><circle cx="8" cy="15" r="2" fill="#36d5d0"/></svg>nice <span>here</span></div></a>
   <div class="nsep"></div>
   <a class="bbrille-btn" onclick="enter3D()" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg> 3D</a>
   <a href="methodik.html" class="bbrille-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2Z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg> <span data-i18n="nav_method">Methodik</span></a>
@@ -7038,7 +7038,7 @@ function locDist(lat1,lon1,lat2,lon2){const mx=(lon2-lon1)*70000*Math.cos(lat1*M
 function locAt(latlng){
   if(LOC.busy)return; LOC.busy=true;
   const lat=+latlng.lat.toFixed(5),lon=+latlng.lng.toFixed(5);
-  LOC.pt={lat,lon};
+  LOC.pt={lat,lon};LOC.sun=null;
   try{urlParam('loc',lat+','+lon);}catch(e){}
   locClear(); urlParam('loc',lat+','+lon);
   const g=L.layerGroup();
@@ -7101,6 +7101,18 @@ function renderLocPanel(){
      ${LOC.env.versieg!=null?`<span class="ms-badge">${LOC.env.versieg} % ${mT('versiegelt','sealed','verhard')}</span>`:''}
      ${LOC.env.kinderarmut!=null?`<span class="ms-badge">${mT('Kinderarmut Wijk','district child poverty','kinderarmoede wijk')} ${LOC.env.kinderarmut} %</span>`:''}
    </div>`:''}
+   <div class="ap-sec">${mT('Besonnung','Sun exposure','Bezonning')}</div>
+   ${LOC.sun?`
+     <table class="case-metrics"><tbody>
+       ${LOC.sun.rows.map(r=>`<tr><td>${r.lbl}</td><td>${r.h.toLocaleString(lang==='en'?'en-GB':lang==='nl'?'nl-NL':'de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})} h</td></tr>`).join('')}
+     </tbody></table>
+     ${(sunNorm()||[]).map(n=>`<div style="display:flex;align-items:center;gap:7px;font-size:10.5px;margin-top:6px">
+       <span style="width:8px;height:8px;border-radius:50%;background:${n.v>=n.req?'#5f7a52':'#b34a4a'};flex:none"></span>
+       <span style="flex:1"><b>${n.n}</b> · ${n.d} · ${mT('gefordert','required','vereist')} ≥ ${n.req} h</span>
+       <b style="color:${n.v>=n.req?'#5f7a52':'#b34a4a'}">${n.v!=null?n.v.toFixed(1)+' h':'—'}</b></div>`).join('')}
+     <div style="font-size:9px;color:var(--muted);line-height:1.5;margin-top:7px">${mT('Berechnet aus Sonnenstand und den Gebäudehöhen im 250-m-Umkreis. Näherung: Höhen aus Geschosszahlen (kein Laserscan), Flachdach-Annahme, ohne Bäume und Gelände. Für eine genehmigungsfähige Bezonningsstudie ersetzt das keine Fachsimulation.','Computed from solar position and building heights within 250 m. Approximation: heights derived from storey counts (no lidar), flat-roof assumption, without trees or terrain. Not a substitute for a certified daylight study.','Berekend uit zonnestand en gebouwhoogtes binnen 250 m. Benadering: hoogtes uit bouwlagen (geen laserscan), platdak-aanname, zonder bomen en terrein. Vervangt geen officiële bezonningsstudie.')}</div>`
+   :`<button id="sunBtn" onclick="locSunCalc()" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px;font-size:11.5px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit">${mT('Besonnung berechnen','Calculate sun exposure','Bezonning berekenen')}</button>
+     <div style="font-size:9px;color:var(--muted);margin-top:5px">${mT('Lädt einmalig die Gebäudedaten und prüft gegen','Loads building data once and checks against','Laadt eenmalig de gebouwdata en toetst aan')} ${city==='utr'?'TNO':'DIN 5034'}.</div>`}
    <div style="margin:12px 0 4px"><button onclick="locPDF()" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px">${ic('download',13)} Location Brief (PDF)</button></div>
    <div style="font-size:9px;color:var(--muted);line-height:1.5">${mT('Zählung & Distanz aus OpenStreetMap (live) — Vollständigkeit variiert je Stadt. Bewertet wird Verfügbarkeit, nicht Qualität: Gastronomie-/Studio-Bewertungen erfordern Partnerdaten (Phase 2). Benchmarks: Praxis-Schwellen, mit Pilotpartnern kalibrierbar. Link dieser Ansicht ist teilbar.','Counts & distances from OpenStreetMap (live) — completeness varies by city. This scores availability, not quality: venue ratings require partner data (phase 2). Benchmarks are practice thresholds, calibratable with pilot partners. The link of this view is shareable.','Telling & afstand uit OpenStreetMap (live) — volledigheid varieert. Dit scoort beschikbaarheid, geen kwaliteit: beoordelingen vergen partnerdata (fase 2). Link deelbaar.')}</div>`;
 }
@@ -7132,11 +7144,21 @@ function locPDF(){
   doc.setFontSize(7.2); pC(doc,PDFX.mut);
   doc.text(L('Jeder Punkt = ein Ort auf seiner Gehdistanz (0 bis Kategorienradius) · Mittelstrich = halber Radius','Each dot = one venue at its walking distance (0 to category radius) · centre tick = half radius','Elke stip = een locatie op loopafstand (0 tot radius) · middenstreep = halve radius'),PDFX.L,y+1); y+=7;
   doc.setFontSize(9.5); pC(doc,PDFX.body);
-  if(LOC.env){ y=pdfSecN(doc,y,'3',L('Umfeld-Kontext','Context','Context'));
+  if(LOC.sun){
+    y=pdfSecN(doc,y,'3',L('Besonnung','Sun exposure','Bezonning'));
+    const sk=[{t:L('Stichtag','Reference date','Peildatum'),x:PDFX.L},{t:L('Direkte Sonne','Direct sun','Directe zon'),x:PDFX.L+70,a:'right'},{t:L('Norm','Norm','Norm'),x:PDFX.L+118},{t:L('Erfüllt','Met','Voldaan'),x:PDFX.R,a:'right'}];
+    y=pdfTHead(doc,y,sk);
+    const nm=sunNorm()||[];
+    LOC.sun.rows.forEach(r=>{ const n=nm.find(x=>x.d===r.lbl);
+      y=pdfTRow(doc,y,sk,[r.lbl+' '+LOC.sun.y,r.h.toFixed(1).replace('.',L(',','.',','))+' h',n?n.n+' (≥ '+n.req+' h)':'—',n?(r.h>=n.req?L('ja','yes','ja'):L('nein','no','nee')):'—'],n?[0,3]:[]); });
+    y+=3;
+    y=pdfPara(doc,y,L('Berechnet aus dem Sonnenstand und den Gebäudehöhen im 250-Meter-Umkreis (Horizontprofil je Himmelsrichtung). Näherung: Höhen aus Geschosszahlen abgeleitet, Flachdach-Annahme, ohne Bäume und Gelände. Ersetzt keine genehmigungsfähige Fachsimulation.','Computed from solar position and building heights within 250 metres (horizon profile per compass direction). Approximation: heights derived from storey counts, flat-roof assumption, without trees or terrain. Not a substitute for a certified daylight study.','Berekend uit de zonnestand en gebouwhoogtes binnen 250 meter (horizonprofiel per windrichting). Benadering: hoogtes afgeleid uit bouwlagen, platdak-aanname, zonder bomen en terrein. Vervangt geen officiële bezonningsstudie.'),8.6);
+  }
+  if(LOC.env){ y=pdfSecN(doc,y,LOC.sun?'4':'3',L('Umfeld-Kontext','Context','Context'));
     y=pdfPara(doc,y,[LOC.env.lst!=null?('LST '+(LOC.env.lst>=0?'+':'')+LOC.env.lst+' °C ('+L('Hitzeinsel-Indikator, gemessen','heat-island indicator, measured','hitte-indicator, gemeten')+')'):null,LOC.env.versieg!=null?(LOC.env.versieg+' % '+L('Versiegelung','sealing','verharding')):null,LOC.env.kinderarmut!=null?(L('Kinderarmut im Wijk','district child poverty','kinderarmoede wijk')+' '+LOC.env.kinderarmut+' %'):null].filter(Boolean).join('  ·  ')); }
-  y=pdfMethodBlock(doc,y,LOC.env?'4':'3',
+  y=pdfMethodBlock(doc,y,String(3+(LOC.sun?1:0)+(LOC.env?1:0)),
     L('Zählung und Distanz je Kategorie aus OpenStreetMap (Live-Abfrage, Gehradius je Kategorie). Vollständigkeit variiert je Stadt und Kategorie. Bewertet wird Verfügbarkeit, nicht Qualität — Bewertungsdaten (z. B. Gastronomie-Ratings) erfordern Partnerquellen (Phase 2). Benchmarks sind Praxis-Schwellen und mit Pilotpartnern kalibrierbar.','Counts and distances per category from OpenStreetMap (live query, per-category walking radius). Completeness varies by city and category. This scores availability, not quality — rating data (e.g. restaurant ratings) requires partner sources (phase 2). Benchmarks are practice thresholds, calibratable with pilot partners.','Telling en afstand per categorie uit OpenStreetMap (live). Volledigheid varieert. Dit scoort beschikbaarheid, geen kwaliteit — beoordelingsdata vergt partnerbronnen (fase 2).'),
-    'OpenStreetMap (live)'+(LOC.env?' · Copernicus LST · '+(city==='utr'?'CBS Wijkdata':'Zensus'):''),
+    'OpenStreetMap (live)'+(LOC.sun?' · '+(city==='utr'?'PDOK BAG':'OpenStreetMap')+' ('+L('Gebäudehöhen','building heights','gebouwhoogtes')+')':'')+(LOC.env?' · Copernicus LST · '+(city==='utr'?'CBS Wijkdata':'Zensus'):''),
     L('WHO/EU: Grün ≤ 300 m · 10-Minuten-Stadt als Referenzrahmen','WHO/EU: green ≤ 300 m · 10-minute city as frame of reference','WHO/EU: groen ≤ 300 m · 10-minutenstad als referentiekader'));
   y=pdfDisclaimer(doc,y);
   pdfFinish(doc,'nice here — Inspector Nice ('+new Date().getFullYear()+'): Location Brief, '+LOC.pt.lat+', '+LOC.pt.lon+'.',repId);
@@ -7151,16 +7173,102 @@ function planDisable(){ PLAN.on=false; try{map.off('moveend',planSched);map.off(
   if(PLAN.layer){try{map.removeLayer(PLAN.layer);}catch(e){}PLAN.layer=null;} planHint(false); }
 function planSched(){ clearTimeout(PLAN.t); PLAN.t=setTimeout(planRender,140); }
 function planLoad(){
-  if(PLAN.city===city&&PLAN.data)return;
+  if(PLAN.city===city&&PLAN.data)return Promise.resolve(true);
+  if(PLAN._p)return PLAN._p;
   PLAN.data=null;PLAN.grid=null;PLAN.city=city;
-  fetch(`${DATA_BASE}/bag_${city}.json`).then(r=>r.ok?r.json():null).then(d=>{
-    if(!d)return;
+  PLAN._p=fetch(`${DATA_BASE}/bag_${city}.json`).then(r=>r.ok?r.json():null).then(d=>{
+    PLAN._p=null; if(!d)return false;
     const arr=Array.isArray(d)?d:Object.values(d);
-    const G=new Map(),C=0.004;
-    arr.forEach((b,i)=>{const p=b&&b.g&&b.g[0];if(!p)return;const k=Math.round(p[0]/C)+'_'+Math.round(p[1]/C);let a=G.get(k);if(!a){a=[];G.set(k,a);}a.push(i);});
-    PLAN.data=arr;PLAN.grid=G;
+    const G=new Map(),C=0.004; let mx=0;
+    arr.forEach((b,i)=>{const p=b&&b.g&&b.g[0];if(!p)return;if(b.h>mx)mx=b.h;const k=Math.round(p[0]/C)+'_'+Math.round(p[1]/C);let a=G.get(k);if(!a){a=[];G.set(k,a);}a.push(i);});
+    PLAN.data=arr;PLAN.grid=G;PLAN.maxh=mx;
     if(PLAN.on)planRender();
-  }).catch(()=>{});
+    return true;
+  }).catch(()=>{PLAN._p=null;return false;});
+  return PLAN._p;
+}
+
+// ── Besonnung: Sonnenstand (Astronomie, keine externen Daten) + Verschattung ──
+// Horizontprofil je Azimut-Grad aus den Gebäudehöhen im Umkreis; danach ist jeder
+// Zeitschritt ein Nachschlagen. Höhen sind Näherungen (siehe Hinweis im Panel).
+const SR=Math.PI/180, SE=SR*23.4397;
+function sunPosition(date,lat,lon){
+  const d=date.valueOf()/864e5-0.5+2440588-2451545;
+  const M=SR*(357.5291+0.98560028*d);
+  const L=M+SR*(1.9148*Math.sin(M)+0.02*Math.sin(2*M)+0.0003*Math.sin(3*M))+SR*102.9372+Math.PI;
+  const dec=Math.asin(Math.sin(SE)*Math.sin(L));
+  const ra=Math.atan2(Math.sin(L)*Math.cos(SE),Math.cos(L));
+  const H=SR*(280.16+360.9856235*d)+SR*lon-ra;
+  const phi=SR*lat;
+  return {alt:Math.asin(Math.sin(phi)*Math.sin(dec)+Math.cos(phi)*Math.cos(dec)*Math.cos(H)),
+          az:Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(phi)-Math.tan(dec)*Math.cos(phi))};
+}
+function sunHorizon(lat,lon){          // 360 Bins: höchster verschattender Winkel je Himmelsrichtung
+  const N=360,hor=new Float32Array(N),C=0.004,R=250;
+  const cosLat=Math.cos(lat*SR),kx=Math.round(lon/C),ky=Math.round(lat/C);
+  for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=2;dy++){
+    const arr=PLAN.grid.get((kx+dx)+'_'+(ky+dy)); if(!arr)continue;
+    for(const i of arr){
+      const b=PLAN.data[i]; if(!b||!b.g||!(b.h>0))continue;
+      if(pawPipRing(b.g,lon,lat))continue;   // Gebäude am Punkt selbst verschattet den Punkt nicht
+      const g=b.g;
+      for(let v=0;v<g.length-1;v++){
+        const ax=(g[v][0]-lon)*111320*cosLat, ay=(g[v][1]-lat)*111320;
+        const bx=(g[v+1][0]-lon)*111320*cosLat, by=(g[v+1][1]-lat)*111320;
+        const seg=Math.hypot(bx-ax,by-ay), st=Math.max(1,Math.min(24,Math.ceil(seg/3)));
+        let pB=null,pA=null;
+        for(let s=0;s<=st;s++){
+          const mx=ax+(bx-ax)*s/st, my=ay+(by-ay)*s/st;
+          const dist=Math.hypot(mx,my); if(dist<1.5||dist>R){pB=null;continue;}
+          const ang=Math.atan(b.h/dist);
+          let brg=Math.atan2(mx,my); if(brg<0)brg+=2*Math.PI;
+          const bin=Math.floor(brg/(2*Math.PI)*N)%N;
+          if(ang>hor[bin])hor[bin]=ang;
+          if(pB!==null){   // Lücke zum vorigen Abtastpunkt füllen — nahe Wände überspannen viele Grad
+            let dd=brg-pB; while(dd>Math.PI)dd-=2*Math.PI; while(dd<-Math.PI)dd+=2*Math.PI;
+            const k=Math.ceil(Math.abs(dd)/(2*Math.PI/N));
+            for(let j=1;j<k;j++){
+              const f=j/k, aa=pA+(ang-pA)*f;
+              let bb=pB+dd*f; bb=((bb%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
+              const bn=Math.floor(bb/(2*Math.PI)*N)%N;
+              if(aa>hor[bn])hor[bn]=aa;
+            }
+          }
+          pB=brg;pA=ang;
+        }
+      }
+    }
+  }
+  return hor;
+}
+function sunHoursOn(lat,lon,y,mo,da,hor){   // Stunden direkter Sonne (UTC-Tag, zeitzonenunabhängig)
+  let mins=0;const N=360,t0=Date.UTC(y,mo-1,da,0,0,0);
+  for(let m=0;m<1440;m+=10){
+    const sp=sunPosition(new Date(t0+m*60000),lat,lon);
+    if(sp.alt<=0.0175)continue;                 // unter ~1° = praktisch kein Direktlicht
+    let brg=sp.az+Math.PI; brg=((brg%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
+    if(sp.alt>hor[Math.floor(brg/(2*Math.PI)*N)%N])mins+=10;
+  }
+  return mins/60;
+}
+const SUN_DATES=[[1,21,'21.01.'],[2,19,'19.02.'],[3,21,'21.03.'],[6,21,'21.06.'],[12,21,'21.12.']];
+function locSunCalc(){
+  const btn=document.getElementById('sunBtn'); if(btn){btn.disabled=true;btn.textContent=mT('Gebäude werden geladen…','Loading buildings…','Gebouwen laden…');}
+  planLoad().then(okLoad=>{
+    if(!okLoad||!PLAN.grid){if(btn){btn.disabled=false;btn.textContent=mT('Besonnung berechnen','Calculate sun exposure','Bezonning berekenen');}return;}
+    const {lat,lon}=LOC.pt, y=new Date().getFullYear();
+    const hor=sunHorizon(lat,lon);
+    LOC.sun={y,rows:SUN_DATES.map(([mo,da,lbl])=>({lbl,h:+sunHoursOn(lat,lon,y,mo,da,hor).toFixed(1)}))};
+    renderLocPanel();
+  });
+}
+function sunNorm(){   // NL: TNO-Norm (Bezonningsstudie) · DE: DIN 5034
+  if(!LOC.sun)return null;
+  const g=l=>{const r=LOC.sun.rows.find(x=>x.lbl===l);return r?r.h:null;};
+  return city==='utr'
+    ? [{n:'TNO '+mT('leicht','light','licht'),d:'19.02.',v:g('19.02.'),req:2},
+       {n:'TNO '+mT('streng','strict','streng'),d:'21.01.',v:g('21.01.'),req:3}]
+    : [{n:'DIN 5034',d:'21.03.',v:g('21.03.'),req:4}];
 }
 function planHint(txt){
   let h=document.getElementById('planHint');
