@@ -458,7 +458,7 @@ function dlz(id){const el=document.getElementById(id);if(el)el.innerHTML=localiz
 function setLang(l){ lang=l; try{localStorage.setItem('ul_lang',l);}catch(e){} document.querySelectorAll('.lg').forEach(b=>b.classList.toggle('on',b.id==='lg-'+l)); localizeStatic(); if(typeof buildDashboard==='function')buildDashboard(); }
 let DISTRICTS={}, CITY={}, CITYKEY='ffm', ALLCITIES={};
 let entries=[], allScores=[], avgScore=0, critCount=0, highCount=0, dimAvgs={}, stadtteile=[];
-const DATA_BASE=(location.hostname==='leoorexx.github.io'?'/urbanlens':'')+'/data';
+const DATA_BASE=(location.hostname.endsWith('github.io')?'/'+location.pathname.split('/')[1]:'')+'/data';
 
 const MASS = [
   {id:"A01",icon:"tree",name:"Straßenbaum-Programm",typ:"quick_win",dims:["A","G"],kosten:150000,roi:340000,desc:"50 Straßenbäume inkl. Pflanzgrube, Bewässerung, 5-Jahres-Pflege.",foerder:[{eb:"EU",prog:"LIFE+ Naturbasierte Lösungen",pct:60},{eb:"Bund",prog:"Bundesprogramm Stadtgrün",pct:75},{eb:"KfW",prog:"Kommunalkredit 0,6% p.a.",pct:null}]},
