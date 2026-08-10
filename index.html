@@ -1339,7 +1339,7 @@ const CITY_CFG={
     name:"Frankfurt am Main",center:[50.1109,8.6821],zoom:12,
     skyline:[50.1118,8.6705,15.3],   // Bankenviertel-Vantage → 3D-Skyline beim Öffnen
     bbox:"50.05,8.55,50.22,8.82",
-    geojson:(location.hostname==='leoorexx.github.io'?'/urbanlens':'')+'/data/layers/stadtteile_ffm.geojson',
+    geojson:(location.hostname.endsWith('github.io')?'/'+location.pathname.split('/')[1]:'')+'/data/layers/stadtteile_ffm.geojson',
     nameProp:"name",
     data:{
       "Bahnhofsviertel":  {A:20,B:24,C:88,D:35,E:16,F:36,G:14,H:40,pop:3500, wb:33,mig:71,hw:true, heat:true, noise:82, sgb2:62,kinderarmut:70,einkommen:17000,arbeitslos:17,abitur:25, versieg:88,lst_delta:3.9},
@@ -1393,7 +1393,7 @@ const CITY_CFG={
   utr:{
     name:"Utrecht",center:[52.0907,5.1214],zoom:12,
     bbox:"52.04,5.05,52.14,5.20",
-    geojson:(location.hostname==='leoorexx.github.io'?'/urbanlens':'')+'/data/layers/wijken_utrecht.geojson',
+    geojson:(location.hostname.endsWith('github.io')?'/'+location.pathname.split('/')[1]:'')+'/data/layers/wijken_utrecht.geojson',
     nameProp:"wijknaam",
     data:{
       "Binnenstad":        {A:40,B:44,C:90,D:68,E:26,F:70,G:33,H:60,pop:17000,wb:68,mig:38,hw:false,heat:true, noise:80, versieg:78,lst_delta:2.9,sgb2:1.4,kinderarmut:4.9,einkommen:42300,arbeitslos:0.7,abitur:66},
@@ -4281,7 +4281,7 @@ function pdfL3en(s){ return pkgT(s); } // eff/dur-Kürzel im PDF sprachgerecht
 const DIAG={active:false,mode:null,layer:null,under:null,hooked:false,cache:{},timer:null,bundle:{}};
 
 // Vorab gebündelte Stadtdaten (FFM/UTR) — sofort & stadtweit, kein Overpass.
-const DATA_BASE=(location.hostname==='leoorexx.github.io'?'/urbanlens':'')+'/data/layers';
+const DATA_BASE=(location.hostname.endsWith('github.io')?'/'+location.pathname.split('/')[1]:'')+'/data/layers';
 const CITY_BUNDLE={ffm:'diag_ffm.json',utr:'diag_utr.json'};
 function loadCityBundle(c){
   return new Promise(res=>{
