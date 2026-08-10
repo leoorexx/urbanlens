@@ -9,13 +9,12 @@ technisch freigegeben (kein `X-Frame-Options`, geprüft ✓).
 
 | Zweck | URL |
 |---|---|
-| **Erklär-/Startseite** (scrollt, erklärt, Button „Karte öffnen") | `https://leoorexx.github.io/urbanlens/start.html` |
-| **Tool / Karte** (Vollbild) | `https://leoorexx.github.io/urbanlens/` |
-| **Karte eingebettet** (ohne obere Leiste) | `https://leoorexx.github.io/urbanlens/?embed=1` |
-| Karte eingebettet, direkt **Frankfurt** | `https://leoorexx.github.io/urbanlens/?embed=1&city=ffm` |
-| **Dashboard** (Entscheidungsseite) | `https://leoorexx.github.io/urbanlens/dashboard.html` |
-| **Methodik & Quellen** | `https://leoorexx.github.io/urbanlens/methodik.html` |
-| Direkt zu einem Stadtteil (Beispiel) | `https://leoorexx.github.io/urbanlens/#utr/Overvecht` |
+| **Tool / Karte** (Vollbild) | `https://inspectornice.nicehere.nl/` |
+| **Karte eingebettet** (ohne obere Leiste) | `https://inspectornice.nicehere.nl/?embed=1` |
+| Karte eingebettet, direkt **Frankfurt** | `https://inspectornice.nicehere.nl/?embed=1&city=ffm` |
+| **Dashboard** (Entscheidungsseite) | `https://inspectornice.nicehere.nl/dashboard.html` |
+| **Methodik & Quellen** | `https://inspectornice.nicehere.nl/methodik.html` |
+| Direkt zu einem Stadtteil (Beispiel) | `https://inspectornice.nicehere.nl/#utr/Overvecht` |
 
 ---
 
@@ -25,7 +24,7 @@ Ein interaktives Vollbild-Tool fühlt sich im Vollbild am besten an.
 
 1. Wix-Editor → **Hinzufügen → Button**.
 2. Button-Text z. B. **„Karte öffnen"** / **„Zur Analyse"**.
-3. Button → **Link → Webadresse** → `https://leoorexx.github.io/urbanlens/`
+3. Button → **Link → Webadresse** → `https://inspectornice.nicehere.nl/`
 4. **„Öffnen in: Neues Fenster"** wählen.
 
 > Tipp: Als Vorschau daneben einen Screenshot der Karte zeigen.
@@ -36,7 +35,7 @@ Ein interaktives Vollbild-Tool fühlt sich im Vollbild am besten an.
 
 **Variante 1 — „Website einbetten" (am einfachsten):**
 1. Wix-Editor → **Hinzufügen → Einbetten → Website einbetten (Embed a Site / iFrame)**.
-2. Adresse: `https://leoorexx.github.io/urbanlens/?embed=1`
+2. Adresse: `https://inspectornice.nicehere.nl/?embed=1`
 3. Element **groß** ziehen — **Höhe ≥ 700 px**, volle Sektionsbreite. Mobil ~520 px.
 
 **Variante 2 — „HTML-Code einbetten" (mehr Kontrolle):**
@@ -44,17 +43,13 @@ Wix-Editor → **Einbetten → HTML-Code einbetten**, dann exakt einfügen:
 
 ```html
 <iframe
-  src="https://leoorexx.github.io/urbanlens/?embed=1"
+  src="https://inspectornice.nicehere.nl/?embed=1"
   title="nice here — Stadtanalyse Utrecht & Frankfurt"
   style="width:100%; height:760px; border:0; border-radius:14px"
   loading="lazy"
   allow="geolocation"
 ></iframe>
 ```
-
-> Willst du statt der nackten Karte die **Erklärseite** einbetten, nimm
-> `https://leoorexx.github.io/urbanlens/start.html` als `src` (scrollt, erklärt,
-> hat unten „Karte öffnen").
 
 ---
 
@@ -72,8 +67,8 @@ PDF-Bericht funktionieren im Embed normal.
 - **Grauer Kasten / nichts zu sehen:** iframe zu klein → Höhe ≥ 700 px.
 - **Zwei Navigationsleisten:** volle URL statt `?embed=1` genutzt.
 - **Auf dem Handy abgeschnitten:** eigene Höhe fürs Mobil-Layout setzen (~520 px).
-- **Eigene Domain** (z. B. `tool.deine-domain.de`): via Subdomain per DNS auf
-  GitHub Pages möglich — sag Bescheid, dann liefere ich die DNS-Schritte.
+- **Eigene Domain:** erledigt — `inspectornice.nicehere.nl` zeigt per CNAME
+  (Wix-DNS) auf GitHub Pages.
 
 ---
 
