@@ -113,7 +113,7 @@ body.embed .embed-logo{display:block}
 .cd-estimated{border:1.5px solid #5F5E5A}
 .cd-live{background:#1D9E75;box-shadow:0 0 0 2.5px rgba(29,158,117,0.28)}
 .cite-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding:9px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:10px}
-.cite-row .ct{flex:1;min-width:0;font-size:10px;color:var(--text2);font-family:ui-monospace,monospace;line-height:1.4;word-break:break-word;overflow-wrap:anywhere}
+.cite-row .ct{flex:1;min-width:0;font-size:10px;color:var(--text2);font-family:ui-monospace,monospace;line-height:1.4;word-break:break-word;overflow-wrap:anywhere;white-space:normal;padding:0;cursor:text}
 .cite-btn{border:1px solid var(--border2);background:var(--surface);border-radius:8px;padding:4px 8px;font-size:10px;font-weight:700;color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:all .15s}
 .cite-btn:hover{background:var(--text);color:#fff;border-color:var(--text)}
 .diag-hint{font-size:9px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);line-height:1.5}
@@ -142,11 +142,13 @@ body.tools-open .tool-sec{display:flex}
 /* Linke Liste einklappbar */
 .lcollapse{position:absolute;top:12px;right:10px;background:none;border:none;color:var(--muted);cursor:pointer;padding:2px;font-family:inherit;line-height:1}
 .lcollapse:hover{color:var(--text)}
-#leftTab{display:none;position:fixed;top:70px;left:0;z-index:500;background:var(--surface);border:1px solid var(--border2);border-left:none;border-radius:0 10px 10px 0;padding:10px 8px;cursor:pointer;box-shadow:var(--shl);font-size:9px;font-weight:800;color:var(--text2);writing-mode:vertical-rl;letter-spacing:.06em;font-family:inherit}
+#leftTab{display:none;position:fixed;top:54px;left:12px;z-index:600;background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:50px;height:50px;margin-top:8px;padding:0;cursor:pointer;box-shadow:var(--shl);font-size:8px;font-weight:700;color:var(--text);letter-spacing:.02em;font-family:inherit;align-items:center;justify-content:center;text-align:center;line-height:1.2;transition:all .15s}
+#leftTab:hover{background:var(--surface2)}
 body.leftoff .left{display:none}
-body.leftoff #leftTab{display:block}
-body.leftoff .tool-btn{left:12px}
-body.leftoff .layer-btn{left:12px}
+body.leftoff #leftTab{display:flex}
+body.leftoff .tool-btn{left:12px;transform:translateY(54px)}
+body.leftoff .layer-btn{left:12px;top:108px}
+body.leftoff .layer-panel{left:12px;top:170px;max-height:calc(100vh - 240px)}
 #tool-analyse.on{background:var(--eco);color:#08403d}
 #tool-heatsim.on{background:var(--climate);color:#fff}
 #tool-mit.on{background:var(--social);color:#fff}
@@ -208,7 +210,7 @@ body.leftoff .layer-btn{left:12px}
 .qlabs{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);padding:0 12px 8px;flex-shrink:0}
 
 /* LAYER PANEL — rechts neben dem Stadtteil-Panel, nicht drüber */
-.layer-btn{position:fixed;top:62px;left:268px;z-index:600;background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:46px;height:46px;color:var(--text);cursor:pointer;box-shadow:var(--shl);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:all .15s;margin-top:8px;font-size:8px;font-weight:700;letter-spacing:.02em}
+.layer-btn{position:fixed;top:54px;left:268px;z-index:600;background:var(--surface);border:1px solid var(--border2);border-radius:12px;width:50px;height:50px;color:var(--text);cursor:pointer;box-shadow:var(--shl);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:all .15s;margin-top:8px;font-size:8px;font-weight:700;letter-spacing:.02em}
 .layer-btn:hover{background:var(--surface2)}
 .layer-btn .lcount{position:absolute;top:-5px;right:-5px;background:#1a1a2e;color:#FFD600;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:800;box-shadow:var(--sh)}
 .layer-panel{position:fixed;top:116px;left:268px;z-index:600;width:270px;max-height:calc(100vh - 185px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shl);padding:12px;display:none}
@@ -266,7 +268,7 @@ body.dark .ds-strip .ds-axis{background:rgba(255,255,255,.12)}
 .tp{display:none}.tp.on{display:block}
 
 /* Components */
-.sec{font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.13em;margin:20px 0 10px;padding-top:11px;border-top:1px solid var(--border2);display:flex;align-items:center;gap:7px}
+.sec{font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.13em;margin:24px 0 11px;padding-top:13px;border-top:1px solid var(--border2);display:flex;align-items:center;gap:7px}
 .sec:first-child{margin-top:0}.sec::after{content:"";flex:1;height:1px;background:var(--border)}
 .ib{display:inline-flex;width:16px;height:16px;border-radius:50%;background:rgba(255,214,0,0.12);border:1px solid rgba(255,214,0,0.3);font-size:8px;font-weight:800;color:var(--accent);align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0;vertical-align:middle;margin-left:5px;transition:all .12s}
 .ib:hover{background:var(--accent);color:#1a1a2e}
@@ -274,30 +276,30 @@ body.dark .ds-strip .ds-axis{background:rgba(255,255,255,.12)}
 .ip-overlay{position:fixed;width:260px;background:#1e2028;color:#e2e8f0;font-size:10px;line-height:1.6;padding:10px 12px;border-radius:12px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.5);pointer-events:none;display:none}
 .kgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .kpi{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 11px}
-.kval{font-size:25px;font-weight:800;line-height:1;letter-spacing:-.025em}.klbl{font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}.ksub{font-size:9px;color:var(--muted);margin-top:2px}
+.kval{font-size:25px;font-weight:800;line-height:1;letter-spacing:-.025em}.klbl{font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}.ksub{font-size:10px;color:var(--muted);margin-top:3px}
 .ibox{font-size:12px;color:var(--text2);line-height:1.6;background:var(--surface2);padding:11px 13px;border-radius:0 9px 9px 0;border:1px solid var(--border);border-left:3px solid var(--border2);margin-bottom:10px}
 .ibox b{color:var(--text2)}
 .drow{margin-bottom:12px;padding:2px 0 12px 12px;border-bottom:1px solid var(--border);border-left:3px solid var(--border2)}
 .drow.p-clim{border-left-color:var(--climate)}.drow.p-eco{border-left-color:var(--eco)}.drow.p-soc{border-left-color:var(--social)}
 .drow:last-child{border:none;margin-bottom:0;padding-bottom:0}
 .dhdr{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.dico{font-size:14px}.dnm{font-size:11px;font-weight:700;flex:1;letter-spacing:.01em}.dval{font-size:21px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.dico{font-size:14px}.dnm{font-size:12px;font-weight:700;flex:1;letter-spacing:.01em}.dval{font-size:21px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .dtrack{height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:4px}
 .dfill{height:100%;border-radius:4px;transition:width .6s ease}
-.dctx{font-size:10px;color:var(--muted);line-height:1.4}.dsrc{font-size:8px;color:var(--muted);margin-top:2px}.dsrc b{color:var(--text2)}
+.dctx{font-size:11px;color:var(--muted);line-height:1.5}.dsrc{font-size:10px;color:var(--muted);margin-top:3px}.dsrc b{color:var(--text2)}
 .mcard{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:10px}
 .mcard:last-child{margin-bottom:0}
 .mtop{display:flex;align-items:flex-start;gap:9px}.memi{font-size:20px;line-height:1}
-.mri{flex:1}.mnm{font-size:12px;font-weight:700}.mde{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4}
+.mri{flex:1}.mnm{font-size:13px;font-weight:700}.mde{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.55}
 .mpills{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
-.pill{font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px}
+.pill{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px}
 .pqw{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.25)}
 .pst{background:rgba(255,214,0,0.12);color:#ca8a04;border:1px solid rgba(255,214,0,0.25)}
 .peu{background:rgba(167,139,250,0.12);color:#a78bfa;border:1px solid rgba(167,139,250,0.25)}
 .mnums{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
 .mn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 9px}
-.mnv{font-size:14px;font-weight:800}.mnl{font-size:8px;color:var(--muted);font-weight:500}
-.mwhy{font-size:9px;color:var(--muted);margin-top:7px;padding-top:7px;border-top:1px solid var(--border);line-height:1.5}.mwhy b{color:var(--text2)}
+.mnv{font-size:14px;font-weight:800}.mnl{font-size:9px;color:var(--muted);font-weight:500}
+.mwhy{font-size:10px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6}.mwhy b{color:var(--text2)}
 .fcard{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:8px}
 .fnm{font-size:11px;font-weight:700}.fprog{font-size:10px;color:var(--muted);margin-top:1px}
 .fsplit{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
@@ -405,7 +407,7 @@ body.dark .ds-strip .ds-axis{background:rgba(255,255,255,.12)}
 .social-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
 .skpi{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;position:relative}
 .skpi-val{font-size:20px;font-weight:800;line-height:1;letter-spacing:-.02em}
-.skpi-lbl{font-size:9px;color:var(--muted);margin-top:2px;font-weight:500}
+.skpi-lbl{font-size:10px;color:var(--muted);margin-top:2px;font-weight:500}
 .skpi-bar{height:3px;border-radius:4px;margin-top:5px;background:var(--border)}
 .skpi-fill{height:100%;border-radius:4px;transition:width .6s}
 /* Social risk badge */
@@ -451,9 +453,9 @@ body.dark .ds-strip .ds-axis{background:rgba(255,255,255,.12)}
 .hk-step.s-hlth{background:rgba(168,85,247,0.06);border-color:rgba(168,85,247,0.22)}
 .hk-icon{font-size:20px;line-height:1;flex-shrink:0;margin-top:2px}
 .hk-body{flex:1;min-width:0}
-.hk-name{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.hk-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
 .hk-val{font-size:15px;font-weight:800;line-height:1.1;margin-bottom:3px}
-.hk-desc{font-size:9px;color:var(--text2);line-height:1.5}
+.hk-desc{font-size:10px;color:var(--text2);line-height:1.6}
 .hk-bar{height:5px;border-radius:4px;overflow:hidden;background:var(--border);margin-top:5px}
 .hk-bar-fill{height:100%;border-radius:4px;transition:width .7s ease}
 .hk-arr{text-align:center;font-size:18px;color:var(--muted);line-height:1;padding:2px 0}
@@ -572,9 +574,9 @@ body.free-mode #heatWarn{top:106px}
 /* Missions-Launcher + Fall-Navigation */
 .mh-q{font-family:var(--font-serif);font-size:20px;font-weight:600;line-height:1.2;margin:2px 0 5px;color:var(--text)}
 .mh-sub{font-size:11px;color:var(--text2);line-height:1.55;margin-bottom:14px}
-.mcard{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 13px;margin-bottom:9px;cursor:pointer;font-family:inherit;transition:border-color .12s,box-shadow .12s}
-.mcard:hover:not(.soon){border-color:var(--text);box-shadow:var(--shl)}
-.mcard.soon{opacity:.6;cursor:default}
+button.mcard{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 13px;margin-bottom:9px;cursor:pointer;font-family:inherit;transition:border-color .12s,box-shadow .12s}
+button.mcard:hover:not(.soon){border-color:var(--text);box-shadow:var(--shl)}
+button.mcard.soon{opacity:.6;cursor:default}
 .mc-ic{flex:none;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center}
 .mc-ic.sm{width:22px;height:22px;border-radius:8px}
 .mc-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -623,6 +625,41 @@ body.dark .nav{background:var(--surface)}
 body.dark :focus-visible{outline-color:var(--accent)}
 #themeBtn{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2)}
 #themeBtn.on{background:#1a1a2e;color:#FFD600;border-color:#1a1a2e}
+/* ── Dark Chrome — Nav & Dock als Kontrastblock, Gelb als einziger Chrome-Akzent ── */
+.nav{background:#1a1a2e;border-bottom:1px solid rgba(255,255,255,0.07)}
+.logo{color:#fff}
+.ninfo{color:rgba(255,255,255,0.55)}.ninfo b{color:#fff}
+.nsep{background:rgba(255,255,255,0.14)}
+.bbrille-btn{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.16);color:#fff}
+.bbrille-btn:hover{background:rgba(255,255,255,0.14)}
+.lang-switch{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.12)}
+.lg{color:rgba(255,255,255,0.6)}
+.lg.on{background:var(--accent);color:#1a1a2e}
+.nav-help{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.75)}
+.ckhint{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.18);color:rgba(255,255,255,0.6)}
+.citysearch input{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.16);color:#fff}
+.citysearch input::placeholder{color:rgba(255,255,255,0.45)}
+.citysearch input:focus{border-color:var(--accent)}
+#themeBtn{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.16);color:rgba(255,255,255,0.7)}
+#themeBtn.on{background:var(--accent);color:#1a1a2e;border-color:var(--accent)}
+.lpill{background:rgba(74,222,128,0.12);border-color:rgba(74,222,128,0.28);color:#4ade80}
+.tool-btn,.layer-btn,#leftTab{background:#1a1a2e;border-color:#1a1a2e;color:#fff}
+.tool-btn:hover,.layer-btn:hover,#leftTab:hover{background:#2a2a44}
+.tool-btn.on{color:#FFD600}
+.layer-btn.on{background:#1a1a2e;color:#FFD600}
+#baseToggle{background:#1a1a2e;border-color:#1a1a2e}
+#baseToggle button{color:rgba(255,255,255,0.7)}
+#baseToggle button:not(.on):hover{background:rgba(255,255,255,0.1)}
+body.dark .nav{background:#12121f}
+body.dark .tool-btn:not(.tool-primary):not(.on){background:#1a1a2e;color:#fff}
+/* ── Karten-Bühne: gedämpfte Basemap, Datenfarben unberührt (nur Tile-Pane) ── */
+body:not(.dark):not(.plan-on):not(.bm-sat) .leaflet-tile-pane{filter:saturate(.78) contrast(1.03)}
+/* ── Motion: sanfter Eintritt (reduced-motion wird global respektiert) ── */
+@keyframes nhIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.layer-panel.open{animation:nhIn .22s ease both}
+.area-panel.open{animation:nhIn .22s ease both}
+.right.open .dbody{animation:nhIn .28s ease both}
+.csdrop{animation:nhIn .16s ease both}
 /* ── Stadtteil-Vergleich ── */
 .cmp-sel{flex:1;border:1px solid var(--border2);border-radius:8px;padding:7px 9px;font-size:12px;font-family:inherit;background:var(--surface);color:var(--text)}
 .cmp-t{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}
@@ -678,6 +715,8 @@ body.dark :focus-visible{outline-color:var(--accent)}
   #leftTab{display:none!important}
   body.leftoff .left{display:flex}
   body.leftoff .tool-btn,body.leftoff .layer-btn{left:12px}
+  body.leftoff .tool-btn{transform:none}
+  body.leftoff .layer-btn{top:54px}
   /* Dock & Panels */
   .tool-btn,.layer-btn{left:12px}
   .layer-panel{left:10px;right:10px;width:auto;max-height:calc(100vh - 300px)}
@@ -2083,6 +2122,7 @@ function initMap(){
     if(mode==='sat'){ satImg.addTo(map); satLabels.addTo(map); }
     else if(mode==='plan'){ baseNolabel.addTo(map); }
     else (window.THEME==='dark'?baseDark:baseVoyager).addTo(map);
+    document.body.classList.toggle('bm-sat',mode==='sat');
     try{ if(mode==='plan')planEnable(); else planDisable(); }catch(e){}
     document.querySelectorAll('#baseToggle button').forEach(b=>b.classList.toggle('on',b.dataset.bm===mode)); };
   // Analysis Mode: dunkles Theme + dunkle Basemap (bewusster Modus, gemerkt)
@@ -2356,7 +2396,7 @@ function renderMap(){
       const s=k?lensScore(cfg.data[k]):null;
       if(isHitze&&d){
         const hc=heatFillColor(d.lst_delta!=null?d.lst_delta:1.5);
-        return{fillColor:hc,fillOpacity:0.52,color:hc,weight:1.5,opacity:0.9};
+        return{fillColor:hc,fillOpacity:0.52,color:hc,weight:1.1,opacity:0.75};
       }
       const col=s!=null?qColor(s,allS):'#cccccc';
       return{fillColor:col,fillOpacity:0,color:col,weight:2.5,opacity:0.75};
@@ -3292,11 +3332,12 @@ function heatGrid(b,els,field,view,targetM=62){
     let dt0, measured;
     if(realLst!=null){ dt0=Math.max(-1,Math.min(6,realLst)); measured=true; }        // ECHT: gemessene Satelliten-LST
     else { if(!(treeN||shopN||greenCov||g.bcount))continue; dt0=Math.max(-0.5,Math.min(5,0.6+builtUp*2.8-greenCov*2.2-Math.min(1.2,treeN*0.04))); measured=false; }  // Fallback (OSM-Städte): geschätzt
-    // Kühl-Potenzial: viel Platz (wenig Gebäude, kein Grün) × Hitze → wo Bäume/Entsiegelung möglich UND wirksam
+    // Kühl-Lücke: nachweislich heiß UND unterbegrünt UND Platz — sonst 0.
+    // Ehrlichkeit: eine Lücke heißt „Teilflächen möglich" (Baumstandorte, Parkstreifen), nie die ganze Zelle.
     const bden=g.bcount||0;
     const room=Math.max(0,1-bden/7-greenCov-Math.min(0.5,treeN*0.05));
     const heatN=Math.max(0,Math.min(1,(dt0-0.3)/1.5));   // an echte LST-Spanne (0–1,8) angepasst
-    const pot=(greenCov>0.5||bden>=7)?0:room*(0.25+0.75*heatN);   // heiß × Platz → Priorität
+    const pot=(greenCov>0.5||bden>=7||treeN>=10||dt0<1.0)?0:room*(0.25+0.75*heatN);
     cells.push({bnds:g.bnds,dt0,builtUp,greenCov,treeN,measured,bden,pot});
   }
   return {cells};
@@ -3310,11 +3351,13 @@ function heatCooled(cell){
   return Math.max(-1,dt);
 }
 function potInfo(c){
-  if(c.greenCov>0.5)return{cls:'green',color:'#15803d',op:0.42};
-  if(c.bden>=7)return{cls:'dense',color:'#94a3b8',op:0.24};
+  // Nur echte Lücken färben — „schon grün" ist Kontext (fast unsichtbar), unter Schwelle wird gar nicht gezeichnet.
+  if(c.greenCov>0.5)return{cls:'green',color:'#86efac',op:0.10};
+  if(c.bden>=7)return{cls:'dense',color:'#94a3b8',op:0.12};
   const p=c.pot;
-  if(p<0.18)return{cls:'low',color:'#cbd5e1',op:0.12};
-  return{cls:'pot',color:p>0.5?'#15803d':p>0.32?'#4ade80':'#bbf7d0',op:0.5};
+  if(p>=0.8)return{cls:'pot',color:'#15803d',op:0.55};
+  if(p>=0.6)return{cls:'pot',color:'#4ade80',op:0.32};
+  return{cls:'low',color:'#cbd5e1',op:0};
 }
 function heatRender(){
   if(HEAT.layer)map.removeLayer(HEAT.layer);
@@ -3323,7 +3366,7 @@ function heatRender(){
   let hot0=0,hot1=0,sum0=0,sum1=0,nn=0,npot=0,ndense=0,ngreen=0;
   HEAT.data.cells.forEach(c=>{
     let color,op;
-    if(potView){ const pi=potInfo(c); color=pi.color; op=pi.op; if(pi.cls==='pot')npot++; else if(pi.cls==='dense')ndense++; else if(pi.cls==='green')ngreen++; }
+    if(potView){ const pi=potInfo(c); color=pi.color; op=pi.op; if(pi.cls==='pot')npot++; else if(pi.cls==='dense')ndense++; else if(pi.cls==='green')ngreen++; if(op===0)return; }
     else { const dt=heatCooled(c); if(c.dt0>=2.5)hot0++; if(dt>=2.5)hot1++; sum0+=c.dt0; sum1+=dt; nn++; color=heatColor(dt); op=0.46; }
     const rect=L.rectangle(c.bnds,{renderer:window.canvasRenderer,color,weight:0,fillColor:color,fillOpacity:op});
     rect.on('click',()=>heatCellPopup(c));
@@ -3338,9 +3381,9 @@ function heatCellPopup(c){
   let html;
   if(HEAT.view==='potential'){
     const pi=potInfo(c);
-    const lbl=pi.cls==='green'?csTxt('Schon grün','Already green','Al groen'):pi.cls==='dense'?csTxt('Dicht bebaut — wenig Platz','Densely built — little room','Dicht bebouwd — weinig ruimte'):pi.cls==='pot'?(c.pot>0.4?csTxt('Hohes Kühl-Potenzial','High cooling potential','Hoog koelpotentieel'):csTxt('Kühl-Potenzial','Cooling potential','Koelpotentieel')):csTxt('Wenig Potenzial','Low potential','Weinig potentieel');
-    const act=pi.cls==='pot'?csTxt('Hier möglich: Straßenbäume, Entsiegelung, Fahrbahn verschmälern.','Possible here: street trees, de-sealing, narrowing the carriageway.','Mogelijk hier: straatbomen, ontharding, rijbaan versmallen.'):'';
-    html='<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa">'+csTxt('Kühl-Potenzial · ~60-m-Zelle','Cooling potential · ~60 m cell','Koelpotentieel · ~60 m cel')+'</div><div style="font-size:14px;font-weight:800;color:'+pi.color+';margin:3px 0">'+lbl+'</div>'+(act?'<div style="font-size:10px;color:#374151;line-height:1.4">'+act+'</div>':'')+'<div style="font-size:9px;color:#8888aa;margin-top:6px">'+csTxt('Hitze','Heat','Hitte')+' +'+c.dt0.toFixed(1)+' °C · '+csTxt('Gebäude','buildings','gebouwen')+' '+c.bden+'</div></div>';
+    const lbl=pi.cls==='green'?csTxt('Schon grün — hier ist wenig zu tun','Already green — little to do here','Al groen — weinig te doen'):pi.cls==='dense'?csTxt('Dicht bebaut — wenig Platz','Densely built — little room','Dicht bebouwd — weinig ruimte'):pi.cls==='pot'?(c.pot>=0.8?csTxt('Kühl-Lücke — Priorität hoch','Cooling gap — high priority','Koelkans — hoge prioriteit'):csTxt('Kühl-Lücke','Cooling gap','Koelkans')):csTxt('Keine Lücke','No gap','Geen hiaat');
+    const act=pi.cls==='pot'?csTxt('Gemeint sind Teilflächen: Baumstandorte, Parkstreifen, Randstreifen — nicht die ganze Zelle. Möglich: Straßenbäume, Entsiegelung, Fahrbahn verschmälern.','This means partial areas: tree pits, parking strips, verges — not the whole cell. Possible: street trees, de-sealing, narrowing the carriageway.','Bedoeld zijn deelvlakken: boomspiegels, parkeerstroken, bermen — niet de hele cel. Mogelijk: straatbomen, ontharding, rijbaan versmallen.'):'';
+    html='<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa">'+csTxt('Kühl-Lücke · ~60-m-Zelle','Cooling gap · ~60 m cell','Koelkans · ~60 m cel')+'</div><div style="font-size:14px;font-weight:800;color:'+pi.color+';margin:3px 0">'+lbl+'</div>'+(act?'<div style="font-size:10px;color:#374151;line-height:1.4">'+act+'</div>':'')+'<div style="font-size:9px;color:#8888aa;margin-top:6px">'+csTxt('Hitze','Heat','Hitte')+' +'+c.dt0.toFixed(1)+' °C · '+csTxt('Bäume im Umfeld','trees nearby','bomen nabij')+' '+c.treeN+' · '+csTxt('Gebäude','buildings','gebouwen')+' '+c.bden+'</div></div>';
   } else {
     const dt=heatCooled(c);
     html='<div style="font-family:inherit"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#8888aa">'+csTxt('Hitze · ~60-m-Zelle','Heat · ~60 m cell','Hitte · ~60 m cel')+'</div><div style="font-size:18px;font-weight:800;color:'+heatColor(dt)+';margin:3px 0">+'+dt.toFixed(1)+' °C</div>'+((HEAT.cool.trees||HEAT.cool.deseal||HEAT.cool.green)?'<div style="font-size:10px;color:#15803d">'+csTxt('gekühlt von','cooled from','gekoeld van')+' +'+c.dt0.toFixed(1)+' °C</div>':'')+'<div style="font-size:9px;color:#8888aa;margin-top:6px;border-top:1px solid #eee;padding-top:5px">'+(c.measured?csTxt('Basis: gemessene Satelliten-LST (Copernicus).','Basis: measured satellite LST (Copernicus).','Basis: gemeten satelliet-LST (Copernicus).'):csTxt('Geschätzt aus Versiegelung + Grün.','Estimated from sealing + green.','Geschat uit verharding + groen.'))+'</div></div>';
@@ -3359,17 +3402,17 @@ function heatPanel(state,st){
   const C=HEAT.cool;
   const slider=(id,lbl,val)=>`<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:3px"><span>${lbl}</span><span style="color:var(--accent)">${Math.round(val*100)}%</span></div><input type="range" min="0" max="100" value="${Math.round(val*100)}" oninput="setHeatCool('${id}',this.value)" style="width:100%;accent-color:#16a34a"></div>`;
   const vbtn=(v,l)=>`<button onclick="setHeatView('${v}')" style="flex:1;border:none;border-radius:8px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:${HEAT.view===v?'#1a1a2e':'var(--surface2)'};color:${HEAT.view===v?'#fff':'var(--text2)'}">${l}</button>`;
-  const toggle=`<div style="display:flex;gap:6px;margin-bottom:12px">${vbtn('potential',csTxt('Kühl-Potenzial','Cooling potential','Koelpotentieel'))}${vbtn('heat',csTxt('Hitze','Heat','Hitte'))}</div>`;
+  const toggle=`<div style="display:flex;gap:6px;margin-bottom:12px">${vbtn('potential',csTxt('Kühl-Lücken','Cooling gaps','Koelkansen'))}${vbtn('heat',csTxt('Hitze','Heat','Hitte'))}</div>`;
   if(st&&st.potView){
-    let body=`<div class="ap-body">${toggle}<div class="diag-hint">${csTxt('Wo ist Platz für Bäume, Entsiegelung & schmalere Fahrbahnen — grün = Potenzial (je kräftiger, desto heißer & mehr Platz).','Where there is room for trees, de-sealing & narrower carriageways — green = potential (stronger = hotter & more room).','Waar is ruimte voor bomen, ontharding & smallere rijbanen — groen = potentieel (feller = heter & meer ruimte).')}</div>
+    let body=`<div class="ap-body">${toggle}<div class="diag-hint">${csTxt('Zeigt nur Zellen, die nachweislich heiß UND unterbegrünt sind — dort wirken Bäume & Entsiegelung zuerst. Gemeint sind Teilflächen (Baumstandorte, Parkstreifen), nie die ganze Zelle.','Shows only cells that are demonstrably hot AND under-greened — trees & de-sealing act there first. This means partial areas (tree pits, parking strips), never the whole cell.','Toont alleen cellen die aantoonbaar heet EN ondergroen zijn — daar werken bomen & ontharding het eerst. Bedoeld zijn deelvlakken (boomspiegels, parkeerstroken), nooit de hele cel.')}</div>
       <div class="ap-stats" style="grid-template-columns:1fr 1fr;margin-top:10px">
-        <div class="ap-stat"><div class="v" style="color:#16a34a">${st.npot}</div><div class="l">${csTxt('Zellen mit Potenzial','cells w/ potential','cellen met potentieel')}</div></div>
+        <div class="ap-stat"><div class="v" style="color:#16a34a">${st.npot}</div><div class="l">${csTxt('Kühl-Lücken im Ausschnitt','cooling gaps in view','koelkansen in beeld')}</div></div>
         <div class="ap-stat"><div class="v" style="color:#94a3b8">${st.ndense}</div><div class="l">${csTxt('dicht bebaut','densely built','dicht bebouwd')}</div></div>
       </div>
       <div class="ap-sec">${csTxt('Legende','Legend','Legenda')}</div>`;
-    const leg=[['#15803d',csTxt('hoch / schon grün','high / already green','hoog / al groen')],['#4ade80',csTxt('mittel','medium','gemiddeld')],['#bbf7d0',csTxt('gering','low','laag')],['#94a3b8',csTxt('dicht bebaut — wenig Platz','densely built — little room','dicht bebouwd — weinig ruimte')]];
+    const leg=[['#15803d',csTxt('Lücke — Priorität hoch','gap — high priority','koelkans — hoge prioriteit')],['#4ade80',csTxt('Lücke — Priorität mittel','gap — medium priority','koelkans — gemiddeld')],['#94a3b8',csTxt('dicht bebaut — wenig Platz','densely built — little room','dicht bebouwd — weinig ruimte')],['#86efac',csTxt('schon grün (nur Kontext, blass)','already green (context only, faint)','al groen (alleen context, licht)')]];
     body+=`<div style="display:flex;flex-direction:column;gap:5px">`+leg.map(l=>`<div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2)"><span style="width:14px;height:9px;border-radius:4px;background:${l[0]};flex:none"></span>${l[1]}</div>`).join('')+`</div>`;
-    body+=`<div style="font-size:9px;color:var(--muted);margin-top:12px;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);line-height:1.5">${csTxt('Klick auf eine Fläche = konkrete Maßnahmen. Basis: Satelliten-LST + Gebäude-/Grün-Dichte.','Click an area for concrete measures. Basis: satellite LST + building/green density.','Klik op een vlak voor maatregelen. Basis: satelliet-LST + gebouw-/groendichtheid.')}</div></div>`;
+    body+=`<div style="font-size:9px;color:var(--muted);margin-top:12px;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);line-height:1.5">${csTxt('Klick auf eine Lücke = konkrete Maßnahmen. Basis: Satelliten-LST + Baum-/Gebäude-/Grün-Dichte. Zellen ohne Lücke bleiben ungefärbt.','Click a gap for concrete measures. Basis: satellite LST + tree/building/green density. Cells without a gap stay uncoloured.','Klik op een koelkans voor maatregelen. Basis: satelliet-LST + boom-/gebouw-/groendichtheid. Cellen zonder kans blijven ongekleurd.')}</div></div>`;
     P.innerHTML=head+body; return;
   }
   let body=`<div class="ap-body">${toggle}
@@ -5903,44 +5946,17 @@ function openDrawer(name,d,skipZoom){
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-bottom:6px">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
           <span style="font-size:15px">${ic(m.icon,15)}</span>
-          <span style="font-size:11px;font-weight:700;color:var(--text);flex:1">${m.name}</span>
-          <span style="font-size:8px;font-weight:700;padding:1px 7px;border-radius:8px;${m.typ==='quick_win'?'background:rgba(34,197,94,0.1);color:#16a34a':'background:rgba(255,214,0,0.1);color:#92400e'}">${m.typ==='quick_win'?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="13 2 3 14 11 14 9 22 21 10 13 10 13 2"/></svg> Quick Win':'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/></svg> Strukturell'}</span>
+          <span style="font-size:12px;font-weight:700;color:var(--text);flex:1">${m.name}</span>
+          <span style="font-size:9px;font-weight:700;padding:1px 8px;border-radius:8px;${m.typ==='quick_win'?'background:rgba(34,197,94,0.1);color:#16a34a':'background:rgba(255,214,0,0.1);color:#92400e'}">${m.typ==='quick_win'?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="13 2 3 14 11 14 9 22 21 10 13 10 13 2"/></svg> Quick Win':'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/></svg> Strukturell'}</span>
         </div>
-        <div style="font-size:9px;color:var(--text2);line-height:1.4;margin-bottom:5px">${m.desc}</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.55;margin-bottom:6px">${m.desc}</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap">
-          <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:8px;background:rgba(0,0,0,0.04);border:1px solid var(--border2);color:var(--text2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18.5 5.5A8 8 0 1 0 18.5 18.5M3 10h11M3 14h11"/></svg> ${fmt(m.kosten)}</span>
-          <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:8px;background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.15);color:#15803d">ROI ${fmt(m.roi)}</span>
-          <span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:8px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.15);color:#7c3aed">${foerderFor(m)[0]?.pct!=null?foerderFor(m)[0].pct+'% ':''}förderbar</span>
+          <span style="font-size:10px;font-weight:700;padding:1px 8px;border-radius:8px;background:rgba(0,0,0,0.04);border:1px solid var(--border2);color:var(--text2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18.5 5.5A8 8 0 1 0 18.5 18.5M3 10h11M3 14h11"/></svg> ${fmt(m.kosten)}</span>
+          <span style="font-size:10px;font-weight:700;padding:1px 8px;border-radius:8px;background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.15);color:#15803d">ROI ${fmt(m.roi)}</span>
+          <span style="font-size:10px;font-weight:700;padding:1px 8px;border-radius:8px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.15);color:#7c3aed">${foerderFor(m)[0]?.pct!=null?foerderFor(m)[0].pct+'% ':''}förderbar</span>
         </div>
-        <div style="font-size:8px;color:var(--muted);margin-top:4px;padding-top:3px;border-top:1px solid var(--border)">${localize(m.kw).split('. ')[0]}.</div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.5;margin-top:5px;padding-top:4px;border-top:1px solid var(--border)">${localize(m.kw).split('. ')[0]}.</div>
       </div>
-    <div class="sec">${lang==='en'?'Safety & social control':lang==='nl'?'Veiligheid & sociale controle':'Sicherheit & soziale Kontrolle'}</div>
-    <div class="ibox" style="padding-bottom:10px">
-      <div style="font-size:10px;color:var(--text2);line-height:1.6">${lang==='en'?'nice here does not fabricate crime figures. Two objective proxies for perceived safety are available on the map:':lang==='nl'?'nice here verzint geen misdaadcijfers. Twee objectieve proxy\'s voor veiligheidsbeleving staan op de kaart:':'nice here erfindet keine Kriminalitätszahlen. Zwei objektive Proxys für das Sicherheitsgefühl liegen auf der Karte:'}</div>
-      <div style="margin-top:7px;display:flex;flex-direction:column;gap:5px">
-        <div style="display:flex;gap:7px;align-items:flex-start;font-size:10px;color:var(--text2)"><span style="color:#f59e0b;margin-top:1px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.6-1 1.2-1 2H9c0-.8-.3-1.4-1-2A6 6 0 0 1 12 3Z"/></svg></span><span><b>${lang==='en'?'Lighting':lang==='nl'?'Verlichting':'Beleuchtung'}</b> — ${lang==='en'?'layer „Lighting" shows lit vs. dark streets.':lang==='nl'?'laag „Verlichting" toont verlichte vs. donkere straten.':'Layer „Beleuchtung" zeigt beleuchtete vs. dunkle Straßen.'}</span></div>
-        <div style="display:flex;gap:7px;align-items:flex-start;font-size:10px;color:var(--text2)"><span style="color:#2563eb;margin-top:1px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16l-1 5a3 3 0 0 1-3 2.5A3 3 0 0 1 13 12a3 3 0 0 1-3 2.5A3 3 0 0 1 7 12L4 7Z"/><path d="M5 14v6h14v-6"/></svg></span><span><b>${lang==='en'?'Active frontage':lang==='nl'?'Levendige plinten':'Belebte Erdgeschosse'}</b> — ${lang==='en'?'diagnosis „Place quality" maps „eyes on the street" (Jane Jacobs).':lang==='nl'?'diagnose „Verblijfskwaliteit" toont „eyes on the street" (Jane Jacobs).':'Diagnose „Aufenthaltsqualität" zeigt „eyes on the street" (Jane Jacobs).'}</span></div>
-      </div>
-      <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border);font-size:10px">
-        <span style="color:var(--muted)">${lang==='en'?'Official crime statistics':lang==='nl'?'Officiële criminaliteitscijfers':'Amtliche Kriminalstatistik'}:</span>
-        ${city==='utr'
-          ? '<a href="https://www.politie.nl/informatie/misdaad-in-kaart.html" target="_blank" style="color:var(--accent);font-weight:700">politie.nl — Misdaad in kaart →</a>'
-          : '<a href="https://www.polizei.hessen.de/" target="_blank" style="color:var(--accent);font-weight:700">Polizei Hessen →</a>'}
-      </div>
-      ${city==='utr'?`<div style="font-size:9px;color:var(--muted);margin-top:5px">${lang==='nl'?'NL biedt open misdaaddata per buurt — integratie als nächster Schritt möglich.':lang==='en'?'NL offers open per-neighbourhood crime data — integration possible as a next step.':'NL bietet offene Kriminalitätsdaten pro Buurt — Integration als nächster Schritt möglich.'}</div>`:''}
-    </div>
-    <div class="sec">${lang==='en'?'Report, cite & share':lang==='nl'?'Rapport, citeren & delen':'Bericht, Zitieren & Teilen'}</div>
-    <button onclick="districtPDF('${name.replace(/'/g,"\\'")}')" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">${ic('download',15)} ${lang==='en'?'District report (PDF)':lang==='nl'?'Wijkrapport (PDF)':'Stadtteil-Bericht (PDF)'}</button>
-    <div class="ibox" style="padding-bottom:10px">
-      <div style="font-size:10px;color:var(--muted);line-height:1.5">Konfidenz & Datenstand je Dimension siehe Tab „Dimensionen". Vollständige Methodik & Quellen auf der <a href="methodik.html" target="_blank" style="color:var(--accent);font-weight:700">Methodikseite</a>.</div>
-      <div class="cite-row">
-        <span class="ct">nice here (2026): ${name}, ${cfg.name}. NICE Score ${s}. Abgerufen ${new Date().toLocaleDateString('de-DE')}.</span>
-        <button class="cite-btn" id="citeCopyBtn" onclick="copyCitation('${name.replace(/'/g,"\\'")}')">${ic('copy',13)} Zitat</button>
-      </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:6px">
-        <button class="cite-btn" id="permaBtn" onclick="copyPermalink('${name.replace(/'/g,"\\'")}')">${ic('link',13)} Permalink</button>
-      </div>
-    </div>
   `;
       const duh = duhAmpel(d);
       return`
@@ -6032,7 +6048,35 @@ function openDrawer(name,d,skipZoom){
         <b>Standards:</b> VDI 3787 Bl.1+2 · ISO 14091 · WHO Heat Health Action Plan · LCZ-System (Stewart &amp; Oke 2012) · BBSR 2023 · UBA MK 4.0<br>
         Datenlizenz Deutschland 2.0 · <span class=cdot style=background:#16a34a></span> Amtliche + institutionelle Quellen · Proxy-Modell ohne Mikroklimavalidierung
       </div>`;
-    })():''}`;
+    })():''}
+    <div class="sec">${lang==='en'?'Safety & social control':lang==='nl'?'Veiligheid & sociale controle':'Sicherheit & soziale Kontrolle'}</div>
+    <div class="ibox" style="padding-bottom:10px">
+      <div style="font-size:10px;color:var(--text2);line-height:1.6">${lang==='en'?'nice here does not fabricate crime figures. Two objective proxies for perceived safety are available on the map:':lang==='nl'?'nice here verzint geen misdaadcijfers. Twee objectieve proxy\'s voor veiligheidsbeleving staan op de kaart:':'nice here erfindet keine Kriminalitätszahlen. Zwei objektive Proxys für das Sicherheitsgefühl liegen auf der Karte:'}</div>
+      <div style="margin-top:7px;display:flex;flex-direction:column;gap:5px">
+        <div style="display:flex;gap:7px;align-items:flex-start;font-size:10px;color:var(--text2)"><span style="color:#f59e0b;margin-top:1px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10.5c-.7.6-1 1.2-1 2H9c0-.8-.3-1.4-1-2A6 6 0 0 1 12 3Z"/></svg></span><span><b>${lang==='en'?'Lighting':lang==='nl'?'Verlichting':'Beleuchtung'}</b> — ${lang==='en'?'layer „Lighting" shows lit vs. dark streets.':lang==='nl'?'laag „Verlichting" toont verlichte vs. donkere straten.':'Layer „Beleuchtung" zeigt beleuchtete vs. dunkle Straßen.'}</span></div>
+        <div style="display:flex;gap:7px;align-items:flex-start;font-size:10px;color:var(--text2)"><span style="color:#2563eb;margin-top:1px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16l-1 5a3 3 0 0 1-3 2.5A3 3 0 0 1 13 12a3 3 0 0 1-3 2.5A3 3 0 0 1 7 12L4 7Z"/><path d="M5 14v6h14v-6"/></svg></span><span><b>${lang==='en'?'Active frontage':lang==='nl'?'Levendige plinten':'Belebte Erdgeschosse'}</b> — ${lang==='en'?'diagnosis „Place quality" maps „eyes on the street" (Jane Jacobs).':lang==='nl'?'diagnose „Verblijfskwaliteit" toont „eyes on the street" (Jane Jacobs).':'Diagnose „Aufenthaltsqualität" zeigt „eyes on the street" (Jane Jacobs).'}</span></div>
+      </div>
+      <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border);font-size:10px">
+        <span style="color:var(--muted)">${lang==='en'?'Official crime statistics':lang==='nl'?'Officiële criminaliteitscijfers':'Amtliche Kriminalstatistik'}:</span>
+        ${city==='utr'
+          ? '<a href="https://www.politie.nl/informatie/misdaad-in-kaart.html" target="_blank" style="color:var(--accent);font-weight:700">politie.nl — Misdaad in kaart →</a>'
+          : '<a href="https://www.polizei.hessen.de/" target="_blank" style="color:var(--accent);font-weight:700">Polizei Hessen →</a>'}
+      </div>
+      ${city==='utr'?`<div style="font-size:9px;color:var(--muted);margin-top:5px">${lang==='nl'?'NL biedt open misdaaddata per buurt — integratie als nächster Schritt möglich.':lang==='en'?'NL offers open per-neighbourhood crime data — integration possible as a next step.':'NL bietet offene Kriminalitätsdaten pro Buurt — Integration als nächster Schritt möglich.'}</div>`:''}
+    </div>
+    <div class="sec">${lang==='en'?'Report, cite & share':lang==='nl'?'Rapport, citeren & delen':'Bericht, Zitieren & Teilen'}</div>
+    <button onclick="districtPDF('${name.replace(/'/g,"\\'")}')" style="width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">${ic('download',15)} ${lang==='en'?'District report (PDF)':lang==='nl'?'Wijkrapport (PDF)':'Stadtteil-Bericht (PDF)'}</button>
+    <div class="ibox" style="padding-bottom:10px">
+      <div style="font-size:10px;color:var(--muted);line-height:1.5">Konfidenz & Datenstand je Dimension siehe Tab „Dimensionen". Vollständige Methodik & Quellen auf der <a href="methodik.html" target="_blank" style="color:var(--accent);font-weight:700">Methodikseite</a>.</div>
+      <div class="cite-row">
+        <span class="ct">nice here (2026): ${name}, ${cfg.name}. NICE Score ${s}. Abgerufen ${new Date().toLocaleDateString('de-DE')}.</span>
+        <button class="cite-btn" id="citeCopyBtn" onclick="copyCitation('${name.replace(/'/g,"\\'")}')">${ic('copy',13)} Zitat</button>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:6px">
+        <button class="cite-btn" id="permaBtn" onclick="copyPermalink('${name.replace(/'/g,"\\'")}')">${ic('link',13)} Permalink</button>
+      </div>
+    </div>
+  `;
 
   // TAB 1 — Dimensionen
   const DIM_PILLAR={A:'clim',B:'clim',C:'eco',D:'soc',E:'soc',F:'soc',G:'eco',H:'eco'};
