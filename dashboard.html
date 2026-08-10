@@ -961,7 +961,7 @@ function cityPDF(){
   doc.setDrawColor(220,220,220); doc.line(14,288,196,288);
   doc.setTextColor(130,130,140); doc.setFontSize(7);
   doc.text('nice here (2026): '+CITY.name+'. Abgerufen '+today+'.',14,292);
-  doc.text('inspector.nicehere.nl/methodik.html',196,292,{align:'right'});
+  doc.text('inspectornice.nicehere.nl/methodik.html',196,292,{align:'right'});
   doc.save('nicehere_'+CITY.name.replace(/[^\w]/g,'_')+'_Bericht.pdf');
 }
 

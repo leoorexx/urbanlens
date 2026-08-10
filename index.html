@@ -1425,7 +1425,7 @@ function copyCitation(name){
   const cfg=CITY_CFG[city];const d=cfg.data[name];if(!d)return;
   const today=new Date().toLocaleDateString('de-DE');
   const url=location.origin+location.pathname+'#'+city+'/'+encodeURIComponent(name);
-  const txt=`nice here (2026): ${name}, ${cfg.name}. NICE Score ${nice(d)}. Methodik: inspector.nicehere.nl/methodik.html. Abgerufen am ${today}. ${url}`;
+  const txt=`nice here (2026): ${name}, ${cfg.name}. NICE Score ${nice(d)}. Methodik: inspectornice.nicehere.nl/methodik.html. Abgerufen am ${today}. ${url}`;
   navigator.clipboard.writeText(txt).then(()=>{
     const b=document.getElementById('citeCopyBtn');if(b){const o=b.innerHTML;b.innerHTML=ic('check',13)+' Kopiert';setTimeout(()=>b.innerHTML=o,1600);}
   });
@@ -2996,7 +2996,7 @@ function districtPDF(name){
   // ── 5 · Methode ──
   y=pdfMethodBlock(doc,y,'5',
     L2('Der NICE Score ist das ungewichtete Mittel von acht Dimensionen (je 0–100, höher = besser). Kartenfarben und Prioritäten beruhen auf Quintilen im Stadtvergleich, nicht auf absoluten Schwellwerten. Maßnahmen werden den schwächsten Dimensionen des Stadtteils zugeordnet.','The NICE score is the unweighted mean of eight dimensions (0–100 each, higher = better). Map colours and priorities are based on quintiles within the city, not absolute thresholds. Measures are matched to the district’s weakest dimensions.','De NICE-score is het ongewogen gemiddelde van acht dimensies (elk 0–100, hoger = beter). Kaartkleuren en prioriteiten zijn gebaseerd op kwintielen binnen de stad. Maatregelen worden gekoppeld aan de zwakste dimensies.'),
-    'Copernicus LST (Sentinel-3, 2023–2025) · '+(isNL?'CBS Wijkdata 2023':'Zensus 2022')+' · OpenStreetMap · Open-Meteo (live) · Urban Atlas 2018 · inspector.nicehere.nl/methodik.html',
+    'Copernicus LST (Sentinel-3, 2023–2025) · '+(isNL?'CBS Wijkdata 2023':'Zensus 2022')+' · OpenStreetMap · Open-Meteo (live) · Urban Atlas 2018 · inspectornice.nicehere.nl/methodik.html',
     L2('WHO (Grünzugang 300 m) · EU-Umgebungslärm (55 dB Lden) · Utrecht Ruimtelijke Strategie 2040 (200 m Kühlgrün, 30 % Verschattung)','WHO (green access 300 m) · EU environmental noise (55 dB Lden) · Utrecht Spatial Strategy 2040 (200 m cool green, 30 % shade)','WHO (groen 300 m) · EU-omgevingslawaai (55 dB Lden) · Utrecht RSU 2040 (200 m koelgroen, 30 % schaduw)'));
   y=pdfDisclaimer(doc,y);
   pdfFinish(doc,'nice here — Inspector Nice ('+new Date().getFullYear()+'): '+name+', '+cfg.name+'. NICE '+s+'/100.',repId);
